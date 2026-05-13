@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>จัดการคะแนนความประพฤติ | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/css/style.css">    <style>
+        :root {
+            --navy-dark: #1e3c72;
+            --navy-light: #2a5298;
+            --premium-blue: #1a56db;
+            --premium-green: #10b981;
+            --premium-red: #ef4444;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Google Sans', 'Sarabun', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .page-header-premium {
+            padding: 30px 0;
+        }
+
+        .nav-pills-premium {
+            background: #fff;
+            padding: 8px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            display: inline-flex;
+            gap: 5px;
+        }
+
+        .nav-pills-premium .nav-link {
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-pills-premium .nav-link.active {
+            background: var(--premium-blue);
+            color: white;
+            box-shadow: 0 4px 12px rgba(26, 86, 219, 0.2);
+        }
+
+        .nav-pills-premium .nav-link:hover:not(.active) {
+            background: #f1f5f9;
+            color: var(--navy-dark);
+        }
+
+        .manage-container {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .form-label-premium {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #334155;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-control-premium, .form-select-premium {
+            border-radius: 14px;
+            padding: 14px 20px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background-color: #fcfdfe;
+        }
+
+        .form-control-premium:focus, .form-select-premium:focus {
+            border-color: var(--premium-blue);
+            box-shadow: 0 0 0 4px rgba(26, 86, 219, 0.1);
+            background-color: white;
+        }
+
+        .student-profile-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-radius: 28px;
+            padding: 35px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .student-profile-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+
+        .student-profile-card.deduct {
+            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+            box-shadow: 0 20px 40px rgba(239, 68, 68, 0.25);
+        }
+
+        .card-inner-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 20px;
+        }
+
+        .student-avatar {
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 20px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Dashboard Specific Styles */
+        .nav-pills .nav-link { border-radius: 50px; padding: 10px 25px; font-weight: 600; color: #64748b; transition: 0.3s; }
+        .nav-pills .nav-link.active { background-color: #065f46 !important; color: white !important; }
+        .nav-pills .nav-link:hover:not(.active) { background-color: #f1f5f9; }
+        
+        .bg-navy { background-color: #1e293b !important; }
+        
+        .stats-filter-card { border: none; border-radius: 15px; background: white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        .table thead th { border: none; padding: 15px; font-weight: 600; }
+        .table tbody td { padding: 15px; vertical-align: middle; }
+        
+        .cursor-pointer { cursor: pointer; }
+        .btn-settings { background: #1e293b; color: white; border-radius: 50px; padding: 5px 20px; font-size: 0.85rem; }
+        .btn-settings:hover { background: #334155; color: white; }
+
+        .score-display {
+            font-size: 5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin: 20px 0;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .score-change {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .change-item {
+            text-align: center;
+        }
+
+        .change-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .change-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        .btn-submit-premium {
+            background: var(--premium-blue);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 18px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 8px 20px rgba(26, 86, 219, 0.2);
+        }
+
+        .btn-submit-premium:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(26, 86, 219, 0.3);
+            color: white;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            border: 1px solid #e2e8f0;
+            margin-top: 5px;
+        }
+
+        .search-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-item:last-child { border-bottom: none; }
+
+        .search-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .search-item-info h6 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .search-item-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .recent-history-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .recent-history-table tr {
+            background: #fcfdfe;
+            transition: all 0.2s;
+        }
+
+        .recent-history-table tr:hover {
+            background: #f8fafc;
+            transform: scale(1.005);
+        }
+
+        .recent-history-table td {
+            padding: 16px 20px;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+        }
+
+        .recent-history-table td:first-child {
+            border-left: 1px solid #f1f5f9;
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+        }
+
+        .recent-history-table td:last-child {
+            border-right: 1px solid #f1f5f9;
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .score-badge {
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .score-plus { background: #ecfdf5; color: #10b981; }
+        .score-minus { background: #fef2f2; color: #ef4444; }
+
+        @media (max-width: 992px) {
+            .manage-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+            <!-- Header container (Inserted via JS) -->
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 d-flex flex-column py-4">
+                <div class="container-fluid">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">ระบบคะแนนความประพฤติ</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="teacher_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item active">จัดการคะแนน (ตัดเติมแต้ม)</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-white border text-navy rounded-pill px-3 py-2 shadow-sm">
+                                <i class="bi bi-person-circle me-1"></i> ผู้บันทึก: <span id="recordedByDisplay">กำลังโหลด...</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="manage-container">
+                            <!-- Left Form -->
+                            <div class="content-card">
+                                <h5 class="fw-bold mb-4 text-navy"><i class="bi bi-file-earmark-text-fill me-2"></i>แบบฟอร์มบันทึกพฤติกรรม</h5>
+                                
+                                <form id="creditForm">
+                                    <div class="mb-4 position-relative">
+                                        <label class="form-label-premium">ค้นหานักเรียน (พิมพ์รหัส หรือ ชื่อ-สกุล)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light border-end-0 rounded-start-4"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="studentSearch" class="form-control form-control-premium border-start-0" placeholder="พิมพ์ตัวเลข 5 หลัก หรือ ชื่อเพื่อค้นหา..." autocomplete="off">
+                                        </div>
+                                        <div id="searchResults" class="search-results"></div>
+                                        <input type="hidden" id="selectedStudentId">
+                                    </div>
+
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label-premium">หมวดหมู่</label>
+                                            <div class="d-flex gap-2 h-100">
+                                                <button type="button" class="btn btn-outline-danger w-100 py-2.5 rounded-4 fw-bold category-btn d-flex align-items-center justify-content-center" data-value="ตัด" style="height: 52px;">
+                                                    <i class="bi bi-dash-circle-fill me-2"></i>ตัดคะแนน
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success w-100 py-2.5 rounded-4 fw-bold category-btn d-flex align-items-center justify-content-center" data-value="เติม" style="height: 52px;">
+                                                    <i class="bi bi-plus-circle-fill me-2"></i>เติมคะแนน
+                                                </button>
+                                            </div>
+                                            <input type="hidden" id="categoryType" value="">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label-premium">รายการพฤติกรรม</label>
+                                            <select id="behaviorItem" class="form-select form-select-premium" disabled>
+                                                <option value="">-- กรุณาเลือกหมวดหมู่ก่อน --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4">
+                                        <label class="form-label-premium">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+                                        <textarea id="remark" class="form-control form-control-premium" rows="3" placeholder="เช่น มาสาย 15 นาที, ช่วยเก็บกระเป๋าตังค์ได้ ฯลฯ"></textarea>
+                                    </div>
+
+                                    <div class="row g-4 mt-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label-premium">วันที่บันทึก</label>
+                                            <input type="date" id="occurrenceDate" class="form-control form-control-premium">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label-premium">คะแนนที่บันทึก</label>
+                                            <input type="number" id="pointsDisplay" class="form-control form-control-premium" readonly value="0">
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-submit-premium mt-5">
+                                        <i class="bi bi-send-fill"></i> ยืนยันการบันทึกข้อมูล
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Right Profile Card -->
+                            <div id="studentCardContainer">
+                                <div class="content-card h-100 d-flex flex-column align-items-center justify-content-center text-center py-5">
+                                    <div class="mb-4">
+                                        <img src="https://cdn-icons-png.flaticon.com/512/5069/5069162.png" width="120" style="opacity: 0.2;">
+                                    </div>
+                                    <h5 class="fw-bold text-muted">เลือกนักเรียนเพื่อดูข้อมูล</h5>
+                                    <p class="text-muted small">ระบบจะแสดงการ์ดข้อมูลคะแนนคงเหลือแบบเรียลไทม์</p>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                        CNPAPP<sup>©</sup>
+                                    </a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">
+                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                cnpapp@chainatpit.ac.th
+                            </div>
+                            
+                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
+                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
+                                </span>
+                                
+                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-envelope-fill me-1"></i> Email
+                                </a>
+                                
+                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
+                                
+                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
+                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="../public/js/main.js"></script>
+
+    <script>
+        let behaviorData = [];
+        let currentUser = null;
+        let selectedStudentData = null;
+        let behaviorSelectInstance = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentUser = await checkAuth(['admin', 'teacher']);
+            if (currentUser) {
+                document.getElementById('recordedByDisplay').innerText = currentUser.full_name_th || currentUser.username || 'ผู้ดูแลระบบ';
+                // Initialize Tom Select
+                behaviorSelectInstance = new TomSelect('#behaviorItem', {
+                    create: false,
+                    sortField: { field: 'text', direction: 'asc' },
+                    placeholder: '-- ค้นหาหรือเลือกรายการพฤติกรรม --'
+                });
+
+                // Set default date to today
+                document.getElementById('occurrenceDate').valueAsDate = new Date();
+                
+                // Load Real Behavior Data from DB
+                await loadBehaviorData();
+                
+                setupEventListeners();
+            }
+        });
+
+        async function loadBehaviorData() {
+            try {
+                const res = await fetch('../api/teacher/get_behavior_items.php');
+                const data = await res.json();
+                if (data.success) {
+                    behaviorData = data.data;
+                }
+            } catch (err) {
+                console.error('Error loading behavior rules:', err);
+                Swal.fire('ผิดพลาด', 'ไม่สามารถโหลดข้อมูลเกณฑ์คะแนนพฤติกรรมได้', 'error');
+            }
+        }
+
+        function setupEventListeners() {
+            // Student Search Logic
+            const searchInput = document.getElementById('studentSearch');
+            const searchResults = document.getElementById('searchResults');
+
+            searchInput.addEventListener('input', async (e) => {
+                const query = e.target.value.trim();
+                if (query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    // Reusing general student search API
+                    const response = await fetch(`../api/admin/search_students.php?q=${query}`);
+                    const students = await response.json();
+
+                    if (students.length > 0) {
+                        searchResults.innerHTML = students.map(s => `
+                            <div class="search-item" onclick="selectStudent(${JSON.stringify(s).replace(/"/g, '&quot;')})">
+                                <div class="student-avatar" style="width: 35px; height: 35px; margin: 0; overflow: hidden; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #eee;">
+                                    ${s.photo ? `<img src="../${s.photo}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th)}&background=random'">` : '<i class="bi bi-person"></i>'}
+                                </div>
+                                <div class="search-item-info">
+                                    <h6>${s.first_name_th} ${s.last_name_th} ${s.nickname ? '(' + s.nickname + ')' : ''}</h6>
+                                    <p>รหัส: ${s.student_id} | ห้อง ${s.room}</p>
+                                </div>
+                            </div>
+                        `).join('');
+                        searchResults.style.display = 'block';
+                    } else {
+                        searchResults.innerHTML = '<div class="p-3 text-center text-muted">ไม่พบข้อมูลนักเรียน</div>';
+                        searchResults.style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Search error:', error);
+                }
+            });
+
+            // Hide search results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.style.display = 'none';
+                }
+            });
+
+            // Category Button Clicks
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    
+                    // Toggle active classes
+                    document.querySelectorAll('.category-btn').forEach(b => {
+                        b.classList.remove('active', 'btn-danger', 'btn-success');
+                        b.classList.add('btn-outline-danger', 'btn-outline-success');
+                        if (b.getAttribute('data-value') === 'ตัด') {
+                            b.classList.remove('btn-outline-success');
+                        } else {
+                            b.classList.remove('btn-outline-danger');
+                        }
+                    });
+
+                    if (value === 'ตัด') {
+                        this.classList.remove('btn-outline-danger');
+                        this.classList.add('btn-danger', 'active');
+                    } else {
+                        this.classList.remove('btn-outline-success');
+                        this.classList.add('btn-success', 'active');
+                    }
+
+                    document.getElementById('categoryType').value = value;
+                    updateBehaviorList(value);
+                });
+            });
+
+            function updateBehaviorList(type) {
+                const behaviorSelect = document.getElementById('behaviorItem');
+                
+                if (!type) {
+                    behaviorSelectInstance.disable();
+                    behaviorSelectInstance.clearOptions();
+                    behaviorSelectInstance.clear();
+                    document.getElementById('pointsDisplay').value = 0;
+                    return;
+                }
+
+                behaviorSelectInstance.enable();
+                behaviorSelectInstance.clearOptions();
+                behaviorSelectInstance.clear();
+
+                const filtered = behaviorData.filter(b => b.type === type);
+                const options = filtered.map(b => ({
+                    value: b.id,
+                    text: `${b.behavior} (${b.score > 0 ? '+' : ''}${b.score})`,
+                    behavior_name: b.behavior,
+                    score: b.score
+                }));
+
+                behaviorSelectInstance.addOptions(options);
+                document.getElementById('pointsDisplay').value = 0;
+            }
+
+            // Behavior Change
+            behaviorSelectInstance.on('change', (id) => {
+                const option = behaviorSelectInstance.options[id];
+                const score = option ? option.score : 0;
+                document.getElementById('pointsDisplay').value = score;
+            });
+
+            // Form Submission
+            document.getElementById('creditForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const studentId = document.getElementById('selectedStudentId').value;
+                const behavior = document.getElementById('behaviorItem').value;
+                const points = document.getElementById('pointsDisplay').value;
+                const type = document.getElementById('categoryType').value;
+                const date = document.getElementById('occurrenceDate').value;
+                const remark = document.getElementById('remark').value;
+
+                if (!studentId) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกนักเรียน', 'warning');
+                if (!behavior) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรายการพฤติกรรม', 'warning');
+
+                try {
+                    const selectedBehaviorId = behavior;
+                    const behaviorOption = behaviorSelectInstance.options[selectedBehaviorId];
+                    const behaviorName = behaviorOption ? behaviorOption.behavior_name : '';
+
+                    const response = await fetch('../api/teacher/credit.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            student_id: selectedStudentData.id,
+                            item_id: selectedBehaviorId,
+                            type: type === 'เติม' ? 'บวก' : 'ลบ',
+                            points: Math.abs(points),
+                            reason: behaviorName,
+                            remark: remark,
+                            date: date
+                        })
+                    });
+
+                    const res = await response.json();
+                    if (res.success) {
+                        Swal.fire({
+                            title: 'บันทึกสำเร็จ!',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        
+                        // Reset form and buttons
+                        document.getElementById('creditForm').reset();
+                        document.querySelectorAll('.category-btn').forEach(b => {
+                            b.classList.remove('active', 'btn-danger', 'btn-success');
+                            b.classList.add(b.getAttribute('data-value') === 'ตัด' ? 'btn-outline-danger' : 'btn-outline-success');
+                        });
+                        document.getElementById('categoryType').value = '';
+                        document.getElementById('occurrenceDate').valueAsDate = new Date();
+                        document.getElementById('behaviorItem').disabled = true;
+                        selectStudent(selectedStudentData); // Refresh card
+                        loadHistory();
+                    } else {
+                        Swal.fire('ผิดพลาด', res.error || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
+                }
+            });
+        }
+
+        async function selectStudent(student) {
+            selectedStudentData = student;
+            const nicknameStr = student.nickname ? ` (${student.nickname})` : '';
+            document.getElementById('studentSearch').value = `${student.first_name_th} ${student.last_name_th}${nicknameStr} (${student.student_id})`;
+            document.getElementById('selectedStudentId').value = student.student_id;
+            document.getElementById('searchResults').style.display = 'none';
+
+            // Load student detailed credit info
+            try {
+                // Fetch current credit score (assuming an API exists or calculating from history)
+                // For now, let's fetch from student history API
+                const response = await fetch(`../api/student/credit_history.php?student_id=${student.id}`);
+                const data = await response.json();
+                
+                let currentScore = 100; // Default
+                let plusTotal = 0;
+                let minusTotal = 0;
+
+                if (data.data) {
+                    data.data.forEach(t => {
+                        const p = parseInt(t.points);
+                        currentScore += p;
+                        if (p > 0) plusTotal += p;
+                        else minusTotal += Math.abs(p);
+                    });
+                }
+
+                updateStudentCard(student, currentScore, plusTotal, minusTotal);
+            } catch (error) {
+                console.error('Error loading student score:', error);
+                updateStudentCard(student, 100, 0, 0);
+            }
+        }
+
+        function updateStudentCard(student, score, plus, minus) {
+            const isDeducting = score < 100;
+            const container = document.getElementById('studentCardContainer');
+            
+            container.innerHTML = `
+                <div class="student-profile-card ${isDeducting ? 'deduct' : ''} animate-up">
+                    <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                        <div class="text-start">
+                            <div style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.7;">Behavior Card</div>
+                            <div style="font-size: 1.1rem; font-weight: 800; letter-spacing: 0.05em;">บัตรความประพฤติ</div>
+                        </div>
+                        <i class="bi bi-shield-check-fill fs-3 opacity-50"></i>
+                    </div>
+
+                    <div class="student-avatar" style="width: 160px; height: 160px; border-radius: 22px; border: 5px solid rgba(255, 255, 255, 0.4); overflow: hidden; background: rgba(255, 255, 255, 0.2); margin: 0 auto 25px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                        ${student.photo ? `<img src="../${student.photo}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(student.first_name_th)}&background=random&size=256'">` : '<i class="bi bi-person-fill" style="font-size: 5rem;"></i>'}
+                    </div>
+
+                    <div class="mb-4">
+                        <h3 class="fw-bold mb-1" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${student.first_name_th} ${student.last_name_th}</h3>
+                        <div class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold" style="font-size: 0.85rem;">
+                            รหัส: ${student.student_id} | ชั้น: ม.${student.room}
+                        </div>
+                    </div>
+                    
+                    <div class="card-inner-glass">
+                        <div class="score-label" style="font-size: 0.75rem;">คะแนนความประพฤติคงเหลือ</div>
+                        <div class="score-display" style="font-size: 4.5rem; margin: 10px 0;">${score}</div>
+                        
+                        <div class="score-change">
+                            <div class="change-item">
+                                <span class="change-value" style="color: #4ade80;">+${plus}</span>
+                                <span class="change-label">ความดีสะสม</span>
+                            </div>
+                            <div class="change-item">
+                                <span class="change-value" style="color: #f87171;">-${minus}</span>
+                                <span class="change-label">ถูกหักสะสม</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 25px; font-size: 0.7rem; opacity: 0.6; font-style: italic;">
+                        บันทึกเมื่อ: ${thDate(new Date())}
+                    </div>
+                    
+                    <div style="position:absolute; bottom:-20px; right:-20px; font-size:8rem; opacity:0.05; transform: rotate(-15deg);">
+                        <i class="bi bi-patch-check-fill"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadHistory() {
+            try {
+                // Fetch recent credit transactions for ALL students (teacher view)
+                // We might need a new API or reuse credit_history with no ID if admin/teacher
+                const response = await fetch('../api/teacher/credit_recent.php');
+                const data = await response.json();
+                
+                const list = document.getElementById('historyList');
+                if (!data.success || data.items.length === 0) {
+                    list.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">ยังไม่มีประวัติการบันทึก</td></tr>';
+                    return;
+                }
+
+                list.innerHTML = data.items.map(item => {
+                    const date = thDate(item.created_at);
+                    const time = new Date(item.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                    const pts = parseInt(item.points);
+                    return `
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">${date}</div>
+                                <div class="small text-muted">${time} น.</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">${item.student_name}</div>
+                                <div class="small text-muted">รหัส ${item.student_id} | ห้อง ${item.room}</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">${pts > 0 ? 'เติม' : 'ตัด'} : ${item.reason || 'ทั่วไป'}</div>
+                                <div class="small text-muted">${item.remark || ''}</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="score-badge ${pts > 0 ? 'score-plus' : 'score-minus'}">
+                                    ${pts > 0 ? '+' : ''}${pts}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="small fw-bold">${item.teacher_name}</div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading history:', error);
+                document.getElementById('historyList').innerHTML = '<tr><td colspan="5" class="text-center py-3 text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            }
+        }
+
+        // Stats Logic
+        let statsCharts = {};
+        let statsFullData = [];
+
+        document.getElementById('pills-stats-tab').addEventListener('shown.bs.tab', () => {
+            loadStatsDashboard();
+        });
+
+        async function loadStatsDashboard() {
+            const grade = document.getElementById('filterGrade')?.value || '';
+            const room  = document.getElementById('filterRoom')?.value  || '';
+            
+            try {
+                const response = await fetch(`../api/admin/credit_stats_dashboard.php?grade=${grade}&room=${room}`);
+                const data = await response.json();
+                
+                if (!data.success) { console.error(data.error); return; }
+
+                // Update scope banner & filter visibility based on role
+                const scope = data.scope;
+                const filterWrap = document.getElementById('statsFilterWrap');
+                const scopeLabel = document.getElementById('scopeLabel');
+
+                if (scope.role === 'teacher') {
+                    // Teacher: hide filters, show their room
+                    if (filterWrap) filterWrap.style.display = 'none';
+                    scopeLabel.className = 'badge bg-success rounded-pill px-3 py-2 fs-6';
+                    scopeLabel.innerHTML = `<i class="bi bi-house-door-fill me-1"></i> ห้อง ${scope.room} (ห้องของฉัน)`;
+                } else {
+                    // Admin: show filters, update label
+                    if (filterWrap) filterWrap.style.display = 'flex';
+                    if (scope.room) {
+                        scopeLabel.className = 'badge bg-info text-dark rounded-pill px-3 py-2 fs-6';
+                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> กำลังดู: ห้อง ${scope.room}`;
+                    } else if (scope.grade) {
+                        const gradeNum = scope.grade.replace('มัธยมศึกษาปีที่ ', '');
+                        scopeLabel.className = 'badge bg-info text-dark rounded-pill px-3 py-2 fs-6';
+                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> กำลังดู: ม.${gradeNum}`;
+                    } else {
+                        scopeLabel.className = 'badge bg-secondary rounded-pill px-3 py-2 fs-6';
+                        scopeLabel.innerHTML = `<i class="bi bi-globe me-1"></i> ภาพรวมทั้งโรงเรียน`;
+                    }
+                }
+
+                renderCharts(data.charts);
+                statsFullData = data.students;
+                renderStatsTable(statsFullData);
+                
+                // Highlight worst student (lowest score with deductions)
+                const withDeductions = data.students.filter(s => s.remaining_score < 100).sort((a,b) => a.remaining_score - b.remaining_score);
+                if (withDeductions.length > 0) {
+                    document.getElementById('topAtRiskHighlight').style.display = 'block';
+                    document.getElementById('topRiskName').innerText = `${withDeductions[0].first_name_th} ${withDeductions[0].last_name_th}`;
+                    document.getElementById('topRiskRoom').innerText = `ม.${withDeductions[0].room} | รหัส ${withDeductions[0].student_id}`;
+                    document.getElementById('topRiskScore').innerText = withDeductions[0].remaining_score;
+                } else {
+                    document.getElementById('topAtRiskHighlight').style.display = 'none';
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function renderCharts(chartData) {
+            // Cleanup existing charts
+            Object.values(statsCharts).forEach(c => c.destroy());
+
+            // 1. Categories Donut
+            statsCharts.cat = new Chart(document.getElementById('chartCategories'), {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.categories.map(c => c.label),
+                    datasets: [{
+                        data: chartData.categories.map(c => c.value),
+                        backgroundColor: ['#ef4444', '#f87171', '#fca5a5', '#fee2e2', '#cbd5e1']
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // 2. Negative Bar
+            statsCharts.neg = new Chart(document.getElementById('chartNegative'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.negative.map(c => c.label),
+                    datasets: [{
+                        label: 'ครั้ง',
+                        data: chartData.negative.map(c => c.value),
+                        backgroundColor: '#fbbf24'
+                    }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // 3. Positive Bar
+            statsCharts.pos = new Chart(document.getElementById('chartPositive'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.positive.map(c => c.label),
+                    datasets: [{
+                        label: 'ครั้ง',
+                        data: chartData.positive.map(c => c.value),
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderStatsTable(data) {
+            const body = document.getElementById('statsTableBody');
+            if (data.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">
+                    <i class="bi bi-clipboard-x fs-2 d-block mb-2"></i>
+                    ยังไม่มีนักเรียนที่เคยมีการบันทึกคะแนนในขอบเขตนี้
+                </td></tr>`;
+                return;
+            }
+            body.innerHTML = data.map(s => {
+                const score = parseInt(s.remaining_score);
+                let badgeClass = 'bg-success';
+                if (score < 50) badgeClass = 'bg-danger';
+                else if (score < 80) badgeClass = 'bg-warning text-dark';
+                return `
+                <tr>
+                    <td class="fw-bold text-muted small">${s.student_id}</td>
+                    <td class="text-center">${s.number || '-'}</td>
+                    <td>
+                        <div class="fw-bold">${s.first_name_th} ${s.last_name_th}</div>
+                        <div class="small text-muted">ม.${s.room}</div>
+                    </td>
+                    <td class="text-center"><span class="badge bg-light text-dark">${s.room}</span></td>
+                    <td class="text-center text-success fw-bold">+${s.plus_points}</td>
+                    <td class="text-center text-danger fw-bold">-${s.minus_points}</td>
+                    <td class="text-center">
+                        <span class="badge rounded-pill ${badgeClass} px-3 py-2" style="font-size: 0.9rem;">${score}</span>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterStatsTable() {
+            const q = document.getElementById('tableSearch').value.toLowerCase();
+            const filtered = statsFullData.filter(s => 
+                s.student_id.includes(q) || 
+                s.first_name_th.toLowerCase().includes(q) || 
+                s.last_name_th.toLowerCase().includes(q)
+            );
+            renderStatsTable(filtered);
+        }
+
+        function clearStatsFilters() {
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterRoom').value = '';
+            loadStatsDashboard();
+        }
+
+        // Populate rooms based on grade level
+        document.getElementById('filterGrade').addEventListener('change', async (e) => {
+            const grade = e.target.value;
+            const roomSelect = document.getElementById('filterRoom');
+            roomSelect.innerHTML = '<option value="">-- กำลังโหลด --</option>';
+            
+            if (!grade) {
+                roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`../api/admin/get_rooms.php?grade=${grade}`);
+                const data = await response.json();
+                roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>' + 
+                    data.map(r => `<option value="${r.room}">${r.room}</option>`).join('');
+            } catch (error) { roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>'; }
+        });
+    </script>
+</body>
+
+</html>

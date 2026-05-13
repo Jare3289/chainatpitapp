@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ข้อมูลส่วนตัว | CNP APP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="../public/css/standard_branding.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* ── Profile Banner ── */
+        .banner-profile {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 18px;
+            padding: 50px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(30, 58, 138, 0.1);
+        }
+
+        .banner-profile::after {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .banner-content { display: flex; align-items: center; gap: 40px; position: relative; z-index: 2; }
+        
+        .avatar-box {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .avatar-box img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%; /* Perfect Circle */
+            object-fit: cover;
+            border: 6px solid rgba(255, 255, 255, 0.2);
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+
+        .avatar-box:hover img { transform: scale(1.05); border-color: rgba(255, 255, 255, 0.4); }
+        
+        .avatar-icon {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: white;
+            color: #1e3a8a;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+
+        .avatar-box:hover .avatar-icon { background: #3b82f6; color: white; }
+
+        .banner-info h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.02em; }
+        .tag-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 12px;
+        }
+
+        /* ── Profile Layout ── */
+        .card-profile { background: white; border-radius: 18px; padding: 35px; border: 1px solid rgba(0,0,0,0.02); }
+        .card-title-sub { font-size: 1.1rem; font-weight: 800; color: #1e3a8a; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
+
+        .input-group-premium {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .input-group-premium:focus-within {
+            background: white;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-group-icon { padding: 12px 20px; color: #94a3b8; font-size: 1.2rem; border-right: 1px solid #f1f5f9; }
+        .input-field { border: none; background: transparent; width: 100%; padding: 14px 18px; font-size: 0.95rem; color: #1e293b; font-weight: 600; }
+        .input-field:focus { outline: none; }
+        .input-field:disabled { background: #f1f5f9; color: #94a3b8; }
+
+        .btn-update {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn-update:hover { background: #162d56; transform: translateY(-3px); box-shadow: 0 12px 30px rgba(30, 58, 138, 0.2); }
+
+        .alert-premium { border-radius: 12px; padding: 18px; font-size: 0.88rem; display: flex; gap: 15px; border: none; }
+        .alert-info-premium { background: #eff6ff; color: #1e40af; }
+        .alert-warn-premium { background: #fffbeb; color: #92400e; }
+
+        @media (max-width: 991px) {
+            .banner-content { flex-direction: column; text-align: center; gap: 25px; }
+            .tag-role { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <aside class="sidebar" id="mainSidebar"></aside>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4 px-4">
+                <div class="container-fluid" style="max-width: 1300px;">
+                    
+                    <!-- TOP BANNER -->
+                    <div class="banner-profile shadow-sm">
+                        <div class="banner-content">
+                            <div class="avatar-box" onclick="document.getElementById('photoInput').click()">
+                                <img id="displayAvatar" src="../public/img/default-avatar.png">
+                                <div class="avatar-icon"><i class="bi bi-camera-fill"></i></div>
+                                <input type="file" id="photoInput" hidden accept="image/*" onchange="previewImage(this)">
+                            </div>
+                            <div class="banner-info">
+                                <h1 id="banner_name" class="fw-black">ผู้ดูแลระบบ</h1>
+                                <div class="tag-role">
+                                    <i class="bi bi-shield-check"></i> <span id="banner_role">ผู้ดูแลระบบ</span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="opacity-75 small fw-bold"><i class="bi bi-envelope-fill me-2"></i></span>
+                                    <span class="fw-bold" id="banner_email">email@example.com</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="profileForm" onsubmit="saveProfile(event)">
+                        <div class="row g-4">
+                            <!-- Left: Details -->
+                            <div class="col-lg-8">
+                                <div class="card-profile shadow-sm mb-4">
+                                    <div class="card-title-sub">
+                                        <i class="bi bi-person-bounding-box"></i> ข้อมูลพื้นฐานบัญชีผู้ใช้
+                                    </div>
+                                    <div class="row g-4">
+                                        <div class="col-md-7">
+                                            <label class="form-label small fw-bold text-muted mb-2">ชื่อ-นามสกุล (ภาษาไทย)</label>
+                                            <div class="input-group-premium">
+                                                <div class="input-group-icon"><i class="bi bi-person"></i></div>
+                                                <input type="text" name="full_name" id="full_name" class="input-field" placeholder="ชื่อ-นามสกุล" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label small fw-bold text-muted mb-2">ตำแหน่งปฏิบัติงาน</label>
+                                            <div class="input-group-premium">
+                                                <div class="input-group-icon"><i class="bi bi-award"></i></div>
+                                                <input type="text" id="position_display" class="input-field" value="ผู้ดูแลระบบ" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold text-muted mb-2">อีเมลผู้ใช้งาน (Username)</label>
+                                            <div class="input-group-premium">
+                                                <div class="input-group-icon"><i class="bi bi-envelope-at"></i></div>
+                                                <input type="email" name="username" id="email_field" class="input-field" placeholder="example@email.com" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-profile shadow-sm">
+                                    <div class="card-title-sub">
+                                        <i class="bi bi-key-fill"></i> ความปลอดภัยและรหัสผ่าน
+                                    </div>
+                                    <div class="alert-premium alert-info-premium mb-4">
+                                        <i class="bi bi-info-circle-fill fs-5"></i>
+                                        <span>หากไม่ต้องการเปลี่ยนรหัสผ่านใหม่ กรุณาเว้นว่างช่องรหัสผ่านไว้ครับ</span>
+                                    </div>
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-muted mb-2">รหัสผ่านใหม่</label>
+                                            <div class="input-group-premium">
+                                                <div class="input-group-icon"><i class="bi bi-lock"></i></div>
+                                                <input type="password" name="password" id="password" class="input-field" placeholder="ขั้นต่ำ 6 ตัวอักษร">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-muted mb-2">ยืนยันรหัสผ่านใหม่</label>
+                                            <div class="input-group-premium">
+                                                <div class="input-group-icon"><i class="bi bi-check2-all"></i></div>
+                                                <input type="password" id="confirm_password" class="input-field" placeholder="ยืนยันรหัสผ่านอีกครั้ง">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Confirmation -->
+                            <div class="col-lg-4">
+                                <div class="card-profile shadow-sm bg-navy text-white" style="background: #1e3a8a; border: none;">
+                                    <h6 class="fw-black mb-4"><i class="bi bi-shield-lock-fill me-2"></i> ยืนยันการแก้ไขข้อมูล</h6>
+                                    
+                                    <div class="alert-premium bg-white bg-opacity-10 text-white mb-4">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        <span>กรุณาระบุรหัสผ่านปัจจุบันเพื่อยืนยันตัวตนก่อนการบันทึกครับ</span>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold opacity-75 mb-2">รหัสผ่านปัจจุบัน</label>
+                                        <div class="input-group-premium border-0 bg-white bg-opacity-10 text-white">
+                                            <div class="input-group-icon border-0 bg-transparent text-white opacity-50"><i class="bi bi-fingerprint"></i></div>
+                                            <input type="password" id="current_password" class="input-field text-white" placeholder="ระบุรหัสผ่านเดิม" required>
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-light rounded-pill w-100 py-3 fw-black text-navy shadow-sm">
+                                        <i class="bi bi-cloud-arrow-up-fill me-2"></i> บันทึกข้อมูล
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- ADMIN TEAM SECTION -->
+                    <div class="mt-5 mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="fw-black text-navy mb-0"><i class="bi bi-people-fill me-2"></i> ทีมผู้ดูแลระบบทั้งหมด</h6>
+                            <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="showAddAdminModal()">
+                                <i class="bi bi-person-plus-fill me-2"></i> เพิ่มผู้ดูแลระบบ
+                            </button>
+                        </div>
+                        <div class="row g-4" id="adminTeamList">
+                            <div class="col-12 text-center py-5">
+                                <div class="spinner-border text-navy spinner-border-sm"></div>
+                                <div class="small text-muted mt-2">กำลังโหลดข้อมูลทีมงาน...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Admin Modal -->
+                    <div class="modal fade" id="addAdminModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg" style="border-radius:18px; overflow:hidden;">
+                                <div class="modal-header bg-navy text-white p-4">
+                                    <h6 class="fw-black mb-0"><i class="bi bi-person-plus-fill me-2"></i> เพิ่มผู้ดูแลระบบใหม่</h6>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <form id="addAdminForm" onsubmit="addAdmin(event)">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-muted">ชื่อ (ภาษาไทย) *</label>
+                                                <input type="text" id="adm-fname" class="form-control rounded-3" required placeholder="ชื่อ">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-muted">นามสกุล (ภาษาไทย) *</label>
+                                                <input type="text" id="adm-lname" class="form-control rounded-3" required placeholder="นามสกุล">
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-muted">Username (อีเมล) *</label>
+                                                <input type="text" id="adm-username" class="form-control rounded-3" required placeholder="example@email.com">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-muted">รหัสผ่าน</label>
+                                                <input type="text" id="adm-password" class="form-control rounded-3" value="cnp12345" placeholder="ค่าเริ่มต้น: cnp12345">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-muted">ตำแหน่ง</label>
+                                                <input type="text" id="adm-position" class="form-control rounded-3" value="ผู้ดูแลระบบ" placeholder="ผู้ดูแลระบบ">
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 d-flex gap-2 justify-content-end">
+                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                                            <button type="submit" class="btn btn-navy rounded-pill px-5 fw-bold">เพิ่มผู้ดูแล</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) {
+                await fetchProfile();
+                await fetchAdminTeam();
+            }
+        });
+
+        let selectedPhotoBase64 = null;
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('displayAvatar').src = e.target.result;
+                    selectedPhotoBase64 = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function fetchProfile() {
+            try {
+                const res = await fetch('../api/teacher/profile.php');
+                const result = await res.json();
+                if (result.success) {
+                    const data = result.data;
+                    const fullName = ((data.first_name_th || '') + ' ' + (data.last_name_th || '')).trim();
+                    
+                    document.getElementById('full_name').value = fullName || '';
+                    document.getElementById('email_field').value = data.email || data.username || '';
+                    document.getElementById('banner_name').innerText = fullName || data.username || 'ผู้ดูแลระบบ';
+                    document.getElementById('banner_email').innerText = data.email || data.username || 'email@example.com';
+                    
+                    if (data.photo) {
+                        document.getElementById('displayAvatar').src = '../' + data.photo;
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchAdminTeam() {
+            const container = document.getElementById('adminTeamList');
+            try {
+                const res = await fetch('../api/admin/sysadmins.php');
+                const result = await res.json();
+                if (result.success) {
+                    const myId = result.current_user_id;
+                    let html = '';
+                    result.data.forEach(adm => {
+                        const avatar = adm.photo ? '../' + adm.photo : '../public/img/default-avatar.png';
+                        const isMe = parseInt(adm.user_id) === myId;
+                        html += `
+                            <div class="col-md-6 col-xl-4">
+                                <div class="card-profile shadow-sm p-3 h-100 border-0" style="background:#fff; border-radius:18px;">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="${avatar}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border: 2px solid ${isMe ? '#3b82f6' : '#f1f5f9'};">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold text-dark small">
+                                                ${adm.first_name_th || ''} ${adm.last_name_th || ''}
+                                                ${isMe ? '<span class="badge bg-primary-subtle text-primary ms-2" style="font-size:0.6rem;">คุณ</span>' : ''}
+                                            </div>
+                                            <div class="small text-muted opacity-75" style="font-size:0.7rem;">${adm.position || 'ผู้ดูแลระบบ'}</div>
+                                            <div class="small text-muted opacity-50" style="font-size:0.65rem;"><i class="bi bi-envelope me-1"></i>${adm.username}</div>
+                                        </div>
+                                        ${isMe 
+                                            ? '<div class="status-dot bg-success" style="width:8px; height:8px; border-radius:50%;"></div>'
+                                            : `<button class="btn btn-sm text-danger opacity-50 p-1" onclick="deleteAdmin(${adm.user_id}, '${(adm.first_name_th||'')} ${(adm.last_name_th||'')}')" title="ลบผู้ดูแลระบบ"><i class="bi bi-trash"></i></button>`
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html || '<div class="col-12 text-center py-4 text-muted">ยังไม่มีผู้ดูแลระบบ</div>';
+                }
+            } catch (e) { 
+                container.innerHTML = '<div class="col-12 text-center py-4 text-danger">ไม่สามารถโหลดข้อมูลทีมได้</div>';
+            }
+        }
+
+        function showAddAdminModal() {
+            document.getElementById('addAdminForm').reset();
+            document.getElementById('adm-password').value = 'cnp12345';
+            document.getElementById('adm-position').value = 'ผู้ดูแลระบบ';
+            new bootstrap.Modal(document.getElementById('addAdminModal')).show();
+        }
+
+        async function addAdmin(e) {
+            e.preventDefault();
+            const data = {
+                first_name_th: document.getElementById('adm-fname').value.trim(),
+                last_name_th: document.getElementById('adm-lname').value.trim(),
+                username: document.getElementById('adm-username').value.trim(),
+                password: document.getElementById('adm-password').value || 'cnp12345',
+                position: document.getElementById('adm-position').value.trim() || 'ผู้ดูแลระบบ'
+            };
+
+            try {
+                const res = await fetch('../api/admin/sysadmins.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('addAdminModal')).hide();
+                    Swal.fire('สำเร็จ!', result.message, 'success');
+                    fetchAdminTeam();
+                } else {
+                    Swal.fire('ผิดพลาด', result.error, 'error');
+                }
+            } catch (err) {
+                Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+
+        async function deleteAdmin(id, name) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'ยืนยันการลบ?',
+                html: `คุณต้องการลบ <strong>${name}</strong> ออกจากทีมผู้ดูแลระบบ?<br><small class="text-muted">ข้อมูลจะถูกลบถาวร ไม่สามารถกู้คืนได้</small>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ลบผู้ดูแล',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (isConfirmed) {
+                try {
+                    const res = await fetch(`../api/admin/sysadmins.php?id=${id}`, { method: 'DELETE' });
+                    const result = await res.json();
+                    if (result.success) {
+                        Swal.fire('ลบแล้ว!', result.message, 'success');
+                        fetchAdminTeam();
+                    } else {
+                        Swal.fire('ผิดพลาด', result.error, 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+                }
+            }
+        }
+
+        async function saveProfile(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('full_name').value.trim();
+            const email = document.getElementById('email_field').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm_password').value;
+            const currentPassword = document.getElementById('current_password').value;
+
+            if (password && password.length < 6) {
+                Swal.fire('แจ้งเตือน', 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษร', 'warning');
+                return;
+            }
+
+            if (password && password !== confirm) {
+                Swal.fire('แจ้งเตือน', 'รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน', 'error');
+                return;
+            }
+
+            const nameParts = fullName.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+
+            const data = {
+                first_name_th: firstName,
+                last_name_th: lastName,
+                username: email, 
+                email: email,    
+                password: password,
+                current_password: currentPassword,
+                position: 'ผู้ดูแลระบบ'
+            };
+
+            if (selectedPhotoBase64) {
+                data.photo_base64 = selectedPhotoBase64;
+            }
+            
+            const { isConfirmed } = await Swal.fire({ 
+                title: 'ยืนยันการบันทึก?',
+                text: 'คุณต้องการบันทึกการเปลี่ยนแปลงข้อมูลใช่หรือไม่?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกข้อมูล',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#1e3a8a'
+            });
+
+            if (isConfirmed) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+                try {
+                    const res = await fetch('../api/teacher/profile.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+                    }
+                } catch (e) { Swal.fire('Error', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); }
+            }
+        }
+    </script>
+</body>
+</html>

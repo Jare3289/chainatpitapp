@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>สถิติการเช็คชื่อที่ปรึกษา | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .stats-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.02); height: 100%; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .table-custom th { background: #f8fafc; padding: 15px; font-weight: 700; color: #475569; border-bottom: 2px solid #eef2f6; text-align: center; }
+        .table-custom td { padding: 12px 15px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; text-align: center; }
+        .progress { height: 8px; border-radius: 10px; background-color: #f1f5f9; }
+        .dropdown-style { background-color: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px 15px; font-weight: 500; width: 100%; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+            <div class="app-content page-content py-4 px-4 flex-grow-1">
+                <div class="container-fluid">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">สถิติการเข้าเรียน (ห้องที่ปรึกษา)</h4>
+                            <p class="text-muted small mb-0">วิเคราะห์ภาพรวมการมาเรียนรายวันของนักเรียนในห้อง</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="reports.html" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                                <i class="bi bi-table me-2"></i>ดูแบบตารางสรุป
+                            </a>
+                            <a href="attendance_report.html" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                                <i class="bi bi-person-lines-fill me-2"></i>ดูแบบรายบุคคล
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="stats-card mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2 d-block">ช่วงวันที่</label>
+                                <div class="d-flex gap-2">
+                                    <input type="date" id="startDate" class="dropdown-style" onchange="loadStats()">
+                                    <input type="date" id="endDate" class="dropdown-style" onchange="loadStats()">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small fw-bold text-muted mb-2 d-block">ห้องเรียน</label>
+                                <select id="roomSelect" class="dropdown-style" onchange="loadStats()">
+                                    <option value="">-- กำลังโหลด --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button class="btn btn-primary w-100 rounded-pill fw-bold" onclick="loadStats()">
+                                    <i class="bi bi-arrow-clockwise me-2"></i>อัปเดต
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-5">
+                            <div class="stats-card">
+                                <h6 class="fw-bold text-navy mb-4">สัดส่วนการมาเรียนทั้งหมด</h6>
+                                <div class="chart-container"><canvas id="pieChart"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="stats-card">
+                                <h6 class="fw-bold text-navy mb-4">แนวโน้มการมาเรียนรายวัน</h6>
+                                <div class="chart-container"><canvas id="trendChart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h6 class="fw-bold text-navy mb-0">สรุปรายบุคคล (เรียงตามยอดขาด)</h6>
+                            <span class="badge bg-light text-dark rounded-pill px-3" id="periodLabel"></span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table-custom w-100">
+                                <thead>
+                                    <tr>
+                                        <th>เลขที่</th>
+                                        <th class="text-start">ชื่อ-นามสกุล</th>
+                                        <th>มา (ครั้ง)</th>
+                                        <th>ขาด (ครั้ง)</th>
+                                        <th>สาย/ลา</th>
+                                        <th>ร้อยละการมา</th>
+                                        <th style="width: 150px;">กราฟ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let pieChart = null, trendChart = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(['teacher', 'admin']);
+            if (user) {
+                // Set default dates
+                const now = new Date();
+                document.getElementById('endDate').valueAsDate = now;
+                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                document.getElementById('startDate').valueAsDate = start;
+
+                await initRooms(user);
+                loadStats();
+            }
+        });
+
+        async function initRooms(user) {
+            try {
+                const res = await fetch('../api/teacher/my-classes.php?type=daily');
+                const data = await res.json();
+                const sel = document.getElementById('roomSelect');
+                sel.innerHTML = '';
+                if (data.classes) {
+                    data.classes.forEach(c => sel.add(new Option('ห้อง ' + c, c)));
+                }
+                if (data.advisory_room) sel.value = data.advisory_room;
+                else if (user.classroom) sel.value = user.classroom;
+            } catch(e) {}
+        }
+
+        async function loadStats() {
+            const room = $('#roomSelect').val();
+            const start = $('#startDate').val();
+            const end = $('#endDate').val();
+            if (!room) return;
+
+            try {
+                const res = await fetch(`../api/teacher/advisory-stats.php?room=${room}&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                if (data.success) {
+                    renderPie(data.summary);
+                    renderTrend(data.trends);
+                    renderTable(data.students);
+                    $('#periodLabel').text(data.period_label);
+                }
+            } catch(e) {}
+        }
+
+        function renderPie(summary) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            if (pieChart) pieChart.destroy();
+            
+            const labels = summary.map(s => s.status);
+            const counts = summary.map(s => s.count);
+            const colors = { 'มา': '#10b981', 'ขาด': '#ef4444', 'สาย': '#f59e0b', 'ลา': '#3b82f6', 'ป่วย': '#06b6d4', 'กิจ': '#8b5cf6' };
+            const bg = labels.map(l => colors[l] || '#64748b');
+
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: counts, backgroundColor: bg, borderWidth: 0 }] },
+                options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } } }
+            });
+        }
+
+        function renderTrend(trends) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            if (trendChart) trendChart.destroy();
+
+            trendChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: trends.map(t => {
+                        const d = new Date(t.date);
+                        return d.getDate() + '/' + (d.getMonth()+1);
+                    }),
+                    datasets: [
+                        { label: 'มาเรียน', data: trends.map(t => t.present), backgroundColor: '#10b981' },
+                        { label: 'ขาดเรียน', data: trends.map(t => t.absent), backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: { y: { stacked: true, beginAtZero: true }, x: { stacked: true } },
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+        }
+
+        function renderTable(students) {
+            let html = '';
+            students.forEach(s => {
+                const total = parseInt(s.total_sessions) || 0;
+                const present = parseInt(s.present_count) || 0;
+                const percent = total > 0 ? ((present / total) * 100).toFixed(0) : 0;
+                const barColor = percent > 80 ? 'bg-success' : (percent > 50 ? 'bg-warning' : 'bg-danger');
+
+                html += `
+                    <tr>
+                        <td class="text-muted fw-bold">${s.number_in_class || '-'}</td>
+                        <td class="text-start">
+                            <div class="fw-bold text-navy" style="cursor: pointer;" onclick="viewHistory(${s.id}, '${s.prefix}${s.first_name_th} ${s.last_name_th}', '${s.code}')">
+                                ${s.prefix}${s.first_name_th} ${s.last_name_th}
+                                <i class="bi bi-info-circle ms-1 small text-primary opacity-50"></i>
+                            </div>
+                            <div class="small text-muted">ID: ${s.code}</div>
+                        </td>
+                        <td class="fw-bold text-success">${s.present_count}</td>
+                        <td class="fw-bold text-danger">${s.absent_count}</td>
+                        <td class="text-muted">${parseInt(s.late_count) + parseInt(s.leave_count)}</td>
+                        <td>
+                            <span class="fw-black text-navy">${percent}%</span>
+                        </td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar ${barColor}" style="width: ${percent}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#studentTable').html(html || '<tr><td colspan="7" class="py-5 text-muted">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td></tr>');
+        }
+
+        async function viewHistory(studentId, name, code) {
+            document.getElementById('hist-name').textContent = name;
+            document.getElementById('hist-id').textContent = code;
+            const list = document.getElementById('history-list');
+            list.innerHTML = '<tr><td colspan="3" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+            new bootstrap.Modal(document.getElementById('historyModal')).show();
+            
+            try {
+                const res = await fetch(`../api/teacher/student-history.php?student_id=${studentId}&type=daily`);
+                const data = await res.json();
+                if (data.success) {
+                    list.innerHTML = (data.history || []).length ? data.history.map(h => {
+                        const badge = { 'มา': 'bg-success', 'ขาด': 'bg-danger', 'สาย': 'bg-warning text-dark', 'ป่วย': 'bg-info text-white', 'ลากิจ': 'bg-primary' }[h.status] || 'bg-secondary';
+                        return `<tr><td class="fw-bold small">${h.date}</td><td class="text-center"><span class="badge ${badge}">${h.status}</span></td><td class="small text-muted">${h.remark || '-'}</td></tr>`;
+                    }).join('') : '<tr><td colspan="3" class="text-center py-4 text-muted">ยังไม่มีประวัติในช่วงนี้</td></tr>';
+                }
+            } catch (err) { console.error('History failed', err); }
+        }
+    </script>
+
+    <!-- Student History Modal -->
+    <div class="modal fade" id="historyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-5 border-0 shadow-lg overflow-hidden">
+                <div class="modal-header bg-navy text-white border-0 py-4 px-4">
+                    <h5 class="modal-title fw-black" id="historyModalLabel">ประวัติการเช็คชื่อรายบุคคล</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="p-4 bg-light border-bottom">
+                        <h4 id="hist-name" class="fw-black text-navy mb-1">-</h4>
+                        <p class="mb-0 text-muted small fw-bold">รหัสนักเรียน: <span id="hist-id" class="text-primary">-</span></p>
+                    </div>
+                    <div class="table-responsive p-0" style="max-height: 400px;">
+                        <table class="table table-hover mb-0">
+                            <thead class="sticky-top bg-white shadow-sm">
+                                <tr class="small text-muted fw-bold">
+                                    <th class="px-4 py-3">วันที่</th>
+                                    <th class="text-center py-3">สถานะ</th>
+                                    <th class="px-4 py-3">หมายเหตุ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

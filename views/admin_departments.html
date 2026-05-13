@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>กลุ่มสาระการเรียนรู้ | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .table-premium th { background: #f8fafc; padding: 15px 20px; font-weight: 700; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #eef2f6; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-premium td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+        .table-premium tr:hover td { background-color: #fcfdfe; }
+
+        .dept-icon-box { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .head-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .sub-chip { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; margin-right: 4px; margin-bottom: 4px; display: inline-block; border: 1px solid rgba(0,0,0,0.05); }
+        
+        .btn-action-group .btn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: none; transition: 0.2s; }
+        .btn-edit { background: #fffbeb; color: #d97706; }
+        .btn-edit:hover { background: #d97706; color: white; }
+        .btn-delete { background: #fff1f2; color: #e11d48; }
+        .btn-delete:hover { background: #e11d48; color: white; }
+        .btn-sub { background: #eff6ff; color: #2563eb; }
+        .btn-sub:hover { background: #2563eb; color: white; }
+
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+        .color-swatch.active { border-color: #1e293b; transform: scale(1.1); }
+
+        /* Detail Modal Styling */
+        #deptDetailHeader { border-radius: 24px 24px 0 0; }
+        .member-list-item { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        .member-list-item:hover { background: #fcfdfe; }
+
+        /* Member Gallery Styles */
+        .member-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 20px; }
+        .gallery-item { position: relative; cursor: pointer; display: flex; justify-content: center; }
+        .gallery-img { width: 65px; height: 65px; border-radius: 20px; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .gallery-img:hover { transform: scale(1.2) translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.12); z-index: 10; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <!-- Page Header -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">กลุ่มสาระการเรียนรู้</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item">ข้อมูลพื้นฐาน</li>
+                                    <li class="breadcrumb-item active">กลุ่มสาระการเรียนรู้</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="bg-white rounded-pill shadow-sm border px-3 py-1 d-flex align-items-center gap-2">
+                                <i class="bi bi-search text-muted small"></i>
+                                <input type="text" id="deptSearch" class="form-control border-0 bg-transparent shadow-none p-1 small" placeholder="ค้นหากลุ่มสาระ..." oninput="filterDepts()" style="width: 180px;">
+                            </div>
+                            <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openDeptModal()">
+                                <i class="bi bi-plus-lg me-2"></i> เพิ่มกลุ่มสาระฯ
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Main Table -->
+                    <div class="content-card p-0 overflow-hidden shadow-sm">
+                        <div class="table-responsive">
+                            <table class="table-premium mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">ลำดับ</th>
+                                        <th>กลุ่มสาระการเรียนรู้</th>
+                                        <th class="text-center">อักษรย่อ</th>
+                                        <th class="text-center">หัวหน้าหมวด</th>
+                                        <th class="text-center">สถานที่</th>
+                                        <th class="text-center">สมาชิก</th>
+                                        <th class="text-end pe-4">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="deptTableBody">
+                                    <tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary opacity-25"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <!-- Footer Content (Omitted for brevity, assumed standard) -->
+            </footer>
+        </main>
+    </div>
+
+    <!-- Dept Detail Modal (Read-only) -->
+    <div class="modal fade" id="deptDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div id="deptDetailHeader" class="modal-header border-0 py-4 px-4 text-white d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i id="deptDetailIcon" class="fas fa-book fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 id="deptDetailTitle" class="mb-0 fw-bold"></h4>
+                            <small id="deptDetailSubtitle" class="opacity-75"></small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-4">
+                        <div class="col-lg-4">
+                            <div class="content-card mb-4">
+                                <h6 class="fw-bold text-navy mb-3">ข้อมูลพื้นฐาน</h6>
+                                <div class="vstack gap-2 small">
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">อักษรย่อ</span>
+                                        <span id="deptDetailAbbr" class="fw-bold"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between border-bottom pb-2">
+                                        <span class="text-muted">สถานที่</span>
+                                        <span id="deptDetailLocation" class="fw-bold"></span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">บุคลากร</span>
+                                        <span id="deptDetailMemberCount" class="fw-bold"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-card text-center">
+                                <img id="deptHeadPhoto" src="" class="head-avatar mb-3" style="width:100px; height:100px;">
+                                <h6 id="deptHeadName" class="fw-bold text-navy mb-1"></h6>
+                                <p class="text-muted small mb-0">หัวหน้ากลุ่มสาระการเรียนรู้</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="content-card mb-4">
+                                <h6 class="fw-bold text-navy mb-3">สาขาภายใต้สังกัด</h6>
+                                <div id="deptDetailSubList" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                            <div class="content-card p-0 overflow-hidden">
+                                <div class="p-4 border-bottom">
+                                    <h6 class="fw-bold text-navy mb-0">ทำเนียบบุคลากร</h6>
+                                </div>
+                                <div id="deptDetailMemberList" style="max-height: 400px; overflow-y:auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sub-Department Modal -->
+    <div class="modal fade" id="subDeptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-black text-navy mb-0">จัดการสาขาย่อย — <span id="subModalDeptName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-7">
+                            <div id="subList" style="max-height:400px; overflow-y:auto;"></div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="bg-light p-4 rounded-4 border">
+                                <h6 class="fw-bold mb-3" id="subFormTitle">เพิ่มสาขาย่อย</h6>
+                                <form id="subForm">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">ชื่อสาขา (ไทย) <span class="text-danger">*</span></label>
+                                        <input type="text" id="sub_name_th" class="form-control rounded-3" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">อักษรย่อ</label>
+                                        <input type="text" id="sub_abbr_th" class="form-control rounded-3">
+                                    </div>
+                                    <button type="submit" class="btn btn-navy rounded-pill w-100 fw-bold shadow-sm">บันทึก</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dept Edit Modal (Simplified for restoration) -->
+    <div class="modal fade" id="deptModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-black text-navy mb-0" id="deptModalTitle">จัดการกลุ่มสาระฯ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="deptForm">
+                        <input type="hidden" name="id" id="dept_id">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label small fw-bold text-muted">ชื่อกลุ่มสาระ (TH) <span class="text-danger">*</span></label>
+                                <input type="text" name="name_th" id="dept_name_th" class="form-control rounded-3" required onchange="populateHeadNameDropdown(this.value)">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted">อักษรย่อ</label>
+                                <input type="text" name="abbr_th" id="dept_abbr_th" class="form-control rounded-3">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">หัวหน้ากลุ่มสาระฯ</label>
+                                <select name="head_name" id="dept_head_name" class="form-select rounded-3"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">สถานที่ตั้ง</label>
+                                <input type="text" name="location" id="dept_location" class="form-control rounded-3">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">ไอคอน (Font Awesome)</label>
+                                <input type="text" name="icon" id="dept_icon" class="form-control rounded-3" placeholder="เช่น fas fa-book">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">สีประจำกลุ่มสาระ</label>
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="colorPresets">
+                                    <button type="button" class="color-swatch" data-color="#ef4444" style="background:#ef4444;"></button>
+                                    <button type="button" class="color-swatch" data-color="#3b82f6" style="background:#3b82f6;"></button>
+                                    <button type="button" class="color-swatch" data-color="#10b981" style="background:#10b981;"></button>
+                                </div>
+                                <input type="hidden" name="color" id="dept_color" value="#1e3a8a">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                            <button type="submit" class="btn btn-navy rounded-pill px-5 fw-bold shadow-sm">บันทึกข้อมูล</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let allDepts = [];
+        let allTeachers = [];
+        let currentSubDeptId = null;
+        let subEditingId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) { 
+                loadDepartments(); 
+                loadTeachersForDept();
+            }
+            
+            document.querySelectorAll('.color-swatch').forEach(s => {
+                s.onclick = () => {
+                    document.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
+                    s.classList.add('active');
+                    document.getElementById('dept_color').value = s.dataset.color;
+                }
+            });
+        });
+
+        async function loadTeachersForDept() {
+            try {
+                const res = await fetch('../api/admin/teachers.php');
+                const data = await res.json();
+                if (data.success) allTeachers = data.data || [];
+            } catch (err) {}
+        }
+
+        function populateHeadNameDropdown(deptNameTh) {
+            const select = document.getElementById('dept_head_name');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- ไม่ระบุ --</option>';
+            const filtered = deptNameTh ? allTeachers.filter(t => t.department === deptNameTh) : allTeachers;
+            filtered.forEach(t => {
+                const fullName = `${t.prefix || ''}${t.first_name_th || ''} ${t.last_name_th || ''}`.trim();
+                select.add(new Option(fullName, fullName));
+            });
+            if (currentVal) select.value = currentVal;
+        }
+
+        async function loadDepartments() {
+            try {
+                const res = await fetch('../api/admin/departments.php');
+                const data = await res.json();
+                if (data.success) {
+                    allDepts = data.departments;
+                    renderDeptTable();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderDeptTable() {
+            const tbody = document.getElementById('deptTableBody');
+            const search = document.getElementById('deptSearch').value.toLowerCase();
+            tbody.innerHTML = '';
+            const filtered = allDepts.filter(d => d.name_th.toLowerCase().includes(search));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลกลุ่มสาระฯ</td></tr>';
+                return;
+            }
+
+            filtered.forEach((d, idx) => {
+                const color = d.color || '#1e3a8a';
+                const memberPhotos = (d.member_photos || '').split(',').filter(p => p);
+                const avatars = memberPhotos.slice(0, 5).map(p => `<img src="../${p}" class="head-avatar ms-n2" style="width:28px;height:28px;">`).join('');
+                const more = memberPhotos.length > 5 ? `<span class="ms-1 small text-muted">+${memberPhotos.length-5}</span>` : '';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="ps-4 text-muted small fw-bold">${idx + 1}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="dept-icon-box" style="background:${color};" onclick="viewDept(${d.id})" style="cursor:pointer;">
+                                    <i class="${d.icon || 'bi bi-book-half'}"></i>
+                                </div>
+                                <div onclick="viewDept(${d.id})" style="cursor:pointer;">
+                                    <div class="fw-bold text-navy hover-text-primary">${d.name_th}</div>
+                                    <div class="small text-muted opacity-75">${d.name_en || ''}</div>
+                                    <div id="sub-chips-${d.id}" class="mt-1"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center"><span class="badge bg-light text-dark border rounded-pill px-2 small">${d.abbr_th || '-'}</span></td>
+                        <td class="text-center">
+                            ${d.head_name ? `
+                                <div class="d-flex flex-column align-items-center">
+                                    <img src="${d.head_photo ? '../'+d.head_photo : '../public/img/default-avatar.png'}" class="head-avatar mb-1">
+                                    <div class="small fw-bold">${d.head_name}</div>
+                                </div>
+                            ` : '-'}
+                        </td>
+                        <td class="text-center small">${d.location || '-'}</td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="d-flex">${avatars}</div>
+                                ${more || (memberPhotos.length === 0 ? '-' : '')}
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-action-group">
+                                <button class="btn btn-sub" title="สาขาย่อย" onclick="openSubModal(${d.id})"><i class="bi bi-diagram-3"></i></button>
+                                <button class="btn btn-edit mx-1" title="แก้ไข" onclick="openEditDeptModal(${d.id})"><i class="bi bi-pencil-fill"></i></button>
+                                <button class="btn btn-delete" title="ลบ" onclick="deleteDept(${d.id})"><i class="bi bi-trash-fill"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                if (parseInt(d.sub_count || 0) > 0) loadSubChips(d.id, color);
+            });
+        }
+
+        async function loadSubChips(deptId, color) {
+            try {
+                const res = await fetch(`../api/admin/sub_departments.php?dept_id=${deptId}`);
+                const data = await res.json();
+                const el = document.getElementById(`sub-chips-${deptId}`);
+                if (el && data.subs) {
+                    el.innerHTML = data.subs.map(s => `<span class="sub-chip" style="background:${color}15; color:${color};">${s.name_th}</span>`).join('');
+                }
+            } catch(e) {}
+        }
+
+        async function viewDept(id) {
+            const d = allDepts.find(x => x.id == id);
+            if (!d) return;
+            const header = document.getElementById('deptDetailHeader');
+            header.style.background = d.color || '#1e3a8a';
+            document.getElementById('deptDetailIcon').className = (d.icon || 'fas fa-book') + ' fs-3';
+            document.getElementById('deptDetailTitle').innerText = d.name_th;
+            document.getElementById('deptDetailSubtitle').innerText = d.name_en || '';
+            document.getElementById('deptDetailAbbr').innerText = `${d.abbr_th || '-'}${d.abbr_en ? ' / '+d.abbr_en : ''}`;
+            document.getElementById('deptDetailLocation').innerText = d.location || '-';
+            document.getElementById('deptDetailMemberCount').innerText = d.member_count + ' ท่าน';
+            document.getElementById('deptHeadPhoto').src = d.head_photo ? '../'+d.head_photo : '../public/img/default-avatar.png';
+            document.getElementById('deptHeadName').innerText = d.head_name || 'ยังไม่ระบุ';
+
+            // Load Subs in Detail
+            const subList = document.getElementById('deptDetailSubList');
+            subList.innerHTML = '<small class="text-muted">กำลังโหลด...</small>';
+            const resSub = await fetch(`../api/admin/sub_departments.php?dept_id=${id}`);
+            const dataSub = await resSub.json();
+            subList.innerHTML = (dataSub.subs && dataSub.subs.length) ? dataSub.subs.map(s => `<span class="badge rounded-pill border text-dark bg-white px-3 py-2">${s.name_th}</span>`).join('') : '<span class="text-muted">ไม่มีสาขาย่อย</span>';
+
+            // Load Members in Detail (Modern Gallery Style)
+            const memList = document.getElementById('deptDetailMemberList');
+            memList.innerHTML = '<div class="p-4 text-center">กำลังโหลด...</div>';
+            
+            const resMem = await fetch(`../api/admin/teachers.php?dept=${encodeURIComponent(d.name_th)}`);
+            const dataMem = await resMem.json();
+            
+            // กรองแอดมินออกและเช็คความถูกต้องของแผนกอีกครั้ง
+            const teachers = (dataMem.data || []).filter(m => 
+                m.role !== 'admin' && 
+                m.username !== 'admin' && 
+                m.department === d.name_th
+            );
+
+            if (teachers.length > 0) {
+                memList.innerHTML = `
+                    <div class="member-gallery p-4">
+                        ${teachers.map(m => `
+                            <div class="gallery-item" title="${m.prefix}${m.first_name_th} ${m.last_name_th}\n(${m.position || '-'})">
+                                <img src="${m.photo ? '../'+m.photo : '../public/img/default-avatar.png'}" 
+                                     class="gallery-img" 
+                                     style="border-color: ${d.color}40;">
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                memList.innerHTML = '<div class="p-5 text-center text-muted"><i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>ไม่มีข้อมูลสมาชิกในกลุ่มสาระนี้</div>';
+            }
+
+            new bootstrap.Modal(document.getElementById('deptDetailModal')).show();
+        }
+
+        async function openSubModal(deptId) {
+            const d = allDepts.find(x => x.id == deptId);
+            currentSubDeptId = deptId;
+            document.getElementById('subModalDeptName').innerText = d.name_th;
+            resetSubForm();
+            await loadSubList();
+            new bootstrap.Modal(document.getElementById('subDeptModal')).show();
+        }
+
+        async function loadSubList() {
+            const res = await fetch(`../api/admin/sub_departments.php?dept_id=${currentSubDeptId}`);
+            const data = await res.json();
+            const container = document.getElementById('subList');
+            container.innerHTML = data.subs.map(s => `
+                <div class="content-card mb-2 p-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">${s.name_th}</div>
+                        <div class="small text-muted">${s.abbr_th || '-'}</div>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <button class="btn btn-sm btn-light text-primary" onclick="editSub(${s.id}, '${s.name_th}', '${s.abbr_th}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-light text-danger" onclick="deleteSub(${s.id})"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function resetSubForm() { subEditingId = null; document.getElementById('subForm').reset(); document.getElementById('subFormTitle').innerText = 'เพิ่มสาขาย่อย'; }
+
+        function editSub(id, name, abbr) {
+            subEditingId = id;
+            document.getElementById('sub_name_th').value = name;
+            document.getElementById('sub_abbr_th').value = abbr;
+            document.getElementById('subFormTitle').innerText = 'แก้ไขสาขาย่อย';
+        }
+
+        document.getElementById('subForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const body = { 
+                department_id: currentSubDeptId, 
+                name_th: document.getElementById('sub_name_th').value,
+                abbr_th: document.getElementById('sub_abbr_th').value 
+            };
+            if (subEditingId) body.id = subEditingId;
+            const res = await fetch('../api/admin/sub_departments.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+            if (res.ok) { resetSubForm(); await loadSubList(); loadDepartments(); }
+        };
+
+        async function deleteSub(id) {
+            if (confirm('ยืนยันการลบสาขาย่อย?')) {
+                await fetch(`../api/admin/sub_departments.php?id=${id}`, { method: 'DELETE' });
+                await loadSubList(); loadDepartments();
+            }
+        }
+
+        function openEditDeptModal(id) {
+            const d = allDepts.find(x => x.id == id);
+            document.getElementById('dept_id').value = d.id;
+            document.getElementById('deptModalTitle').innerText = 'แก้ไขกลุ่มสาระฯ';
+            document.getElementById('dept_name_th').value = d.name_th;
+            document.getElementById('dept_abbr_th').value = d.abbr_th || '';
+            document.getElementById('dept_location').value = d.location || '';
+            document.getElementById('dept_icon').value = d.icon || '';
+            document.getElementById('dept_color').value = d.color || '#1e3a8a';
+            populateHeadNameDropdown(d.name_th);
+            document.getElementById('dept_head_name').value = d.head_name || '';
+            new bootstrap.Modal(document.getElementById('deptModal')).show();
+        }
+
+        document.getElementById('deptForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            const res = await fetch('../api/admin/departments.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if (res.ok) { bootstrap.Modal.getInstance(document.getElementById('deptModal')).hide(); loadDepartments(); }
+        };
+
+        async function deleteDept(id) {
+            if (confirm('ยืนยันการลบกลุ่มสาระ?')) {
+                await fetch(`../api/admin/departments.php?id=${id}`, { method: 'DELETE' });
+                loadDepartments();
+            }
+        }
+        function filterDepts() { renderDeptTable(); }
+        function openDeptModal() { document.getElementById('deptForm').reset(); document.getElementById('dept_id').value = ''; document.getElementById('deptModalTitle').innerText = 'เพิ่มกลุ่มสาระฯ'; new bootstrap.Modal(document.getElementById('deptModal')).show(); }
+    </script>
+</body>
+</html>

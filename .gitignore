@@ -1,0 +1,74 @@
+# ─── Secrets / env ───
+.env
+.env.local
+.env.production
+.env.*.local
+# (.env.example MUST be committed — don't add a global *.env exclude)
+
+# ─── Editors / OS ───
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.bak
+Thumbs.db
+.claude/
+
+# ─── Logs ───
+*.log
+
+# ─── DB dumps (NOT migration files in sql/migrations/) ───
+*.sqlite
+/cnpapp_export.sql
+/dump_*.sql
+
+# ─── Archives / build artifacts ───
+*.zip
+*.tar.gz
+*.tgz
+node_modules/
+vendor/
+
+# ─── Deploy process artifacts (generated locally — not for production) ───
+/cnp_deploy_files.txt
+/cnp_deploy_inventory.txt
+/cnp_deploy_package.zip
+
+# ─── User-uploaded content (managed on production, not via git) ───
+# Production photos/logos live on server. Each environment manages its own.
+/uploads/
+/public/uploads/
+!/public/uploads/.gitkeep
+
+# ─── Dev / scratch / debug ───
+scratch/
+session_summary_*.txt
+api/teacher/debug_*.php
+api/teacher/diagnose.php
+api/teacher/test-db.php
+api/setup_public_service.php
+api/sync_address_data.php
+api/admin/repair-links.php
+api/admin/repair-rooms.php
+api/admin/reset_all_passwords.php
+
+# ─── Root-level dev/admin tools (DO NOT push to production) ───
+/check_cats.php
+/check_schema.php
+/clean_cats.php
+/migrate_teachers.php
+/rename_room.php
+/update_criteria.php
+/test.php
+
+# ─── Security tools — must never be in production ───
+/_reset_admin.php
+/_diag.php
+/admin_cnpapp.sql
+/*.sql
+
+# ─── Legacy FTP deploy script (replaced by Plesk Git) ───
+/deploy.php
+
+# ─── Dead-code root API ───
+/api/dashboard_stats.php

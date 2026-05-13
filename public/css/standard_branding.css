@@ -1,0 +1,42 @@
+/* --- Global Icon & Branding Proportions --- */
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 5px;
+}
+
+.header-logo img {
+    height: 30px !important;
+    width: auto !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+    transition: transform 0.3s ease;
+}
+
+.header-logo:hover img {
+    transform: scale(1.05);
+}
+
+.header-logo span {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+    color: #1e3c72;
+}
+
+.banner-icon-circle, .kpi-icon-box, .stat-icon-wrapper {
+    aspect-ratio: 1 / 1 !important;
+    width: 45px !important;
+    height: 45px !important;
+    object-fit: cover !important;
+    border-radius: 12px !important; 
+    flex-shrink: 0;
+}
+
+/* Fix for profile images in table/list */
+.avatar-img, .rounded-circle {
+    aspect-ratio: 1 / 1 !important;
+    object-fit: cover !important;
+}

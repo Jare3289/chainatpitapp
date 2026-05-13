@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ตั้งค่าเกณฑ์คะแนนพฤติกรรม | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .page-header-premium { margin-bottom: 30px; }
+        .settings-grid { display: flex; gap: 24px; align-items: start; }
+        .settings-column { flex: 1; min-width: 0; }
+        
+        .category-card { background: white; border-radius: 24px; padding: 0; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04); border: 1px solid rgba(0, 0, 0, 0.02); height: 100%; }
+        .category-header { padding: 25px 30px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; }
+        .category-title { font-weight: 800; font-size: 1.15rem; color: #1e293b; display: flex; align-items: center; margin: 0; }
+        .category-title i { margin-right: 12px; font-size: 1.4rem; }
+        .table-premium thead th { background: #fcfdfe; padding: 15px 30px; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #f1f5f9; }
+        .table-premium tbody td { padding: 18px 30px; vertical-align: middle; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
+        .table-premium tbody tr:hover td { background: #fcfdfe; }
+        .table-premium tbody tr:last-child td { border-bottom: none; }
+        
+        .points-pill { font-weight: 800; font-size: 0.85rem; padding: 6px 14px; border-radius: 10px; display: inline-block; min-width: 50px; text-align: center; }
+        .points-pos { background: #ecfdf5; color: #10b981; }
+        .points-neg { background: #fef2f2; color: #ef4444; }
+        
+        .action-btns { display: flex; gap: 8px; justify-content: flex-end; }
+        .btn-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: none; transition: all 0.2s; }
+        .btn-edit-light { background: #eff6ff; color: #3b82f6; }
+        .btn-edit-light:hover { background: #3b82f6; color: white; transform: translateY(-2px); }
+        .btn-delete-light { background: #fff1f2; color: #f43f5e; }
+        .btn-delete-light:hover { background: #f43f5e; color: white; transform: translateY(-2px); }
+
+        @media (max-width: 992px) {
+            .settings-grid { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    <div class="page-header-premium d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">ตั้งค่าเกณฑ์คะแนนพฤติกรรม</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item">ระบบคะแนน</li>
+                                    <li class="breadcrumb-item active">ตั้งค่าเกณฑ์</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openItemModal()">
+                            <i class="bi bi-plus-lg me-2"></i>เพิ่มเกณฑ์ใหม่
+                        </button>
+                    </div>
+
+                    <div id="settingsGrid" class="settings-grid">
+                        <div class="text-center py-5 w-100">
+                            <div class="spinner-border text-primary opacity-25" role="status"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                        CNPAPP<sup>©</sup>
+                                    </a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">
+                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                cnpapp@chainatpit.ac.th
+                            </div>
+                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
+                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
+                                </span>
+                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-envelope-fill me-1"></i> Email
+                                </a>
+                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
+                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
+                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="itemModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-navy text-white border-0 px-4 py-3">
+                    <h5 class="fw-bold mb-0" id="modalTitle">จัดการเกณฑ์คะแนน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="itemId">
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted mb-2">หมวดหมู่คะแนน</label>
+                        <select id="catSelect" class="form-select border-0 bg-light rounded-3 py-2.5 px-3"></select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted mb-2">พฤติกรรม</label>
+                        <input type="text" id="itemName" class="form-control border-0 bg-light rounded-3 py-2.5 px-3" placeholder="ระบุพฤติกรรม...">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-muted mb-2">คะแนน (ติดลบสำหรับตัดคะแนน)</label>
+                        <input type="number" id="itemPoints" class="form-control border-0 bg-light rounded-3 py-2.5 px-3" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="saveItem()">บันทึกข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let categories = [];
+        let items = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth('admin');
+            loadSettings();
+        });
+
+        async function loadSettings() {
+            try {
+                const res = await fetch('../api/admin/credit_score_settings.php?action=list');
+                const data = await res.json();
+                if(data.success) {
+                    categories = data.categories;
+                    items = data.items;
+                    renderSettings();
+                    
+                    const select = document.getElementById('catSelect');
+                    select.innerHTML = categories.map(c => `<option value="${c.id}">${c.category_name}</option>`).join('');
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function renderSettings() {
+            const grid = document.getElementById('settingsGrid');
+            grid.innerHTML = '';
+
+            const catIcons = { 'ตัด': 'bi bi-dash-circle-fill text-danger', 'เติม': 'bi bi-plus-circle-fill text-success' };
+
+            categories.forEach(cat => {
+                const catItems = items.filter(i => i.category_id === cat.id);
+                const iconClass = catIcons[cat.category_name] || 'bi bi-bookmark-fill text-primary';
+                
+                const col = document.createElement('div');
+                col.className = 'settings-column';
+                col.innerHTML = `
+                    <div class="category-card">
+                        <div class="category-header">
+                            <h5 class="category-title"><i class="${iconClass}"></i> ${cat.category_name}</h5>
+                            <span class="badge bg-light text-muted rounded-pill px-3">${catItems.length} รายการ</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table-premium">
+                                <thead>
+                                    <tr>
+                                        <th>รายการพฤติกรรม</th>
+                                        <th class="text-center">คะแนน</th>
+                                        <th class="text-end"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${catItems.map(item => {
+                                        const pts = parseInt(item.points);
+                                        return `
+                                        <tr>
+                                            <td><div class="fw-medium text-dark">${item.item_name}</div></td>
+                                            <td class="text-center">
+                                                <span class="points-pill ${pts >= 0 ? 'points-pos' : 'points-neg'}">
+                                                    ${pts >= 0 ? '+' + pts : pts}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="action-btns">
+                                                    <button class="btn-icon btn-edit-light" onclick="editItem(${item.id})">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </button>
+                                                    <button class="btn-icon btn-delete-light" onclick="deleteItem(${item.id})">
+                                                        <i class="bi bi-trash3-fill"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `}).join('')}
+                                    ${catItems.length === 0 ? '<tr><td colspan="3" class="text-center text-muted py-5 small">ไม่มีข้อมูลในหมวดนี้</td></tr>' : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(col);
+            });
+        }
+
+        function openItemModal() {
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemPoints').value = 0;
+            document.getElementById('modalTitle').innerText = 'เพิ่มเกณฑ์คะแนนใหม่';
+            new bootstrap.Modal(document.getElementById('itemModal')).show();
+        }
+
+        function editItem(id) {
+            const item = items.find(i => i.id === id);
+            if(!item) return;
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('catSelect').value = item.category_id;
+            document.getElementById('itemName').value = item.item_name;
+            document.getElementById('itemPoints').value = item.points;
+            document.getElementById('modalTitle').innerText = 'แก้ไขเกณฑ์คะแนน';
+            new bootstrap.Modal(document.getElementById('itemModal')).show();
+        }
+
+        async function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const category_id = document.getElementById('catSelect').value;
+            const item_name = document.getElementById('itemName').value;
+            const points = document.getElementById('itemPoints').value;
+
+            if(!item_name) {
+                Swal.fire({ icon: 'warning', title: 'กรุณาระบุชื่อพฤติกรรม', confirmButtonText: 'ตกลง' });
+                return;
+            }
+
+            try {
+                const res = await fetch('../api/admin/credit_score_settings.php?action=save_item', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, category_id, item_name, points })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
+                    bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+                    loadSettings();
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function deleteItem(id) {
+            const result = await Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: "คุณจะไม่สามารถกู้คืนรายการนี้ได้!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f43f5e',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'ลบรายการ',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`../api/admin/credit_score_settings.php?action=delete_item&id=${id}`);
+                    const data = await res.json();
+                    if(data.success) {
+                        Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', showConfirmButton: false, timer: 1500 });
+                        loadSettings();
+                    }
+                } catch (err) { console.error(err); }
+            }
+        }
+    </script>
+</body>
+</html>

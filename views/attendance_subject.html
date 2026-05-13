@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>เช็คชื่อรายวิชา | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', sans-serif; background-color: #f8f9fa; }
+        .sidebar { z-index: 1050 !important; }
+
+        .dropdown-style {
+            background-color: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0;
+            border-radius: 12px; padding: 10px 20px; font-weight: 500; width: 100%;
+            max-width: 100%; box-sizing: border-box; outline: none; transition: all 0.2s;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .dropdown-style:focus { background-color: #ffffff; border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.05); }
+        input[type="date"].dropdown-style { color-scheme: light; min-height: 45px; }
+
+        .table-modern { border-collapse: separate; border-spacing: 0 8px; }
+        .table-modern thead th {
+            border: none; background: #f8f9fa; color: #0d6efd; font-weight: 700;
+            text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 15px 10px;
+        }
+        .table-modern tbody tr { box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: all 0.2s; border-radius: 10px; }
+        .table-modern tbody tr:hover { background-color: #f1f4f9 !important; }
+        .table-modern td { padding: 15px 10px; background: white; border-top: 1px solid #f1f4f9; border-bottom: 1px solid #f1f4f9; }
+        .table-modern td:first-child { border-left: 1px solid #f1f4f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .table-modern td:last-child  { border-right: 1px solid #f1f4f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .status-btn { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #e2e8f0; background: white; font-weight: bold; transition: all 0.2s; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #64748b; padding: 0; }
+        .status-btn:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .status-btn.active-ม { background: #198754; color: white; border-color: #198754; }
+        .status-btn.active-ข { background: #dc3545; color: white; border-color: #dc3545; }
+        .status-btn.active-ป { background: #0dcaf0; color: white; border-color: #0dcaf0; }
+        .status-btn.active-ก { background: #0d6efd; color: white; border-color: #0d6efd; }
+        .status-btn.active-ส { background: #ffc107; color: #000; border-color: #ffc107; }
+
+        .remark-input { width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.9rem; }
+        .remark-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1); }
+        .badge-circle { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 0.75rem; font-weight: 700; line-height: 1; }
+
+        .subject-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; background: #eff6ff; color: #1d4ed8; border-radius: 50px; font-weight: 700; font-size: 0.85rem; }
+        .subject-dot  { width: 8px; height: 8px; border-radius: 50%; background: #0d6efd; }
+        .history-row  { background: #fff; border: 1px solid #f1f5f9; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.15s; }
+        .history-row:hover { border-color: #0d6efd; background: #f8fafc; }
+
+        @media (max-width: 768px) {
+            .hide-mobile { display: none !important; }
+            .status-btn { width: 28px; height: 28px; font-size: 0.75rem; border-width: 1px; }
+            .gap-2-mobile { gap: 0.25rem !important; }
+            .table-modern td, .table-modern th { padding: 8px 4px !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+        <main class="main-panel d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content py-4 px-4">
+                <div class="container-fluid">
+
+                    <!-- Page Title -->
+                    <div class="d-flex justify-content-between align-items-end mb-4 gap-3 flex-wrap">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">เช็คชื่อเข้าเรียนรายวิชา</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="teacher_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item active">เช็คชื่อรายวิชา</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="window.location.href='subject_attendance_stats.html'">
+                                <i class="bi bi-pie-chart-fill me-1"></i> ดูสถิติรายวิชา
+                            </button>
+                            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openAddSubject()">
+                                <i class="bi bi-plus-lg me-1"></i> เพิ่มวิชาใหม่
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-journal-bookmark-fill text-primary"></i> เลือกรายวิชา / ห้อง / วันที่
+                            </h6>
+                            <div class="row g-3">
+                                <!-- 1. SUBJECT (first) -->
+                                <div class="col-lg-4">
+                                    <label class="text-muted small fw-bold mb-2 d-block">รายวิชาที่สอน</label>
+                                    <select id="subjectSelect" class="dropdown-style" onchange="onSubjectChange()">
+                                        <option value="">-- เลือกวิชา --</option>
+                                    </select>
+                                    <div id="subjectInfo" class="mt-2" style="display:none;">
+                                        <span class="subject-pill"><span class="subject-dot"></span> <span id="subjectInfoLabel"></span></span>
+                                    </div>
+                                </div>
+                                <!-- 2. CLASS -->
+                                <div class="col-lg-3">
+                                    <label class="text-muted small fw-bold mb-2 d-block">ห้องเรียน</label>
+                                    <select id="classSelect" class="dropdown-style" onchange="onClassChange()">
+                                        <option value="">-- เลือกห้อง --</option>
+                                    </select>
+                                </div>
+                                <!-- 3. DATE -->
+                                <div class="col-lg-3">
+                                    <label class="text-muted small fw-bold mb-2 d-block">วันที่เรียน</label>
+                                    <input type="date" id="dateSelect" class="dropdown-style" onchange="loadStudents()">
+                                </div>
+                                <!-- 4. PERIOD -->
+                                <div class="col-lg-2">
+                                    <label class="text-muted small fw-bold mb-2 d-block">คาบที่</label>
+                                    <select id="periodSelect" class="dropdown-style" onchange="loadStudents()">
+                                        <option value="1">คาบ 1</option><option value="2">คาบ 2</option>
+                                        <option value="3">คาบ 3</option><option value="4">คาบ 4</option>
+                                        <option value="5">คาบ 5</option><option value="6">คาบ 6</option>
+                                        <option value="7">คาบ 7</option><option value="8">คาบ 8</option>
+                                        <option value="9">คาบ 9</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Table UI -->
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+                        <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                            <h6 class="fw-bold text-navy mb-0"><i class="bi bi-people-fill me-2 text-primary"></i> รายชื่อนักเรียน (<span id="totalStudentsCount">0</span> คน)</h6>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="markAllPresent()">
+                                    <i class="bi bi-check-all me-1 text-success"></i> มาทุกคน
+                                </button>
+                                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="clearAll()" title="ล้างค่าทั้งหมด">
+                                    <i class="bi bi-eraser me-1 text-danger"></i> ล้าง
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="px-3 py-2 bg-light border-bottom d-flex align-items-center justify-content-center justify-content-lg-end">
+                                <div id="stats-container" class="d-none d-flex flex-row align-items-center justify-content-between py-2 bg-white px-2 rounded-4 border shadow-sm w-100 w-lg-auto">
+                                    <div class="text-center flex-fill px-1"><div class="small text-muted fw-bold mb-0" style="font-size: 0.6rem;">ทั้งหมด</div><div class="fw-black text-navy fs-5" id="stat-total" style="line-height:1">0</div></div>
+                                    <div class="vr opacity-10"></div>
+                                    <div class="text-center flex-fill px-1"><div class="small text-success fw-bold mb-0" style="font-size: 0.6rem;">มา</div><div class="fw-black text-success fs-5" id="stat-present" style="line-height:1">0</div></div>
+                                    <div class="vr opacity-10"></div>
+                                    <div class="text-center flex-fill px-1"><div class="small text-danger fw-bold mb-0" style="font-size: 0.6rem;">ขาด</div><div class="fw-black text-danger fs-5" id="stat-absent" style="line-height:1">0</div></div>
+                                    <div class="vr opacity-10"></div>
+                                    <div class="text-center flex-fill px-1"><div class="small text-primary fw-bold mb-0" style="font-size: 0.6rem;">ลา</div><div class="fw-black text-primary fs-5" id="stat-leave" style="line-height:1">0</div></div>
+                                    <div class="vr opacity-10"></div>
+                                    <div class="text-center flex-fill px-1"><div class="small text-warning-emphasis fw-bold mb-0" style="font-size: 0.6rem;">สาย</div><div class="fw-black text-warning-emphasis fs-5" id="stat-late" style="line-height:1">0</div></div>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0 table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 8%;" class="text-center py-3 small fw-bold text-uppercase">เลขที่</th>
+                                            <th style="width: 10%;" class="py-3 small fw-bold text-uppercase hide-mobile">รหัสนักเรียน</th>
+                                            <th style="width: 8%;" class="py-3 small fw-bold text-uppercase hide-mobile">คำนำหน้า</th>
+                                            <th style="width: 15%;" class="py-3 small fw-bold text-uppercase">ชื่อ</th>
+                                            <th style="width: 15%;" class="py-3 small fw-bold text-uppercase hide-mobile">นามสกุล</th>
+                                            <th style="width: 10%;" class="text-center py-3 small fw-bold text-uppercase hide-mobile">ชื่อเล่น</th>
+                                            <th style="width: 20%;" class="text-center py-3 small fw-bold text-uppercase">สถานะ</th>
+                                            <th style="width: 14%;" class="py-3 small fw-bold text-uppercase hide-mobile">หมายเหตุ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="studentTableBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center py-5 text-muted bg-white">
+                                                <i class="bi bi-inbox display-4 opacity-25"></i>
+                                                <p class="mt-3">กรุณาเลือกวิชา/ห้องด้านบนเพื่อเริ่มเช็คชื่อ</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="px-4 py-3 bg-light border-top">
+                                <span class="text-navy fw-bold small d-block mb-2"><i class="bi bi-info-circle me-1"></i> คำอธิบาย:</span>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <span class="small d-flex align-items-center gap-1"><span class="badge-circle bg-success text-white">ม</span> มา</span>
+                                    <span class="small d-flex align-items-center gap-1"><span class="badge-circle bg-danger text-white">ข</span> ขาด</span>
+                                    <span class="small d-flex align-items-center gap-1"><span class="badge-circle bg-info text-white">ป</span> ป่วย</span>
+                                    <span class="small d-flex align-items-center gap-1"><span class="badge-circle bg-primary text-white">ก</span> กิจ</span>
+                                    <span class="small d-flex align-items-center gap-1"><span class="badge-circle bg-warning text-dark">ส</span> สาย</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save -->
+                    <div class="text-center mt-4 mb-4">
+                        <button class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow" onclick="saveAttendance()" style="min-width: 250px; font-size: 1.1rem;">
+                            <i class="bi bi-check-circle-fill me-2"></i> บันทึกข้อมูลเช็คชื่อ
+                        </button>
+                    </div>
+
+                    <!-- History -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-5 bg-white">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold text-navy mb-3">
+                                <i class="bi bi-clock-history text-warning me-2"></i>ประวัติการเช็คชื่อ
+                                <span id="historyRoomLabel" class="text-muted small ms-2"></span>
+                            </h6>
+                            <div id="historyList">
+                                <div class="text-center py-4 text-muted small">เลือกห้องเรียนเพื่อดูประวัติย้อนหลัง</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let studentData = [];        // [{id, prefix, first_name_th, ..., status, remark}]
+        let mySubjects = [];
+        let allSubjects = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(['teacher', 'admin']);
+            if (!user) return;
+            document.getElementById('dateSelect').valueAsDate = new Date();
+            await loadSubjects();    // load subjects FIRST (user chooses subject first)
+            await loadClasses();
+        });
+
+        // ====== Subjects ======
+        async function loadSubjects() {
+            try {
+                const url = '../api/teacher/get-subjects.php';
+                const r = await fetch(url);
+                const j = await r.json();
+                mySubjects  = j.my_subjects  || [];
+                
+                const sel = document.getElementById('subjectSelect');
+                sel.innerHTML = '<option value="">-- เลือกวิชา --</option>';
+
+                if (mySubjects.length > 0) {
+                    const og = document.createElement('optgroup');
+                    og.label = '── วิชาของฉัน ──';
+                    mySubjects.forEach(s => {
+                        const opt = new Option(`● ${s.subject_code}${s.subject_name ? ' · '+s.subject_name : ''}`, s.subject_code);
+                        opt.dataset.name = s.subject_name || '';
+                        opt.dataset.dept = s.department  || '';
+                        opt.dataset.rooms = s.room || ''; 
+                        og.appendChild(opt);
+                    });
+                    sel.appendChild(og);
+                }
+                
+                // --- Automatic Suggestion Based on Timetable ---
+                if (j.suggestion) {
+                    const s = j.suggestion;
+                    sel.value = s.subject_code;
+                    document.getElementById('dateSelect').value = s.date;
+                    document.getElementById('periodSelect').value = s.period;
+                    
+                    // Manually trigger the population of rooms
+                    onSubjectChange();
+                    
+                    // After rooms are populated, select the suggested room
+                    if (s.class_name) {
+                        const classSel = document.getElementById('classSelect');
+                        classSel.value = s.class_name;
+                        onClassChange();
+                    }
+                    
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: `แนะนำตามตารางสอน: คาบที่ ${s.period} วิชา ${s.subject_code}`,
+                        timer: 4000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    onSubjectChange();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function onSubjectChange() {
+            const sel = document.getElementById('subjectSelect');
+            const opt = sel.options[sel.selectedIndex];
+            const info  = document.getElementById('subjectInfo');
+            const label = document.getElementById('subjectInfoLabel');
+            
+            const classSel = document.getElementById('classSelect');
+            const prevClass = classSel.value;
+            classSel.innerHTML = '<option value="">-- เลือกห้อง --</option>';
+
+            if (sel.value && opt) {
+                const name = opt.dataset.name || '';
+                const dept = opt.dataset.dept || '';
+                const rooms = opt.dataset.rooms || '';
+                
+                label.textContent = `${sel.value}${name ? ' · '+name : ''}${dept ? ' ('+dept+')' : ''}`;
+                info.style.display = 'block';
+
+                // Populate Class Select based on selected subject's rooms
+                if (rooms) {
+                    const roomList = rooms.split(',').map(r => r.trim()).filter(r => r !== '');
+                    roomList.forEach(r => {
+                        classSel.add(new Option('ห้อง ' + r, r));
+                    });
+                    
+                    if (prevClass && roomList.includes(prevClass)) {
+                        classSel.value = prevClass;
+                    } else if (roomList.length === 1) {
+                        classSel.value = roomList[0];
+                    }
+                }
+            } else {
+                info.style.display = 'none';
+            }
+            
+            loadRecentHistory();
+            loadStudents();
+        }
+
+        async function loadRecentHistory() {
+            const room = document.getElementById('classSelect').value;
+            if (!room) return;
+            try {
+                const r = await fetch(`../api/teacher/get-subjects.php?room=${encodeURIComponent(room)}`);
+                const j = await r.json();
+                renderHistory(j.recent || []);
+            } catch (e) { console.error(e); }
+        }
+
+        // ====== Classes (Initial Load) ======
+        async function loadClasses() {
+            // This is now handled by onSubjectChange, but we might want a fallback
+            // or just let it be empty until a subject is selected.
+        }
+
+        function onClassChange() {
+            const room = document.getElementById('classSelect').value;
+            document.getElementById('historyRoomLabel').textContent = room ? `(ห้อง ${room})` : '';
+            loadRecentHistory();
+            loadStudents();
+        }
+
+        // ====== Students ======
+        async function loadStudents() {
+            const className = document.getElementById('classSelect').value;
+            const date      = document.getElementById('dateSelect').value;
+            const period    = document.getElementById('periodSelect').value;
+
+            if (!className || !date) {
+                document.getElementById('studentTableBody').innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted bg-white"><i class="bi bi-inbox display-4 opacity-25"></i><p class="mt-3">กรุณาเลือกวิชา/ห้องด้านบนเพื่อเริ่มเช็คชื่อ</p></td></tr>`;
+                document.getElementById('totalStudentsCount').textContent = '0';
+                document.getElementById('stats-container').classList.add('d-none');
+                return;
+            }
+
+            document.getElementById('studentTableBody').innerHTML = `<tr><td colspan="8" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>`;
+            try {
+                const subjCode = document.getElementById('subjectSelect').value;
+                const url = `../api/teacher/attendance.php?type=subject&class_name=${encodeURIComponent(className)}&date=${date}&period=${period}&subject_code=${subjCode}`;
+                const r = await fetch(url);
+                const j = await r.json();
+                if (!j.success) {
+                    document.getElementById('studentTableBody').innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">${j.error || 'โหลดข้อมูลไม่ได้'}</td></tr>`;
+                    return;
+                }
+
+                // map existing attendance by student_id
+                const existing = {};
+                (j.attendance || []).forEach(a => existing[a.student_id] = { status: a.status, remark: a.remark || '' });
+
+                // Default = "มา" สำหรับทุกคน (ถ้ายังไม่เคยบันทึก)
+                studentData = (j.students || []).map(s => {
+                    const ex = existing[s.id];
+                    return {
+                        id:               s.id,
+                        student_id:       s.student_id,
+                        prefix:           s.prefix || '',
+                        first_name_th:    s.first_name_th || '',
+                        last_name_th:     s.last_name_th  || '',
+                        nickname:         s.nickname      || '',
+                        number_in_class:  s.number_in_class,
+                        status:           ex ? ex.status : 'มา',     // ← default "มา"
+                        remark:           ex ? ex.remark : '',
+                    };
+                });
+
+                renderStudents();
+                document.getElementById('stats-container').classList.remove('d-none');
+            } catch (e) {
+                document.getElementById('studentTableBody').innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">เชื่อมต่อ server ไม่ได้</td></tr>`;
+            }
+        }
+
+        function renderStudents() {
+            const tbody = $('#studentTableBody');
+            tbody.empty();
+            $('#totalStudentsCount').text(studentData.length);
+
+            if (studentData.length === 0) {
+                tbody.html(`<tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-people"></i> ไม่พบนักเรียนในห้องนี้</td></tr>`);
+                updateSummary();
+                return;
+            }
+
+            studentData.forEach((s, idx) => {
+                const statuses = [
+                    { key:'ม', label:'มา' },
+                    { key:'ข', label:'ขาด' },
+                    { key:'ป', label:'ป่วย' },
+                    { key:'ก', label:'ลา' },
+                    { key:'ส', label:'สาย' },
+                ];
+                const btns = statuses.map(st =>
+                    `<button class="status-btn ${s.status === st.label ? 'active-'+st.key : ''}" onclick="setStatus(${s.id}, '${st.label}')">${st.key}</button>`
+                ).join('');
+
+                const html = `
+                    <tr data-student-id="${s.id}">
+                        <td class="text-center fw-bold text-muted">${s.number_in_class || idx + 1}</td>
+                        <td class="small text-muted hide-mobile">${s.student_id}</td>
+                        <td class="hide-mobile">${s.prefix || ''}</td>
+                        <td><span class="fw-bold text-navy">${s.first_name_th || '-'}</span></td>
+                        <td class="hide-mobile">${s.last_name_th || ''}</td>
+                        <td class="font-medium small text-center hide-mobile">${s.nickname || '-'}</td>
+                        <td><div class="d-flex gap-2 gap-2-mobile justify-content-center">${btns}</div></td>
+                        <td class="hide-mobile">
+                            <input type="text" class="remark-input" placeholder="ระบุเหตุผล..." value="${s.remark || ''}" onchange="updateRemark(${s.id}, this.value)">
+                        </td>
+                    </tr>`;
+                tbody.append(html);
+            });
+            updateSummary();
+        }
+
+        function setStatus(id, status) {
+            const s = studentData.find(x => x.id == id);
+            if (!s) return;
+            s.status = s.status === status ? null : status;
+            renderStudents();
+        }
+        function updateRemark(id, val) {
+            const s = studentData.find(x => x.id == id);
+            if (s) s.remark = val;
+        }
+        function markAllPresent() {
+            studentData.forEach(s => s.status = 'มา');
+            renderStudents();
+            Swal.fire({ toast:true, position:'top-end', icon:'success', title:'ติ๊กมาเรียนทุกคนแล้ว', timer:1200, showConfirmButton:false });
+        }
+        function clearAll() {
+            studentData.forEach(s => { s.status = null; s.remark = ''; });
+            renderStudents();
+        }
+        function updateSummary() {
+            const c = { total: studentData.length, present:0, absent:0, leave:0, late:0 };
+            studentData.forEach(s => {
+                if (s.status === 'มา')                                   c.present++;
+                else if (s.status === 'ขาด')                              c.absent++;
+                else if (s.status === 'สาย')                              c.late++;
+                else if (s.status === 'ลา' || s.status === 'ป่วย')        c.leave++;
+            });
+            $('#stat-total').text(c.total);
+            $('#stat-present').text(c.present);
+            $('#stat-absent').text(c.absent);
+            $('#stat-leave').text(c.leave);
+            $('#stat-late').text(c.late);
+        }
+
+        async function saveAttendance() {
+            const subjCode  = document.getElementById('subjectSelect').value;
+            const className = document.getElementById('classSelect').value;
+            const date      = document.getElementById('dateSelect').value;
+            const period    = document.getElementById('periodSelect').value;
+
+            if (!subjCode)            { Swal.fire('เลือกวิชา', 'กรุณาเลือกวิชาก่อน', 'warning'); return; }
+            if (!className || !date)  { Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกห้องและวันที่', 'warning'); return; }
+            if (studentData.length === 0) return;
+
+            const records = studentData.map(s => ({
+                student_id: s.id,
+                status: s.status || 'มา',
+                remark: s.remark || '',
+            }));
+
+            try {
+                const res = await fetch('../api/teacher/attendance.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'subject',
+                        class_name: className,
+                        date, period: Number(period),
+                        subject_code: subjCode,
+                        records,
+                    }),
+                });
+                const j = await res.json();
+                if (j.success) {
+                    Swal.fire({ toast:true, position:'top-end', icon:'success', title:'บันทึกเรียบร้อย', timer:2000, showConfirmButton:false });
+                    loadSubjects();      // refresh history
+                } else {
+                    Swal.fire('ผิดพลาด', j.error || 'บันทึกไม่สำเร็จ', 'error');
+                }
+            } catch (e) {
+                Swal.fire('ผิดพลาด', 'เชื่อมต่อ server ไม่ได้', 'error');
+            }
+        }
+
+        // ====== History ======
+        function renderHistory(recent) {
+            const list = document.getElementById('historyList');
+            if (!recent || recent.length === 0) {
+                list.innerHTML = `<div class="text-center py-3 text-muted small">ยังไม่มีประวัติการเช็คชื่อในห้องนี้</div>`;
+                return;
+            }
+            list.innerHTML = recent.map(r => {
+                const dStr = thDate(r.date);
+                const subjLabel = r.subject_code ? `${r.subject_code}${r.subject_name ? ' · '+r.subject_name : ''}` : '<span class="text-danger">ไม่ระบุวิชา</span>';
+                return `
+                    <div class="history-row" onclick="loadHistorySession('${r.date}', ${r.period}, '${r.subject_code||''}')">
+                        <div class="badge bg-primary-subtle text-primary fw-bold">${dStr} · คาบ ${r.period}</div>
+                        <div class="fw-bold flex-grow-1">${subjLabel}</div>
+                        <div class="small text-muted">
+                            มา <b class="text-success">${r.present}</b> ·
+                            ขาด <b class="text-danger">${r.absent}</b> ·
+                            สาย <b class="text-warning">${r.late}</b> ·
+                            ลา/ป่วย <b class="text-info">${r.leave_count}</b>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>`;
+            }).join('');
+        }
+        function loadHistorySession(date, period, subjectCode) {
+            document.getElementById('dateSelect').value = date;
+            document.getElementById('periodSelect').value = period;
+            if (subjectCode) document.getElementById('subjectSelect').value = subjectCode;
+            onSubjectChange();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ====== Add new subject ======
+        function openAddSubject() {
+            const html = `
+                <form id="addSubjForm" class="text-start">
+                  <div class="row g-3">
+                    <div class="col-md-5">
+                      <label class="form-label fw-bold small">รหัสวิชา <span class="text-danger">*</span></label>
+                      <input name="subject_code" class="form-control" required placeholder="เช่น ค31101">
+                    </div>
+                    <div class="col-md-7">
+                      <label class="form-label fw-bold small">ชื่อวิชา <span class="text-danger">*</span></label>
+                      <input name="subject_name" class="form-control" required placeholder="เช่น คณิตศาสตร์พื้นฐาน">
+                    </div>
+                    <div class="col-md-7">
+                      <label class="form-label fw-bold small">กลุ่มสาระ</label>
+                      <input name="department" class="form-control" placeholder="เช่น คณิตศาสตร์">
+                    </div>
+                    <div class="col-md-5">
+                      <label class="form-label fw-bold small">ปีการศึกษา / ภาคเรียน</label>
+                      <div class="d-flex gap-2">
+                        <input name="academic_year" class="form-control" placeholder="2568">
+                        <input name="semester" class="form-control" placeholder="1" style="max-width:80px;">
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label fw-bold small">ห้องที่สอน (คั่นด้วย ,)</label>
+                      <input name="room" class="form-control" placeholder="เช่น 101,102,103">
+                    </div>
+                  </div>
+                </form>`;
+            Swal.fire({
+                title: 'เพิ่มวิชาใหม่', html, width: 640,
+                showCancelButton: true, confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
+                preConfirm: async () => {
+                    const f = document.getElementById('addSubjForm');
+                    if (!f.checkValidity()) { f.reportValidity(); return false; }
+                    const data = Object.fromEntries(new FormData(f).entries());
+                    try {
+                        const r = await fetch('../api/teacher/add-permanent-subject.php', {
+                            method:'POST', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify(data),
+                        });
+                        const j = await r.json();
+                        if (!j.success) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
+                        return { code: data.subject_code };
+                    } catch (e) { Swal.showValidationMessage(e.message); return false; }
+                },
+            }).then(async r => {
+                if (r.isConfirmed && r.value) {
+                    Swal.fire({ toast:true, position:'top-end', icon:'success', title:'เพิ่มวิชาเรียบร้อย', timer:2000, showConfirmButton:false });
+                    await loadSubjects();
+                    document.getElementById('subjectSelect').value = r.value.code;
+                    onSubjectChange();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>รายงานและสถิติสาธารณประโยชน์ | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="../public/css/standard_branding.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        .report-card { background: white; border-radius: 24px; padding: 30px; border: 1px solid rgba(0,0,0,0.02); margin-bottom: 25px; }
+        .progress { height: 12px; border-radius: 50px; background-color: #f1f5f9; margin-bottom: 8px; }
+        .progress-bar { border-radius: 50px; background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); }
+
+        .stat-badge { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #1e3a8a; font-weight: 700; font-size: 0.9rem; }
+        
+        .table-custom thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 15px 20px; border-bottom: 1px solid #f1f5f9; }
+        .table-custom tbody td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+
+        @media print {
+            .sidebar, .btn, .breadcrumb, .filter-section { display: none !important; }
+            .main-panel { margin: 0 !important; width: 100% !important; padding: 0 !important; }
+            .report-card { border: 1px solid #eee !important; box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <aside class="sidebar" id="mainSidebar"></aside>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <!-- Header -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">สถิติและรายงานสาธารณประโยชน์</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item">หน้าแรก</li>
+                                    <li class="breadcrumb-item active">กิจกรรมสาธารณประโยชน์</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-navy rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
+                                <i class="bi bi-printer me-2"></i> พิมพ์รายงาน
+                            </button>
+                            <a href="admin_public_service.html" class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm">
+                                <i class="bi bi-arrow-left me-2"></i> กลับหน้าจัดการ
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Left: Overview Charts (Mockup with bars) -->
+                        <div class="col-lg-7">
+                            <div class="report-card shadow-sm h-100">
+                                <h6 class="fw-black text-navy mb-4"><i class="bi bi-bar-chart me-2"></i> สรุปจำนวนชั่วโมงสะสมแยกตามระดับชั้น</h6>
+                                
+                                <div id="levelStatsContainer">
+                                    <!-- Dynamic Bars -->
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 1</span>
+                                            <span class="small text-navy fw-bold" id="hour-m1">0 ชม.</span>
+                                        </div>
+                                        <div class="progress"><div class="progress-bar" id="bar-m1" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 2</span>
+                                            <span class="small text-navy fw-bold" id="hour-m2">0 ชม.</span>
+                                        </div>
+                                        <div class="progress"><div class="progress-bar" id="bar-m2" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 3</span>
+                                            <span class="small text-navy fw-bold" id="hour-m3">0 ชม.</span>
+                                        </div>
+                                        <div class="progress"><div class="progress-bar" id="bar-m3" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 4</span>
+                                            <span class="small text-navy fw-bold" id="hour-m4">0 ชม.</span>
+                                        </div>
+                                        <div class="progress"><div class="progress-bar" id="bar-m4" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 5</span>
+                                            <span class="small text-navy fw-bold" id="hour-m5">0 ชม.</span>
+                                        </div>
+                                        <div class="progress"><div class="progress-bar" id="bar-m5" style="width: 0%"></div></div>
+                                    </div>
+                                    <div class="mb-0">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 6</span>
+                                            <span class="small text-navy fw-bold" id="hour-m6">0 ชม.</span>
+                                        </div>
+                                        <div class="progress"><div class="progress-bar" id="bar-m6" style="width: 0%"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Top 5 Active Rooms -->
+                        <div class="col-lg-5">
+                            <div class="report-card shadow-sm h-100">
+                                <h6 class="fw-black text-navy mb-4"><i class="bi bi-trophy me-2"></i> ห้องเรียนยอดเยี่ยม (ชั่วโมงสะสมสูงสุด)</h6>
+                                <div id="topRoomsContainer">
+                                    <!-- Dynamic Room List -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Full Width: Detailed History -->
+                        <div class="col-12 mt-4">
+                            <div class="report-card shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h6 class="fw-black text-navy mb-0"><i class="bi bi-clock-history me-2"></i> ประวัติการทำกิจกรรมย้อนหลัง (ภาพรวม)</h6>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-select form-select-sm border-0 bg-light" id="filter-year" onchange="loadStats()">
+                                            <option value="2569">2569</option>
+                                            <option value="2568" selected>2568</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-custom align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>วันที่</th>
+                                                <th>นักเรียน</th>
+                                                <th>กิจกรรม</th>
+                                                <th>เวลาสะสม</th>
+                                                <th>สถานะ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="history-log">
+                                            <!-- Dynamic History -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth(['admin', 'teacher']);
+            loadStats();
+        });
+
+        async function loadStats() {
+            const year = document.getElementById('filter-year').value;
+            try {
+                const res = await fetch(`../api/public_service.php?year=${year}&semester=all&status=approved&limit=10`);
+                const data = await res.json();
+
+                if (data.success) {
+                    renderLevelStats(data.records); // We'll group them manually for mockup logic
+                    renderTopRooms(data.records);
+                    renderHistoryLog(data.records);
+                }
+            } catch (e) {
+                console.error("Failed to load stats", e);
+            }
+        }
+
+        function renderLevelStats(records) {
+            // Mock grouping logic based on first digit of room or similar
+            const levels = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+            records.forEach(r => {
+                const lv = r.room.charAt(0);
+                if (levels[lv] !== undefined) levels[lv] += parseFloat(r.duration);
+            });
+
+            const max = Math.max(...Object.values(levels), 1);
+            Object.keys(levels).forEach(lv => {
+                const val = levels[lv];
+                document.getElementById(`hour-m${lv}`).textContent = `${val} ชม.`;
+                document.getElementById(`bar-m${lv}`).style.width = `${(val / max) * 100}%`;
+            });
+        }
+
+        function renderTopRooms(records) {
+            const rooms = {};
+            records.forEach(r => {
+                rooms[r.room] = (rooms[r.room] || 0) + parseFloat(r.duration);
+            });
+
+            const sortedRooms = Object.entries(rooms).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            const container = document.getElementById('topRoomsContainer');
+            
+            if (sortedRooms.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-muted small">ยังไม่มีข้อมูลสถิติ</div>';
+                return;
+            }
+
+            container.innerHTML = sortedRooms.map(([room, val], idx) => `
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom border-light">
+                    <div class="stat-badge">${idx + 1}</div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold small">ห้อง ${room}</div>
+                        <div class="small text-muted">คะแนนความดีสะสม</div>
+                    </div>
+                    <div class="text-navy fw-black">${val} ชม.</div>
+                </div>
+            `).join('');
+        }
+
+        function renderHistoryLog(records) {
+            const list = document.getElementById('history-log');
+            if (records.length === 0) {
+                list.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบประวัติกิจกรรม</td></tr>';
+                return;
+            }
+
+            list.innerHTML = records.map(r => `
+                <tr>
+                    <td><div class="small fw-bold">${r.activity_date_th}</div></td>
+                    <td>
+                        <div class="fw-bold">${r.first_name_th} ${r.last_name_th}</div>
+                        <div class="small text-muted">${r.student_id} | ห้อง ${r.room}</div>
+                    </td>
+                    <td><div class="text-navy fw-bold">${r.activity_name}</div></td>
+                    <td><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration} ${r.duration_unit}</span></td>
+                    <td><span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">อนุมัติแล้ว</span></td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

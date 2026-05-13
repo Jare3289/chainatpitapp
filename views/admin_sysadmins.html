@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+	<meta charset="UTF-8" />
+	<title>จัดการข้อมูลผู้ดูแลระบบ | CNP APP</title>
+	<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">    <style>
+        .btn-navy { background-color: #1f355c; color: white; border: none; }
+        .btn-navy:hover { background-color: #162643; color: white; }
+        .table-custom-header th { background-color: #1f355c !important; color: white !important; font-weight: 500; }
+        .badge-outline { background: transparent; padding: 5px 12px; font-size: 0.75rem;}
+        .table > :not(caption) > * > * { padding: 1rem 1rem; border-bottom-color: #f1f3f5;}
+        
+        .search-area {
+            background-color: #fafbfc;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .form-control-custom {
+            border-radius: 50px;
+            padding-left: 40px;
+            height: 42px;
+            background-color: #ffffff;
+        }
+        .search-icon-inside {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #adb5bd;
+        }
+    </style>
+</head>
+<body class="bg-light">
+	<div class="wrapper">
+		<div class="sidebar" id="mainSidebar">
+			<!-- Injected by main.js -->
+		</div>
+
+		<main class="app-main main-panel d-flex flex-column min-vh-100 d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+			<div class="app-content-header main-header sticky-top bg-white border-bottom">
+				<div class="container-fluid d-flex align-items-center justify-content-between py-3 px-4">
+                    <button class="btn btn-link text-navy d-lg-none px-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <!-- Blank div to push breadcrumbs to right -->
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-link text-navy d-lg-none px-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb breadcrumb-modern mb-0 small">
+                                <li class="breadcrumb-item"><a href="admin_dashboard.html">หน้าหลัก</a></li>
+                                <li class="breadcrumb-item active">จัดการผู้ดูแลระบบ</li>
+                            </ol>
+                        </nav>
+                    </div>
+				</div>
+			</div>
+
+			<div class="app-content page-content py-4 flex-grow-1 d-flex flex-column py-4 flex-grow-1 d-flex flex-column">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                            <div>
+                                <h4 class="fw-bold text-navy mb-1">จัดการผู้ดูแลระบบ</h4>
+                                <p class="text-muted small mb-0">ดูแลสิทธิ์การเข้าใช้งานและข้อมูลพื้นฐานของเจ้าหน้าที่ดูแลระบบ</p>
+                            </div>
+                            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm hover-scale" onclick="addAdmin()">
+                                <i class="bi bi-person-plus-fill me-2"></i> เพิ่มผู้ดูแล
+                            </button>
+                        </div>
+
+                        <!-- Data Table Card -->
+                        <div class="card border-0 mb-4 bg-transparent shadow-none">
+                            <div class="card-header border-bottom-0 py-3 px-4" style="background: #2b4b8a; border-radius: 12px 12px 0 0;">
+                                <h5 class="fw-bold text-white mb-0"><i class="bi bi-shield-lock me-2"></i> รายชื่อผู้ดูแลระบบ</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table align-middle mb-0 table-modern">
+                                        <thead class="sticky-top">
+                                            <tr>
+                                                <th style="width: 5%;" class="text-center py-3 text-secondary small fw-bold text-uppercase">#</th>
+                                                <th style="width: 40%;" class="py-3 text-secondary small fw-bold text-uppercase">ผู้ดูแลระบบ</th>
+                                                <th style="width: 20%;" class="py-3 text-secondary small fw-bold text-uppercase">อีเมล/การติดต่อ</th>
+                                                <th style="width: 20%;" class="py-3 text-secondary small fw-bold text-uppercase">ระดับสิทธิ์</th>
+                                                <th style="width: 15%;" class="text-center py-3 text-secondary small fw-bold text-uppercase">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style="counter-reset: row-number 0;">
+                                            <tr class="hover-bg-light transition-all">
+                                                <td class="text-center fw-bold text-muted running-number"></td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="avatar-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">NN</div>
+                                                        <div>
+                                                            <span class="fw-bold text-dark d-block">นายนัชนันท์ นครคง</span>
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.7rem;">
+                                                                <i class="bi bi-check-circle-fill me-1"></i> ออนไลน์
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="small">
+                                                        <i class="bi bi-envelope me-1 text-muted"></i> club-cnp@chainatpit.ac.th
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">
+                                                        <i class="bi bi-award me-1"></i> Super Admin
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group shadow-sm">
+                                                        <button class="btn btn-warning btn-sm text-white hover-scale" title="แก้ไข">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </button>
+                                                        <button class="btn btn-secondary btn-sm text-white hover-scale opacity-50" title="ระงับ" disabled>
+                                                            <i class="bi bi-slash-circle"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- Additional Dummy Row for Preview -->
+                                            <tr class="hover-bg-light transition-all">
+                                                <td class="text-center fw-bold text-muted running-number"></td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="avatar-sm bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">TS</div>
+                                                        <div>
+                                                            <span class="fw-bold text-dark d-block">นายทดสอบ ระบบ</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill" style="font-size: 0.7rem;">
+                                                                <i class="bi bi-clock me-1"></i> ล่าสุดเมื่อ 2 ชม. ที่แล้ว
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="small">
+                                                        <i class="bi bi-envelope me-1 text-muted"></i> admin2@chainatpit.ac.th
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
+                                                        <i class="bi bi-person-badge me-1"></i> Admin
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group shadow-sm">
+                                                        <button class="btn btn-warning btn-sm text-white hover-scale" title="แก้ไข">
+                                                            <i class="bi bi-pencil-square"></i>
+                                                        </button>
+                                                        <button class="btn btn-danger btn-sm text-white hover-scale" title="ลบ">
+                                                            <i class="bi bi-trash-fill"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Info -->
+                        <div class="d-flex justify-content-between align-items-center px-2">
+                            <small class="text-muted">แสดง 1 ถึง 2 จาก 2 รายการ</small>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item disabled"><a class="page-link border-0 rounded-circle" href="#"><</a></li>
+                                    <li class="page-item active"><a class="page-link border-0 rounded-circle ms-1" href="#">1</a></li>
+                                    <li class="page-item disabled"><a class="page-link border-0 rounded-circle ms-1" href="#">></a></li>
+                                </ul>
+                            </nav>
+                        </div>
+			</div>
+		</div>
+	</div><script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth('admin');
+        });
+
+        function addAdmin() {
+            Swal.fire({
+                title: 'เพิ่มผู้ดูแลระบบ',
+                text: 'ฟังก์ชันนี้อยู่ในระหว่างการพัฒนาให้สมบูรณ์',
+                icon: 'info',
+                confirmButtonColor: '#1f355c',
+                confirmButtonText: 'ตกลง'
+            });
+        }
+    </script>
+</body>
+</html>

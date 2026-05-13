@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>รายงานสรุปผลการมาเรียน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .report-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.02); }
+        .dropdown-style { background-color: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 15px; font-weight: 500; width: 100%; outline: none; }
+        .table-custom th { background: #f8fafc; padding: 15px; font-weight: 700; color: #475569; border-bottom: 2px solid #eef2f6; text-align: center; }
+        .table-custom td { padding: 12px 15px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; text-align: center; }
+        .status-badge { font-size: 0.75rem; padding: 5px 12px; border-radius: 20px; font-weight: 700; }
+        .bg-p { background: #ecfdf5; color: #059669; }
+        .bg-a { background: #fef2f2; color: #dc2626; }
+        .bg-s { background: #fffbeb; color: #d97706; }
+        .bg-l { background: #eff6ff; color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+            <div class="app-content page-content py-4 px-4 flex-grow-1">
+                <div class="container-fluid">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">รายงานสรุปผลการมาเรียน</h4>
+                            <p class="text-muted small mb-0">เรียกดูข้อมูลการมาเรียนสะสมรายห้อง</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="advisory_stats.html" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+                                <i class="bi bi-pie-chart-fill me-2"></i>ดูแบบแผนภูมิสถิติ
+                            </a>
+                            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="exportExcel()">
+                                <i class="bi bi-file-earmark-excel-fill me-2"></i>Export Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="report-card mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="small fw-bold text-muted mb-2 d-block">ดูแบบ</label>
+                                <select id="reportPeriod" class="dropdown-style" onchange="toggleInputs()">
+                                    <option value="monthly">รายเดือน</option>
+                                    <option value="semester">รายภาคเรียน</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3" id="monthInput">
+                                <label class="small fw-bold text-muted mb-2 d-block">เดือน</label>
+                                <input type="month" id="monthSelect" class="dropdown-style">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="small fw-bold text-muted mb-2 d-block">ห้องเรียน</label>
+                                <select id="classSelect" class="dropdown-style"></select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="fetchReport()">
+                                    <i class="bi bi-search me-2"></i>แสดงรายงาน
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Table -->
+                    <div id="reportContainer" style="display:none;" class="report-card">
+                        <div class="table-responsive">
+                            <table class="table-custom w-100">
+                                <thead>
+                                    <tr>
+                                        <th>เลขที่</th>
+                                        <th>รหัสนักเรียน</th>
+                                        <th class="text-start">ชื่อ-นามสกุล</th>
+                                        <th>มา</th>
+                                        <th>ขาด</th>
+                                        <th>สาย</th>
+                                        <th>ลา/ป่วย</th>
+                                        <th>ร้อยละ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="loadingState" class="text-center py-5" style="display:none;">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <p class="text-muted">กำลังดึงข้อมูลรายงาน...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(['teacher', 'admin']);
+            if (user) {
+                document.getElementById('monthSelect').value = new Date().toISOString().substring(0, 7);
+                await loadClasses(user);
+                // Auto fetch if room is pre-selected
+                if (document.getElementById('classSelect').value) fetchReport();
+            }
+        });
+
+        function toggleInputs() {
+            const period = document.getElementById('reportPeriod').value;
+            document.getElementById('monthInput').style.display = period === 'monthly' ? 'block' : 'none';
+        }
+
+        async function loadClasses(user) {
+            try {
+                const res = await fetch('../api/teacher/my-classes.php?type=daily');
+                const data = await res.json();
+                const select = document.getElementById('classSelect');
+                select.innerHTML = '';
+                if (data.classes) {
+                    data.classes.forEach(c => {
+                        const opt = new Option('ห้อง ' + c, c);
+                        select.add(opt);
+                    });
+                }
+                if (data.advisory_room) select.value = data.advisory_room;
+                else if (user.classroom) select.value = user.classroom;
+            } catch(e) {}
+        }
+
+        async function fetchReport() {
+            const period = document.getElementById('reportPeriod').value;
+            const month = document.getElementById('monthSelect').value;
+            const className = document.getElementById('classSelect').value;
+            
+            if (!className) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกห้องเรียน', 'warning');
+
+            $('#reportContainer').hide();
+            $('#loadingState').show();
+
+            let url = `../api/teacher/reports.php?class_name=${encodeURIComponent(className)}`;
+            if (period === 'monthly') url += `&month=${month}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success) {
+                    let html = '';
+                    data.reports.forEach(r => {
+                        const pctClass = r.percent >= 80 ? 'bg-p' : (r.percent >= 60 ? 'bg-s' : 'bg-a');
+                        html += `
+                            <tr>
+                                <td class="fw-bold text-muted">${r.number_in_class || '-'}</td>
+                                <td class="small fw-bold text-primary">${r.student_id}</td>
+                                <td class="text-start fw-bold text-navy">${r.full_name}</td>
+                                <td><span class="status-badge bg-p">${r.present}</span></td>
+                                <td><span class="status-badge bg-a">${r.absent}</span></td>
+                                <td><span class="status-badge bg-s">${r.late}</span></td>
+                                <td><span class="status-badge bg-l">${r.leave + r.sick}</span></td>
+                                <td><span class="status-badge ${pctClass}">${r.percent}%</span></td>
+                            </tr>
+                        `;
+                    });
+                    $('#reportTableBody').html(html || '<tr><td colspan="8" class="py-5 text-muted">ไม่พบข้อมูล</td></tr>');
+                    $('#loadingState').hide();
+                    $('#reportContainer').fadeIn();
+                }
+            } catch (err) {
+                $('#loadingState').hide();
+                Swal.fire('Error', 'ไม่สามารถโหลดข้อมูลรายงานได้', 'error');
+            }
+        }
+
+        function exportExcel() {
+            Swal.fire('Coming Soon', 'ฟังก์ชันส่งออก Excel กำลังเปิดใช้งานเร็วๆ นี้', 'info');
+        }
+    </script>
+</body>
+</html>

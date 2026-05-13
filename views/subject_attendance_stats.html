@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>สถิติการเข้าเรียนรายวิชา | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', sans-serif; background-color: #f0f2f5; }
+        .stats-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); transition: transform 0.3s; }
+        .stats-card:hover { transform: translateY(-5px); }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .dropdown-style { background-color: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 15px; font-weight: 500; outline: none; transition: all 0.2s; }
+        .dropdown-style:focus { border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1); }
+        
+        .table-modern { border-collapse: separate; border-spacing: 0 10px; }
+        .table-modern thead th { border: none; background: transparent; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.75rem; padding: 10px 20px; }
+        .table-modern tbody tr { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border-radius: 15px; transition: all 0.2s; }
+        .table-modern tbody tr:hover { background: #f8fafc; transform: scale(1.005); }
+        .table-modern td { padding: 15px 20px; border: none; vertical-align: middle; }
+        .table-modern td:first-child { border-radius: 15px 0 0 15px; }
+        .table-modern td:last-child { border-radius: 0 15px 15px 0; }
+        
+        .progress-sm { height: 6px; border-radius: 10px; }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; background: #e0e7ff; color: #4338ca; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+            <div class="app-content page-content py-4 px-4">
+                <div class="container-fluid">
+                    
+                    <!-- Title -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">สถิติและรายงานการเข้าเรียน</h4>
+                            <p class="text-muted small mb-0">ภาพรวมการเข้าเรียนรายวิชาและรายบุคคล</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-white border rounded-pill px-3 fw-bold" onclick="window.print()">
+                                <i class="bi bi-printer me-1"></i> พิมพ์รายงาน
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card stats-card mb-4">
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-lg-3">
+                                    <label class="small fw-bold text-muted mb-2 d-block">วิชาที่สอน</label>
+                                    <select id="subjectSelect" class="form-select dropdown-style" onchange="onSubjectChange()">
+                                        <option value="">-- ทุกวิชา --</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-2">
+                                    <label class="small fw-bold text-muted mb-2 d-block">ห้องเรียน</label>
+                                    <select id="classSelect" class="form-select dropdown-style" onchange="loadStats()">
+                                        <option value="">-- ทุกห้อง --</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-2">
+                                    <label class="small fw-bold text-muted mb-2 d-block">จากวันที่</label>
+                                    <input type="date" id="startDate" class="form-control dropdown-style" onchange="loadStats()">
+                                </div>
+                                <div class="col-lg-2">
+                                    <label class="small fw-bold text-muted mb-2 d-block">ถึงวันที่</label>
+                                    <input type="date" id="endDate" class="form-control dropdown-style" onchange="loadStats()">
+                                </div>
+                                <div class="col-lg-3 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="loadStats()">
+                                        <i class="bi bi-search me-1"></i> ดึงข้อมูลสถิติ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards & Charts -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="card stats-card h-100">
+                                <div class="card-body p-4 text-center">
+                                    <h6 class="fw-bold text-navy mb-4">สัดส่วนการมาเรียน</h6>
+                                    <div class="chart-container">
+                                        <canvas id="overallChart"></canvas>
+                                    </div>
+                                    <div id="summaryText" class="mt-3 small text-muted"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="card stats-card h-100">
+                                <div class="card-body p-4">
+                                    <h6 class="fw-bold text-navy mb-4">นักเรียนที่ขาดเรียนบ่อยสุด (Top 10)</h6>
+                                    <div class="chart-container" style="height: 250px;">
+                                        <canvas id="absentChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Table -->
+                    <div class="card stats-card border-0">
+                        <div class="card-header bg-transparent border-0 p-4 pb-0 d-flex justify-content-between">
+                            <h6 class="fw-bold text-navy mb-0">รายละเอียดรายบุคคล</h6>
+                            <div class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
+                                ทั้งหมด <span id="studentCount">0</span> คน
+                            </div>
+                        </div>
+                        <div class="card-body p-4 pt-2">
+                            <div class="table-responsive">
+                                <table class="table table-modern align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th width="5%">ที่</th>
+                                            <th width="30%">ชื่อ-นามสกุล</th>
+                                            <th class="text-center">มา</th>
+                                            <th class="text-center">ขาด</th>
+                                            <th class="text-center">สาย</th>
+                                            <th class="text-center">ลา</th>
+                                            <th width="20%">เปอร์เซ็นต์การเข้าเรียน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="studentStatsBody">
+                                        <tr><td colspan="7" class="text-center py-5 text-muted">กรุณาเลือกวิชาและกดค้นหา</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let overallChart = null;
+        let absentChart = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(['teacher', 'admin']);
+            if (!user) return;
+            
+            // Set default date range (this month)
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            document.getElementById('startDate').valueAsDate = firstDay;
+            document.getElementById('endDate').valueAsDate = now;
+
+            await loadSubjects();
+        });
+
+        async function loadSubjects() {
+            try {
+                const r = await fetch('../api/teacher/get-subjects.php');
+                const j = await r.json();
+                const sel = document.getElementById('subjectSelect');
+                j.my_subjects.forEach(s => {
+                    const opt = new Option(`● ${s.subject_code} ${s.subject_name || ''}`, s.subject_code);
+                    opt.dataset.rooms = s.room || '';
+                    sel.add(opt);
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        function onSubjectChange() {
+            const sel = document.getElementById('subjectSelect');
+            const opt = sel.options[sel.selectedIndex];
+            const roomSel = document.getElementById('classSelect');
+            roomSel.innerHTML = '<option value="">-- ทุกห้อง --</option>';
+            
+            if (opt && opt.dataset.rooms) {
+                opt.dataset.rooms.split(',').map(r => r.trim()).forEach(r => {
+                    if (r) roomSel.add(new Option('ห้อง ' + r, r));
+                });
+            }
+            loadStats();
+        }
+
+        async function loadStats() {
+            const subj = document.getElementById('subjectSelect').value;
+            const room = document.getElementById('classSelect').value;
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+
+            const url = `../api/teacher/attendance-stats.php?subject_code=${subj}&class_name=${room}&start_date=${start}&end_date=${end}`;
+            
+            try {
+                const r = await fetch(url);
+                const j = await r.json();
+                if (!j.success) return Swal.fire('Error', j.error, 'error');
+
+                renderCharts(j.summary, j.students);
+                renderTable(j.students);
+                document.getElementById('studentCount').textContent = j.students.length;
+            } catch (e) { console.error(e); }
+        }
+
+        function renderCharts(summary, students) {
+            // 1. Overall Pie Chart
+            const ctx = document.getElementById('overallChart').getContext('2d');
+            const labels = summary.map(s => s.status);
+            const data = summary.map(s => s.count);
+            const colors = { 'มา': '#10b981', 'ขาด': '#ef4444', 'สาย': '#f59e0b', 'ลา': '#3b82f6', 'ป่วย': '#0ea5e9', 'กิจ': '#6366f1' };
+            const bgColors = labels.map(l => colors[l] || '#94a3b8');
+
+            if (overallChart) overallChart.destroy();
+            overallChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: bgColors, borderWidth: 0 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '70%' }
+            });
+
+            // 2. Absent Bar Chart (Top 10)
+            const ctx2 = document.getElementById('absentChart').getContext('2d');
+            const topAbsent = [...students].sort((a,b) => b.absent_count - a.absent_count).slice(0, 10).filter(s => s.absent_count > 0);
+            
+            if (absentChart) absentChart.destroy();
+            absentChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: topAbsent.map(s => s.first_name_th),
+                    datasets: [{ label: 'จำนวนครั้งที่ขาด', data: topAbsent.map(s => s.absent_count), backgroundColor: '#ef4444', borderRadius: 8 }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            });
+        }
+
+        function renderTable(students) {
+            const tbody = document.getElementById('studentStatsBody');
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = students.map((s, idx) => {
+                const total = Number(s.total_sessions);
+                const percent = total > 0 ? Math.round((Number(s.present_count) / total) * 100) : 0;
+                let color = 'bg-success';
+                if (percent < 80) color = 'bg-danger';
+                else if (percent < 90) color = 'bg-warning';
+
+                return `
+                    <tr>
+                        <td>${s.number_in_class || idx + 1}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-3">${s.first_name_th[0]}</div>
+                                <div>
+                                    <div class="fw-bold text-navy">${s.prefix}${s.first_name_th} ${s.last_name_th}</div>
+                                    <div class="x-small text-muted">รหัส: ${s.code}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center"><span class="badge bg-success-subtle text-success rounded-pill px-3">${s.present_count}</span></td>
+                        <td class="text-center"><span class="badge bg-danger-subtle text-danger rounded-pill px-3">${s.absent_count}</span></td>
+                        <td class="text-center"><span class="badge bg-warning-subtle text-warning rounded-pill px-3">${s.late_count}</span></td>
+                        <td class="text-center"><span class="badge bg-info-subtle text-info rounded-pill px-3">${s.leave_count}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 progress-sm me-3">
+                                    <div class="progress-bar ${color}" style="width: ${percent}%"></div>
+                                </div>
+                                <span class="fw-bold ${color.replace('bg-', 'text-')}">${percent}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

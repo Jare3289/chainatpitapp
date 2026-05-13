@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>จัดการห้องเรียน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* Expando Table Premium */
+        .expando-row { cursor: pointer; transition: 0.2s; border-left: 5px solid transparent; background: white; }
+        .expando-row:hover { background-color: #fcfdfe; border-left-color: #1e3a8a; }
+        .expando-row.expanded { background-color: #f8fafc; border-left-color: #1e3a8a; }
+        
+        .chevron-icon { transition: transform 0.3s; color: #94a3b8; }
+        .expanded .chevron-icon { transform: rotate(180deg); color: #1e3a8a; }
+
+        /* Inner Table - No Black Borders */
+        .inner-table-wrapper { background: white; margin: 15px 30px; border-radius: 20px; overflow: hidden; border: 1px solid #f1f5f9; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        .table-inner { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .table-inner th { background: #f8fafc; padding: 12px 20px; font-weight: 700; color: #64748b; font-size: 0.8rem; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-inner td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+        .table-inner tr:last-child td { border-bottom: none; }
+        .table-inner tr:hover td { background-color: #fcfdfe; }
+
+        .grade-badge { width: 40px; height: 40px; background: #eff6ff; color: #1e3a8a; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .room-code-badge { background: #1e3a8a; color: white; padding: 4px 12px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; }
+        
+        .advisor-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .btn-action { width: 32px; height: 32px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; border: none; font-size: 0.9rem; }
+        .btn-edit { background: #fffbeb; color: #d97706; }
+        .btn-edit:hover { background: #d97706; color: white; }
+        .btn-delete { background: #fff1f2; color: #e11d48; }
+        .btn-delete:hover { background: #e11d48; color: white; }
+        .btn-view { background: #eff6ff; color: #2563eb; }
+        .btn-view:hover { background: #2563eb; color: white; }
+
+        /* Modal Premium */
+        .modal-content { border-radius: 28px; border: none; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .modal-header { border-bottom: 1px solid #f1f5f9; padding: 25px 30px; }
+        .modal-body { padding: 30px; }
+        .form-label { font-weight: 700; color: #475569; font-size: 0.85rem; margin-bottom: 8px; }
+        .form-control, .form-select { border-radius: 12px; border: 1px solid #e2e8f0; padding: 10px 15px; font-size: 0.95rem; }
+        .form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <!-- Page Header -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">จัดการข้อมูลชั้นเรียน</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item">ข้อมูลพื้นฐาน</li>
+                                    <li class="breadcrumb-item active">จัดการชั้นเรียน</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-white rounded-pill px-4 fw-bold shadow-sm border" onclick="downloadClassTemplate()">
+                                <i class="bi bi-download me-2"></i> เทมเพลต
+                            </button>
+                            <button class="btn btn-white rounded-pill px-4 fw-bold shadow-sm border" onclick="openClassImport()">
+                                <i class="bi bi-file-earmark-arrow-up me-2"></i> นำเข้า Excel
+                            </button>
+                            <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openEditModal()">
+                                <i class="bi bi-plus-lg me-2"></i> เพิ่มห้องเรียน
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="content-card mb-4 p-3 d-flex align-items-center gap-3">
+                        <i class="bi bi-search text-muted ms-2"></i>
+                        <input type="text" id="globalSearch" class="form-control border-0 bg-transparent shadow-none" placeholder="ค้นหาระดับชั้น หรือ หัวหน้าระดับ..." oninput="renderExpandoTable()">
+                    </div>
+
+                    <!-- Main Table -->
+                    <div class="content-card p-0 overflow-hidden shadow-sm">
+                        <div class="table-responsive">
+                            <table class="table mb-0" style="border-collapse: separate; border-spacing: 0;">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4 py-3 text-muted small fw-bold" style="width: 80px;">ลำดับ</th>
+                                        <th class="py-3 text-muted small fw-bold">ระดับชั้น</th>
+                                        <th class="py-3 text-muted small fw-bold">หัวหน้าระดับชั้น</th>
+                                        <th class="text-center py-3 text-muted small fw-bold">จำนวนห้อง</th>
+                                        <th class="text-end pe-4 py-3 text-muted small fw-bold">เครื่องมือ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expandoTableBody">
+                                    <tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary opacity-25"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Global Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                        CNPAPP<sup>©</sup>
+                                    </a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">
+                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                cnpapp@chainatpit.ac.th
+                            </div>
+                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
+                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
+                                </span>
+                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-envelope-fill me-1"></i> Email
+                                </a>
+                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
+                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
+                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Room Modal -->
+    <div class="modal fade" id="roomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="fw-black text-navy mb-0" id="modalTitle">จัดการข้อมูลห้องเรียน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="roomForm">
+                        <input type="hidden" name="id" id="room_id">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">รหัสห้อง (Code)</label>
+                                <input type="text" name="classroom_code" class="form-control" placeholder="เช่น 112" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">ม.ปีที่</label>
+                                <input type="number" name="class_level" class="form-control" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">ห้องที่</label>
+                                <input type="number" name="classroom_no" class="form-control" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">ระดับชั้น</label>
+                                <select name="grade_level" class="form-select" required>
+                                    <option value="มัธยมศึกษาปีที่ 1">มัธยมศึกษาปีที่ 1</option>
+                                    <option value="มัธยมศึกษาปีที่ 2">มัธยมศึกษาปีที่ 2</option>
+                                    <option value="มัธยมศึกษาปีที่ 3">มัธยมศึกษาปีที่ 3</option>
+                                    <option value="มัธยมศึกษาปีที่ 4">มัธยมศึกษาปีที่ 4</option>
+                                    <option value="มัธยมศึกษาปีที่ 5">มัธยมศึกษาปีที่ 5</option>
+                                    <option value="มัธยมศึกษาปีที่ 6">มัธยมศึกษาปีที่ 6</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">อาคาร</label>
+                                <input type="number" name="building" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ชั้น</label>
+                                <input type="number" name="floor" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">เลขห้อง</label>
+                                <input type="number" name="room_no" class="form-control" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">รหัสที่ตั้ง (Location Code)</label>
+                                <input type="text" name="location_code" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">คณะ (บ้าน)</label>
+                                <select name="house" class="form-select">
+                                    <option value="">ไม่ระบุ</option>
+                                    <option value="ขุนสรรค์">ขุนสรรค์</option>
+                                    <option value="ขุนศรี">ขุนศรี</option>
+                                    <option value="เจ้ายี่">เจ้ายี่</option>
+                                    <option value="ธรรมจักร">ธรรมจักร</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">แผนการเรียน</label>
+                                <input type="text" name="program" class="form-control">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="button" class="btn btn-navy rounded-pill px-4 fw-bold" onclick="saveRoom()">บันทึกข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Modal -->
+    <div class="modal fade" id="gradeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="fw-black text-navy mb-0">แก้ไขข้อมูลระดับชั้น</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="gradeForm">
+                        <input type="hidden" name="id" id="grade_id">
+                        <div class="mb-3">
+                            <label class="form-label">ระดับชั้น</label>
+                            <input type="text" id="grade_name_display" class="form-control bg-light" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">หัวหน้าระดับชั้น</label>
+                            <select name="head_teacher_id" id="head_teacher_select" class="form-select"></select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" form="gradeForm" class="btn btn-navy rounded-pill px-4 fw-bold">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script src="../public/js/importModal.js"></script>
+    <script>
+        let allRooms = [];
+        let allGradeLevels = [];
+        let allTeachers = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) { loadData(); }
+        });
+
+        async function loadData() {
+            try {
+                const resRooms = await fetch('../api/admin/rooms.php');
+                const dataRooms = await resRooms.json();
+                if (dataRooms.success) allRooms = dataRooms.data;
+
+                const resGrades = await fetch('../api/admin/grade_levels.php');
+                const dataGrades = await resGrades.json();
+                if (dataGrades.success) allGradeLevels = dataGrades.data;
+
+                const resTeachers = await fetch('../api/admin/teachers.php');
+                const dataTeachers = await resTeachers.json();
+                if (dataTeachers.success) allTeachers = dataTeachers.data;
+
+                renderExpandoTable();
+            } catch (e) { console.error(e); }
+        }
+
+        function renderExpandoTable() {
+            const tbody = document.getElementById('expandoTableBody');
+            const search = document.getElementById('globalSearch').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            allGradeLevels.forEach((g, idx) => {
+                const roomsInGrade = allRooms.filter(r => r.grade_level === g.grade_name);
+                const headName = `${g.prefix || ''}${g.first_name_th || ''} ${g.last_name_th || ''}`.toLowerCase();
+                if (search && !g.grade_name.toLowerCase().includes(search) && !headName.includes(search)) return;
+
+                const headHtml = g.first_name_th 
+                    ? `<div class="d-flex align-items-center gap-2">
+                            <img src="${g.photo ? '../' + g.photo : '../public/img/default-avatar.png'}" class="advisor-avatar">
+                            <div class="fw-bold small text-navy">${g.prefix || ''}${g.first_name_th} ${g.last_name_th}</div>
+                       </div>`
+                    : '<span class="text-muted small">ยังไม่ระบุ</span>';
+
+                const row = document.createElement('tr');
+                row.className = 'expando-row';
+                row.innerHTML = `
+                    <td class="ps-4 py-3 text-muted small fw-bold"><i class="bi bi-chevron-down chevron-icon me-2"></i>${idx + 1}</td>
+                    <td class="py-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="grade-badge shadow-sm"><i class="bi bi-mortarboard-fill"></i></div>
+                            <span class="fw-black text-navy">${g.grade_name}</span>
+                        </div>
+                    </td>
+                    <td class="py-3">${headHtml}</td>
+                    <td class="text-center py-3 fw-bold text-muted">${roomsInGrade.length} ห้อง</td>
+                    <td class="text-end pe-4 py-3">
+                        <button class="btn btn-light rounded-pill px-3 btn-sm fw-bold border" onclick="event.stopPropagation(); openGradeEditModal(${g.id})">จัดการระดับ</button>
+                    </td>
+                `;
+                row.onclick = () => toggleRow(row, g.id);
+                tbody.appendChild(row);
+
+                const childRow = document.createElement('tr');
+                childRow.id = `child-${g.id}`;
+                childRow.style.display = 'none';
+                childRow.innerHTML = `<td colspan="5" class="p-0 border-0">
+                    <div class="inner-table-wrapper">
+                        <table class="table-inner">
+                            <thead>
+                                <tr>
+                                    <th>รหัสห้อง</th>
+                                    <th>อาคาร/ชั้น/เลขห้อง</th>
+                                    <th>รหัสสถานที่</th>
+                                    <th>คณะ / แผนการเรียน</th>
+                                    <th>ที่ปรึกษา</th>
+                                    <th class="text-end">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${roomsInGrade.sort((a,b)=>a.classroom_no-b.classroom_no).map(r => {
+                                    const advisors = allTeachers.filter(t => t.room === r.classroom_code);
+                                    return `
+                                        <tr>
+                                            <td><span class="room-code-badge">${r.classroom_code}</span></td>
+                                            <td><div class="fw-bold">อาคาร ${r.building}</div><div class="small text-muted">ชั้น ${r.floor} ห้องที่ ${r.room_no}</div></td>
+                                            <td><span class="badge bg-light text-dark border px-2">${r.location_code}</span></td>
+                                            <td><div class="small fw-bold">${r.house || '-'}</div><div class="x-small text-muted">${r.program || '-'}</div></td>
+                                            <td>
+                                                <div class="d-flex -space-x-2">
+                                                    ${advisors.map(t => `<img src="${t.photo ? '../'+t.photo : '../public/img/default-avatar.png'}" class="advisor-avatar" title="${t.first_name_th}">`).join('')}
+                                                    ${advisors.length === 0 ? '<span class="text-muted small">-</span>' : ''}
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <div class="d-flex justify-content-end gap-1">
+                                                    <button class="btn-action btn-view" title="ดูรายละเอียด" onclick="viewRoom(${r.id})"><i class="bi bi-eye-fill"></i></button>
+                                                    <button class="btn-action btn-edit" title="แก้ไข" onclick="openEditModal(${r.id})"><i class="bi bi-pencil-fill"></i></button>
+                                                    <button class="btn-action btn-delete" title="ลบ" onclick="deleteRoom(${r.id})"><i class="bi bi-trash-fill"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                                ${roomsInGrade.length === 0 ? '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูลห้องเรียน</td></tr>' : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </td>`;
+                tbody.appendChild(childRow);
+            });
+        }
+
+        function toggleRow(row, id) {
+            const child = document.getElementById(`child-${id}`);
+            const isVisible = child.style.display === 'table-row';
+            document.querySelectorAll('.expando-row').forEach(r => r.classList.remove('expanded'));
+            document.querySelectorAll('[id^="child-"]').forEach(c => c.style.display = 'none');
+            if (!isVisible) { row.classList.add('expanded'); child.style.display = 'table-row'; }
+        }
+
+        async function openGradeEditModal(id) {
+            const g = allGradeLevels.find(x => x.id == id);
+            if (!g) return;
+            document.getElementById('grade_id').value = g.id;
+            document.getElementById('grade_name_display').value = g.grade_name;
+            const sel = document.getElementById('head_teacher_select');
+            sel.innerHTML = '<option value="">-- เลือกหัวหน้าระดับ --</option>';
+            allTeachers.forEach(t => sel.add(new Option(`${t.prefix || ''}${t.first_name_th} ${t.last_name_th}`, t.id)));
+            sel.value = g.head_teacher_id || '';
+            new bootstrap.Modal(document.getElementById('gradeModal')).show();
+        }
+
+        document.getElementById('gradeForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            const res = await fetch('../api/admin/grade_levels.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const result = await res.json();
+            if (result.success) { Swal.fire('สำเร็จ', result.message, 'success'); bootstrap.Modal.getInstance(document.getElementById('gradeModal')).hide(); loadData(); }
+        };
+
+        function openEditModal(id = null) {
+            document.getElementById('roomForm').reset();
+            document.getElementById('room_id').value = '';
+            document.getElementById('modalTitle').innerText = 'เพิ่มห้องเรียน';
+            if (id) {
+                const r = allRooms.find(x => x.id == id);
+                if (r) {
+                    document.getElementById('room_id').value = r.id;
+                    document.getElementById('modalTitle').innerText = 'แก้ไขห้องเรียน';
+                    Object.keys(r).forEach(k => { if(document.querySelector(`[name="${k}"]`)) document.querySelector(`[name="${k}"]`).value = r[k]; });
+                }
+            }
+            new bootstrap.Modal(document.getElementById('roomModal')).show();
+        }
+
+        async function saveRoom() {
+            const data = Object.fromEntries(new FormData(document.getElementById('roomForm')));
+            const res = await fetch('../api/admin/rooms.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const result = await res.json();
+            if (result.success) { Swal.fire('สำเร็จ', result.message, 'success'); bootstrap.Modal.getInstance(document.getElementById('roomModal')).hide(); loadData(); }
+        }
+
+        async function deleteRoom(id) {
+            const c = await Swal.fire({ title: 'ยืนยันการลบ?', text: "ข้อมูลห้องเรียนจะหายไปถาวร", icon: 'warning', showCancelButton: true });
+            if (c.isConfirmed) {
+                const res = await fetch(`../api/admin/rooms.php?id=${id}`, { method: 'DELETE' });
+                const r = await res.json();
+                if (r.success) { Swal.fire('ลบแล้ว!', r.message, 'success'); loadData(); }
+            }
+        }
+
+        function downloadClassTemplate() {
+            window.location.href = '../api/admin/download-template.php?type=class';
+        }
+
+        function openClassImport() {
+            initImportModal({
+                type: 'class', 
+                apiUrl: '../api/admin/upload-classes.php', 
+                onSuccess: () => { loadData(); }
+            });
+        }
+    </script>
+</body>
+</html>

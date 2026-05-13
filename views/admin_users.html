@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+	<meta charset="UTF-8" />
+	<title>จัดการรายชื่อ | CNP APP</title>
+	<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css?v=2">
+</head>
+<body>
+	<div class="wrapper">
+		<div class="sidebar" id="mainSidebar">			
+			<div class="logo-header d-flex align-items-center justify-content-between">
+				<a href="admin_dashboard.html" class="navbar-brand fw-bold text-navy d-flex align-items-center">
+                    <img src="../public/img/logo.png" alt="Logo" class="me-2" style="height: 35px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+                    <span>CNP <span style="color: var(--pink-vibrant);">APP</span></span>
+                </a>
+                <button class="btn btn-link text-navy d-lg-none" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+			</div>
+			<div class="sidebar-wrapper scrollbar-inner">
+				<div class="sidebar-content" id="mainSidebarContent">
+					<!-- Sidebar will be injected by main.js -->
+				</div>
+			</div>
+		</div>
+
+		<main class="app-main main-panel d-flex flex-column min-vh-100 d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+			<div class="app-content-header main-header sticky-top">
+				<div class="container-fluid d-flex align-items-center justify-content-between py-2">
+					<div class="d-flex align-items-center gap-3">
+                        <button class="btn btn-link text-navy d-lg-none px-0" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb breadcrumb-modern mb-0 small">
+                                <li class="breadcrumb-item"><a href="admin_dashboard.html">หน้าหลัก</a></li>
+                                <li class="breadcrumb-item active">ทะเบียนผู้ใช้งาน</li>
+                            </ol>
+                        </nav>
+                    </div>
+				</div>
+			</div>
+
+			<div class="app-content page-content flex-grow-1 d-flex flex-column py-4 flex-grow-1 d-flex flex-column">
+				<div class="row g-4">
+					<div class="col-md-12">
+                        <div class="mb-4">
+                            <span class="small fw-bold text-muted d-block mb-2 px-1">ค้นหาข้อมูล</span>
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                                <div class="input-group" style="max-width: 400px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                                    <span class="input-group-text border-0 rounded-start-pill bg-white ps-4 py-2"><i class="fas fa-search text-muted opacity-50"></i></span>
+                                    <input type="text" id="studentSearch" class="form-control border-0 rounded-end-pill bg-white py-2" placeholder="พิมพ์ชื่อ, ตำแหน่ง หรืออีเมล..." onkeyup="filterStudents()">
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <select id="studentPerPage" class="form-select form-select-sm border-0 bg-white rounded-pill shadow-sm px-3" style="width:90px;" onchange="changeStudentPerPage(this.value)">
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                    <button class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" style="background: #2b4b8a; border: none;">ค้นหา</button>
+                                </div>
+                            </div>
+                        </div>
+
+						<div class="card border-0 mb-5">
+							<div class="card-header border-bottom-0 py-3 px-4">
+								<h5 class="fw-bold text-white mb-0"><i class="bi bi-people-fill me-2"></i> รายชื่อบัญชีนักเรียน</h5>
+							</div>
+							<div class="card-body p-0">
+                                <div class="table-responsive">
+									<table class="table align-middle mb-0 table-modern">
+										<thead class="sticky-top">
+											<tr>
+												<th width="15%" class="py-3 text-secondary small fw-bold text-uppercase ps-4 cursor-pointer" onclick="sortStudents('student_id')">รหัส <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+												<th width="35%" class="py-3 text-secondary small fw-bold text-uppercase cursor-pointer" onclick="sortStudents('name')">ชื่อ-นามสกุล <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+												<th width="15%" class="py-3 text-secondary small fw-bold text-uppercase text-center cursor-pointer" onclick="sortStudents('class')">ห้องเรียน <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+                                                <th width="20%" class="py-3 text-secondary small fw-bold text-uppercase cursor-pointer" onclick="sortStudents('username')">Username <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+												<th width="15%" class="py-3 text-secondary small fw-bold text-uppercase text-center">การจัดการ</th>
+											</tr>
+										</thead>
+										<tbody id="studentList"></tbody>
+									</table>
+								</div>
+                                <!-- Pagination footer -->
+                                <div class="px-3 py-2 border-top">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                                        <small class="text-muted" id="studentPaginationInfo">กำลังโหลด...</small>
+                                        <nav><ul class="pagination pagination-sm mb-0" id="studentPaginationControls"></ul></nav>
+                                    </div>
+                                </div>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-md-12">
+                        <div class="mb-4">
+                            <span class="small fw-bold text-muted d-block mb-2 px-1">ค้นหาข้อมูล</span>
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+                                <div class="input-group" style="max-width: 400px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                                    <span class="input-group-text border-0 rounded-start-pill bg-white ps-4 py-2"><i class="fas fa-search text-muted opacity-50"></i></span>
+                                    <input type="text" id="teacherSearch" class="form-control border-0 rounded-end-pill bg-white py-2" placeholder="พิมพ์ชื่อ, ตำแหน่ง หรืออีเมล..." onkeyup="filterTeachers()">
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <select id="teacherPerPage" class="form-select form-select-sm border-0 bg-white rounded-pill shadow-sm px-3" style="width:90px;" onchange="changeTeacherPerPage(this.value)">
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                    <button class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" style="background: #2b4b8a; border: none;">ค้นหา</button>
+                                </div>
+                            </div>
+                        </div>
+
+						<div class="card border-0 mb-4">
+							<div class="card-header border-bottom-0 py-3 px-4">
+								<h5 class="fw-bold text-white mb-0"><i class="bi bi-person-workspace me-2"></i> รายชื่อบัญชีคุณครู</h5>
+							</div>
+							<div class="card-body p-0">
+								<div class="table-responsive">
+									<table class="table align-middle mb-0 table-modern">
+										<thead class="sticky-top">
+											<tr>
+												<th width="15%" class="py-3 text-secondary small fw-bold text-uppercase ps-4 cursor-pointer" onclick="sortTeachers('teacher_id')">IDT <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+												<th width="35%" class="py-3 text-secondary small fw-bold text-uppercase cursor-pointer" onclick="sortTeachers('name')">ชื่อ-นามสกุล <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+												<th width="15%" class="py-3 text-secondary small fw-bold text-uppercase text-center cursor-pointer" onclick="sortTeachers('class_assigned')">ที่ปรึกษาหน่วย <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+                                                <th width="20%" class="py-3 text-secondary small fw-bold text-uppercase cursor-pointer" onclick="sortTeachers('username')">Username <i class="bi bi-arrow-down-up ms-1 text-muted" style="font-size: 0.7rem;"></i></th>
+												<th width="15%" class="py-3 text-secondary small fw-bold text-uppercase text-center">การจัดการ</th>
+											</tr>
+										</thead>
+										<tbody id="teacherList"></tbody>
+									</table>
+								</div>
+                                <!-- Pagination footer -->
+                                <div class="px-3 py-2 border-top">
+                                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                                        <small class="text-muted" id="teacherPaginationInfo">กำลังโหลด...</small>
+                                        <nav><ul class="pagination pagination-sm mb-0" id="teacherPaginationControls"></ul></nav>
+                                    </div>
+                                </div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div><script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth('admin');
+            loadStudents();
+            loadTeachers();
+        });
+        let allStudents = [];
+        let filteredStudents = [];
+        let sCurrentPage = 1, sPerPage = 25, sSortCol = '', sSortAsc = true;
+
+        let allTeachers = [];
+        let filteredTeachers = [];
+        let tCurrentPage = 1, tPerPage = 25, tSortCol = '', tSortAsc = true;
+
+        async function loadStudents() {
+            try {
+                const tbody = document.getElementById('studentList');
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4"><div class="spinner-border spinner-border-sm text-pink-vibrant me-2"></div> กำลังโหลดข้อมูล...</td></tr>`;
+                
+                const res = await fetch('../api/admin/students.php');
+                const data = await res.json();
+                
+                if (data.error) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">เกิดข้อผิดพลาด: ${data.error}</td></tr>`;
+                    return;
+                }
+
+                allStudents = data.students || [];
+                filteredStudents = [...allStudents];
+                sCurrentPage = 1;
+                renderStudentTable();
+            } catch (err) {}
+        }
+
+        function renderStudentTable() {
+            const tbody = document.getElementById('studentList');
+            const total = filteredStudents.length;
+            const totalPages = Math.max(1, Math.ceil(total / sPerPage));
+            if (sCurrentPage > totalPages) sCurrentPage = totalPages;
+
+            const start = (sCurrentPage - 1) * sPerPage;
+            const pageData = filteredStudents.slice(start, start + sPerPage);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted p-5">ไม่พบข้อมูลนักเรียน</td></tr>`;
+                document.getElementById('studentPaginationInfo').textContent = `แสดง 0 รายการ`;
+                document.getElementById('studentPaginationControls').innerHTML = '';
+                return;
+            }
+
+            let htmlRows = '';
+            for (let s of pageData) {
+                htmlRows += `<tr class="transition-all hover-bg-light">
+                    <td class="fw-bold text-navy ps-4">${s.student_id}</td>
+                    <td class="fw-semibold">${s.name || '-'}</td>
+                    <td class="text-center"><span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 fw-normal">${s.class || '-'}</span></td>
+                    <td class="text-muted small">${s.username}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger hover-scale rounded-pill px-3" onclick="deleteUser(${s.id}, 'student')">
+                            <i class="fas fa-trash-alt me-1"></i> ลบ
+                        </button>
+                    </td>
+                </tr>`;
+            }
+            tbody.innerHTML = htmlRows;
+
+            const end = Math.min(start + sPerPage, total);
+            document.getElementById('studentPaginationInfo').textContent = `แสดง ${total === 0 ? 0 : start + 1}–${end} จาก ${total} รายการ`;
+            renderPagination(totalPages, sCurrentPage, 'studentPaginationControls', 'goToStudentPage');
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('studentSearch').value.toLowerCase();
+            filteredStudents = allStudents.filter(s => 
+                (s.student_id||'').toLowerCase().includes(query) || 
+                (s.name ||'').toLowerCase().includes(query) ||
+                (s.username||'').toLowerCase().includes(query)
+            );
+            if(sSortCol) {
+                sSortAsc = !sSortAsc;
+                sortStudents(sSortCol);
+            } else {
+                sCurrentPage = 1;
+                renderStudentTable();
+            }
+        }
+        
+        function sortStudents(column) {
+            if (sSortCol === column) sSortAsc = !sSortAsc;
+            else { sSortCol = column; sSortAsc = true; }
+
+            filteredStudents.sort((a, b) => {
+                let valA = (a[column] || '').toLowerCase();
+                let valB = (b[column] || '').toLowerCase();
+                if (valA < valB) return sSortAsc ? -1 : 1;
+                if (valA > valB) return sSortAsc ? 1 : -1;
+                return 0;
+            });
+            sCurrentPage = 1; renderStudentTable();
+        }
+        
+        function changeStudentPerPage(val) { sPerPage = parseInt(val); sCurrentPage = 1; renderStudentTable(); }
+        function goToStudentPage(p) { sCurrentPage = p; renderStudentTable(); }
+
+        /* Teachers Section */
+        async function loadTeachers() {
+            try {
+                const tbody = document.getElementById('teacherList');
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4"><div class="spinner-border spinner-border-sm text-info me-2"></div> กำลังโหลดข้อมูล...</td></tr>`;
+                
+                const res = await fetch('../api/admin/teachers.php'); 
+                const data = await res.json();
+                
+                allTeachers = data.data || [];
+                // map keys to match what we need based on backend structure
+                allTeachers = allTeachers.map(t => ({
+                    id: t.id,
+                    teacher_id: t.teacher_id,
+                    name: (t.prefix||'') + (t.first_name_th||'') + ' ' + (t.last_name_th||''),
+                    class_assigned: t.room || '-',
+                    username: t.username || '-'
+                }));
+
+                filteredTeachers = [...allTeachers];
+                tCurrentPage = 1;
+                renderTeacherTable();
+            } catch (err) { console.error("Load teachers error", err); }
+        }
+
+        function renderTeacherTable() {
+            const tbody = document.getElementById('teacherList');
+            const total = filteredTeachers.length;
+            const totalPages = Math.max(1, Math.ceil(total / tPerPage));
+            if (tCurrentPage > totalPages) tCurrentPage = totalPages;
+
+            const start = (tCurrentPage - 1) * tPerPage;
+            const pageData = filteredTeachers.slice(start, start + tPerPage);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted p-5">ไม่พบข้อมูลคุณครู</td></tr>`;
+                document.getElementById('teacherPaginationInfo').textContent = `แสดง 0 รายการ`;
+                document.getElementById('teacherPaginationControls').innerHTML = '';
+                return;
+            }
+
+            let htmlRows = '';
+            for (let t of pageData) {
+                htmlRows += `<tr class="transition-all hover-bg-light">
+                    <td class="fw-bold text-navy ps-4">${t.teacher_id}</td>
+                    <td class="fw-semibold">${t.name}</td>
+                    <td class="text-center"><span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 fw-normal">${t.class_assigned}</span></td>
+                    <td class="text-muted small">${t.username}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger hover-scale rounded-pill px-3" onclick="deleteUser(${t.id}, 'teacher')">
+                            <i class="fas fa-trash-alt me-1"></i> ลบ
+                        </button>
+                    </td>
+                </tr>`;
+            }
+            tbody.innerHTML = htmlRows;
+
+            const end = Math.min(start + tPerPage, total);
+            document.getElementById('teacherPaginationInfo').textContent = `แสดง ${total === 0 ? 0 : start + 1}–${end} จาก ${total} รายการ`;
+            renderPagination(totalPages, tCurrentPage, 'teacherPaginationControls', 'goToTeacherPage');
+        }
+
+        function filterTeachers() {
+            const query = document.getElementById('teacherSearch').value.toLowerCase();
+            filteredTeachers = allTeachers.filter(t => 
+                (t.teacher_id||'').toLowerCase().includes(query) || 
+                (t.name||'').toLowerCase().includes(query) ||
+                (t.username||'').toLowerCase().includes(query)
+            );
+            if(tSortCol) {
+                tSortAsc = !tSortAsc; sortTeachers(tSortCol);
+            } else { tCurrentPage = 1; renderTeacherTable(); }
+        }
+
+        function sortTeachers(column) {
+            if (tSortCol === column) tSortAsc = !tSortAsc;
+            else { tSortCol = column; tSortAsc = true; }
+
+            filteredTeachers.sort((a, b) => {
+                let valA = (a[column] || '').toLowerCase();
+                let valB = (b[column] || '').toLowerCase();
+                if (valA < valB) return tSortAsc ? -1 : 1;
+                if (valA > valB) return tSortAsc ? 1 : -1;
+                return 0;
+            });
+            tCurrentPage = 1; renderTeacherTable();
+        }
+
+        function changeTeacherPerPage(val) { tPerPage = parseInt(val); tCurrentPage = 1; renderTeacherTable(); }
+        function goToTeacherPage(p) { tCurrentPage = p; renderTeacherTable(); }
+
+        /* Shared Pagination Renderer */
+        function renderPagination(totalPages, current, containerId, gotoFnName) {
+            const ul = document.getElementById(containerId);
+            if (!ul) return;
+            ul.innerHTML = '';
+            
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${current === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link border-0 rounded-circle" href="#" onclick="${gotoFnName}(${current - 1});return false;"><</a>`;
+            ul.appendChild(prevLi);
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= current - 1 && i <= current + 1)) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === current ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link border-0 rounded-circle ms-1" href="#" onclick="${gotoFnName}(${i});return false;">${i}</a>`;
+                    ul.appendChild(li);
+                } else if (i === current - 2 || i === current + 2) {
+                    const li = document.createElement('li');
+                    li.className = 'page-item disabled'; li.innerHTML = '<span class="page-link border-0">...</span>';
+                    ul.appendChild(li);
+                }
+            }
+
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${current === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link border-0 rounded-circle ms-1" href="#" onclick="${gotoFnName}(${current + 1});return false;">></a>`;
+            ul.appendChild(nextLi);
+        }
+
+
+        async function deleteUser(id, type) {
+            const result = await Swal.fire({ title: 'ยืนยันการลบ?', text: `ต้องการลบข้อมูลสมาชิกรหัสนี้ใช่หรือไม่?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ff85bb', cancelButtonColor: '#021a54' });
+            if (result.isConfirmed) {
+                const res = await fetch(`../api/admin/delete_user.php?id=${id}`, { method: 'DELETE' });
+                if (res.ok) { Swal.fire('ลบแล้ว!', 'ลบข้อมูลสำเร็จ', 'success'); type === 'student' ? loadStudents() : loadTeachers(); }
+            }
+        }
+    </script>
+</body>
+</html>

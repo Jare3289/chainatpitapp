@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>บันทึกสาธารณประโยชน์ | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .page-header { background: white; padding: 25px 30px; border-radius: 0 0 35px 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.02); margin-bottom: 30px; }
+        
+        .stat-card { background: white; border-radius: 24px; padding: 25px; border: 1px solid rgba(0,0,0,0.02); height: 100%; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        
+        .activity-item { 
+            background: white; border-radius: 20px; padding: 22px; border: 1px solid rgba(0,0,0,0.03); 
+            margin-bottom: 16px; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .activity-item:hover { transform: scale(1.01); box-shadow: 0 12px 30px rgba(30, 58, 138, 0.08); border-color: #3b82f6; }
+        
+        .status-pill { font-weight: 700; font-size: 0.7rem; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-approved { background: #dcfce7; color: #15803d; border: 1px solid #bcf1cf; }
+        .status-pending { background: #fef9c3; color: #a16207; border: 1px solid #fcf2a8; }
+        .status-rejected { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        /* Modern Form Styles */
+        .form-label-premium { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .form-control-premium { background-color: #f1f5f9; border: 2px solid transparent; border-radius: 16px; padding: 14px 18px; font-weight: 500; transition: 0.2s; }
+        .form-control-premium:focus { background-color: #fff; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); outline: none; }
+        
+        /* Choices.js Overrides */
+        .choices__inner { background-color: #f1f5f9 !important; border: 2px solid transparent !important; border-radius: 16px !important; min-height: 54px !important; display: flex; align-items: center; }
+        .choices.is-focused .choices__inner { background-color: #fff !important; border-color: #3b82f6 !important; }
+        .choices__list--single { font-weight: 600; padding-left: 8px !important; }
+        .choices__list--dropdown { border-radius: 18px !important; border: none !important; box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important; margin-top: 8px !important; overflow: hidden !important; z-index: 3000 !important; }
+        .choices__item--selectable.is-highlighted { background-color: #3b82f6 !important; }
+
+        .btn-premium { border-radius: 18px; padding: 14px 28px; font-weight: 700; transition: 0.3s; }
+        .btn-premium-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
+        .btn-premium-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(37, 99, 235, 0.3); }
+        
+        .fw-black { font-weight: 900; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div class="app-content page-content flex-grow-1 py-4">
+                
+                <!-- HEADER SECTION -->
+                <div class="px-4 mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">บันทึกกิจกรรมสาธารณประโยชน์</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="student_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item active">ประวัติกิจกรรม</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <button class="btn btn-premium btn-premium-primary" onclick="showRequestModal()">
+                            <i class="bi bi-plus-circle-fill me-2"></i> บันทึกกิจกรรมใหม่
+                        </button>
+                    </div>
+                </div>
+
+                <div class="container-fluid px-4">
+                    
+                    <!-- STATS SUMMARY -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-8">
+                            <div class="stat-card">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold text-navy mb-0">ความก้าวหน้าในภาคเรียนนี้</h6>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3" id="progress-percent">0%</span>
+                                </div>
+                                <div class="progress rounded-pill mb-3" style="height: 12px; background: #f1f5f9;">
+                                    <div id="progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between small fw-bold">
+                                    <span class="text-muted">ทำสำเร็จไปแล้ว <span class="text-primary fs-5" id="progress-count">0</span> ครั้ง</span>
+                                    <span class="text-muted">เป้าหมาย 20 ครั้ง</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card text-center d-flex flex-column justify-content-center">
+                                <div class="small text-muted mb-1 fw-bold">สถานะรอการรับรอง</div>
+                                <div class="display-6 fw-black text-warning" id="pending-count">0</div>
+                                <div class="small text-muted">กิจกรรม</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVITY FEED -->
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-black text-navy mb-0">กิจกรรมล่าสุดของฉัน</h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-light border rounded-pill px-3 active" onclick="filterActivities('all', this)">ทั้งหมด</button>
+                            <button class="btn btn-sm btn-light border rounded-pill px-3 ms-2" onclick="filterActivities('approved', this)">รับรองแล้ว</button>
+                        </div>
+                    </div>
+
+                    <div id="activity-list">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <footer id="footer-container"></footer>
+        </main>
+    </div>
+
+    <!-- REFINED REQUEST MODAL -->
+    <div class="modal fade" id="requestModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 30px; overflow: hidden;">
+                <div class="modal-header border-0 p-4 pb-0 bg-white">
+                    <div>
+                        <h5 class="fw-black text-navy mb-1"><i class="bi bi-stars text-warning me-2"></i>บันทึกกิจกรรมสาธารณประโยชน์</h5>
+                        <p class="text-muted small mb-0">บันทึกกิจกรรมดีๆ ที่คุณได้ทำเพื่อรับการรับรองจากคุณครู</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-white">
+                    <form id="requestForm" class="row g-4">
+                        <div class="col-md-7">
+                            <div class="mb-3">
+                                <label class="form-label-premium"><i class="bi bi-bookmark-star-fill text-primary"></i> ชื่อกิจกรรมสาธารณประโยชน์</label>
+                                <input type="text" name="activity_name" class="form-control-premium w-100" placeholder="เช่น ช่วยเก็บขยะบริเวณโรงอาหาร" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label-premium"><i class="bi bi-geo-alt-fill text-danger"></i> สถานที่ปฏิบัติกิจกรรม</label>
+                                <input type="text" name="location" class="form-control-premium w-100" placeholder="ระบุอาคารหรือห้อง" required>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label class="form-label-premium"><i class="bi bi-calendar-check-fill text-success"></i> วันที่ปฏิบัติกิจกรรม</label>
+                                <input type="date" name="activity_date" id="req-date" class="form-control-premium w-100" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label-premium"><i class="bi bi-person-check-fill text-info"></i> คุณครูผู้รับรอง</label>
+                                <select name="certifier_id" id="teacher-select" class="form-select" required>
+                                    <option value="">เลือกรายชื่อคุณครู...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-0">
+                            <div class="mb-3">
+                                <label class="form-label-premium"><i class="bi bi-chat-heart-fill text-rose"></i> ผลที่เกิดขึ้น / ความประทับใจ</label>
+                                <textarea name="impact_benefit" class="form-control-premium w-100" style="height: 100px" placeholder="ช่วยให้โรงเรียนสะอาดขึ้น, ภาคภูมิใจที่ได้ช่วยเหลือผู้อื่น..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-12 text-center mt-2">
+                            <div class="d-flex gap-3">
+                                <button type="button" class="btn btn-light btn-premium flex-grow-1" data-bs-dismiss="modal">ยกเลิก</button>
+                                <button type="submit" class="btn btn-premium btn-premium-primary flex-grow-1" id="submitBtn">
+                                    <i class="bi bi-send-fill me-2"></i> บันทึกข้อมูลและส่งขอการรับรอง
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let teacherChoices;
+        let allRecords = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth(['student']);
+            
+            // Init Choices.js
+            const teacherSelect = document.getElementById('teacher-select');
+            teacherChoices = new Choices(teacherSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                noResultsText: 'ไม่พบรายชื่อครู',
+                placeholder: true,
+                placeholderValue: 'พิมพ์ชื่อครูเพื่อค้นหา...',
+                shouldSort: false
+            });
+
+            loadTeachers();
+            loadMyActivities();
+            document.getElementById('requestForm').onsubmit = handleSubmit;
+        });
+
+        async function loadTeachers() {
+            try {
+                const res = await fetch('../api/get_teachers_list.php');
+                const data = await res.json();
+                if(data.success) {
+                    const teachers = data.teachers.map(t => ({
+                        value: t.id,
+                        label: t.name
+                    }));
+                    teacherChoices.setChoices(teachers, 'value', 'label', true);
+                }
+            } catch (e) { console.error('Teachers load failed', e); }
+        }
+
+        async function loadMyActivities() {
+            try {
+                const res = await fetch('../api/public_service.php');
+                const data = await res.json();
+                if (data.success) {
+                    allRecords = data.records;
+                    const approved = allRecords.filter(r => r.status === 'approved').length;
+                    const pending = allRecords.filter(r => r.status === 'pending').length;
+                    
+                    document.getElementById('pending-count').innerText = pending;
+                    updateProgress(approved);
+                    renderList(allRecords);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateProgress(count) {
+            const target = 20;
+            const percent = Math.min(100, (count / target) * 100);
+            document.getElementById('progress-count').textContent = count;
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = Math.round(percent) + '%';
+        }
+
+        function renderList(records) {
+            const list = document.getElementById('activity-list');
+            if (records.length === 0) {
+                list.innerHTML = `<div class="text-center py-5 bg-white rounded-5 border border-dashed">
+                    <i class="bi bi-emoji-smile display-4 d-block mb-3 opacity-25"></i>
+                    <p class="text-muted">ยังไม่มีประวัติกิจกรรม เริ่มบันทึกกิจกรรมแรกของคุณเลย!</p>
+                </div>`;
+                return;
+            }
+            list.innerHTML = records.map(r => {
+                const s = r.status;
+                const statusCls = s === 'approved' ? 'status-approved' : (s === 'rejected' ? 'status-rejected' : 'status-pending');
+                const statusTxt = s === 'approved' ? 'รับรองแล้ว' : (s === 'rejected' ? 'ไม่ผ่าน' : 'รอรับรอง');
+                return `
+                    <div class="activity-item shadow-sm">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center gap-3 mb-2">
+                                    <span class="status-pill ${statusCls}">${statusTxt}</span>
+                                    <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
+                                </div>
+                                <h5 class="fw-bold text-navy mb-1">${r.activity_name}</h5>
+                                <div class="small text-muted mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> ${r.location}</div>
+                                ${r.impact_benefit ? `
+                                <div class="small text-secondary bg-light p-2 rounded-3 border-start border-primary border-4 mt-2">
+                                    "${r.impact_benefit}"
+                                </div>` : ''}
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0 pt-3 pt-md-0 border-top border-md-0">
+                                <div class="small text-muted mb-1">ครูผู้รับรอง</div>
+                                <div class="fw-bold text-navy"><i class="bi bi-person-badge me-1"></i>${r.certifier_name || '-'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterActivities(status, btn) {
+            document.querySelectorAll('.btn-group .btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(status === 'all') renderList(allRecords);
+            else renderList(allRecords.filter(r => r.status === status));
+        }
+
+        function showRequestModal() {
+            document.getElementById('requestForm').reset();
+            document.getElementById('req-date').valueAsDate = new Date();
+            new bootstrap.Modal(document.getElementById('requestModal')).show();
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...';
+
+            const fd = new FormData(e.target);
+            const data = Object.fromEntries(fd.entries());
+            
+            // Choices.js select fix
+            const select = document.getElementById('teacher-select');
+            data.certifier_name = select.options[select.selectedIndex]?.text || '';
+            
+            try {
+                const res = await fetch('../api/public_service.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const resData = await res.json();
+                if (resData.success) {
+                    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'ข้อมูลของคุณถูกส่งให้คุณครูตรวจสอบแล้ว', timer: 2000, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
+                    bootstrap.Modal.getInstance(document.getElementById('requestModal')).hide();
+                    loadMyActivities();
+                } else {
+                    Swal.fire('ผิดพลาด', resData.message || resData.error || 'ไม่สามารถบันทึกได้', 'error');
+                }
+            } catch (e) { 
+                Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); 
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill me-2"></i> บันทึกข้อมูลและส่งขอการรับรอง';
+            }
+        }
+    </script>
+</body>
+</html>

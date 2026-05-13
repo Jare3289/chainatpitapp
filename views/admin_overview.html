@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ภาพรวมโรงเรียน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">    <style>
+        :root {
+            --navy-primary: #1e3c72;
+            --navy-secondary: #2a5298;
+            --gov-gold: #d4af37;
+        }
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f0f2f5; }
+        .kpi-card { border: none; border-radius: 20px; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .kpi-icon { width: 55px; height: 55px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 1.5rem; margin-bottom: 12px; }
+        .chart-card { border: none; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.03); background: #fff; height: 100%; }
+        .chart-header { background: rgba(30, 60, 114, 0.03); border-bottom: 1px solid rgba(0,0,0,0.05); padding: 18px 25px; border-radius: 25px 25px 0 0; }
+        .section-tag { display: inline-block; padding: 5px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+        .list-stat-item { padding: 10px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; align-items: center; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: none; padding: 10px 0 25px; z-index: 1000; border-top: 1px solid #eee; }
+        .bottom-nav-item { flex: 1; text-align: center; color: #7f8c8d; text-decoration: none; }
+        .bottom-nav-item.active { color: var(--navy-primary); }
+        .bottom-nav-item i { font-size: 1.3rem; display: block; }
+        .bottom-nav-item span { font-size: 0.65rem; font-weight: 700; }
+        
+        @media (max-width: 768px) {
+            .bottom-nav { display: flex; }
+            .main-panel { padding-bottom: 80px !important; }
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-up { animation: fadeInUp 0.5s ease forwards; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
+
+    <div class="bottom-nav">
+        <a href="admin_dashboard.html" class="bottom-nav-item"><i class="bi bi-house-door"></i><span>หน้าแรก</span></a>
+        <a href="admin_overview.html" class="bottom-nav-item active"><i class="bi bi-pie-chart-fill"></i><span>ภาพรวม</span></a>
+        <a href="attendance.html" class="bottom-nav-item"><i class="bi bi-qr-code-scan"></i><span>เช็คชื่อ</span></a>
+        <a href="admin_calendar.html" class="bottom-nav-item"><i class="bi bi-calendar-event"></i><span>ปฏิทิน</span></a>
+        <a href="admin_profile.html" class="bottom-nav-item"><i class="bi bi-person-circle"></i><span>บัญชี</span></a>
+    </div>
+
+    <main class="app-main main-panel d-flex flex-column min-vh-100 d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+        <div class="app-content-header main-header sticky-top bg-white border-bottom shadow-sm">
+            <div class="container-fluid d-flex align-items-center justify-content-between py-2 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-link text-navy d-lg-none px-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h5 class="fw-bold mb-0 text-navy"><i class="fas fa-chart-line me-2"></i> สถิติและภาพรวมการบริหาร</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-content page-content py-4 px-4 flex-grow-1 d-flex flex-column py-4 flex-grow-1 d-flex flex-column">
+            <div class="container-fluid">
+                
+                <!-- KPI Section -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card kpi-card p-4 animate-up">
+                            <span class="section-tag bg-primary-subtle text-primary">นักเรียน</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="kpi-icon bg-primary text-white"><i class="fas fa-user-graduate"></i></div>
+                                <div><h3 class="fw-bold mb-0" id="stat_total_students">0</h3><p class="text-muted small mb-0">คน</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card kpi-card p-4 animate-up" style="animation-delay:0.1s">
+                            <span class="section-tag bg-success-subtle text-success">ครู</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="kpi-icon bg-success text-white"><i class="fas fa-chalkboard-teacher"></i></div>
+                                <div><h3 class="fw-bold mb-0" id="stat_total_teachers">0</h3><p class="text-muted small mb-0">คน</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card kpi-card p-4 animate-up" style="animation-delay:0.2s">
+                            <span class="section-tag bg-warning-subtle text-warning">วิชาการ</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="kpi-icon bg-warning text-white"><i class="fas fa-star"></i></div>
+                                <div><h3 class="fw-bold mb-0">3.24</h3><p class="text-muted small mb-0">GPA รวม</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card kpi-card p-4 animate-up" style="animation-delay:0.3s">
+                            <span class="section-tag bg-info-subtle text-info">การเช็คชื่อ</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="kpi-icon bg-info text-white"><i class="fas fa-calendar-check"></i></div>
+                                <div><h3 class="fw-bold mb-0" id="att_present_pct">0%</h3><p class="text-muted small mb-0">มาเรียนวันนี้</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-8">
+                        <div class="card chart-card animate-up" style="animation-delay:0.4s">
+                            <div class="chart-header"><h6 class="fw-bold mb-0">คะแนนเฉลี่ยแยกตามกลุ่มสาระฯ</h6></div>
+                            <div class="card-body p-4"><canvas id="academicChart" style="height:350px;"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card chart-card animate-up" style="animation-delay:0.5s">
+                            <div class="chart-header"><h6 class="fw-bold mb-0">สัดส่วนการมาเรียนวันนี้</h6></div>
+                            <div class="card-body p-4"><canvas id="attendanceChart" style="height:250px;"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div><script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../public/js/main.js"></script>
+<script>
+
+    let charts = {};
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = await checkAuth('admin');
+        if (user) { initDashboard(); }
+    });
+    function initCharts() {
+        const acaCtx = document.getElementById('academicChart').getContext('2d');
+        charts.academic = new Chart(acaCtx, {
+            type: 'bar',
+            data: {
+                labels: ['ไทย', 'คณิต', 'วิทย์', 'สังคม', 'อังฤษ', 'ศิลปะ', 'กอท.', 'พลศึกษา'],
+                datasets: [{ label: 'เฉลี่ย', data: [82, 71, 75, 78, 65, 88, 85, 92], backgroundColor: '#1e3c72', borderRadius: 8 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+        const attCtx = document.getElementById('attendanceChart').getContext('2d');
+        charts.attendance = new Chart(attCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['มา', 'ขาด', 'สาย', 'ลา'],
+                datasets: [{ data: [85, 5, 5, 5], backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'], borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+    async function loadData() {
+        try {
+            const res = await fetch('../api/admin/dashboard_stats.php');
+            const d = await res.json();
+            document.getElementById('stat_total_students').textContent = d.basic.total_students;
+            document.getElementById('stat_total_teachers').textContent = d.basic.teachers;
+            const total = d.basic.total_students || 1;
+            const present = d.attendance['มา'];
+            document.getElementById('att_present_pct').textContent = Math.round((present/total)*100) + '%';
+            charts.attendance.data.datasets[0].data = [d.attendance['มา'], d.attendance['ขาด'], d.attendance['สาย'], d.attendance['ลา']+d.attendance['ป่วย']];
+            charts.attendance.update();
+        } catch(e) {}
+    }
+    function initDashboard() { initCharts(); loadData(); }
+</script>
+</body>
+</html>

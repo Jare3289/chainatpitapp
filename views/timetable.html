@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ตารางสอน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport'/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans','Sarabun',sans-serif; background:#f8fafc; }
+        .bg-gradient-navy { background: linear-gradient(135deg,#1e3a8a 0%,#3b82f6 100%) !important; }
+        .banner-icon-bg { position:absolute; right:-20px; bottom:-20px; font-size:12rem; opacity:0.08; transform:rotate(-15deg); color:white; }
+
+        /* ── Period Color Pills ── */
+        :root {
+            --p0:#6366f1; --p1:#0ea5e9; --p2:#10b981; --p3:#f59e0b;
+            --p4:#ef4444; --p5:#8b5cf6; --p6:#06b6d4; --p7:#84cc16;
+            --p8:#f97316; --p9:#ec4899; --p10:#14b8a6; --p11:#a855f7;
+        }
+        .period-badge { display:inline-flex; align-items:center; justify-content:center;
+            width:28px; height:28px; border-radius:8px; font-size:0.7rem; font-weight:800;
+            color:#fff; flex-shrink:0; }
+
+        /* ── Grid Table ── */
+        .tt-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        .tt-table { border-collapse:separate; border-spacing:4px; min-width:900px; width:100%; table-layout:fixed; }
+        .tt-table th { background:#f1f5f9; font-size:0.72rem; font-weight:800; text-align:center;
+            padding:8px 6px; border-radius:8px; color:#64748b; white-space:nowrap; }
+        .tt-table th.day-hd, .tt-table td.day-hd { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color:#fff; width:100px; border-radius:12px; border:none; box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2); }
+        .tt-cell { background:#fff; border-radius:12px; padding:8px 10px; vertical-align:middle; text-align:center;
+            min-height:70px; border:1px solid #f1f5f9; transition:.2s; position:relative; }
+        .tt-cell:empty, .tt-cell.empty { background:#f8fafc; border:1.5px dashed #e2e8f0; }
+        .tt-cell .subject { font-weight:700; font-size:0.82rem; color:#0f172a; line-height:1.3; }
+        .tt-cell .meta   { font-size:0.68rem; color:#64748b; margin-top:2px; }
+        .tt-cell .teacher-name { font-size:0.7rem; color:#3b82f6; font-weight:600; margin-top:3px; }
+
+        /* Mobile card view */
+        @media(max-width:767px) {
+            .tt-table { display:none; }
+            .mobile-day-section { display:block; }
+        }
+        @media(min-width:768px) {
+            .mobile-day-section { display:none; }
+        }
+        .mobile-slot { background:#fff; border-radius:14px; padding:12px 14px;
+            margin-bottom:8px; border:1px solid #f1f5f9; display:flex; align-items:center; gap:12px; }
+        .mobile-slot .slot-period { display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+        .mobile-slot .slot-body { flex:1; min-width:0; }
+        .mobile-slot .slot-body .subject { font-weight:700; font-size:0.9rem; color:#0f172a; }
+        .mobile-slot .slot-body .meta { font-size:0.75rem; color:#64748b; margin-top:2px; }
+
+        /* Day tabs (mobile) */
+        .day-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:16px; }
+        .day-tabs::-webkit-scrollbar { display:none; }
+        .day-tab { flex-shrink:0; padding:6px 16px; border-radius:20px; font-size:0.8rem;
+            font-weight:700; border:none; background:#f1f5f9; color:#64748b; cursor:pointer; transition:.2s; }
+        .day-tab.active { background:#1e3a8a; color:#fff; }
+
+        /* Filters */
+        .filter-bar { background:#fff; border-radius:16px; padding:16px; border:1px solid #f1f5f9; margin-bottom:20px; }
+        .filter-bar select, .filter-bar input { border-radius:10px; border:1px solid #e2e8f0; font-size:0.85rem; padding:8px 12px; }
+
+        /* Highlight current period (Specific Cell) */
+        .current-period-cell { background-color: rgba(59, 130, 246, 0.15) !important; outline: 3px solid #3b82f6 !important; outline-offset: -3px; z-index: 10; }
+        .tt-table th.current-period-hd { border-bottom: 4px solid #3b82f6 !important; color: #3b82f6 !important; font-weight: 900 !important; }
+
+        /* Day Highlight (Today Row) */
+        .today-row td { background-color: rgba(245, 158, 11, 0.03); }
+        .tt-table th.today-hd { background: #1e3a8a !important; border-left: 6px solid #f59e0b !important; position: relative; }
+        .tt-table th.today-hd::after { content: "TODAY"; position: absolute; top: 2px; left: 6px; font-size: 0.5rem; opacity: 0.7; }
+        
+        /* Break styling */
+        .tt-cell.is-break { background:#f8fafc; border:1px solid #e2e8f0; text-align:center; display:flex; align-items:center; justify-content:center; }
+        .tt-cell.is-break .subject { color:#94a3b8; font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; }
+        .tt-cell.is-break .meta, .tt-cell.is-break .teacher-name { display:none; }
+        
+        .mobile-slot.is-break { background:#f8fafc; opacity:0.8; border-style:dashed; }
+        .mobile-slot.is-break .subject { color:#94a3b8; font-size:0.8rem; }
+        
+        /* Mobile Highlight */
+        .mobile-slot.current-period-slot { border: 2px solid #3b82f6; background: rgba(59, 130, 246, 0.05); animation: pulse-border 2s infinite; }
+        
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .current-period-cell { animation: pulse-bg 2s infinite; }
+        @keyframes pulse-bg {
+            0% { background-color: rgba(59, 130, 246, 0.1); }
+            50% { background-color: rgba(59, 130, 246, 0.2); }
+            100% { background-color: rgba(59, 130, 246, 0.1); }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
+    <main class="main-panel d-flex flex-column min-vh-100" id="main">
+        <div id="header-container"></div>
+        <div class="app-content page-content flex-grow-1 py-4">
+            <div class="container-fluid">
+
+                <!-- BANNER -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="card border-0 bg-gradient-navy rounded-4 position-relative overflow-hidden shadow-lg">
+                            <i class="fas fa-table-cells banner-icon-bg"></i>
+                            <div class="card-body p-4 p-md-5 text-white position-relative" style="z-index: 1;">
+                                <h1 class="display-5 fw-black mb-1">ตารางสอน</h1>
+                                <p class="lead mb-0 opacity-75">จัดการและตรวจสอบตารางเรียน/สอนของท่าน</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LESSON STATUS WIDGET -->
+                <div id="lessonStatusWidget" class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden d-none">
+                    <div class="card-body p-3">
+                        <div class="row g-2 align-items-center justify-content-center">
+                            <!-- PREV -->
+                            <div class="col-3 col-md-2 d-none d-sm-block">
+                                <div class="text-center p-2 rounded-3 bg-light opacity-50" style="border: 1px dashed #cbd5e1;">
+                                    <div class="small text-muted mb-1" style="font-size:0.6rem; font-weight:700;">คาบที่ผ่านมา</div>
+                                    <div id="status-prev-name" class="fw-bold text-truncate text-muted" style="font-size:0.75rem;">-</div>
+                                </div>
+                            </div>
+                            <!-- NOW -->
+                            <div class="col-12 col-sm-6 col-md-5">
+                                <div class="text-center p-3 rounded-4 position-relative" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);">
+                                    <div class="badge bg-primary rounded-pill px-3 mb-2" style="font-size:0.65rem;">📍 กำลังเรียนอยู่ (คาบที่ <span id="status-now-period">-</span>)</div>
+                                    <div id="status-now-name" class="fw-black h5 mb-1 text-primary text-truncate">-</div>
+                                    <div id="status-now-meta" class="small text-muted fw-bold" style="font-size:0.7rem;"></div>
+                                    <div class="position-absolute top-0 end-0 p-2">
+                                        <div class="spinner-grow spinner-grow-sm text-primary" role="status" style="width: 0.6rem; height: 0.6rem;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- NEXT -->
+                            <div class="col-3 col-md-2 d-none d-sm-block">
+                                <div class="text-center p-2 rounded-3 bg-white" style="border: 1.5px solid #e2e8f0; border-style: dotted;">
+                                    <div class="small text-muted mb-1" style="font-size:0.6rem; font-weight:700;">คาบถัดไป</div>
+                                    <div id="status-next-name" class="fw-bold text-truncate text-secondary" style="font-size:0.75rem;">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR (Admins Only) -->
+                <div class="filter-bar d-none" id="filterBarContainer">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ครูผู้สอน</label>
+                            <select id="filterTeacher" class="form-select">
+                                <option value="">— ครูทุกคน —</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ชั้น</label>
+                            <select id="filterGrade" class="form-select">
+                                <option value="">— ทุกชั้น —</option>
+                                <option>ม.1</option><option>ม.2</option><option>ม.3</option>
+                                <option>ม.4</option><option>ม.5</option><option>ม.6</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ห้อง</label>
+                            <input type="text" id="filterClass" class="form-control" placeholder="เช่น 1/1">
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ปีการศึกษา</label>
+                            <select id="filterYear" class="form-select">
+                                <option value="">— ทุกปี —</option>
+                                <option>2569</option><option>2568</option><option>2567</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-1">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ภาค</label>
+                            <select id="filterSem" class="form-select">
+                                <option value="">ทั้งหมด</option>
+                                <option value="1">1</option><option value="2">2</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2 d-flex gap-2">
+                            <button class="btn btn-primary rounded-3 fw-bold flex-fill" onclick="loadTimetable()">
+                                <i class="bi bi-search me-1"></i> ค้นหา
+                            </button>
+                            <button class="btn btn-light rounded-3" onclick="clearFilters()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOADING -->
+                <div id="loadingState" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3"></div>
+                    <p class="text-muted fw-bold">กำลังโหลดตารางสอน...</p>
+                </div>
+
+                <!-- EMPTY STATE -->
+                <div id="emptyState" class="text-center py-5 d-none">
+                    <i class="bi bi-calendar-x display-1 text-muted opacity-25 d-block mb-3"></i>
+                    <p class="fw-bold text-muted">ไม่พบข้อมูลตารางสอน</p>
+                    <p class="text-muted small">ลองปรับตัวกรองหรือติดต่อผู้ดูแลระบบ</p>
+                </div>
+
+                <!-- DESKTOP: GRID TABLE -->
+                <div id="desktopView" class="tt-wrap d-none d-md-block">
+                    <table class="tt-table" id="ttTable">
+                        <thead id="ttHead"></thead>
+                        <tbody id="ttBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- MOBILE: DAY TABS + CARDS -->
+                <div id="mobileView" class="d-none d-md-none">
+                    <div class="day-tabs" id="dayTabs"></div>
+                    <div id="dayCards"></div>
+                </div>
+
+            </div>
+        </div>
+        <footer id="footer-container" class="mt-auto"></footer>
+    </main>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../public/js/main.js"></script>
+<script>
+const DAYS = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
+const PERIODS = 12; // 0–11
+const PERIOD_COLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7'];
+
+const todayDow = new Date().getDay(); // 0=Sun
+const todayTimetableDay = todayDow === 0 ? 7 : todayDow; // 1=Mon…7=Sun
+let allData = [];
+let activeMobileDay = 1;
+let currentUserRole = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = await checkAuth(['admin','teacher','student']);
+    if (!user) return;
+    currentUserRole = user.role;
+
+    // Only Admin can see and use filters
+    if (user.role === 'admin') {
+        document.getElementById('filterBarContainer').classList.remove('d-none');
+        await loadTeacherOptions();
+    }
+    
+    loadTimetable();
+});
+
+async function loadTeacherOptions(preselect = null) {
+    try {
+        const res = await fetch('../api/get_teachers_list.php');
+        const data = await res.json();
+        const sel = document.getElementById('filterTeacher');
+        (data.teachers || data.data || []).forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.user_id || t.id;
+            opt.textContent = (t.prefix||'') + (t.first_name_th||'') + ' ' + (t.last_name_th||'');
+            sel.appendChild(opt);
+        });
+        if (preselect) sel.value = preselect;
+    } catch(e) { console.warn('loadTeacherOptions:', e); }
+}
+
+async function loadTimetable() {
+    showLoading(true);
+    const params = new URLSearchParams();
+    const teacher = document.getElementById('filterTeacher').value;
+    const grade   = document.getElementById('filterGrade').value;
+    const cls     = document.getElementById('filterClass').value.trim();
+    const year    = document.getElementById('filterYear').value;
+    const sem     = document.getElementById('filterSem').value;
+
+    if (teacher) params.set('teacher_id', teacher);
+    if (grade)   params.set('grade_level', grade);
+    if (cls)     params.set('class_name', cls);
+    if (year)    params.set('academic_year', year);
+    if (sem)     params.set('semester', sem);
+
+    try {
+        const res  = await fetch('../api/timetable.php?' + params.toString());
+        const json = await res.json();
+        allData = json.data || [];
+        showLoading(false);
+        if (allData.length === 0) { showEmpty(true); return; }
+        showEmpty(false);
+        renderDesktop(allData);
+        renderMobile(allData);
+        updateLessonStatus(allData);
+    } catch(e) {
+        showLoading(false);
+        showEmpty(true);
+        console.error(e);
+    }
+}
+
+function clearFilters() {
+    document.getElementById('filterTeacher').value = '';
+    document.getElementById('filterGrade').value   = '';
+    document.getElementById('filterClass').value   = '';
+    document.getElementById('filterYear').value    = '';
+    document.getElementById('filterSem').value     = '';
+    loadTimetable();
+}
+
+/* ── Build lookup map: day → period → [cells] ── */
+function buildMap(data) {
+    const map = {};
+    for (let d = 1; d <= 7; d++) {
+        map[d] = {};
+        for (let p = 0; p < PERIODS; p++) map[d][p] = [];
+    }
+    data.forEach(row => {
+        const d = row.day_of_week;
+        const p = row.period;
+        if (map[d] && map[d][p] !== undefined) map[d][p].push(row);
+    });
+    return map;
+}
+
+/* ── DESKTOP ── */
+function renderDesktop(data) {
+    const map = buildMap(data);
+    // Which days have data?
+    const activeDays = [1,2,3,4,5,6,7].filter(d => Object.values(map[d]).some(arr => arr.length > 0));
+    if (!activeDays.length) { showEmpty(true); return; }
+
+    // Determine current period for highlighting
+    const activeSchedule = window.__cnpActiveSchedule || 'normal';
+    const currentPeriodNum = typeof getCurrentPeriod === 'function' ? getCurrentPeriod(activeSchedule) : null;
+
+    let startP = 0;
+    let endP = PERIODS - 1;
+    if (currentUserRole === 'student') {
+        startP = 1;
+        endP = 9;
+    }
+
+    // Header (หัวตาราง: วัน/คาบ แล้วตามด้วยเลขคาบ)
+    let headHtml = '<tr><th class="day-hd" style="min-width:100px; text-align:center;">วัน \\ คาบ</th>';
+    const config = SCHEDULE_CONFIG[activeSchedule] || SCHEDULE_CONFIG['normal'];
+
+    for (let p = startP; p <= endP; p++) {
+        const isCurrentP = (p === currentPeriodNum);
+        headHtml += `<th style="text-align:center;" class="${isCurrentP ? 'current-period-hd' : ''}">
+            <div class="period-badge" style="background:${isCurrentP ? '#3b82f6' : '#64748b'}; margin:auto;">${p}</div>
+        </th>`;
+    }
+    headHtml += '</tr>';
+    document.getElementById('ttHead').innerHTML = headHtml;
+
+    // Body (แถว: วัน, คอลัมน์: คาบ)
+    let bodyHtml = '';
+    activeDays.forEach(d => {
+        const isToday = (d === todayTimetableDay);
+        bodyHtml += `<tr class="${isToday ? 'today-row' : ''}">
+            <td class="day-hd ${isToday ? 'today-hd' : ''}" style="vertical-align:middle; text-align:center; font-size:1.1rem;">
+                ${DAYS[d-1]}${isToday ? ' 📍' : ''}
+            </td>`;
+        
+        for (let p = startP; p <= endP; p++) {
+            const cells = map[d][p];
+            const isCurrentNow = (isToday && p === currentPeriodNum);
+            const cellClass = `tt-cell ${cells.length ? '' : 'empty'} ${isCurrentNow ? 'current-period-cell' : ''}`;
+            
+            if (!cells.length) {
+                bodyHtml += `<td class="${cellClass}"></td>`;
+            } else {
+                let inner = '';
+                cells.forEach(c => {
+                    const isBreak = /พัก|break/i.test(c.subject_name);
+                    if (isBreak) {
+                        inner += `<div class="w-100 text-center"><div class="subject">☕ ${c.subject_name}</div></div>`;
+                    } else {
+                        let teacherDisplay = '';
+                        if (c.teacher_name || c.teacher_first_name) {
+                            if (currentUserRole === 'teacher') {
+                                teacherDisplay = ''; // ไม่ต้องแสดงชื่อตัวเอง
+                            } else if (currentUserRole === 'student') {
+                                const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim() : '');
+                                teacherDisplay = `<div class="teacher-name"><i class="bi bi-person me-1"></i>ครู${fname}</div>`;
+                            } else {
+                                teacherDisplay = `<div class="teacher-name"><i class="bi bi-person me-1"></i>${c.teacher_name ? c.teacher_name.trim() : ''}</div>`;
+                            }
+                        }
+
+                        inner += `
+                            <div style="margin-bottom:${cells.length>1?'8px':'0'}; padding-bottom:${cells.length>1?'8px':'0'}; border-bottom:${cells.length>1?'1px solid #f1f5f9':'none'};">
+                                <div class="subject mb-1">${c.subject_name}</div>
+                                <div class="meta d-flex flex-wrap gap-1 justify-content-center">
+                                    ${c.grade_level ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>ม.${c.grade_level}</span>` : ''}
+                                    ${c.room_location || c.class_name ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location || c.class_name}</span>` : ''}
+                                </div>
+                                ${teacherDisplay}
+                            </div>`;
+                    }
+                });
+                const hasBreak = cells.some(c => /พัก|break/i.test(c.subject_name));
+                bodyHtml += `<td class="${cellClass} ${hasBreak ? 'is-break' : ''}">${inner}</td>`;
+            }
+        }
+        bodyHtml += '</tr>';
+    });
+    document.getElementById('ttBody').innerHTML = bodyHtml;
+    document.getElementById('desktopView').classList.remove('d-none');
+    document.getElementById('mobileView').classList.remove('d-none');
+
+    // Switch to mobile logic if needed (e.g. for forced rendering)
+    if (window.innerWidth < 768) showMobileOnly();
+}
+
+/* ── MOBILE ── */
+function renderMobile(data) {
+    const map = buildMap(data);
+    const activeDays = [1,2,3,4,5,6,7].filter(d => Object.values(map[d]).some(arr => arr.length > 0));
+    if (!activeDays.length) return;
+
+    // Default to today if available, else first
+    activeMobileDay = activeDays.includes(todayTimetableDay) ? todayTimetableDay : activeDays[0];
+
+    // Tabs
+    const today = new Date().getDay() || 7;
+    let tabsHtml = '';
+    activeDays.forEach(d => {
+        const isToday = (d === today);
+        tabsHtml += `<button class="day-tab ${d===activeMobileDay?'active':''}" onclick="switchDay(${d})" id="daytab-${d}">
+            ${DAYS[d-1]} ${isToday ? '📍' : ''}
+        </button>`;
+    });
+    document.getElementById('dayTabs').innerHTML = tabsHtml;
+
+    window._ttMap = map;
+    window._ttActiveDays = activeDays;
+    renderDayCards(activeMobileDay, map);
+}
+
+function switchDay(d) {
+    activeMobileDay = d;
+    document.querySelectorAll('.day-tab').forEach(b => b.classList.remove('active'));
+    const tab = document.getElementById('daytab-' + d);
+    if (tab) tab.classList.add('active');
+    renderDayCards(d, window._ttMap);
+}
+
+function renderDayCards(day, map) {
+    let html = '';
+    let hasContent = false;
+    const activeSchedule = window.__cnpActiveSchedule || 'normal';
+    const currentPeriodNum = typeof getCurrentPeriod === 'function' ? getCurrentPeriod(activeSchedule) : null;
+    const isToday = (day === todayTimetableDay);
+
+    let startP = 0;
+    let endP = PERIODS - 1;
+    if (currentUserRole === 'student') {
+        startP = 1;
+        endP = 9;
+    }
+
+    for (let p = startP; p <= endP; p++) {
+        const cells = map[day][p];
+        if (!cells.length) continue;
+        hasContent = true;
+        const isCurrentP = (isToday && p === currentPeriodNum);
+
+        cells.forEach(c => {
+            const isBreak = /พัก|break/i.test(c.subject_name);
+            const config = SCHEDULE_CONFIG[activeSchedule] || SCHEDULE_CONFIG['normal'];
+            const timeRange = config.periods[p] ? `${config.periods[p][0]} - ${config.periods[p][1]}` : '';
+            
+            let teacherDisplay = '';
+            if (!isBreak && (c.teacher_name || c.teacher_first_name)) {
+                if (currentUserRole === 'teacher') {
+                    teacherDisplay = ''; // ไม่ต้องแสดงชื่อตัวเอง
+                } else if (currentUserRole === 'student') {
+                    const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim() : '');
+                    teacherDisplay = `<div class="meta" style="color:#3b82f6;"><i class="bi bi-person me-1"></i>ครู${fname}</div>`;
+                } else {
+                    teacherDisplay = `<div class="meta" style="color:#3b82f6;"><i class="bi bi-person me-1"></i>${c.teacher_name ? c.teacher_name.trim() : ''}</div>`;
+                }
+            }
+
+            html += `
+            <div class="mobile-slot ${isBreak ? 'is-break' : ''} ${isCurrentP ? 'current-period-slot' : ''}">
+                <div class="slot-period">
+                    <div class="period-badge" style="background:${isBreak ? '#cbd5e1' : (isCurrentP ? '#3b82f6' : '#64748b')}">${p}</div>
+                </div>
+                <div class="slot-body">
+                    <div class="subject mb-1">${isBreak ? '☕ ' : ''}${c.subject_name}</div>
+                    ${isBreak ? '' : `
+                        <div class="meta d-flex flex-wrap gap-1 align-items-center">
+                            ${c.grade_level ? `<span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>ม.${c.grade_level}</span>` : ''}
+                            ${c.room_location || c.class_name ? `<span class="badge bg-light text-secondary border"><i class="bi bi-geo-alt me-1"></i>${c.room_location || c.class_name}</span>` : ''}
+                        </div>
+                        ${teacherDisplay}
+                    `}
+                </div>
+            </div>`;
+        });
+    }
+    if (!hasContent) html = `<div class="text-center text-muted py-5"><i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-2"></i>ไม่มีคาบสอนวันนี้</div>`;
+    document.getElementById('dayCards').innerHTML = html;
+    document.getElementById('mobileView').classList.remove('d-none');
+}
+
+function showMobileOnly() {
+    if (window.innerWidth < 768) {
+        document.getElementById('desktopView').classList.add('d-none');
+        document.getElementById('mobileView').classList.remove('d-none');
+        renderMobile(allData);
+    }
+}
+
+function showLoading(b) {
+    document.getElementById('loadingState').classList.toggle('d-none', !b);
+    if (b) { document.getElementById('desktopView').classList.add('d-none'); document.getElementById('mobileView').classList.add('d-none'); }
+}
+function showEmpty(b) {
+    document.getElementById('emptyState').classList.toggle('d-none', !b);
+    if (b) { document.getElementById('desktopView').classList.add('d-none'); document.getElementById('mobileView').classList.add('d-none'); }
+}
+
+window.addEventListener('resize', () => {
+    if (!allData.length) return;
+    if (window.innerWidth < 768) renderMobile(allData);
+});
+
+function updateLessonStatus(data) {
+    const activeSchedule = window.__cnpActiveSchedule || 'normal';
+    const currentP = typeof getCurrentPeriod === 'function' ? getCurrentPeriod(activeSchedule) : null;
+    
+    // เราสนใจเฉพาะวันนี้
+    const todayData = data.filter(r => parseInt(r.day_of_week) === todayTimetableDay);
+    const widget = document.getElementById('lessonStatusWidget');
+
+    if (!todayData.length || !currentP) {
+        widget.classList.add('d-none');
+        return;
+    }
+
+    const getP = (p) => todayData.find(r => parseInt(r.period) === p);
+    
+    const prev = getP(currentP - 1);
+    const now  = getP(currentP);
+    const next = getP(currentP + 1);
+
+    if (!now) {
+        // ถ้าคาบนี้ไม่มีเรียน (เช่น พัก หรือ คาบว่างที่ไม่ได้ลงในระบบ) ให้ซ่อนหรือแสดงเป็นคาบว่าง
+        widget.classList.add('d-none');
+        return;
+    }
+
+    widget.classList.remove('d-none');
+    
+    document.getElementById('status-now-period').textContent = currentP;
+    document.getElementById('status-now-name').textContent = now.subject_name;
+    document.getElementById('status-now-meta').textContent = `${now.grade_level || ''}${now.class_name ? '/' + now.class_name : ''} ${now.room_location ? '· ' + now.room_location : ''}`;
+    
+    document.getElementById('status-prev-name').textContent = prev ? prev.subject_name : 'ไม่มี';
+    document.getElementById('status-next-name').textContent = next ? next.subject_name : 'ไม่มี';
+}
+</script>
+</body>
+</html>

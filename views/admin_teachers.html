@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ข้อมูลครู | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .bg-navy { background-color: #1e3a8a !important; }
+        .text-navy { color: #1e3a8a !important; }
+        .btn-navy { background: #1e3a8a; color: white; border: none; }
+        .btn-navy:hover { background: #1e40af; color: white; }
+        .fw-black { font-weight: 900; }
+        .active-toggle { background: #1e3a8a !important; color: white !important; }
+
+        /* Executive Banner */
+        .exec-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); border-radius: 24px; padding: 28px; color: white; margin-bottom: 28px; }
+        .exec-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
+        .exec-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 16px; text-align: center; backdrop-filter: blur(10px); }
+        .exec-avatar { width: 65px; height: 65px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.4); object-fit: cover; margin: 0 auto 10px; display: block; background: rgba(255,255,255,0.1); }
+        .exec-pos { font-size: 0.6rem; opacity: 0.65; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .exec-name { font-size: 0.82rem; font-weight: 700; }
+
+        /* Table */
+        .table-premium th { background: #f8fafc; padding: 14px 20px; font-weight: 700; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #eef2f6; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-premium td { padding: 11px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+
+        /* Cards — same as original */
+        .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 10px 0; }
+        .modern-profile-card { width: 220px; height: 300px; border-radius: 0.8rem; overflow: hidden; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275); margin: 0 auto; }
+        .modern-profile-card:hover { transform: translateY(-15px) scale(1.02); }
+        .card-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; z-index: 1; transition: 0.5s; }
+        .modern-profile-card:hover .card-bg { transform: scale(1.1); }
+        .card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 45%, transparent 100%); z-index: 2; }
+        .card-content-modern { position: absolute; bottom: 0; width: 100%; padding: 15px; color: white; z-index: 3; }
+        .btn-view-profile { background: white; color: black; border: none; border-radius: 50px; padding: 8px 20px; font-weight: 700; font-size: 0.75rem; width: 100%; margin-top: 10px; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-view-profile:hover { background: #f8fafc; transform: scale(1.05); }
+        .btn-modern-action { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #f1f5f9; background: #fff; color: #64748b; transition: 0.3s; padding: 0; cursor: pointer; }
+        .btn-modern-action:hover { transform: scale(1.1); }
+        .btn-modern-edit:hover { background: #1e3a8a !important; color: #fff !important; border-color: #1e3a8a !important; }
+        .btn-modern-delete:hover { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+        .section-title { font-weight: 800; color: #1e3a8a; border-left: 5px solid #1e3a8a; padding-left: 15px; margin: 30px 0 15px; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
+    <main class="main-panel d-flex flex-column min-vh-100" id="main">
+        <div id="header-container"></div>
+        <div class="app-content page-content flex-grow-1 py-4">
+            <div class="container-fluid">
+
+                <!-- Header -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h4 class="fw-black text-navy mb-1">จัดการข้อมูลครูและบุคลากร</h4>
+                        <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0 small opacity-75">
+                            <li class="breadcrumb-item">หน้าแรก</li>
+                            <li class="breadcrumb-item active">ข้อมูลครู</li>
+                        </ol></nav>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="btn-group bg-white rounded-pill p-1 shadow-sm border me-2">
+                            <button class="btn btn-sm rounded-pill px-3 fw-bold active-toggle" id="btn-table" onclick="setViewMode('table')"><i class="bi bi-table me-1"></i>ตาราง</button>
+                            <button class="btn btn-sm rounded-pill px-3 fw-bold" id="btn-card" onclick="setViewMode('card')"><i class="bi bi-grid-fill me-1"></i>บัตร</button>
+                        </div>
+                        <button class="btn btn-light border rounded-pill px-4 fw-bold shadow-sm" onclick="openImport()">
+                            <i class="bi bi-cloud-arrow-up me-2 text-success"></i>นำเข้า Excel
+                        </button>
+                        <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openAddModal()">
+                            <i class="bi bi-plus-lg me-2"></i>เพิ่มครูใหม่
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Executive Banner -->
+                <div class="exec-banner shadow mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-shield-star-fill fs-4"></i>
+                        <div>
+                            <h5 class="fw-black mb-0">กลุ่มผู้บริหาร</h5>
+                            <div class="small opacity-75">ผู้อำนวยการและรองผู้อำนวยการโรงเรียน</div>
+                        </div>
+                    </div>
+                    <div class="exec-cards" id="execContainer">
+                        <div class="text-white-50 text-center py-3 small">กำลังโหลด...</div>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="table-view" class="content-card shadow-sm mb-4">
+                    <div class="table-responsive">
+                        <table class="table-premium w-100 mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">ข้อมูลครู / รหัส</th>
+                                    <th>ตำแหน่ง / วิทยฐานะ</th>
+                                    <th>กลุ่มสาระ</th>
+                                    <th>ห้องที่ปรึกษา</th>
+                                    <th class="text-end pe-4">ดำเนินการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teacherTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Card View -->
+                <div id="card-view" class="d-none pb-5" id="cardViewContainer"></div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal fade" id="teacherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:28px; overflow:hidden;">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-black text-navy mb-0" id="modalTitle">ข้อมูลครู</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="teacherForm">
+                    <input type="hidden" id="teacherId">
+                    <div class="row g-3">
+                        <div class="col-md-3 text-center">
+                            <img id="modalAvatar" src="../public/img/default-avatar.png" class="rounded-circle shadow mb-3" style="width:100px;height:100px;object-fit:cover;border:4px solid #f1f5f9;">
+                            <label for="photoUpload" class="btn btn-sm btn-light border rounded-pill d-block"><i class="bi bi-camera me-1"></i>เปลี่ยนรูป</label>
+                            <input type="file" id="photoUpload" class="d-none" accept="image/*">
+                        </div>
+                        <div class="col-md-9 row g-2">
+                            <div class="col-4"><label class="form-label small fw-bold">คำนำหน้า</label>
+                                <select id="f_prefix" class="form-select border-0 bg-light rounded-3">
+                                    <option>นาย</option><option>นาง</option><option>นางสาว</option><option>ว่าที่ร้อยตรี</option><option>ดร.</option>
+                                </select></div>
+                            <div class="col-4"><label class="form-label small fw-bold">ชื่อ</label><input type="text" id="f_first" class="form-control border-0 bg-light rounded-3" required></div>
+                            <div class="col-4"><label class="form-label small fw-bold">นามสกุล</label><input type="text" id="f_last" class="form-control border-0 bg-light rounded-3" required></div>
+                            <div class="col-6"><label class="form-label small fw-bold">รหัสครู (IDT)</label><input type="text" id="f_teacher_id" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">อีเมล</label><input type="email" id="f_email" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">กลุ่มสาระ / ฝ่าย</label><input type="text" id="f_department" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">ตำแหน่ง</label><input type="text" id="f_position" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">วิทยฐานะ</label><input type="text" id="f_academic" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">ห้องที่ปรึกษา</label><input type="text" id="f_classroom" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">เบอร์โทรศัพท์</label><input type="text" id="f_phone" class="form-control border-0 bg-light rounded-3"></div>
+                            <div class="col-6"><label class="form-label small fw-bold">Line ID</label><input type="text" id="f_line" class="form-control border-0 bg-light rounded-3"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" id="btnDelete" class="btn btn-outline-danger rounded-pill px-4 d-none" onclick="deleteTeacher()"><i class="bi bi-trash me-1"></i>ลบ</button>
+                        <div class="ms-auto d-flex gap-2">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                            <button type="submit" class="btn btn-navy rounded-pill px-5 fw-bold"><i class="bi bi-floppy me-2"></i>บันทึก</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../public/js/main.js"></script>
+<script src="../public/js/importModal.js"></script>
+<script>
+let allTeachers = [];
+let viewMode = 'table';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await checkAuth(['admin']);
+    loadExecutives();
+    loadTeachers();
+    document.getElementById('teacherForm').onsubmit = saveTeacher;
+});
+
+async function loadExecutives() {
+    try {
+        const res = await fetch('../api/admin/executives.php');
+        const data = await res.json();
+        if (!data.success) return;
+        document.getElementById('execContainer').innerHTML = data.executives.map(e => {
+            const photo = e.teacher_photo ? `../${e.teacher_photo}` : '../public/img/default-avatar.png';
+            const name = (e.resolved_name || '').trim() || 'ว่าง';
+            return `<div class="exec-card">
+                <img src="${photo}" class="exec-avatar" onerror="this.src='../public/img/default-avatar.png'">
+                <div class="exec-pos">${e.position_label}</div>
+                <div class="exec-name">${name === ' ' ? 'ว่าง' : name}</div>
+            </div>`;
+        }).join('');
+    } catch(e) {}
+}
+
+async function loadTeachers() {
+    const res = await fetch('../api/admin/teachers.php');
+    const data = await res.json();
+    if (data.success) { allTeachers = data.data; renderContent(); }
+}
+
+function setViewMode(mode) {
+    viewMode = mode;
+    document.getElementById('btn-table').classList.toggle('active-toggle', mode === 'table');
+    document.getElementById('btn-card').classList.toggle('active-toggle', mode === 'card');
+    document.getElementById('table-view').classList.toggle('d-none', mode !== 'table');
+    document.getElementById('card-view').classList.toggle('d-none', mode !== 'card');
+    renderContent();
+}
+
+function renderContent() {
+    if (viewMode === 'table') renderTable(); else renderCards();
+}
+
+function groupByDept(list) {
+    const h = {};
+    list.forEach(t => {
+        const d = t.department || 'ไม่ระบุกลุ่มสาระ';
+        if (!h[d]) h[d] = [];
+        h[d].push(t);
+    });
+    return h;
+}
+
+let deptIdx = 0;
+function renderTable() {
+    const h = groupByDept(allTeachers);
+    deptIdx = 0;
+    const buf = [];
+    Object.keys(h).sort().forEach(dept => {
+        const id = deptIdx++;
+        buf.push(`<tr class="bg-navy" style="cursor:pointer" onclick="toggleDept(${id},this)">
+            <td colspan="5" class="py-3 ps-4 border-0">
+                <div class="d-flex align-items-center justify-content-between pe-4">
+                    <span class="fw-black text-white"><i class="bi bi-chevron-down me-2 chevron-gl"></i>${dept}</span>
+                    <span class="badge bg-white text-navy rounded-pill px-3">${h[dept].length} ท่าน</span>
+                </div>
+            </td></tr>`);
+        h[dept].forEach(t => {
+            const name = `${t.prefix||''}${t.first_name_th||''} ${t.last_name_th||''}`.trim();
+            const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th||'T')}&background=1e3a8a&color=fff`;
+            buf.push(`<tr class="dept-child-${id} d-none" style="cursor:pointer" onclick="openEditModal(${t.id})">
+                <td class="ps-4"><div class="d-flex align-items-center gap-3">
+                    <img src="${photo}" class="rounded-3 border shadow-sm" style="width:42px;height:42px;object-fit:cover;" onerror="this.src='../public/img/default-avatar.png'">
+                    <div><div class="fw-bold">${name}</div><div class="small text-muted" style="font-size:.65rem">IDT: ${t.teacher_id||'-'} • ${t.email||''}</div></div>
+                </div></td>
+                <td class="small">${t.position||''} ${t.academic_standing ? '•'+t.academic_standing : ''}</td>
+                <td class="small">${t.department||'-'}</td>
+                <td class="small text-center">${t.classroom||'-'}</td>
+                <td class="text-end pe-4" onclick="event.stopPropagation()">
+                    <div class="d-flex justify-content-end gap-1">
+                        <button class="btn-modern-action btn-modern-edit" onclick="openEditModal(${t.id})"><i class="bi bi-pencil-fill"></i></button>
+                        <button class="btn-modern-action btn-modern-delete" onclick="deleteTeacher(${t.id})"><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                </td></tr>`);
+        });
+    });
+    document.getElementById('teacherTableBody').innerHTML = buf.join('');
+}
+
+function toggleDept(id, el) {
+    const rows = document.querySelectorAll(`.dept-child-${id}`);
+    const icon = el.querySelector('.chevron-gl');
+    const hidden = rows[0]?.classList.contains('d-none');
+    rows.forEach(r => r.classList.toggle('d-none', !hidden));
+    if (icon) icon.className = `bi ${hidden ? 'bi-chevron-up' : 'bi-chevron-down'} me-2 chevron-gl`;
+}
+
+function renderCards() {
+    const h = groupByDept(allTeachers);
+    const buf = [];
+    Object.keys(h).sort().forEach((dept, di) => {
+        buf.push(`<div class="section-title fs-5" style="cursor:pointer" onclick="toggleCardDept(${di},this)">
+            <span>${dept}</span> <i class="bi bi-chevron-down ms-2 chevron-gl"></i>
+        </div>
+        <div id="cdept-${di}" class="d-none"><div class="teacher-grid">`);
+        h[dept].forEach(t => {
+            const name = `${t.first_name_th||''} ${t.last_name_th||''}`.trim();
+            const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th||'T')}&background=1e3a8a&color=fff&size=500`;
+            buf.push(`<div class="modern-profile-card" onclick="openEditModal(${t.id})">
+                <div class="card-bg" style="background-image:url('${photo}')"></div>
+                <div class="card-overlay"></div>
+                <div class="card-content-modern">
+                    <h3 class="fw-black mb-1" style="font-size:.95rem;line-height:1.2">${name}</h3>
+                    <p class="small opacity-75 mb-0" style="font-size:.68rem">${t.position||''} ${t.academic_standing||''}</p>
+                    <button class="btn-view-profile" onclick="event.stopPropagation();openEditModal(${t.id})">
+                        <i class="bi bi-pencil me-1"></i>แก้ไข / ดูข้อมูล
+                    </button>
+                </div>
+            </div>`);
+        });
+        buf.push('</div></div>');
+    });
+    document.getElementById('card-view').innerHTML = buf.join('');
+}
+
+function toggleCardDept(id, el) {
+    const body = document.getElementById(`cdept-${id}`);
+    const icon = el.querySelector('.chevron-gl');
+    body.classList.toggle('d-none');
+    if (icon) icon.className = `bi ${body.classList.contains('d-none') ? 'bi-chevron-down' : 'bi-chevron-up'} ms-2 chevron-gl`;
+}
+
+function openAddModal() {
+    document.getElementById('teacherForm').reset();
+    document.getElementById('teacherId').value = '';
+    document.getElementById('modalTitle').textContent = 'เพิ่มครูใหม่';
+    document.getElementById('modalAvatar').src = '../public/img/default-avatar.png';
+    document.getElementById('btnDelete').classList.add('d-none');
+    new bootstrap.Modal('#teacherModal').show();
+}
+
+function openEditModal(id) {
+    const t = allTeachers.find(x => x.id == id); if (!t) return;
+    document.getElementById('teacherId').value = t.id;
+    document.getElementById('modalTitle').textContent = `${t.prefix||''}${t.first_name_th||''} ${t.last_name_th||''}`.trim();
+    document.getElementById('modalAvatar').src = t.photo ? `../${t.photo}` : '../public/img/default-avatar.png';
+    document.getElementById('f_prefix').value     = t.prefix || 'นาย';
+    document.getElementById('f_first').value      = t.first_name_th || '';
+    document.getElementById('f_last').value       = t.last_name_th || '';
+    document.getElementById('f_teacher_id').value = t.teacher_id || '';
+    document.getElementById('f_email').value      = t.email || '';
+    document.getElementById('f_department').value = t.department || '';
+    document.getElementById('f_position').value   = t.position || '';
+    document.getElementById('f_academic').value   = t.academic_standing || '';
+    document.getElementById('f_classroom').value  = t.classroom || '';
+    document.getElementById('f_phone').value      = t.phone || '';
+    document.getElementById('f_line').value       = t.line_id || '';
+    document.getElementById('btnDelete').classList.remove('d-none');
+    new bootstrap.Modal('#teacherModal').show();
+}
+
+async function saveTeacher(e) {
+    e.preventDefault();
+    const id = document.getElementById('teacherId').value;
+    const fd = new FormData();
+    fd.append('id', id);
+    ['f_prefix','f_first','f_last','f_teacher_id','f_email','f_department','f_position','f_academic','f_classroom','f_phone','f_line'].forEach(fid => {
+        const map = { f_prefix:'prefix', f_first:'first_name_th', f_last:'last_name_th', f_teacher_id:'teacher_id', f_email:'email', f_department:'department', f_position:'position', f_academic:'academic_standing', f_classroom:'classroom', f_phone:'phone', f_line:'line_id' };
+        fd.append(map[fid], document.getElementById(fid)?.value || '');
+    });
+    const photo = document.getElementById('photoUpload').files[0];
+    if (photo) fd.append('photo', photo);
+    try {
+        const res = await fetch('../api/admin/teachers.php', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.success) {
+            Swal.fire({ icon:'success', title:'บันทึกสำเร็จ', timer:1500, showConfirmButton:false });
+            bootstrap.Modal.getInstance('#teacherModal').hide();
+            loadTeachers();
+        } else { Swal.fire('ผิดพลาด', data.error, 'error'); }
+    } catch(err) { Swal.fire('Error', err.message, 'error'); }
+}
+
+async function deleteTeacher(id) {
+    const delId = id || document.getElementById('teacherId').value;
+    const c = await Swal.fire({ title:'ยืนยันการลบ?', icon:'warning', showCancelButton:true, confirmButtonText:'ลบ', confirmButtonColor:'#ef4444' });
+    if (!c.isConfirmed) return;
+    const res = await fetch(`../api/admin/teachers.php?id=${delId}`, { method:'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+        Swal.fire({ icon:'success', title:'ลบสำเร็จ', timer:1500, showConfirmButton:false });
+        const modal = bootstrap.Modal.getInstance('#teacherModal');
+        if (modal) modal.hide();
+        loadTeachers();
+    }
+}
+
+function openImport() {
+    initImportModal({
+        type: 'teacher',
+        apiUrl: '../api/admin/upload-teachers.php',
+        templateBaseUrl: '../api/admin/download-template.php?type=teacher',
+        onSuccess: loadTeachers
+    });
+}
+</script>
+</body>
+</html>

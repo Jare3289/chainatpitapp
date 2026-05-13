@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>หน้าแรก | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Dashboard-specific tweaks only */
+        .dashboard-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        .card-header-premium {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-title-premium {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        /* Attendance Stats */
+        .att-stats-list { display: flex; flex-direction: column; gap: 20px; }
+        .att-progress-bg { height: 10px; background: #f1f5f9; border-radius: 50px; overflow: hidden; }
+        .att-progress-fill { height: 100%; border-radius: 50px; transition: width 1s ease-out; }
+
+        /* Quick Access */
+        .quick-access-list { display: flex; flex-direction: column; gap: 12px; }
+        .quick-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #fcfaff;
+            border-radius: 18px;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+            text-decoration: none !important;
+            color: inherit;
+        }
+        .quick-item:hover {
+            background: white;
+            border-color: var(--border-color);
+            transform: scale(1.02);
+            box-shadow: var(--shadow-md);
+        }
+        .quick-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+
+        /* Bottom Nav (Mobile) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            padding: 10px 0 25px;
+            z-index: 1000;
+            border-top: 1px solid #eee;
+        }
+        .bottom-nav-item { flex: 1; text-align: center; color: #7f8c8d; text-decoration: none !important; }
+        .bottom-nav-item.active { color: var(--primary); }
+        .bottom-nav-item i { font-size: 1.3rem; display: block; }
+        .bottom-nav-item span { font-size: 0.65rem; font-weight: 700; }
+
+        @media (max-width: 1200px) { .dashboard-main { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .bottom-nav { display: flex; } .main-panel { padding-bottom: 90px !important; } }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <!-- Mobile Bottom Nav -->
+        <div class="bottom-nav">
+            <a href="admin_dashboard.html" class="bottom-nav-item active"><i class="bi bi-house-door-fill"></i><span>หน้าแรก</span></a>
+            <a href="admin_overview.html" class="bottom-nav-item"><i class="bi bi-pie-chart"></i><span>ภาพรวม</span></a>
+            <a href="attendance.html" class="bottom-nav-item"><i class="bi bi-qr-code-scan"></i><span>เช็คชื่อ</span></a>
+            <a href="admin_calendar.html" class="bottom-nav-item"><i class="bi bi-calendar-event"></i><span>ปฏิทิน</span></a>
+            <a href="admin_profile.html" class="bottom-nav-item"><i class="bi bi-person-circle"></i><span>บัญชี</span></a>
+        </div>
+
+        <main class="app-main main-panel d-flex flex-column min-vh-100 d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+
+            <div class="app-content page-content flex-grow-1 d-flex flex-column py-4 flex-grow-1 d-flex flex-column">
+                <div class="container-fluid">
+                    
+                    <!-- BREADCRUMB -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="#" class="text-navy">หน้าหลัก</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">หน้าแรก</li>
+                        </ol>
+                    </nav>
+
+                    <!-- BANNER -->
+                    <div class="banner-premium animate-up">
+                        <div class="banner-content">
+                            <div class="banner-icon-circle">
+                                <i class="fas fa-shield-halved"></i>
+                            </div>
+                            <div class="banner-info">
+                                <h1>ยินดีต้อนรับ, <span id="adminName">ผู้ดูแลระบบ</span></h1>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="opacity-75"><i class="bi bi-person-workspace me-1"></i> ผู้ดูแลระบบ (Administrator)</span>
+                                    <span class="banner-badge" id="termBadge">ภาคเรียนที่ 1/2569</span>
+                                </div>
+                                <div class="mt-2 opacity-50 small"><i class="bi bi-clock me-1"></i> เข้าสู่ระบบล่าสุด: <span id="lastLoginTime">28 เมษายน 2026 เวลา 16:37 น.</span></div>
+                            </div>
+                        </div>
+                        <div class="banner-stats">
+                            <div class="banner-stat-box">
+                                <span class="banner-stat-value" id="top_total_students">1,000</span>
+                                <span class="banner-stat-label">นักเรียนทั้งหมด</span>
+                            </div>
+                            <div class="banner-stat-box">
+                                <span class="banner-stat-value" id="top_total_teachers">121</span>
+                                <span class="banner-stat-label">ครูทั้งหมด</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI CARDS -->
+                    <div class="kpi-card-row">
+                        <a href="admin_students.html" class="kpi-card kpi-green animate-up" style="animation-delay: 0.1s">
+                            <div class="kpi-icon-box"><i class="fas fa-user-graduate"></i></div>
+                            <div class="kpi-info">
+                                <h4 id="stat_total_students">0</h4>
+                                <p>นักเรียนทั้งหมด</p>
+                            </div>
+                        </a>
+                        <a href="admin_teachers.html" class="kpi-card kpi-orange animate-up" style="animation-delay: 0.15s">
+                            <div class="kpi-icon-box"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <div class="kpi-info">
+                                <h4 id="stat_total_teachers">0</h4>
+                                <p>ครูทั้งหมด</p>
+                            </div>
+                        </a>
+                        <a href="admin_classes.html" class="kpi-card kpi-blue animate-up" style="animation-delay: 0.2s">
+                            <div class="kpi-icon-box"><i class="fas fa-school"></i></div>
+                            <div class="kpi-info">
+                                <h4 id="stat_total_classes">0</h4>
+                                <p>ห้องเรียนทั้งหมด</p>
+                            </div>
+                        </a>
+                        <a href="attendance_daily.html" class="kpi-card kpi-purple animate-up" style="animation-delay: 0.25s">
+                            <div class="kpi-icon-box"><i class="fas fa-user-check"></i></div>
+                            <div class="kpi-info">
+                                <h4 id="stat_attendance_pct">0%</h4>
+                                <p>มาเรียนวันนี้</p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- MAIN SECTION -->
+                    <div class="dashboard-main">
+                        <!-- Analytics Dashboard Section -->
+                        <div class="content-card animate-up" style="animation-delay: 0.3s">
+                            <div class="card-header-premium mb-4">
+                                <div class="card-title-premium">
+                                    <i class="bi bi-graph-up-arrow"></i>
+                                    <span>วิเคราะห์ข้อมูลการมาเรียนวันนี้</span>
+                                </div>
+                                <span class="badge bg-light text-dark fw-bold" id="todayLabel">...</span>
+                            </div>
+                            
+                            <div class="row g-4">
+                                <!-- 1. Gender Breakdown -->
+                                <div class="col-lg-4">
+                                    <div class="p-3 border rounded-4 bg-light bg-opacity-50 h-100 text-center">
+                                        <h6 class="text-navy fw-bold mb-3 small">นักเรียนที่มาเรียน (ชาย/หญิง)</h6>
+                                        <div style="height: 180px; position: relative;">
+                                            <canvas id="genderChart"></canvas>
+                                        </div>
+                                        <div class="d-flex justify-content-center gap-2 mt-3">
+                                            <span class="badge rounded-pill px-2 py-1" style="background: rgba(30, 60, 114, 0.1); color: #1e3c72; font-size: 0.65rem;">ชาย: <span id="male-count">0</span></span>
+                                            <span class="badge rounded-pill px-2 py-1" style="background: rgba(219, 39, 119, 0.1); color: #db2777; font-size: 0.65rem;">หญิง: <span id="female-count">0</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 2. Attendance Progress -->
+                                <div class="col-lg-4">
+                                    <div class="p-3 border rounded-4 bg-light bg-opacity-50 h-100 text-center">
+                                        <h6 class="text-navy fw-bold mb-3 small">ความคืบหน้าการเช็คชื่อวันนี้</h6>
+                                        <div style="height: 180px; position: relative;">
+                                            <canvas id="progressChart"></canvas>
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                <h4 class="fw-black text-navy mb-0" id="progress-percent">0%</h4>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-center gap-2 mt-3">
+                                            <span class="badge rounded-pill px-2 py-1 bg-success bg-opacity-10 text-success" style="font-size: 0.65rem;">เช็คแล้ว <span id="checked-count">0</span></span>
+                                            <span class="badge rounded-pill px-2 py-1 bg-secondary bg-opacity-10 text-secondary" style="font-size: 0.65rem;">ยังไม่เช็ค <span id="unchecked-count">0</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 3. Room Attendance -->
+                                <div class="col-lg-4">
+                                    <div class="p-3 border rounded-4 bg-light bg-opacity-50 h-100 text-center">
+                                        <h6 class="text-navy fw-bold mb-3 small">ห้องที่มีปัญหาสูงสุด 10 อันดับ (ขาด/ลา/สาย)</h6>
+                                        <div id="dateBanner" class="alert alert-info py-2 px-3 small mb-2 rounded-3" style="display:none;"></div>
+                                        <div style="height: 220px; position: relative;">
+                                            <canvas id="roomChart"></canvas>
+                                        </div>
+                                        <div class="mt-3 text-start">
+                                            <p class="x-small text-muted mb-0">* แสดงผลข้อมูล 10 ห้องแรก</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Quick Access -->
+                        <div class="content-card animate-up" style="animation-delay: 0.35s">
+                            <div class="card-header-premium">
+                                <div class="card-title-premium">
+                                    <i class="fas fa-bolt text-warning"></i>
+                                    <span>ทางลัด (Quick Access)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="quick-access-list">
+                                <a href="admin_students.html" class="quick-item">
+                                    <div class="quick-icon bg-success-subtle text-success">
+                                        <i class="bi bi-person-plus-fill"></i>
+                                    </div>
+                                    <div class="quick-info">
+                                        <h6>จัดการข้อมูลนักเรียน</h6>
+                                        <p>ลงทะเบียน/ประวัตินักเรียน</p>
+                                    </div>
+                                    <i class="bi bi-chevron-right quick-arrow"></i>
+                                </a>
+                                <a href="admin_teachers.html" class="quick-item">
+                                    <div class="quick-icon bg-primary-subtle text-primary">
+                                        <i class="bi bi-person-badge"></i>
+                                    </div>
+                                    <div class="quick-info">
+                                        <h6>จัดการข้อมูลครู</h6>
+                                        <p>รายชื่อ/วิชาที่สอน</p>
+                                    </div>
+                                    <i class="bi bi-chevron-right quick-arrow"></i>
+                                </a>
+                                <a href="attendance_daily.html" class="quick-item">
+                                    <div class="quick-icon bg-info-subtle text-info">
+                                        <i class="bi bi-calendar2-check"></i>
+                                    </div>
+                                    <div class="quick-info">
+                                        <h6>เช็คชื่อรายวัน</h6>
+                                        <p>มา/ขาด/ลา/สาย</p>
+                                    </div>
+                                    <i class="bi bi-chevron-right quick-arrow"></i>
+                                </a>
+                                <a href="academic_calendar.html" class="quick-item">
+                                    <div class="quick-icon bg-warning-subtle text-warning">
+                                        <i class="bi bi-calendar-event"></i>
+                                    </div>
+                                    <div class="quick-info">
+                                        <h6>ปฏิทินวิชาการ</h6>
+                                        <p>กิจกรรม/วันหยุดโรงเรียน</p>
+                                    </div>
+                                    <i class="bi bi-chevron-right quick-arrow"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            
+            const user = await checkAuth('admin');
+            if (user) { 
+                let displayName = 'ผู้ดูแลระบบ';
+                if (user.first_name_th) {
+                    displayName = user.first_name_th;
+                } else if (user.name) {
+                    // ลบคำนำหน้าชื่อที่พบบ่อย
+                    let name = user.name.replace(/^(นาย|นาง|นางสาว|ดร\.|รศ\.|ผศ\.)\s*/, '');
+                    displayName = name.split(' ')[0];
+                } else {
+                    displayName = user.username;
+                }
+                document.getElementById('adminName').textContent = displayName; 
+                loadDashboardData();
+            }
+        });
+
+        function updateDateTime() {
+            const now = new Date();
+            const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+            const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            const monthsShort = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            
+            const dayName = days[now.getDay()];
+            const date = now.getDate();
+            const monthName = months[now.getMonth()];
+            const monthShort = monthsShort[now.getMonth()];
+            const year = now.getFullYear() + 543;
+            
+            const timeStr = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+            
+            if(document.getElementById('headerDate')) {
+                document.getElementById('headerDate').innerText = `วัน${dayName}ที่ ${date} ${monthName} ${year} | ${timeStr} น.`;
+            }
+            if(document.getElementById('todayLabel')) {
+                document.getElementById('todayLabel').innerText = `${date} ${monthShort} ${year}`;
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('../api/admin/dashboard_stats.php');
+                const data = await response.json();
+                
+                // Update KPI Cards
+                const totalStudents = data.basic.total_students || 0;
+                const totalTeachers = data.basic.teachers || 0;
+                const totalClasses = data.basic.classes || 0;
+
+                document.getElementById('stat_total_students').textContent = totalStudents.toLocaleString();
+                document.getElementById('stat_total_teachers').textContent = totalTeachers.toLocaleString();
+                if(document.getElementById('stat_total_classes')) {
+                    document.getElementById('stat_total_classes').textContent = totalClasses.toLocaleString();
+                }
+                
+                document.getElementById('top_total_students').textContent = totalStudents.toLocaleString();
+                document.getElementById('top_total_teachers').textContent = totalTeachers.toLocaleString();
+
+                const presentCount = data.attendance['มา'] || 0;
+                const pct = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
+                if(document.getElementById('stat_attendance_pct')) {
+                    document.getElementById('stat_attendance_pct').textContent = pct + '%';
+                }
+
+                // 1. Gender Chart
+                new Chart(document.getElementById('genderChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['ชาย', 'หญิง'],
+                        datasets: [{
+                            data: [data.analytics.present_gender['ชาย'], data.analytics.present_gender['หญิง']],
+                            backgroundColor: ['#4f46e5', '#db2777'],
+                            borderWeight: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        maintainAspectRatio: false
+                    }
+                });
+                document.getElementById('male-count').innerText = data.analytics.present_gender['ชาย'].toLocaleString();
+                document.getElementById('female-count').innerText = data.analytics.present_gender['หญิง'].toLocaleString();
+
+                // 2. Progress Chart
+                const totalChecked = data.analytics.total_checked;
+                const progressPercent = totalStudents > 0 ? Math.round((totalChecked / totalStudents) * 100) : 0;
+                new Chart(document.getElementById('progressChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['เช็คแล้ว', 'ยังไม่เช็ค'],
+                        datasets: [{
+                            data: [totalChecked, totalStudents - totalChecked],
+                            backgroundColor: ['#10b981', '#e2e8f0'],
+                            borderWeight: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        maintainAspectRatio: false
+                    }
+                });
+                document.getElementById('progress-percent').innerText = progressPercent + '%';
+                document.getElementById('checked-count').innerText = totalChecked.toLocaleString();
+                document.getElementById('unchecked-count').innerText = (totalStudents - totalChecked).toLocaleString();
+
+                // 3. Top 10 problem rooms (absent + late + leave) — labels are room numbers only
+                const rs = data.analytics.room_stats || [];
+                new Chart(document.getElementById('roomChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: rs.map(r => r.room),
+                        datasets: [
+                            { label: 'ขาด',  data: rs.map(r => r.absent), backgroundColor: '#ef4444', borderRadius: 6, stack: 'p' },
+                            { label: 'สาย',  data: rs.map(r => r.late),   backgroundColor: '#f59e0b', borderRadius: 6, stack: 'p' },
+                            { label: 'ลา/ป่วย', data: rs.map(r => r.leave), backgroundColor: '#3b82f6', borderRadius: 6, stack: 'p' },
+                        ],
+                    },
+                    options: {
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: { stacked: true, beginAtZero: true, grid: { color: '#f1f5f9' } },
+                        },
+                        maintainAspectRatio: false,
+                    }
+                });
+
+                // 4. Show date banner if not today
+                if (data.active_date && !data.is_today) {
+                    const banner = document.getElementById('dateBanner');
+                    if (banner) {
+                        banner.innerHTML = `<i class="bi bi-info-circle me-2"></i> แสดงข้อมูลของวัน <b>${thDate(data.active_date)}</b> (ยังไม่มีข้อมูลของวันนี้)`;
+                        banner.style.display = 'block';
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+    </script>
+</body>
+</html>

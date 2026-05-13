@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>นักเรียนกลุ่มเสี่ยง | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        
+        .ews-banner { background: #fff1f2; border-radius: 24px; padding: 25px 30px; border: 1px solid #fee2e2; margin-bottom: 30px; display: flex; align-items: center; gap: 20px; }
+        .ews-icon { width: 60px; height: 60px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #e11d48; box-shadow: 0 8px 20px rgba(225, 29, 72, 0.1); }
+        .ews-title { color: #9f1239; font-weight: 800; font-size: 1.2rem; margin-bottom: 4px; }
+        .ews-subtitle { color: #e11d48; font-size: 0.85rem; opacity: 0.8; }
+        .table-premium th { background: #f8fafc; padding: 15px 20px; font-weight: 700; color: #475569; border-bottom: 2px solid #eef2f6; white-space: nowrap; text-align: center; }
+        .table-premium td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; text-align: center; }
+        .table-premium tr:hover td { background-color: #fcfdfe; }
+        
+        .risk-badge { font-size: 0.75rem; padding: 5px 15px; border-radius: 20px; font-weight: 800; }
+        .risk-high { background: #fff1f2; color: #e11d48; }
+        .risk-med { background: #fffbeb; color: #d97706; }
+        
+        .btn-view-profile { background: #eff6ff; color: #1d4ed8; border: none; border-radius: 10px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; transition: 0.2s; }
+        .btn-view-profile:hover { background: #1d4ed8; color: white; transform: translateY(-2px); }
+
+        .filter-group { background: white; border-radius: 16px; padding: 8px; border: 1px solid #eef2f6; display: flex; align-items: center; gap: 10px; }
+        .filter-select { border: none; font-weight: 700; color: #1e293b; background: transparent; cursor: pointer; padding: 5px 10px; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <!-- Page Header -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">นักเรียนกลุ่มเสี่ยง (Early Warning)</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item">เช็คชื่อ</li>
+                                    <li class="breadcrumb-item active">นักเรียนกลุ่มเสี่ยง</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="filter-group shadow-sm">
+                            <i class="bi bi-funnel-fill text-muted ms-2"></i>
+                            <select id="monthSelect" class="filter-select" onchange="loadAtRisk()"></select>
+                            <div class="vr opacity-25" style="height: 20px;"></div>
+                            <select id="yearSelect" class="filter-select" onchange="loadAtRisk()"></select>
+                        </div>
+                    </div>
+
+                    <!-- EWS Banner -->
+                    <div class="ews-banner shadow-sm">
+                        <div class="ews-icon"><i class="bi bi-shield-fill-exclamation"></i></div>
+                        <div>
+                            <div class="ews-title">Early Warning System</div>
+                            <div class="ews-subtitle">เกณฑ์การคัดกรอง: ขาดเรียนสะสมตั้งแต่ 3 วัน หรือมาสายสะสมตั้งแต่ 5 วัน ภายในเดือนเดียว</div>
+                        </div>
+                    </div>
+
+                    <!-- Search & Tools -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3 px-2">
+                        <div class="small text-muted fw-bold">พบนักเรียนกลุ่มเสี่ยงทั้งหมด <span id="atRiskCount" class="text-danger">0</span> รายการ</div>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="riskSearch" class="form-control form-control-sm rounded-pill px-3 border-0 bg-white shadow-sm" placeholder="ค้นชื่อนักเรียน..." style="width: 200px;">
+                            <button class="btn btn-navy btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="exportCSV()">
+                                <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Data Card -->
+                    <div class="content-card p-0 overflow-hidden">
+                        <div class="table-responsive">
+                            <table class="table-premium">
+                                <thead>
+                                    <tr>
+                                        <th>รหัสนักเรียน</th>
+                                        <th class="text-start">ชื่อ - นามสกุล</th>
+                                        <th>ชั้น/ห้อง</th>
+                                        <th>ขาดเรียน (ครั้ง)</th>
+                                        <th>มาสาย (ครั้ง)</th>
+                                        <th>ระดับความเสี่ยง</th>
+                                        <th>เครื่องมือ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="atRiskBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Global Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                        CNPAPP<sup>©</sup>
+                                    </a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">
+                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                cnpapp@chainatpit.ac.th
+                            </div>
+                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
+                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
+                                </span>
+                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-envelope-fill me-1"></i> Email
+                                </a>
+                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
+                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
+                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) {
+                initFilters();
+                loadAtRisk();
+            }
+        });
+
+        function initFilters() {
+            const now = new Date();
+            const ms = document.getElementById('monthSelect');
+            monthNames.forEach((m, i) => ms.add(new Option(m, (i+1).toString().padStart(2, '0'))));
+            ms.value = (now.getMonth() + 1).toString().padStart(2, '0');
+
+            const ys = document.getElementById('yearSelect');
+            const curBE = now.getFullYear() + 543;
+            for (let i = 0; i < 5; i++) ys.add(new Option(curBE-i, curBE-i-543));
+        }
+
+        async function loadAtRisk() {
+            const m = $('#monthSelect').val();
+            const y = $('#yearSelect').val();
+            $('#atRiskBody').html('<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-danger opacity-25"></div></td></tr>');
+
+            try {
+                const res = await fetch(`../api/admin/at_risk_students.php?month=${m}&year=${y}`);
+                const data = await res.json();
+                if (data.success && data.data.length > 0) {
+                    let html = '';
+                    data.data.forEach(s => {
+                        const level = s.absent_count >= 5 ? 'เสี่ยงสูง' : 'เฝ้าระวัง';
+                        const badge = s.absent_count >= 5 ? 'risk-high' : 'risk-med';
+                        html += `
+                            <tr>
+                                <td class="text-muted small">${s.student_id}</td>
+                                <td class="text-start fw-bold text-dark">${s.prefix || ''}${s.first_name_th} ${s.last_name_th}</td>
+                                <td class="fw-bold">ห้อง ${s.room}</td>
+                                <td class="text-danger fw-black">${s.absent_count}</td>
+                                <td class="text-warning fw-black">${s.late_count}</td>
+                                <td><span class="risk-badge ${badge}">${level}</span></td>
+                                <td>
+                                    <button class="btn-view-profile" onclick="location.href='student_attendance_history.html?id=${s.id}'">ดูประวัติ</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    $('#atRiskBody').html(html);
+                    $('#atRiskCount').text(data.data.length);
+                } else {
+                    $('#atRiskBody').html('<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียนกลุ่มเสี่ยงในช่วงเวลาที่เลือก</td></tr>');
+                    $('#atRiskCount').text(0);
+                }
+            } catch (e) { $('#atRiskBody').html('<tr><td colspan="7" class="text-center py-5 text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>'); }
+        }
+
+        function exportCSV() { alert('กำลังเตรียมข้อมูลไฟล์ CSV สำหรับนักเรียนกลุ่มเสี่ยง...'); }
+    </script>
+</body>
+</html>

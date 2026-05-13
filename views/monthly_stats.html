@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>สถิติรายเดือน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .kpi-mini-card { background: white; border-radius: 20px; padding: 20px; border: 1px solid rgba(0, 0, 0, 0.03); box-shadow: 0 4px 15px rgba(0,0,0,0.02); height: 100%; }
+        .table-premium th { background: #f8fafc; padding: 15px 20px; font-weight: 700; color: #475569; border-bottom: 2px solid #eef2f6; white-space: nowrap; text-align: center; }
+        .table-premium td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; text-align: center; }
+        .table-premium tr:hover td { background-color: #fcfdfe; }
+        
+        .table-monthly { border-radius: 16px; overflow: hidden; border: 1px solid #eef2f6; width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+        .table-monthly th { background: #f8fafc; padding: 12px; border: 1px solid #eef2f6; font-weight: 700; text-align: center; }
+        .table-monthly td { padding: 12px; border: 1px solid #f1f5f9; text-align: center; }
+        
+        .bg-navy-light { background: #eff6ff !important; color: #1e3a8a !important; }
+        .bg-green-light { background: #ecfdf5 !important; color: #065f46 !important; }
+        .bg-red-light { background: #fef2f2 !important; color: #991b1b !important; }
+        
+        .status-badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+        .badge-done { background: #ecfdf5; color: #059669; }
+        .badge-not { background: #fff1f2; color: #e11d48; }
+        
+        @media print {
+            .sidebar, #header-container, .breadcrumb, .btn, #globalFooter { display: none !important; }
+            .main-panel { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <!-- Global Header -->
+            <div id="header-container"></div>
+
+            <!-- Page Content -->
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <!-- 1. OVERVIEW VIEW -->
+                    <div id="overviewContent" style="display: none;">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                            <div>
+                                <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">สถิติการมาเรียนรายเดือน</h4>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb mb-0 small opacity-75">
+                                        <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                        <li class="breadcrumb-item active">สถิติรายเดือน</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <!-- Filters in Content Area -->
+                            <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm p-1 border">
+                                <select id="monthSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold shadow-none" style="width: 130px;" onchange="loadOverview()"></select>
+                                <select id="yearSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold shadow-none" style="width: 100px;" onchange="loadOverview()"></select>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4" id="statsRow">
+                            <!-- Monthly KPIs populated by JS -->
+                        </div>
+
+                        <div class="content-card p-0 overflow-hidden">
+                            <div class="table-responsive">
+                                <table class="table-premium">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-start ps-4">ห้องเรียน</th>
+                                            <th>จำนวนนักเรียน</th>
+                                            <th>มาเรียน (%)</th>
+                                             <th>ขาดเรียน (%)</th>
+                                             <th>มาสาย (%)</th>
+                                             <th>ลากิจ (%)</th>
+                                             <th>ลาป่วย (%)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="overviewTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. DETAILED VIEW -->
+                    <div id="detailedContent" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <button class="btn btn-light rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" onclick="backToOverview()">
+                                    <i class="bi bi-arrow-left text-navy"></i>
+                                </button>
+                                <div>
+                                    <h4 class="fw-black text-navy mb-0" id="detailedTitle">รายงานรายห้อง</h4>
+                                    <div class="small text-muted opacity-75" id="detailedSubTitle">สรุปสถิติรายวันประจำเดือน</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
+                                <i class="bi bi-printer-fill me-2"></i> พิมพ์รายงาน
+                            </button>
+                        </div>
+
+                        <div class="content-card p-0 overflow-hidden">
+                            <div class="table-responsive">
+                                <table class="table-monthly">
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2" class="bg-navy text-white">วันที่</th>
+                                            <th colspan="3" class="bg-navy-light border-light">ทั้งหมด (คน)</th>
+                                            <th colspan="3" class="bg-green-light border-light">มาเรียน (คน)</th>
+                                            <th colspan="3" class="bg-red-light border-light">ไม่มาเรียน (คน)</th>
+                                            <th rowspan="2" class="bg-light">ร้อยละ</th>
+                                            <th rowspan="2" class="bg-light">สถานะ</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="small py-2 bg-navy-light opacity-75 border-light">ช</th><th class="small py-2 bg-navy-light opacity-75 border-light">ญ</th><th class="small py-2 bg-navy-light fw-bold border-light">รวม</th>
+                                            <th class="small py-2 bg-green-light opacity-75 border-light">ช</th><th class="small py-2 bg-green-light opacity-75 border-light">ญ</th><th class="small py-2 bg-green-light fw-bold border-light">รวม</th>
+                                            <th class="small py-2 bg-red-light opacity-75 border-light">ช</th><th class="small py-2 bg-red-light opacity-75 border-light">ญ</th><th class="small py-2 bg-red-light fw-bold border-light">รวม</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="detailedTableBody"></tbody>
+                                    <tfoot id="detailedTableFooter" class="bg-light fw-bold"></tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Global Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                        CNPAPP<sup>©</sup>
+                                    </a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">
+                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                cnpapp@chainatpit.ac.th
+                            </div>
+                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
+                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
+                                </span>
+                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-envelope-fill me-1"></i> Email
+                                </a>
+                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
+                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
+                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) {
+                initFilters();
+                const urlParams = new URLSearchParams(window.location.search);
+                const room = urlParams.get('room');
+                if (room) { showDetailedReport(room); } 
+                else { $('#overviewContent').show(); loadOverview(); }
+            }
+        });
+
+        function initFilters() {
+            const now = new Date();
+            const ms = document.getElementById('monthSelect');
+            if(ms) {
+                ms.innerHTML = '';
+                monthNames.forEach((m, i) => ms.add(new Option(m, (i+1).toString().padStart(2, '0'))));
+                ms.value = (now.getMonth() + 1).toString().padStart(2, '0');
+            }
+
+            const ys = document.getElementById('yearSelect');
+            if(ys) {
+                ys.innerHTML = '';
+                const curBE = now.getFullYear() + 543;
+                for (let i = 0; i < 5; i++) ys.add(new Option(curBE-i, curBE-i-543));
+            }
+        }
+
+        async function loadOverview() {
+            const month = $('#monthSelect').val();
+            const year = $('#yearSelect').val();
+            $('#overviewTableBody').html('<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary opacity-25"></div></td></tr>');
+            
+            try {
+                const res = await fetch(`../api/admin/monthly_stats.php?month=${month}&year=${year}`);
+                const data = await res.json();
+                if (data.success) {
+                    let html = '';
+                    let sum = { stu: 0, p: 0, a: 0, l: 0, s: 0 };
+                    data.report.forEach(r => {
+                        const tot = (parseInt(r.present) || 0) + (parseInt(r.absent) || 0) + (parseInt(r.late) || 0) + (parseInt(r.personal) || 0) + (parseInt(r.sick) || 0);
+                        const per_p = tot > 0 ? ((r.present / tot) * 100).toFixed(1) : 0;
+                        const per_a = tot > 0 ? ((r.absent / tot) * 100).toFixed(1) : 0;
+                        const per_s = tot > 0 ? ((r.late / tot) * 100).toFixed(1) : 0;
+                        const per_per = tot > 0 ? ((r.personal / tot) * 100).toFixed(1) : 0;
+                        const per_sic = tot > 0 ? ((r.sick / tot) * 100).toFixed(1) : 0;
+
+                        sum.stu += parseInt(r.total_students) || 0; 
+                        sum.p += parseInt(r.present) || 0; 
+                        sum.a += parseInt(r.absent) || 0; 
+                        sum.s += parseInt(r.late) || 0;
+                        sum.l += (parseInt(r.personal) || 0) + (parseInt(r.sick) || 0); 
+
+                        html += `
+                            <tr onclick="navigateToRoom('${r.room}')" style="cursor: pointer;">
+                                <td class="ps-4 text-start fw-bold text-navy">ห้อง ${r.room}</td>
+                                <td>${r.total_students}</td>
+                                <td class="text-success fw-bold">${per_p}%</td>
+                                <td class="text-danger">${per_a}%</td>
+                                <td class="text-warning">${per_s}%</td>
+                                <td class="text-primary">${per_per}%</td>
+                                <td class="text-info">${per_sic}%</td>
+                            </tr>
+                        `;
+                    });
+                    $('#overviewTableBody').html(html);
+                    
+                    const totalChecks = sum.p + sum.a + sum.s + sum.l;
+                    const avgPer = totalChecks > 0 ? ((sum.p / totalChecks) * 100).toFixed(1) : 0;
+                    $('#statsRow').html(`
+                        <div class="col-md-3">
+                            <div class="kpi-mini-card border-start border-4 border-navy">
+                                <div class="small fw-bold text-muted mb-1">นักเรียนทั้งหมด (เฉลี่ย)</div>
+                                <h3 class="fw-black text-navy mb-0">${sum.stu} คน</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="kpi-mini-card border-start border-4 border-success">
+                                <div class="small fw-bold text-muted mb-1">ร้อยละการมาเรียนเฉลี่ย</div>
+                                <h3 class="fw-black text-success mb-0">${avgPer}%</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="kpi-mini-card border-start border-4 border-danger">
+                                <div class="small fw-bold text-muted mb-1">ยอดขาดเรียนสะสม</div>
+                                <h3 class="fw-black text-danger mb-0">${sum.a} ครั้ง</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="kpi-mini-card border-start border-4 border-warning">
+                                <div class="small fw-bold text-muted mb-1">ยอดมาสายสะสม</div>
+                                <h3 class="fw-black text-warning mb-0">${sum.s} ครั้ง</h3>
+                            </div>
+                        </div>
+                    `);
+                }
+            } catch (e) { $('#overviewTableBody').html('<tr><td colspan="7" class="text-center py-5 text-danger">โหลดข้อมูลไม่สำเร็จ</td></tr>'); }
+        }
+
+        function navigateToRoom(room) {
+            const m = $('#monthSelect').val(); const y = $('#yearSelect').val();
+            window.location.href = `monthly_stats.html?room=${room}&month=${m}&year=${y}`;
+        }
+
+        async function showDetailedReport(room) {
+            $('#overviewContent').hide(); $('#detailedContent').show();
+            const urlParams = new URLSearchParams(window.location.search);
+            const m = urlParams.get('month'); const y = urlParams.get('year');
+            
+            $('#detailedTitle').text(`รายงานสถิติ ห้อง ${room}`);
+            $('#detailedSubTitle').text(`ประจำเดือน ${monthNames[parseInt(m)-1]} พ.ศ. ${parseInt(y)+543}`);
+
+            $('#detailedTableBody').html('<tr><td colspan="12" class="text-center py-5"><div class="spinner-border text-primary opacity-25"></div></td></tr>');
+
+            try {
+                const res = await fetch(`../api/admin/monthly_stats.php?room=${room}&month=${m}&year=${y}`);
+                const data = await res.json();
+                if (data.success) {
+                    let html = '';
+                    let t = { tm: 0, tf: 0, tr: 0, pm: 0, pf: 0, pr: 0, am: 0, af: 0, ar: 0, count: 0 };
+                    
+                    data.report.forEach(r => {
+                        const d = new Date(r.date);
+                        const dS = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()+543}`;
+                        const tr = (parseInt(r.total_m) || 0) + (parseInt(r.total_f) || 0); 
+                        const pr = (parseInt(r.present_m) || 0) + (parseInt(r.present_f) || 0); 
+                        const ar = (parseInt(r.absent_m) || 0) + (parseInt(r.absent_f) || 0);
+                        const per = tr > 0 ? ((pr / tr) * 100).toFixed(0) : '-';
+                        
+                        html += `
+                            <tr>
+                                <td class="fw-bold text-navy">${dS}</td>
+                                <td>${r.total_m}</td><td>${r.total_f}</td><td class="bg-navy-light fw-bold">${tr}</td>
+                                <td>${r.present_m || '-'}</td><td>${r.present_f || '-'}</td><td class="bg-green-light fw-bold">${pr || '-'}</td>
+                                <td class="text-muted">${r.absent_m || '-'}</td><td class="text-muted">${r.absent_f || '-'}</td><td class="bg-red-light fw-bold">${ar || '-'}</td>
+                                <td class="fw-black text-primary">${per === '-' ? '-' : per + '%'}</td>
+                                <td>${r.is_complete ? '<span class="status-badge badge-done">ครบถ้วน</span>' : '<span class="status-badge badge-not">ไม่ครบ</span>'}</td>
+                            </tr>
+                        `;
+                        if (r.checked_count > 0) {
+                            t.tm += parseInt(r.total_m) || 0; t.tf += parseInt(r.total_f) || 0; t.tr += tr; 
+                            t.pm += parseInt(r.present_m) || 0; t.pf += parseInt(r.present_f) || 0; t.pr += pr; 
+                            t.am += parseInt(r.absent_m) || 0; t.af += parseInt(r.absent_f) || 0; t.ar += ar; t.count++;
+                        }
+                    });
+                    $('#detailedTableBody').html(html);
+                    if (t.count > 0) {
+                        const avg = (k) => (t[k] / t.count).toFixed(0);
+                        const avgP = t.tr > 0 ? ((t.pr / t.tr) * 100).toFixed(0) : 0;
+                        $('#detailedTableFooter').html(`
+                            <tr>
+                                <td class="bg-light">ค่าเฉลี่ยรายวัน</td>
+                                <td>${avg('tm')}</td><td>${avg('tf')}</td><td class="bg-navy-light">${avg('tr')}</td>
+                                <td>${avg('pm')}</td><td>${avg('pf')}</td><td class="bg-green-light">${avg('pr')}</td>
+                                <td>${avg('am')}</td><td>${avg('af')}</td><td class="bg-red-light">${avg('ar')}</td>
+                                <td class="text-primary">${avgP}%</td><td></td>
+                            </tr>
+                        `);
+                    }
+                }
+            } catch (e) { $('#detailedTableBody').html('<tr><td colspan="12" class="text-center py-5 text-danger">เกิดข้อผิดพลาด</td></tr>'); }
+        }
+
+        function backToOverview() { window.location.href = 'monthly_stats.html'; }
+    </script>
+</body>
+</html>

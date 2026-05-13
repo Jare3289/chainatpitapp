@@ -1,0 +1,234 @@
+/* ============================================================
+   CNP Shared Components
+   ใช้ class เหล่านี้แทนการเขียน inline style ใน views
+   ============================================================ */
+
+/* ─── Content card (ใช้แทน inline .content-card ในหลายๆ view) ─── */
+.cnp-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-soft);
+}
+.cnp-card--compact { padding: var(--space-5); border-radius: var(--radius-lg); }
+.cnp-card--flat    { box-shadow: none; border: 1px solid var(--border-soft); }
+
+/* ─── Stat card ─── */
+.cnp-stat {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    border: 1px solid var(--border-soft);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--dur-base) var(--ease-out);
+}
+.cnp-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+.cnp-stat__icon {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: white; flex-shrink: 0;
+    background: var(--primary);
+}
+.cnp-stat__icon--success { background: var(--success); }
+.cnp-stat__icon--warning { background: var(--warning); }
+.cnp-stat__icon--danger  { background: var(--danger); }
+.cnp-stat__icon--info    { background: var(--info); }
+.cnp-stat__value {
+    font-size: var(--fs-xl); font-weight: var(--fw-extra); color: var(--text);
+    line-height: 1.2; margin-bottom: 2px;
+}
+.cnp-stat__label { font-size: var(--fs-sm); color: var(--text-muted); font-weight: var(--fw-medium); }
+
+/* ─── Badge presets ─── */
+.cnp-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: var(--radius-pill);
+    font-size: var(--fs-xs); font-weight: var(--fw-bold);
+    background: var(--bg-subtle); color: var(--text-muted);
+    border: 1px solid var(--border-soft);
+}
+.cnp-badge--primary { background: var(--primary-soft); color: var(--primary); border-color: transparent; }
+.cnp-badge--success { background: var(--success-soft); color: var(--success); border-color: transparent; }
+.cnp-badge--warning { background: var(--warning-soft); color: var(--warning); border-color: transparent; }
+.cnp-badge--danger  { background: var(--danger-soft);  color: var(--danger);  border-color: transparent; }
+.cnp-badge--info    { background: var(--info-soft);    color: var(--info);    border-color: transparent; }
+
+/* House badges (Thai school house system) */
+.cnp-badge--khunsan    { background: rgba(219, 39, 119, 0.1); color: var(--house-khunsan); border-color: rgba(219, 39, 119, 0.25); }
+.cnp-badge--khunsri    { background: rgba(220, 38, 38, 0.1);  color: var(--house-khunsri); border-color: rgba(220, 38, 38, 0.25); }
+.cnp-badge--chaoyee    { background: rgba(5, 150, 105, 0.1);  color: var(--house-chaoyee); border-color: rgba(5, 150, 105, 0.25); }
+.cnp-badge--dhammachak { background: rgba(217, 119, 6, 0.1);  color: var(--house-dhammachak); border-color: rgba(217, 119, 6, 0.25); }
+
+/* ─── Action button (square icon button) ─── */
+.cnp-btn-action {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; cursor: pointer;
+    background: var(--bg-subtle); color: var(--text-muted);
+    transition: all var(--dur-fast) var(--ease-out);
+    font-size: 0.9rem;
+}
+.cnp-btn-action:hover { transform: translateY(-1px); }
+.cnp-btn-action--edit   { background: var(--warning-soft); color: var(--warning); }
+.cnp-btn-action--edit:hover   { background: var(--warning); color: white; }
+.cnp-btn-action--delete { background: var(--danger-soft);  color: var(--danger); }
+.cnp-btn-action--delete:hover { background: var(--danger); color: white; }
+.cnp-btn-action--view   { background: var(--primary-soft); color: var(--primary); }
+.cnp-btn-action--view:hover   { background: var(--primary); color: white; }
+
+/* ─── Page header ─── */
+.cnp-page-header {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+.cnp-page-header__title {
+    font-size: var(--fs-2xl); font-weight: var(--fw-extra);
+    color: var(--text); margin: 0;
+}
+.cnp-page-header__subtitle {
+    color: var(--text-muted); font-size: var(--fs-sm);
+    margin: 4px 0 0; font-weight: var(--fw-medium);
+}
+
+/* ─── Modern table styling ─── */
+.cnp-table {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border-collapse: separate; border-spacing: 0;
+}
+.cnp-table thead th {
+    background: var(--bg-subtle);
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-extra);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--border-soft);
+}
+.cnp-table tbody td {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text-body);
+    font-size: var(--fs-sm);
+    vertical-align: middle;
+}
+.cnp-table tbody tr:last-child td { border-bottom: none; }
+.cnp-table tbody tr:hover td { background: var(--bg-muted); }
+
+/* ─── Form helpers ─── */
+.cnp-form-label {
+    display: block;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+    color: var(--text-muted);
+    margin-bottom: var(--space-2);
+}
+.cnp-form-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-medium);
+    color: var(--text);
+    transition: all var(--dur-fast) var(--ease-out);
+}
+.cnp-form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* ─── Avatar ─── */
+.cnp-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: var(--shadow-xs);
+}
+.cnp-avatar--sm { width: 28px; height: 28px; }
+.cnp-avatar--lg { width: 64px; height: 64px; }
+.cnp-avatar--xl { width: 96px; height: 96px; }
+
+/* ─── Empty state ─── */
+.cnp-empty {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--text-faint);
+}
+.cnp-empty__icon { font-size: 3rem; margin-bottom: var(--space-4); opacity: 0.3; }
+.cnp-empty__text { font-size: var(--fs-sm); }
+
+/* ─── Skeleton loading ─── */
+@keyframes cnp-shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+.cnp-skeleton {
+    background: linear-gradient(90deg, var(--bg-subtle) 0%, var(--bg-muted) 50%, var(--bg-subtle) 100%);
+    background-size: 1000px 100%;
+    animation: cnp-shimmer 2s infinite linear;
+    border-radius: var(--radius-sm);
+    height: 1em;
+}
+
+/* ─── Utility helpers ─── */
+.cnp-stack > * + * { margin-top: var(--space-4); }
+.cnp-cluster { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.cnp-divider { height: 1px; background: var(--border-soft); margin: var(--space-6) 0; }
+
+/* ============================================================
+   Legacy class aliases — เคยถูกประกาศ inline ใน 17+ views ซ้ำๆ
+   ตอนนี้ทุก view ที่ใช้ class เหล่านี้ได้ style เดียวกันอัตโนมัติ
+   ============================================================ */
+
+.content-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-soft);
+}
+
+.table-premium {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.table-premium thead th {
+    background: var(--bg-subtle);
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-extra);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--space-3) var(--space-5);
+    border-bottom: 1px solid var(--border-soft);
+}
+.table-premium tbody td {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text-body);
+    vertical-align: middle;
+}
+.table-premium tbody tr:last-child td { border-bottom: none; }
+.table-premium tbody tr:hover td { background: var(--bg-muted); }
+
+/* `.text-navy` / `.bg-navy` — common color helpers (already in style.css too) */
+.text-navy { color: var(--navy-700) !important; }
+

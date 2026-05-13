@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>รายงานสาธารณประโยชน์ | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .report-card { background: white; border-radius: 24px; border: 1px solid rgba(0,0,0,0.02); overflow: hidden; margin-bottom: 25px; }
+        .tab-btn { border: none; background: transparent; padding: 15px 25px; font-weight: 700; color: #64748b; border-bottom: 3px solid transparent; transition: 0.2s; }
+        .tab-btn.active { color: #1e3c72; border-bottom-color: #1e3c72; }
+        .table thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.75rem; text-transform: uppercase; padding: 18px 20px; }
+        .progress-sm { height: 6px; border-radius: 10px; }
+        .chart-container { background: white; border-radius: 24px; padding: 25px; border: 1px solid rgba(0,0,0,0.02); height: 100%; min-height: 320px; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <aside class="sidebar" id="mainSidebar"></aside>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <div class="mb-4">
+                        <h4 class="fw-black text-navy mb-1">รายงานสาธา</h4>
+                        <div class="small text-muted" id="room-subtitle">สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์</div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-lg-4">
+                            <div class="chart-container shadow-sm">
+                                <h6 class="fw-bold text-navy mb-3">ภาพรวมความสำเร็จ (นักเรียน)</h6>
+                                <canvas id="completionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="chart-container shadow-sm">
+                                <h6 class="fw-bold text-navy mb-3">สถิติการรับรองรายเดือน</h6>
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-card shadow-sm">
+                        <div class="d-flex border-bottom bg-white px-2">
+                            <button class="tab-btn active" id="tab-room" onclick="switchTab('room')">นักเรียนในที่ปรึกษา</button>
+                            <button class="tab-btn" id="tab-history" onclick="switchTab('my')">ประวัติการรับรองของฉัน</button>
+                        </div>
+
+                        <div class="p-4" id="filter-area">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <select class="form-select border-0 bg-light rounded-3" id="filter-year" onchange="loadData()">
+                                        <option value="2568" selected>ปีการศึกษา 2568</option>
+                                        <option value="2569">ปีการศึกษา 2569</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select border-0 bg-light rounded-3" id="filter-semester" onchange="loadData()">
+                                        <option value="1" selected>ภาคเรียนที่ 1</option>
+                                        <option value="2">ภาคเรียนที่ 2</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead id="table-head">
+                                    <!-- Dynamic -->
+                                </thead>
+                                <tbody id="table-body">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <footer id="footer-container" class="app-footer text-center mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let currentTab = 'room';
+        let currentUser = null;
+        let completionChart = null;
+        let trendChart = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentUser = await checkAuth(['teacher', 'admin']);
+            if (currentUser) loadData();
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + (tab === 'room' ? 'room' : 'history')).classList.add('active');
+            loadData();
+        }
+
+        async function loadData() {
+            const body = document.getElementById('table-body');
+            const head = document.getElementById('table-head');
+            body.innerHTML = '<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-navy"></div></td></tr>';
+
+            const year = document.getElementById('filter-year').value;
+            const sem = document.getElementById('filter-semester').value;
+
+            try {
+                const res = await fetch(`../api/public_service.php?type=${currentTab}&year=${year}&semester=${sem}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    renderCharts(data.records);
+                    if (currentTab === 'room') {
+                        renderRoomReport(data.records);
+                    } else {
+                        renderMyHistory(data.records);
+                    }
+                }
+            } catch (e) {
+                body.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-danger">เกิดข้อผิดพลาดในการดึงข้อมูล</td></tr>';
+            }
+        }
+
+        function renderCharts(records) {
+            // 1. Completion Chart (Doughnut)
+            const students = {};
+            records.forEach(r => {
+                if (!students[r.student_id]) students[r.student_id] = 0;
+                if (r.status === 'approved') students[r.student_id]++;
+            });
+            const doneCount = Object.values(students).filter(c => c >= 20).length;
+            const pendingCount = Object.values(students).filter(c => c < 20).length;
+
+            if (completionChart) completionChart.destroy();
+            completionChart = new Chart(document.getElementById('completionChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['สำเร็จ (20+)', 'อยู่ระหว่างดำเนินการ'],
+                    datasets: [{
+                        data: [doneCount, pendingCount],
+                        backgroundColor: ['#10b981', '#f59e0b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // 2. Trend Chart (Line)
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const monthlyStats = new Array(12).fill(0);
+            records.filter(r => r.status === 'approved').forEach(r => {
+                const m = new Date(r.activity_date).getMonth();
+                monthlyStats[m]++;
+            });
+
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'จำนวนรายการที่รับรอง',
+                        data: monthlyStats,
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderRoomReport(records) {
+            const body = document.getElementById('table-body');
+            const head = document.getElementById('table-head');
+            head.innerHTML = `
+                <tr>
+                    <th class="ps-4">นักเรียน</th>
+                    <th>จำนวนครั้งที่ทำ</th>
+                    <th>ความคืบหน้า (เป้าหมาย 20)</th>
+                    <th class="text-end pe-4">สถานะ</th>
+                </tr>
+            `;
+            const students = {};
+            records.forEach(r => {
+                if (!students[r.student_id]) {
+                    students[r.student_id] = { name: r.first_name_th + ' ' + r.last_name_th, code: r.student_code, count: 0 };
+                }
+                if (r.status === 'approved') students[r.student_id].count++;
+            });
+
+            let html = '';
+            Object.values(students).forEach(s => {
+                const percent = Math.min(100, (s.count / 20) * 100);
+                const progressColor = percent >= 100 ? 'bg-success' : (percent >= 50 ? 'bg-primary' : 'bg-warning');
+                html += `
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold">${s.name}</div>
+                            <div class="small text-muted">${s.code}</div>
+                        </td>
+                        <td><span class="badge bg-light text-navy rounded-pill px-3">${s.count} ครั้ง</span></td>
+                        <td style="width: 300px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress progress-sm flex-grow-1">
+                                    <div class="progress-bar ${progressColor}" style="width: ${percent}%"></div>
+                                </div>
+                                <small class="fw-bold text-muted">${percent.toFixed(0)}%</small>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            ${percent >= 100 ? '<span class="badge bg-success-subtle text-success rounded-pill px-3">ครบกำหนด</span>' : '<span class="badge bg-warning-subtle text-warning rounded-pill px-3">ยังไม่ครบ</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+            body.innerHTML = html || '<tr><td colspan="4" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียนในห้อง</td></tr>';
+        }
+
+        function renderMyHistory(records) {
+            const body = document.getElementById('table-body');
+            const head = document.getElementById('table-head');
+            head.innerHTML = `
+                <tr>
+                    <th class="ps-4">วันที่รับรอง</th>
+                    <th>นักเรียน</th>
+                    <th>กิจกรรม</th>
+                    <th>สถานที่</th>
+                    <th class="text-end pe-4">จำนวน (ชม.)</th>
+                </tr>
+            `;
+            let html = '';
+            records.forEach(r => {
+                html += `
+                    <tr>
+                        <td class="ps-4 small text-muted">${r.activity_date_th}</td>
+                        <td>
+                            <div class="fw-bold">${r.first_name_th} ${r.last_name_th}</div>
+                            <div class="small text-muted">ห้อง ${r.room}</div>
+                        </td>
+                        <td><div class="fw-bold text-navy">${r.activity_name}</div></td>
+                        <td class="small text-muted">${r.location}</td>
+                        <td class="text-end pe-4"><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration} ${r.duration_unit}</span></td>
+                    </tr>
+                `;
+            });
+            body.innerHTML = html || '<tr><td colspan="5" class="text-center py-5 text-muted">ยังไม่มีประวัติการรับรอง</td></tr>';
+        }
+    </script>
+</body>
+</html>

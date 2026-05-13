@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ปฏิทินการศึกษา | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* Matrix Table Styling */
+        .matrix-wrapper { overflow: auto; border-radius: 24px; background: white; border: 1px solid #f1f5f9; max-height: 800px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.75rem; }
+        .matrix-table th, .matrix-table td { border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; text-align: center; padding: 12px 8px; min-width: 38px; }
+        .matrix-table th { background: #f8fafc; font-weight: 800; color: #64748b; position: sticky; top: 0; z-index: 10; text-transform: uppercase; letter-spacing: 0.5px; }
+        .matrix-table td:first-child { position: sticky; left: 0; background: white; z-index: 11; font-weight: 800; text-align: left; padding-left: 25px; width: 180px; color: #1e3a8a; border-right: 2px solid #e2e8f0; font-size: 0.85rem; }
+        
+        /* Day Types Colors - Vibrant */
+        .m-holiday, .m-activity { background-color: #3b82f6 !important; color: #ffffff !important; font-weight: 800; }
+        .m-comp    { background-color: #db2777 !important; color: #ffffff !important; font-weight: 800; }
+        .m-weekend { background-color: #f8fafc; color: #cbd5e1; }
+        .m-today { background-color: #fffbeb !important; outline: 3px solid #f59e0b !important; outline-offset: -3px; z-index: 5; }
+
+        /* Legend */
+        .legend-chip { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; padding: 8px 16px; border-radius: 50px; background: white; border: 1px solid #f1f5f9; color: #64748b; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .legend-box { width: 12px; height: 12px; border-radius: 4px; }
+
+        /* Holiday Summary - Compact Style */
+        .summary-section { margin-top: 1.5rem; background: white; border-radius: 20px; border: 1px solid #f1f5f9; overflow: hidden; }
+        .summary-header { background: #f8fafc; padding: 15px 25px; border-bottom: 1px solid #f1f5f9; font-weight: 800; color: #1e3a8a; font-size: 0.9rem; }
+        .summary-body { padding: 15px 25px; }
+        .holiday-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+        .holiday-item { display: flex; align-items: center; gap: 10px; padding: 4px 0; background: transparent; border-radius: 0; border: none; transition: 0.2s; }
+        .holiday-item:hover { transform: translateX(5px); background: transparent; }
+        .h-text { font-weight: 500; color: #475569; font-size: 0.8rem; }
+
+        .nav-pills .nav-link { border-radius: 14px; font-weight: 700; color: #64748b; padding: 8px 20px; margin-right: 10px; border: 1px solid #f1f5f9; background: white; font-size: 0.85rem; }
+        .nav-pills .nav-link.active { background: #1e3a8a; color: white; border-color: #1e3a8a; box-shadow: 0 4px 10px rgba(30, 58, 138, 0.15); }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">ปฏิทินการศึกษา</h4>
+                            <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0 small opacity-75"><li class="breadcrumb-item">หน้าแรก</li><li class="breadcrumb-item active">ปฏิทินกิจกรรม</li></ol></nav>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-white rounded-pill shadow-sm border px-3 py-1 d-flex align-items-center gap-2">
+                                <span class="small fw-bold text-muted">ปีการศึกษา:</span>
+                                <select class="form-select form-select-sm border-0 fw-bold text-navy" id="yearSelector" onchange="refreshContent()"></select>
+                            </div>
+                            <div id="adminControls" class="d-none gap-2">
+                                <button class="btn btn-outline-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openUploadModal()"><i class="bi bi-cloud-arrow-up me-2"></i>อัปโหลด CSV</button>
+                                <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="addEventPrompt()"><i class="bi bi-plus-lg me-2"></i>เพิ่มกิจกรรม</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column gap-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <ul class="nav nav-pills">
+                                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#matrixTab"><i class="bi bi-grid-3x3-gap-fill me-2"></i>ตารางวันเรียน (Matrix)</button></li>
+                                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#agendaTab"><i class="bi bi-calendar-event-fill me-2"></i>รายการกิจกรรมรายเดือน</button></li>
+                            </ul>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="legend-chip"><div class="legend-box" style="background:#db2777"></div> ชดเชย</div>
+                                <div class="legend-chip"><div class="legend-box" style="background:#3b82f6"></div> วันหยุด / กิจกรรม</div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="matrixTab">
+                                <div class="matrix-wrapper shadow-sm">
+                                    <div id="matrixContainer"></div>
+                                </div>
+                                
+                                <div class="summary-section shadow-sm">
+                                    <div class="summary-header d-flex justify-content-between align-items-center">
+                                        <span><i class="bi bi-bookmark-star-fill me-2"></i>สรุปวันหยุดและกิจกรรมสำคัญประจำปี</span>
+                                        <span class="badge bg-navy-subtle text-navy rounded-pill px-3 py-2 fw-bold" style="font-size:0.7rem;" id="holidayCountBadge"></span>
+                                    </div>
+                                    <div class="summary-body">
+                                        <div id="holidaySummaryList" class="holiday-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="agendaTab">
+                                <div id="agendaContainer" class="row g-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <!-- Admin Edit Modal -->
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-navy text-white p-4">
+                    <h5 class="fw-black mb-0"><i class="bi bi-calendar-plus me-2"></i>จัดการกิจกรรม</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="eventForm">
+                        <input type="hidden" name="id" id="eventId">
+                        <div class="mb-3"><label class="form-label small fw-bold">วันที่</label><input type="date" name="date_val" id="eventDate" class="form-control rounded-3" required></div>
+                        <div class="mb-3"><label class="form-label small fw-bold">ชื่อกิจกรรม</label><input type="text" name="activity" id="eventTitle" class="form-control rounded-3" required></div>
+                        <div class="mb-3"><label class="form-label small fw-bold">ประเภท</label><select name="day_type" id="eventDayType" class="form-select rounded-3"><option value="ปกติ">วันเรียนปกติ</option><option value="หยุด">วันหยุดราชการ</option><option value="ชดเชย">วันหยุดชดเชย</option><option value="กิจกรรมพิเศษ">กิจกรรมสำคัญ</option></select></div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold d-block">ระดับการมองเห็น</label>
+                            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="visStudent" value="student" checked><label class="form-check-label" for="visStudent">นักเรียน</label></div>
+                            <div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" id="visTeacher" value="teacher" checked><label class="form-check-label" for="visTeacher">ครู</label></div>
+                        </div>
+                        <div class="mb-3"><label class="form-label small fw-bold">หมายเหตุ</label><textarea name="note" id="eventNote" class="form-control rounded-3" rows="2"></textarea></div>
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="button" id="btnDeleteEvent" class="btn btn-outline-danger rounded-pill px-4 d-none" onclick="deleteEvent()">ลบกิจกรรม</button>
+                            <div class="ms-auto">
+                                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                                <button type="submit" class="btn btn-navy rounded-pill px-5 fw-bold shadow-sm">บันทึก</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Read-Only Day Detail Modal (Student / Teacher) -->
+    <div class="modal fade" id="dayDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 28px; overflow: hidden;">
+                <div class="modal-header border-0 p-4 pb-0" id="dayDetailHeader">
+                    <div>
+                        <h5 class="fw-black text-navy mb-1" id="dayDetailTitle">รายละเอียดวันที่</h5>
+                        <p class="text-muted small mb-0" id="dayDetailDate"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="dayDetailBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 p-4 pb-0"><h5 class="fw-black text-navy mb-0">นำเข้าข้อมูลกิจกรรม (CSV)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-4">เลือกไฟล์ CSV เพื่ออัปเดตกิจกรรมประจำปีการศึกษา</p>
+                    <input type="file" id="csvFile" class="form-control rounded-3 mb-3" accept=".csv">
+                    <button class="btn btn-navy w-100 rounded-pill fw-bold py-2 shadow-sm" onclick="handleUpload()">เริ่มต้นนำเข้าข้อมูล</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        const TH_MONTHS = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+        const DAY_SHORT = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
+        let allEvents = [];
+        let userRole = null;
+        let state = { viewYear: new Date().getFullYear() };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(['admin', 'teacher', 'student']);
+            if (user) {
+                userRole = user.role;
+                if (userRole === 'admin') document.getElementById('adminControls').classList.remove('d-none'), document.getElementById('adminControls').classList.add('d-flex');
+            }
+            initYearSelector();
+            await fetchData();
+            document.getElementById('eventForm').onsubmit = saveEvent;
+        });
+
+        async function fetchData() {
+            const res = await fetch('../api/calendar.php?action=getInitialData');
+            const data = await res.json();
+            if (data.success) {
+                allEvents = data.events;
+                renderAll();
+            }
+        }
+
+        function initYearSelector() {
+            const sel = document.getElementById('yearSelector');
+            for(let y=2023; y<=2028; y++) sel.add(new Option(`พ.ศ. ${y+543}`, y));
+            sel.value = state.viewYear;
+        }
+
+        function refreshContent() { state.viewYear = parseInt(document.getElementById('yearSelector').value); renderAll(); }
+        function renderAll() { renderMatrix(); renderAgenda(); renderHolidaySummary(); }
+
+        function renderMatrix() {
+            const container = document.getElementById('matrixContainer');
+            let html = '<table class="matrix-table"><thead><tr><th>เดือน / วัน</th>';
+            for(let d=1; d<=31; d++) html += `<th>${d}</th>`;
+            html += '<th>รวม</th></tr></thead><tbody>';
+            let m=4, y=state.viewYear;
+            for(let i=0; i<12; i++) {
+                const dInM = new Date(y, m+1, 0).getDate();
+                let count = 0; html += `<tr><td>${TH_MONTHS[m]} ${y+543}</td>`;
+                for(let d=1; d<=31; d++) {
+                    if(d > dInM) { html += '<td></td>'; continue; }
+                    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`, dow = new Date(y, m, d).getDay();
+                    let evs = allEvents.filter(e => e.date_val.startsWith(ds));
+                    if (userRole === 'student') evs = evs.filter(e => e.category !== 'ครู');
+                    let cls = '';
+                    if (dow === 0 || dow === 6) cls = 'm-weekend';
+                    else if (evs.some(e => (e.day_type || '').includes('ชดเชย'))) cls = 'm-comp';
+                    else if (evs.some(e => (e.day_type || '').includes('หยุด'))) cls = 'm-holiday'; // Blue in CSS
+                    else if (evs.some(e => (e.day_type || '').includes('กิจกรรม'))) cls = 'm-activity'; // Blue in CSS
+                    if (ds === new Date().toISOString().split('T')[0]) cls += ' m-today';
+                    if (cls === '' || cls === 'm-activity') count++;
+                    html += `<td class="${cls}" onclick="openEventByDate('${ds}')">${DAY_SHORT[dow]}</td>`;
+                }
+                html += `<td class="fw-bold bg-light">${count}</td></tr>`;
+                m++; if(m > 11) { m=0; y++; }
+            }
+            container.innerHTML = html + '</tbody></table>';
+        }
+
+        function renderAgenda() {
+            const container = document.getElementById('agendaContainer');
+            container.innerHTML = '';
+            let m = 4, y = state.viewYear; // Start May
+
+            for(let i = 0; i < 12; i++) {
+                const firstDay = new Date(y, m, 1).getDay();
+                const daysInMonth = new Date(y, m + 1, 0).getDate();
+                
+                let gridHtml = '<div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; text-align:center; font-weight:700; font-size:10px;">';
+                DAY_SHORT.forEach(day => gridHtml += `<div class="text-muted opacity-50 mb-1">${day}</div>`);
+                for(let blank = 0; blank < firstDay; blank++) gridHtml += '<div></div>';
+
+                for(let d = 1; d <= daysInMonth; d++) {
+                    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    const evs = allEvents.filter(e => e.date_val.startsWith(ds));
+                    const dow = new Date(y, m, d).getDay();
+                    let bg = '', col = '#1e293b';
+                    if (dow === 0 || dow === 6) bg = 'background:#f8fafc; color:#cbd5e1;';
+                    else if (evs.some(e => (e.day_type || '').includes('ชดเชย'))) bg = 'background:#db2777; color:#ffffff; font-weight:800;';
+                    else if (evs.some(e => (e.day_type || '').includes('หยุด'))) bg = 'background:#3b82f6; color:#ffffff; font-weight:800;';
+                    else if (evs.some(e => (e.day_type || '').includes('กิจกรรม'))) bg = 'background:#3b82f6; color:#ffffff; font-weight:800;';
+                    
+                    gridHtml += `<div class="rounded-1 d-flex align-items-center justify-content-center" style="aspect-ratio:1; ${bg}" onclick="showDayDetail('${ds}')">${d}</div>`;
+                }
+                gridHtml += '</div>';
+
+                container.innerHTML += `
+                    <div class="col-6 col-md-4 col-xl-3 mb-3">
+                        <div class="content-card p-3 h-100 border-0 shadow-sm" style="background:#fff;">
+                            <div class="fw-black text-navy text-center mb-3" style="font-size:0.85rem; border-bottom: 2px solid #f8fafc; padding-bottom:10px;">
+                                ${TH_MONTHS[m]} ${y+543}
+                            </div>
+                            ${gridHtml}
+                        </div>
+                    </div>
+                `;
+                m++; if(m > 11) { m = 0; y++; }
+            }
+        }
+
+        function renderHolidaySummary() {
+            const container = document.getElementById('holidaySummaryList');
+            let holidays = allEvents.filter(e => {
+                if (!e.date_val || e.day_type === 'ปกติ') return false;
+                const d = new Date(e.date_val);
+                const dow = d.getDay();
+                
+                // Hide ALL weekends from summary (Show only things that affect school days)
+                if (dow === 0 || dow === 6) return false;
+                
+                return true;
+            }).sort((a,b) => a.date_val.localeCompare(b.date_val));
+
+            if (userRole === 'student') holidays = holidays.filter(e => e.category !== 'ครู');
+            
+            document.getElementById('holidayCountBadge').textContent = `${holidays.length} รายการ`;
+            if (!holidays.length) {
+                container.innerHTML = '<div class="text-muted small w-100 text-center py-4">ยังไม่มีข้อมูลวันหยุดสำคัญ</div>';
+                return;
+            }
+
+            // Group by Month
+            let html = '';
+            let m = 4, y = state.viewYear;
+            for(let i=0; i<12; i++) {
+                const monthEvents = holidays.filter(h => {
+                    const d = new Date(h.date_val);
+                    return d.getMonth() === m && d.getFullYear() === y;
+                });
+
+                if (monthEvents.length > 0) {
+                    html += `<div class="mb-2 mt-3"><div class="fw-black text-navy small border-bottom pb-1">${TH_MONTHS[m]} ${y+543}</div></div>`;
+                    monthEvents.forEach(h => {
+                        const d = new Date(h.date_val);
+                        const dayType = (h.day_type || '').trim();
+                        let badgeColor = '#3b82f6'; // Default Blue (Holiday/Activity)
+                        if (dayType.includes('ชดเชย')) badgeColor = '#db2777';
+
+                        html += `
+                            <div class="holiday-item" onclick="openEventEdit(${h.id})" style="cursor:pointer">
+                                <div class="h-text d-flex align-items-center">
+                                    <div class="legend-box me-3" style="background:${badgeColor}; flex-shrink:0;"></div>
+                                    <span class="fw-bold text-navy me-2" style="min-width:60px;">${d.getDate()} (${DAY_SHORT[d.getDay()]})</span>
+                                    <span class="text-secondary">${h.activity}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                m++; if(m > 11) { m=0; y++; }
+            }
+            container.innerHTML = html;
+        }
+
+        function openEventByDate(ds) {
+            if (userRole === 'admin') {
+                // Admin: open edit form
+                const ev = allEvents.find(e => e.date_val.startsWith(ds));
+                if (ev) openEventEdit(ev.id); else addEventPrompt(ds);
+            } else {
+                // Teacher / Student: show read-only detail
+                showDayDetail(ds);
+            }
+        }
+
+        function showDayDetail(ds) {
+            let evs = allEvents.filter(e => e.date_val.startsWith(ds));
+            if (userRole === 'student') evs = evs.filter(e => e.category !== 'ครู');
+
+            const d = new Date(ds + 'T00:00:00');
+            const thDate = `${d.getDate()} ${TH_MONTHS[d.getMonth()]} ${d.getFullYear() + 543} (${['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'][d.getDay()]})`;
+
+            document.getElementById('dayDetailDate').textContent = thDate;
+
+            if (evs.length === 0) {
+                // Weekday with no events
+                const dow = d.getDay();
+                if (dow === 0 || dow === 6) {
+                    document.getElementById('dayDetailTitle').textContent = 'วันหยุดสุดสัปดาห์';
+                    document.getElementById('dayDetailBody').innerHTML = `<div class="text-center py-4 text-muted"><i class="bi bi-house-heart-fill display-4 d-block mb-3 opacity-25"></i><p>วันหยุดพักผ่อน 😊</p></div>`;
+                } else {
+                    document.getElementById('dayDetailTitle').textContent = 'วันเรียนปกติ';
+                    document.getElementById('dayDetailBody').innerHTML = `<div class="text-center py-4 text-muted"><i class="bi bi-book-fill display-4 d-block mb-3 opacity-25"></i><p>ไม่มีกิจกรรมพิเศษในวันนี้</p></div>`;
+                }
+            } else {
+                document.getElementById('dayDetailTitle').textContent = evs.length > 1 ? `${evs.length} กิจกรรมในวันนี้` : evs[0].activity;
+                const typeColors = { 'หยุด': '#3b82f6', 'ชดเชย': '#db2777', 'กิจกรรมพิเศษ': '#8b5cf6', 'ปกติ': '#10b981' };
+                const typeLabels = { 'หยุด': 'วันหยุดราชการ', 'ชดเชย': 'วันหยุดชดเชย', 'กิจกรรมพิเศษ': 'กิจกรรมสำคัญ', 'ปกติ': 'วันเรียนปกติ' };
+
+                document.getElementById('dayDetailBody').innerHTML = evs.map(ev => {
+                    const color = typeColors[ev.day_type] || '#64748b';
+                    const label = typeLabels[ev.day_type] || ev.day_type;
+                    return `
+                        <div class="p-3 rounded-4 mb-3" style="background: ${color}15; border-left: 5px solid ${color};">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge rounded-pill px-3 py-2 fw-bold" style="background:${color}; font-size:0.7rem;">${label}</span>
+                            </div>
+                            <h6 class="fw-black mb-1" style="color:${color}">${ev.activity}</h6>
+                            ${ev.note ? `<p class="small text-muted mb-0 mt-2"><i class="bi bi-info-circle me-1"></i>${ev.note}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            new bootstrap.Modal(document.getElementById('dayDetailModal')).show();
+        }
+
+        function addEventPrompt(ds = '') {
+            document.getElementById('eventForm').reset(); document.getElementById('eventId').value = '';
+            if (ds) document.getElementById('eventDate').value = ds;
+            document.getElementById('btnDeleteEvent').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('eventModal')).show();
+        }
+
+        function openEventEdit(id) {
+            if (userRole !== 'admin') {
+                // Non-admin: show read-only detail instead
+                const ev = allEvents.find(e => e.id == id); if (!ev) return;
+                showDayDetail(ev.date_val.substring(0, 10));
+                return;
+            }
+            const ev = allEvents.find(e => e.id == id); if (!ev) return;
+            const form = document.getElementById('eventForm');
+            form.id.value = ev.id; form.date_val.value = ev.date_val.substring(0, 10); form.activity.value = ev.activity; form.day_type.value = ev.day_type;
+            form.note.value = ev.note || '';
+            document.getElementById('visStudent').checked = (ev.category === 'ทั่วไป' || ev.category.includes('student'));
+            document.getElementById('visTeacher').checked = (ev.category === 'ทั่วไป' || ev.category.includes('teacher') || ev.category === 'ครู');
+            document.getElementById('btnDeleteEvent').classList.remove('d-none');
+            new bootstrap.Modal(document.getElementById('eventModal')).show();
+        }
+
+        async function saveEvent(e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const vis = [];
+            if (document.getElementById('visStudent').checked) vis.push('student');
+            if (document.getElementById('visTeacher').checked) vis.push('teacher');
+            let cat = (vis.length === 2) ? 'ทั่วไป' : (vis.length === 1 && vis[0] === 'teacher' ? 'ครู' : vis.join(','));
+            const data = Object.fromEntries(fd.entries()); data.category = cat;
+            const res = await fetch('../api/calendar.php?action=saveEvent', { method: 'POST', body: JSON.stringify(data) });
+            if (res.ok) { Swal.fire('สำเร็จ', 'บันทึกแล้ว', 'success'); bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide(); fetchData(); }
+        }
+
+        async function deleteEvent() {
+            const id = document.getElementById('eventId').value;
+            if (confirm('ยืนยันการลบกิจกรรมนี้?')) {
+                const res = await fetch('../api/calendar.php?action=deleteEvent', { method: 'POST', body: JSON.stringify({id: id}) });
+                if (res.ok) { Swal.fire('สำเร็จ', 'ลบแล้ว', 'success'); bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide(); fetchData(); }
+            }
+        }
+
+        function openUploadModal() { new bootstrap.Modal(document.getElementById('uploadModal')).show(); }
+        async function handleUpload() {
+            const fd = new FormData(); fd.append('excelFile', document.getElementById('csvFile').files[0]);
+            const res = await fetch('../api/admin/calendar/upload_csv.php', { method: 'POST', body: fd });
+            if (res.ok) { Swal.fire('สำเร็จ', 'นำเข้าข้อมูลแล้ว', 'success'); bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide(); fetchData(); }
+        }
+    </script>
+</body>
+</html>

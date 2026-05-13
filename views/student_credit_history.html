@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ประวัติคะแนนพฤติกรรม | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .score-card { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            color: white; 
+            padding: 30px; 
+            border-radius: 30px; 
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .score-card::after {
+            content: ""; position: absolute; bottom: -50px; right: -50px; width: 200px; height: 200px; 
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%); border-radius: 50%;
+        }
+        .chart-container { position: relative; width: 140px; height: 140px; }
+        .chart-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        
+        .history-item { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 20px 25px; 
+            margin-bottom: 12px; 
+            border: 1px solid rgba(0,0,0,0.03); 
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .history-item:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-color: #3b82f6; }
+        .point-val { font-size: 1.5rem; font-weight: 800; min-width: 70px; text-align: right; }
+        .point-pos { color: #10b981; }
+        .point-neg { color: #ef4444; }
+        .item-icon { width: 50px; height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-right: 18px; }
+        
+        .breadcrumb-item + .breadcrumb-item::before { color: #cbd5e1; }
+        .fw-black { font-weight: 900; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="app-main main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div class="app-content page-content flex-grow-1 d-flex flex-column py-4">
+                
+                <!-- HEADER & BREADCRUMB -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 px-4">
+                    <div>
+                        <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">คะแนนความประพฤติ</h4>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0 small opacity-75">
+                                <li class="breadcrumb-item"><a href="student_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                <li class="breadcrumb-item active">คะแนนความประพฤติ</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="container-fluid px-4">
+                    
+                    <!-- SCORE SUMMARY CARD WITH CHART -->
+                    <div class="score-card">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="chart-container">
+                                    <canvas id="scoreChart"></canvas>
+                                    <div class="chart-label">
+                                        <div class="small opacity-75">คงเหลือ</div>
+                                        <div class="fs-4 fw-black" id="scoreLabel">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col ps-md-4 mt-3 mt-md-0">
+                                <div class="small opacity-75 mb-1 text-uppercase letter-spacing-1 fw-bold">สรุปคะแนนพฤติกรรม</div>
+                                <h1 class="display-5 fw-black mb-1" id="totalPointsDisplay">0</h1>
+                                <div class="d-flex gap-2 mt-2">
+                                    <span class="badge rounded-pill bg-white bg-opacity-10 px-3 py-2 border border-white border-opacity-10 fw-normal">คะแนนตั้งต้น: 100</span>
+                                    <span class="badge rounded-pill bg-success bg-opacity-25 text-success px-3 py-2 border border-success border-opacity-10 fw-normal" id="bonusDisplay">+0 เติม</span>
+                                    <span class="badge rounded-pill bg-danger bg-opacity-25 text-danger px-3 py-2 border border-danger border-opacity-10 fw-normal" id="penaltyDisplay">-0 ตัด</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HISTORY LIST -->
+                    <div class="d-flex align-items-center justify-content-between mb-3 px-2">
+                        <h5 class="fw-bold text-navy mb-0"><i class="bi bi-clock-history me-2"></i> กิจกรรมล่าสุด</h5>
+                        <span class="badge bg-light text-muted rounded-pill px-3 py-2 border" id="historyCount">0 รายการ</span>
+                    </div>
+
+                    <div id="historyList">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <footer id="footer-container"></footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let scoreChart;
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth('student');
+            loadHistory();
+        });
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('../api/student/credit_history.php');
+                const data = await res.json();
+                if(data.success) {
+                    const history = data.data;
+                    let total = 100;
+                    let bonus = 0;
+                    let penalty = 0;
+                    
+                    history.forEach(item => {
+                        const pts = parseInt(item.points);
+                        total += pts;
+                        if(pts > 0) bonus += pts;
+                        else penalty += Math.abs(pts);
+                    });
+                    
+                    document.getElementById('totalPointsDisplay').innerText = total;
+                    document.getElementById('scoreLabel').innerText = total;
+                    document.getElementById('bonusDisplay').innerText = '+' + bonus + ' เติม';
+                    document.getElementById('penaltyDisplay').innerText = '-' + penalty + ' ตัด';
+                    document.getElementById('historyCount').innerText = history.length + ' รายการ';
+                    
+                    renderScoreChart(total);
+
+                    const list = document.getElementById('historyList');
+                    if(history.length === 0) {
+                        list.innerHTML = '<div class="text-center py-5 text-muted bg-white rounded-5 shadow-sm border"><i class="bi bi-award display-4 d-block mb-3 opacity-25"></i> ยังไม่มีประวัติการปรับปรุงคะแนน</div>';
+                        return;
+                    }
+
+                    list.innerHTML = history.map(item => {
+                        const date = thDate(item.created_at);
+                        const pts = parseInt(item.points);
+                        const isPositive = pts >= 0;
+                        const actionText = isPositive ? 'เติมคะแนน' : 'ตัดคะแนน';
+                        const pointClass = isPositive ? 'point-pos' : 'point-neg';
+                        const iconClass = isPositive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger';
+                        const icon = isPositive ? 'bi-plus-circle' : 'bi-dash-circle';
+                        
+                        return `
+                            <div class="history-item shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <div class="item-icon ${iconClass}">
+                                        <i class="bi ${icon}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-navy mb-0" style="font-size: 1.05rem;">
+                                            <span class="${isPositive ? 'text-success' : 'text-danger'}">${actionText}:</span> ${item.item_name}
+                                        </div>
+                                        <div class="small text-muted">${item.category_name} • ${date}</div>
+                                        ${item.remark ? `<div class="x-small text-primary mt-1 fw-bold"><i class="bi bi-info-circle me-1"></i>${item.remark}</div>` : ''}
+                                    </div>
+                                </div>
+                                <div class="point-val ${pointClass}">${isPositive ? '+' : ''}${pts}</div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        function renderScoreChart(score) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            if(scoreChart) scoreChart.destroy();
+            
+            // Percentage based on 100 (can go over 100)
+            const displayScore = Math.min(Math.max(score, 0), 120); 
+            const color = score >= 80 ? '#10b981' : (score >= 60 ? '#f59e0b' : '#ef4444');
+
+            scoreChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [displayScore, Math.max(0, 100 - displayScore)],
+                        backgroundColor: [color, 'rgba(255,255,255,0.1)'],
+                        borderWidth: 0,
+                        cutout: '80%',
+                        circumference: 360,
+                        rotation: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

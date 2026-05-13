@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>รายงานสรุปคะแนน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .bg-navy { background-color: #1e293b !important; }
+        .table thead th { border: none; padding: 15px; font-weight: 600; }
+        .table tbody td { padding: 15px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 d-flex flex-column py-4">
+                <div class="container-fluid">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">รายงานสรุปคะแนน</h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="teacher_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item">ตัดเติมแต้ม</li>
+                                    <li class="breadcrumb-item active">รายงานสรุปคะแนน</li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Scope Banner & Filters -->
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div id="statsScopeBanner" class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" id="scopeLabel">กำลังโหลด...</span>
+                        </div>
+                        <div id="statsFilterWrap" class="d-flex gap-3 align-items-center">
+                            <div style="min-width: 200px;">
+                                <select class="form-select border-0 bg-light rounded-3" id="filterGrade">
+                                    <option value="">-- ทุกระดับชั้น --</option>
+                                    <option value="มัธยมศึกษาปีที่ 1">ม.1</option>
+                                    <option value="มัธยมศึกษาปีที่ 2">ม.2</option>
+                                    <option value="มัธยมศึกษาปีที่ 3">ม.3</option>
+                                    <option value="มัธยมศึกษาปีที่ 4">ม.4</option>
+                                    <option value="มัธยมศึกษาปีที่ 5">ม.5</option>
+                                    <option value="มัธยมศึกษาปีที่ 6">ม.6</option>
+                                </select>
+                            </div>
+                            <div style="min-width: 150px;">
+                                <select class="form-select border-0 bg-light rounded-3" id="filterRoom">
+                                    <option value="">-- ทุกห้อง --</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="clearStatsFilters()">
+                                <i class="bi bi-arrow-counterclockwise"></i> ล้าง
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="content-card h-100">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-pie-chart-fill text-danger me-2"></i>หมวดหมู่ที่ผิดระเบียบสูงสุด</h6>
+                                <div style="height: 250px;">
+                                    <canvas id="chartCategories"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="content-card h-100">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-bar-chart-fill text-warning me-2"></i>พฤติกรรมที่หักคะแนนบ่อยสุด</h6>
+                                <div style="height: 250px;">
+                                    <canvas id="chartNegative"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="content-card h-100">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-bar-chart-fill text-success me-2"></i>พฤติกรรม (ความดี) ที่บ่อยสุด</h6>
+                                <div style="height: 250px;">
+                                    <canvas id="chartPositive"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top At Risk Highlight -->
+                    <div id="topAtRiskHighlight" class="mb-4" style="display: none;">
+                        <div class="p-3 bg-danger text-white rounded-4 d-flex justify-content-between align-items-center shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white text-danger rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px;">#1</div>
+                                <div>
+                                    <div class="fw-bold fs-5" id="topRiskName">---</div>
+                                    <div class="small opacity-75" id="topRiskRoom">---</div>
+                                </div>
+                            </div>
+                            <div class="fs-2 fw-bold" id="topRiskScore">0</div>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold text-navy m-0">ตารางสรุปคะแนนนักเรียน</h5>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="small text-muted">ค้นหา:</span>
+                                <input type="text" class="form-control form-control-sm rounded-pill" id="tableSearch" placeholder="ชื่อ หรือ รหัส..." oninput="filterStatsTable()">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" style="font-size: 0.9rem;">
+                                <thead class="bg-navy text-white">
+                                    <tr>
+                                        <th>รหัสนักเรียน</th>
+                                        <th class="text-center">เลขที่</th>
+                                        <th>ชื่อ - นามสกุล</th>
+                                        <th class="text-center">ชั้น/ห้อง</th>
+                                        <th class="text-center text-success">ความดีสะสม (+)</th>
+                                        <th class="text-center text-danger">ถูกหักสะสม (-)</th>
+                                        <th class="text-center">คะแนนคงเหลือ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student History Modal -->
+            <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg rounded-4">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold text-navy" id="historyModalLabel">ประวัติคะแนน</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="studentHistoryList" class="custom-scrollbar" style="max-height: 400px; overflow-y: auto;">
+                                <!-- History items will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Footer -->
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                        CNPAPP<sup>©</sup>
+                                    </a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">
+                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                cnpapp@chainatpit.ac.th
+                            </div>
+                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
+                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
+                                </span>
+                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
+                                    <i class="bi bi-envelope-fill me-1"></i> Email
+                                </a>
+                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
+                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
+                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let statsCharts = {};
+        let statsFullData = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(['admin', 'teacher']);
+            if (user) {
+                loadStatsDashboard();
+                setupFilters();
+            }
+        });
+
+        async function loadStatsDashboard() {
+            const grade = document.getElementById('filterGrade')?.value || '';
+            const room  = document.getElementById('filterRoom')?.value  || '';
+            try {
+                const response = await fetch(`../api/admin/credit_stats_dashboard.php?grade=${grade}&room=${room}`);
+                const data = await response.json();
+                if (!data.success) return;
+
+                const scope = data.scope;
+                const filterWrap = document.getElementById('statsFilterWrap');
+                const scopeLabel = document.getElementById('scopeLabel');
+
+                if (scope.role === 'teacher') {
+                    if (filterWrap) filterWrap.style.display = 'none';
+                    scopeLabel.className = 'badge bg-success rounded-pill px-3 py-2 fs-6';
+                    scopeLabel.innerHTML = `<i class="bi bi-house-door-fill me-1"></i> ห้อง ${scope.room} (ห้องของฉัน)`;
+                } else {
+                    if (filterWrap) filterWrap.style.display = 'flex';
+                    if (scope.room) {
+                        scopeLabel.className = 'badge bg-info text-dark rounded-pill px-3 py-2 fs-6';
+                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> กำลังดู: ห้อง ${scope.room}`;
+                    } else if (scope.grade) {
+                        const gradeNum = scope.grade.replace('มัธยมศึกษาปีที่ ', '');
+                        scopeLabel.className = 'badge bg-info text-dark rounded-pill px-3 py-2 fs-6';
+                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> กำลังดู: ม.${gradeNum}`;
+                    } else {
+                        scopeLabel.className = 'badge bg-secondary rounded-pill px-3 py-2 fs-6';
+                        scopeLabel.innerHTML = `<i class="bi bi-globe me-1"></i> ภาพรวมทั้งโรงเรียน`;
+                    }
+                }
+
+                renderCharts(data.charts);
+                statsFullData = data.students;
+                renderStatsTable(statsFullData);
+                
+                const withDeductions = data.students.filter(s => s.remaining_score < 100).sort((a,b) => a.remaining_score - b.remaining_score);
+                if (withDeductions.length > 0) {
+                    document.getElementById('topAtRiskHighlight').style.display = 'block';
+                    document.getElementById('topRiskName').innerText = `${withDeductions[0].first_name_th} ${withDeductions[0].last_name_th}`;
+                    document.getElementById('topRiskRoom').innerText = `ม.${withDeductions[0].room} | รหัส ${withDeductions[0].student_id}`;
+                    document.getElementById('topRiskScore').innerText = withDeductions[0].remaining_score;
+                } else {
+                    document.getElementById('topAtRiskHighlight').style.display = 'none';
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function renderCharts(chartData) {
+            Object.values(statsCharts).forEach(c => c.destroy());
+            statsCharts.cat = new Chart(document.getElementById('chartCategories'), {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.categories.map(c => c.label),
+                    datasets: [{
+                        data: chartData.categories.map(c => c.value),
+                        backgroundColor: ['#ef4444', '#f87171', '#fca5a5', '#fee2e2', '#cbd5e1']
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+            statsCharts.neg = new Chart(document.getElementById('chartNegative'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.negative.map(c => c.label),
+                    datasets: [{ label: 'ครั้ง', data: chartData.negative.map(c => c.value), backgroundColor: '#fbbf24' }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+            statsCharts.pos = new Chart(document.getElementById('chartPositive'), {
+                type: 'bar',
+                data: {
+                    labels: chartData.positive.map(c => c.label),
+                    datasets: [{ label: 'ครั้ง', data: chartData.positive.map(c => c.value), backgroundColor: '#10b981' }]
+                },
+                options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderStatsTable(data) {
+            const body = document.getElementById('statsTableBody');
+            if (data.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">ยังไม่มีข้อมูลนักเรียน</td></tr>`;
+                return;
+            }
+            body.innerHTML = data.map((s, idx) => {
+                const score = parseInt(s.remaining_score);
+                let badgeClass = 'bg-success';
+                if (score < 50) badgeClass = 'bg-danger';
+                else if (score < 80) badgeClass = 'bg-warning text-dark';
+                return `
+                <tr>
+                    <td class="fw-bold text-muted small">${s.student_id}</td>
+                    <td class="text-center">${s.number || '-'}</td>
+                    <td>
+                        <div class="fw-bold text-primary cursor-pointer" onclick="showStudentHistory(${idx})">
+                            ${s.first_name_th} ${s.last_name_th}
+                            <i class="bi bi-info-circle small ms-1 opacity-50"></i>
+                        </div>
+                        <div class="small text-muted">ม.${s.room}</div>
+                    </td>
+                    <td class="text-center"><span class="badge bg-light text-dark">${s.room}</span></td>
+                    <td class="text-center text-success fw-bold">+${s.plus_points}</td>
+                    <td class="text-center text-danger fw-bold">-${s.minus_points}</td>
+                    <td class="text-center"><span class="badge rounded-pill ${badgeClass} px-3 py-2" style="font-size: 0.9rem;">${score}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function showStudentHistory(idx) {
+            const student = statsFullData[idx];
+            document.getElementById('historyModalLabel').innerText = `ประวัติคะแนน: ${student.first_name_th} ${student.last_name_th}`;
+            const list = document.getElementById('studentHistoryList');
+            list.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> กำลังโหลด...</div>';
+            
+            const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+            modal.show();
+
+            try {
+                const response = await fetch(`../api/student/credit_history.php?student_id=${student.id}`);
+                const res = await response.json();
+                
+                if (!res.success || res.data.length === 0) {
+                    list.innerHTML = '<div class="text-center py-5 text-muted">ไม่พบประวัติการบันทึกคะแนน</div>';
+                    return;
+                }
+
+                list.innerHTML = res.data.map(item => {
+                    const date = thDate(item.created_at);
+                    const pts = parseInt(item.points);
+                    return `
+                        <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center ${pts > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}" style="width: 40px; height: 40px; min-width: 40px;">
+                                <i class="bi ${pts > 0 ? 'bi-plus-lg' : 'bi-dash-lg'}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">${item.item_name}</div>
+                                <div class="small text-muted">${item.remark || ''}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold ${pts > 0 ? 'text-success' : 'text-danger'}">${pts > 0 ? '+' : ''}${pts}</div>
+                                <div class="small text-muted" style="font-size: 0.7rem;">${date}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                list.innerHTML = '<div class="text-center py-3 text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+            }
+        }
+
+        function filterStatsTable() {
+            const q = document.getElementById('tableSearch').value.toLowerCase();
+            const filtered = statsFullData.filter(s => s.student_id.includes(q) || s.first_name_th.toLowerCase().includes(q) || s.last_name_th.toLowerCase().includes(q));
+            renderStatsTable(filtered);
+        }
+
+        function clearStatsFilters() {
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterRoom').value = '';
+            loadStatsDashboard();
+        }
+
+        function setupFilters() {
+            document.getElementById('filterGrade').addEventListener('change', async (e) => {
+                const grade = e.target.value;
+                const roomSelect = document.getElementById('filterRoom');
+                roomSelect.innerHTML = '<option value="">-- กำลังโหลด --</option>';
+                if (!grade) { roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>'; loadStatsDashboard(); return; }
+                try {
+                    const response = await fetch(`../api/admin/get_rooms.php?grade=${grade}`);
+                    const data = await response.json();
+                    roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>' + data.map(r => `<option value="${r.room}">${r.room}</option>`).join('');
+                    loadStatsDashboard();
+                } catch (error) { roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>'; }
+            });
+            document.getElementById('filterRoom').addEventListener('change', () => loadStatsDashboard());
+        }
+    </script>
+</body>
+</html>

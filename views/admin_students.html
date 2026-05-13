@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ข้อมูลนักเรียน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .table-premium th { background: #f8fafc; padding: 15px 20px; font-weight: 700; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #eef2f6; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-premium td { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+        
+        /* Hierarchy Styling */
+        .bg-navy { background-color: #1e3a8a !important; }
+        .group-header { cursor: pointer; transition: 0.2s; }
+        .group-header:hover { background: #f1f5f9 !important; }
+        .chevron-icon { transition: transform 0.3s; color: #94a3b8; }
+        .expanded .chevron-icon { transform: rotate(180deg); color: #1e3a8a; }
+
+        /* Modern Profile Card Styling (inspired by CodeWithFaraz) */
+        .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 10px 0; }
+        .modern-profile-card { 
+            width: 220px; 
+            height: 300px; 
+            border-radius: 0.8rem; 
+            overflow: hidden; 
+            position: relative; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); 
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 0 auto;
+        }
+        .modern-profile-card:hover { transform: translateY(-15px) scale(1.02); }
+        .card-bg { 
+            position: absolute; 
+            inset: 0; 
+            background-size: cover; 
+            background-position: center; 
+            z-index: 1; 
+            transition: 0.5s;
+        }
+        .modern-profile-card:hover .card-bg { transform: scale(1.1); }
+        .card-overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 40%, transparent 100%); 
+            z-index: 2; 
+        }
+        .card-content-modern { 
+            position: absolute; 
+            bottom: 0; 
+            width: 100%; 
+            padding: 15px; 
+            color: white; 
+            z-index: 3; 
+        }
+        .stats-glass { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(255, 255, 255, 0.15); 
+            backdrop-filter: blur(12px); 
+            border-radius: 20px; 
+            padding: 12px 15px; 
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-item { text-align: center; flex: 1; }
+        .stat-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.3); }
+        .stat-value { font-size: 0.85rem; font-weight: 800; display: block; }
+        .stat-label { font-size: 0.6rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .btn-view-profile { 
+            background: white; 
+            color: black; 
+            border: none; 
+            border-radius: 50px; 
+            padding: 8px 20px; 
+            font-weight: 700; 
+            font-size: 0.75rem; 
+            width: 100%; 
+            margin-top: 10px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .btn-view-profile:hover { background: #f8fafc; transform: scale(1.05); }
+
+        .btn-modern-action { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #f1f5f9; background: #fff; color: #64748b; transition: 0.3s; padding: 0; }
+        .btn-modern-action:hover { transform: scale(1.1); background: #f8fafc; color: #1e3a8a; border-color: #1e3a8a; }
+        .btn-modern-edit:hover { background: #1e3a8a !important; color: #fff !important; }
+        .btn-modern-delete:hover { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
+        
+        .number-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            color: #1e3a8a;
+            width: 35px;
+            height: 35px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            z-index: 4;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .active-toggle { background: #1e3a8a !important; color: white !important; }
+        .section-title { font-weight: 800; color: #1e3a8a; border-left: 5px solid #1e3a8a; padding-left: 15px; margin: 30px 0 20px; }
+        .info-label { font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+        .info-value { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div id="header-container"></div>
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">จัดการข้อมูลนักเรียน</h4>
+                            <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0 small opacity-75"><li class="breadcrumb-item">หน้าแรก</li><li class="breadcrumb-item active">ข้อมูลนักเรียน</li></ol></nav>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="btn-group bg-white rounded-pill p-1 shadow-sm border me-2">
+                                <button class="btn btn-sm rounded-pill px-3 fw-bold active-toggle" id="btn-table" onclick="setViewMode('table')"><i class="bi bi-table me-1"></i>ตาราง</button>
+                                <button class="btn btn-sm rounded-pill px-3 fw-bold" id="btn-card" onclick="setViewMode('card')"><i class="bi bi-grid-fill me-1"></i>บัตร</button>
+                            </div>
+                            <button class="btn btn-light border rounded-pill px-4 fw-bold shadow-sm" onclick="openImport()">
+                                <i class="bi bi-cloud-arrow-up me-2 text-success"></i>นำเข้า Excel
+                            </button>
+                            <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="addStudent()"><i class="bi bi-plus-lg me-2"></i>เพิ่มนักเรียน</button>
+                        </div>
+                    </div>
+
+                    <!-- Table View -->
+                    <div id="table-view" class="content-card shadow-sm mb-4">
+                        <div class="table-responsive">
+                            <table class="table-premium mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4" style="width: 80px;">เลขที่</th>
+                                        <th>ข้อมูลนักเรียน / รหัส</th>
+                                        <th class="text-center">ชื่อเล่น</th>
+                                        <th class="text-center">คณะสี</th>
+                                        <th class="text-center">อายุ</th>
+                                        <th class="text-end pe-4">ดำเนินการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Card View Container -->
+                    <div id="card-view" class="d-none pb-5"></div>
+
+                </div>
+            </div>
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header bg-white border-0 p-4 pb-0">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-navy p-2 rounded-3 text-white"><i class="bi bi-person-vcard fs-4"></i></div>
+                        <div><h5 class="fw-black text-navy mb-0">STUDENT RECORD</h5><small class="text-muted">CNP-EMS STUDENT PROFILE SYSTEM</small></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="profileHeader" class="p-4 bg-light border-bottom border-top mt-3">
+                        <div class="row align-items-center">
+                            <div class="col-auto"><img id="prof_photo" src="" class="rounded-4 shadow-sm border border-4 border-white" width="130" height="150" style="object-fit: cover;"></div>
+                            <div class="col">
+                                <div class="badge bg-navy rounded-pill px-3 mb-2">ID: <span id="prof_id_label"></span></div>
+                                <h3 id="prof_name" class="fw-black text-navy mb-1"></h3>
+                                <div id="prof_nickname" class="fw-bold text-muted small mb-3"></div>
+                                <div class="d-flex flex-wrap gap-4">
+                                    <div class="small fw-bold text-muted"><i class="bi bi-door-open-fill text-success me-1"></i><span id="prof_room" class="text-success"></span></div>
+                                    <div class="small fw-bold text-muted border-start ps-3"><i class="bi bi-droplet-fill text-danger me-1"></i>BLOOD: <span id="prof_blood" class="text-danger"></span></div>
+                                    <div class="small fw-bold text-muted border-start ps-3"><i class="bi bi-cake2-fill text-primary me-1"></i><span id="prof_age" class="text-primary"></span></div>
+                                </div>
+                            </div>
+                            <div class="col-auto text-end d-none d-md-block"><canvas id="prof_qr"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="row g-4">
+                            <div class="col-md-4 border-end">
+                                <div class="section-title mt-0">ข้อมูลพื้นฐาน & ติดต่อ</div>
+                                <div class="vstack gap-3 ps-2">
+                                    <div><div class="info-label">เลขบัตรประชาชน</div><div class="info-value" id="prof_idcard">-</div></div>
+                                    <div><div class="info-label">วันเกิด</div><div class="info-value" id="prof_birth">-</div></div>
+                                    <div><div class="info-label">โทรศัพท์</div><div class="info-value" id="prof_phone">-</div></div>
+                                    <div><div class="info-label">อีเมล</div><div class="info-value" id="prof_email">-</div></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 border-end">
+                                <div class="section-title mt-0">สุขภาพ & ที่อยู่</div>
+                                <div class="vstack gap-3 ps-2">
+                                    <div class="row g-0"><div class="col-6"><div class="info-label">น้ำหนัก</div><div class="info-value"><span id="prof_w">-</span> กก.</div></div><div class="col-6"><div class="info-label">ส่วนสูง</div><div class="info-value"><span id="prof_h">-</span> ซม.</div></div></div>
+                                    <div><div class="info-label">ที่อยู่ปัจจุบัน</div><div class="info-value small" id="prof_addr_curr">-</div></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="section-title mt-0">ข้อมูลผู้ปกครอง</div>
+                                <div class="vstack gap-3 ps-2">
+                                    <div><div class="info-label">ผู้ปกครองหลัก</div><div class="info-value text-primary" id="prof_guardian">-</div></div>
+                                    <div><div class="info-label">เบอร์โทรติดต่อฉุกเฉิน</div><div class="info-value fw-black text-primary" id="prof_g_phone">-</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-4 border-0 bg-light">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                    <button type="button" id="editFromProfBtn" class="btn btn-navy rounded-pill px-5 fw-bold shadow-sm">แก้ไขข้อมูลนักเรียน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="../public/js/main.js"></script>
+    <script src="../public/js/importModal.js"></script>
+    <script>
+        function openImport() {
+            initImportModal({
+                type: 'student',
+                apiUrl: '../api/admin/upload-students.php',
+                templateBaseUrl: '../api/admin/download-template.php?type=student',
+                onSuccess: loadData
+            });
+        }
+        let allStudents = [];
+        let viewMode = 'table';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) { loadData(); }
+        });
+
+        async function loadData() {
+            const res = await fetch('../api/admin/students.php');
+            const data = await res.json();
+            allStudents = data.data || data.students || [];
+            renderContent();
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.getElementById('btn-table').classList.toggle('active-toggle', mode === 'table');
+            document.getElementById('btn-card').classList.toggle('active-toggle', mode === 'card');
+            renderContent();
+        }
+
+        function renderContent() {
+            if (viewMode === 'table') {
+                document.getElementById('table-view').classList.remove('d-none');
+                document.getElementById('card-view').classList.add('d-none');
+                renderTable();
+            } else {
+                document.getElementById('table-view').classList.add('d-none');
+                document.getElementById('card-view').classList.remove('d-none');
+                renderCards();
+            }
+        }
+
+        function groupStudents() {
+            const h = {};
+            allStudents.forEach(s => {
+                const gl = s.grade_level || 'ไม่ระบุ';
+                const r = s.room || 'ไม่ระบุ';
+                if (!h[gl]) h[gl] = {};
+                if (!h[gl][r]) h[gl][r] = [];
+                h[gl][r].push(s);
+            });
+            return h;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+            const h = groupStudents();
+            const buffer = [];
+            let glIdx = 0;
+            let groupIdx = 0;
+
+            Object.keys(h).sort().forEach(gl => {
+                const id = glIdx++;
+                buffer.push(`
+                    <tr class="bg-navy cursor-pointer" onclick="toggleGrade(${id}, this)">
+                        <td colspan="6" class="py-3 ps-4 border-0">
+                            <div class="d-flex align-items-center justify-content-between pe-4">
+                                <span class="fw-black text-white letter-spacing-1"><i class="bi bi-chevron-down chevron-icon-gl me-2"></i>${gl}</span>
+                                <span class="badge bg-white text-navy rounded-pill px-3">รวม ${Object.values(h[gl]).flat().length} คน</span>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+                Object.keys(h[gl]).sort().forEach(r => {
+                    const students = h[gl][r].sort((a,b)=>(parseInt(a.number_in_class)||0)-(parseInt(b.number_in_class)||0));
+                    const roomId = groupIdx++;
+                    buffer.push(`
+                        <tr class="group-header gl-child-${id} d-none" onclick="toggleGroup(${roomId}, this)" style="background:#f8fafc;">
+                            <td colspan="6" class="py-2 ps-5 border-bottom">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-chevron-down chevron-icon"></i>
+                                    <span class="badge bg-navy rounded-3 px-3 fw-black">${r}</span>
+                                    <span class="text-muted small fw-bold">${students.length} นักเรียน</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+                    students.forEach(s => {
+                        const age = calculateAge(s.birth_date);
+                        const photo = s.photo ? '../'+s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th)}&background=1e3a8a&color=fff`;
+                        buffer.push(`
+                            <tr class="child-row-${roomId} d-none" onclick="viewStudent(${s.id})">
+                                <td class="ps-4 text-center fw-bold text-navy">${s.number_in_class || '-'}</td>
+                                <td><div class="d-flex align-items-center gap-3">
+                                    <img src="${photo}" class="rounded-3 border shadow-sm" style="width:40px;height:40px;object-fit:cover;" loading="lazy">
+                                    <div><div class="fw-bold text-dark mb-0">${s.prefix||''}${s.first_name_th} ${s.last_name_th}</div><div class="small text-muted" style="font-size:0.6rem;">ID: ${s.student_id}</div></div>
+                                </div></td>
+                                <td class="text-center small fw-bold text-navy">${s.nickname || '-'}</td>
+                                <td class="text-center small">${s.faculty || '-'}</td>
+                                <td class="text-center small">${age.y} ปี</td>
+                                <td class="text-end pe-4" onclick="event.stopPropagation()">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button class="btn-modern-action" onclick="viewStudent(${s.id})" title="ดูข้อมูล"><i class="bi bi-eye-fill"></i></button>
+                                        <button class="btn-modern-action btn-modern-edit" onclick="editStudent(${s.id})" title="แก้ไข"><i class="bi bi-pencil-fill"></i></button>
+                                        <button class="btn-modern-action btn-modern-delete" onclick="deleteStudent(${s.id})" title="ลบ"><i class="bi bi-trash-fill"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                });
+            });
+            tbody.innerHTML = buffer.join('');
+        }
+
+        function renderCards() {
+            const container = document.getElementById('card-view');
+            const h = groupStudents();
+            const buffer = [];
+            let glIdx = 0;
+            let groupIdx = 0;
+
+            Object.keys(h).sort().forEach(gl => {
+                const id = glIdx++;
+                buffer.push(`
+                    <div class="section-title fs-4 cursor-pointer d-flex justify-content-between align-items-center pe-3" onclick="toggleGradeCard(${id}, this)">
+                        <span>${gl}</span>
+                        <i class="bi bi-chevron-down chevron-icon-gl fs-5"></i>
+                    </div>
+                    <div id="gl-card-body-${id}" class="d-none">
+                `);
+                Object.keys(h[gl]).sort().forEach(r => {
+                    const students = h[gl][r];
+                    const roomId = groupIdx++;
+                    buffer.push(`
+                        <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                            <div class="card-header bg-white border-0 p-3 d-flex justify-content-between align-items-center cursor-pointer" onclick="toggleCardGroup(${roomId}, this)">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge bg-navy rounded-3 px-3 py-2 fw-black">${r}</span>
+                                    <span class="fw-bold text-navy opacity-75">${students.length} นักเรียน</span>
+                                </div>
+                                <i class="bi bi-chevron-down chevron-icon"></i>
+                            </div>
+                            <div id="card-body-${roomId}" class="card-body p-2 d-none"><div class="student-grid">
+                    `);
+                    students.sort((a,b)=>(parseInt(a.number_in_class)||0)-(parseInt(b.number_in_class)||0)).forEach(s => {
+                        const photo = s.photo ? '../'+s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th)}&background=1e3a8a&color=fff&size=500`;
+                        buffer.push(`
+                            <div class="modern-profile-card" onclick="viewStudent(${s.id})">
+                                <div class="number-badge">${s.number_in_class || '-'}</div>
+                                <div class="card-bg" style="background-image: url('${photo}');"></div>
+                                <div class="card-overlay"></div>
+                                <div class="card-content-modern">
+                                    <h3 class="fw-black mb-1" style="font-size: 1rem; line-height: 1.2;">${s.first_name_th}<br>${s.last_name_th}</h3>
+                                    <p class="small opacity-75 mb-0" style="font-size: 0.7rem;">${s.nickname ? 'ชื่อเล่น: '+s.nickname : 'รหัส: '+s.student_id}</p>
+                                    <button class="btn-view-profile" onclick="event.stopPropagation(); viewStudent(${s.id})">
+                                        <i class="bi bi-person-fill me-2"></i>ดูข้อมูล
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    });
+                    buffer.push(`</div></div></div>`);
+                });
+                buffer.push(`</div>`);
+            });
+            container.innerHTML = buffer.join('');
+        }
+
+        function toggleGrade(id, el) {
+            const icon = el.querySelector('.chevron-icon-gl');
+            const children = document.querySelectorAll(`.gl-child-${id}`);
+            const isHidden = children[0].classList.contains('d-none');
+            if(isHidden) {
+                icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+                children.forEach(c => c.classList.remove('d-none'));
+            } else {
+                icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+                children.forEach(c => {
+                    c.classList.add('d-none');
+                    const roomId = c.getAttribute('onclick').match(/\d+/)[0];
+                    document.querySelectorAll(`.child-row-${roomId}`).forEach(row => row.classList.add('d-none'));
+                });
+            }
+        }
+
+        function toggleGradeCard(id, el) {
+            const body = document.getElementById(`gl-card-body-${id}`);
+            const icon = el.querySelector('.chevron-icon-gl');
+            body.classList.toggle('d-none');
+            if(body.classList.contains('d-none')) { icon.classList.replace('bi-chevron-up', 'bi-chevron-down'); }
+            else { icon.classList.replace('bi-chevron-down', 'bi-chevron-up'); }
+        }
+
+        function toggleGroup(id, el) {
+            el.classList.toggle('expanded');
+            const icon = el.querySelector('.chevron-icon');
+            if(el.classList.contains('expanded')) {
+                icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+                document.querySelectorAll(`.child-row-${id}`).forEach(r => r.classList.remove('d-none'));
+            } else {
+                icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+                document.querySelectorAll(`.child-row-${id}`).forEach(r => r.classList.add('d-none'));
+            }
+        }
+
+        function toggleCardGroup(id, el) {
+            const body = document.getElementById(`card-body-${id}`);
+            const icon = el.querySelector('.chevron-icon');
+            body.classList.toggle('d-none');
+            if(body.classList.contains('d-none')) { icon.classList.replace('bi-chevron-up', 'bi-chevron-down'); }
+            else { icon.classList.replace('bi-chevron-down', 'bi-chevron-up'); }
+        }
+
+        function viewStudent(id) {
+            const s = allStudents.find(x => x.id == id); if(!s) return;
+            const age = calculateAge(s.birth_date);
+            document.getElementById('prof_name').textContent = `${s.prefix||''}${s.first_name_th} ${s.last_name_th}`;
+            document.getElementById('prof_nickname').textContent = s.nickname ? `(ชื่อเล่น: ${s.nickname})` : '';
+            document.getElementById('prof_id_label').textContent = s.student_id;
+            document.getElementById('prof_photo').src = s.photo ? '../'+s.photo : 'https://ui-avatars.com/api/?name='+encodeURIComponent(s.first_name_th);
+            document.getElementById('prof_room').textContent = `ชั้น ${s.grade_level}/${s.room}`;
+            document.getElementById('prof_blood').textContent = s.blood_group || '-';
+            document.getElementById('prof_age').textContent = `${age.y} ปี ${age.m} เดือน`;
+            document.getElementById('prof_idcard').textContent = s.id_card || '-';
+            document.getElementById('prof_birth').textContent = s.birth_date || '-';
+            document.getElementById('prof_phone').textContent = s.phone || '-';
+            document.getElementById('prof_email').textContent = s.email || '-';
+            document.getElementById('prof_w').textContent = s.weight || '-';
+            document.getElementById('prof_h').textContent = s.height || '-';
+            document.getElementById('prof_addr_curr').textContent = `${s.curr_house_no||''} ต.${s.curr_subdistrict||''} อ.${s.curr_district||''} จ.${s.curr_province||''}`;
+            document.getElementById('prof_guardian').textContent = `${s.g_first_name||'-'} ${s.g_last_name||''}`;
+            document.getElementById('prof_g_phone').textContent = s.g_phone || '-';
+            new QRious({ element: document.getElementById('prof_qr'), value: s.student_id, size: 80 });
+            new bootstrap.Modal(document.getElementById('profileModal')).show();
+        }
+
+        function calculateAge(d) { if(!d) return { y:'-', m:'-' }; const birth = new Date(d); const now = new Date(); let y = now.getFullYear() - birth.getFullYear(); let m = now.getMonth() - birth.getMonth(); if (m < 0) { y--; m += 12; } return { y, m }; }
+
+        function editStudent(id) {
+            const s = (typeof allStudents !== 'undefined' ? allStudents : []).find(x => x.id == id);
+            if (!s) { Swal.fire('ไม่พบ', 'ไม่พบข้อมูลนักเรียน', 'error'); return; }
+
+            const opt = (v, t) => `<option value="${v}"${(s.prefix||'')===v?' selected':''}>${t}</option>`;
+            const sel = (cur, vals) => vals.map(v => `<option value="${v}"${cur===v?' selected':''}>${v}</option>`).join('');
+
+            const html = `
+                <form id="editStudentForm" class="text-start">
+                  <input type="hidden" name="id" value="${s.id}">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label fw-bold small">รหัสนักเรียน <span class="text-danger">*</span></label>
+                      <input name="student_id" class="form-control" required value="${s.student_id||''}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-bold small">เลขที่</label>
+                      <input name="number_in_class" class="form-control" value="${s.number_in_class||''}">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small">คำนำหน้า</label>
+                      <select name="prefix" class="form-select">
+                        <option value="">--</option>
+                        ${opt('เด็กชาย','เด็กชาย')}${opt('เด็กหญิง','เด็กหญิง')}${opt('นาย','นาย')}${opt('นางสาว','นางสาว')}
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold small">ชื่อ <span class="text-danger">*</span></label>
+                      <input name="first_name_th" class="form-control" required value="${s.first_name_th||''}">
+                    </div>
+                    <div class="col-md-5">
+                      <label class="form-label fw-bold small">นามสกุล</label>
+                      <input name="last_name_th" class="form-control" value="${s.last_name_th||''}">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small">ชื่อเล่น</label>
+                      <input name="nickname" class="form-control" value="${s.nickname||''}">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small">ห้อง</label>
+                      <input name="room" class="form-control" value="${s.room||''}">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small">ระดับชั้น</label>
+                      <input name="grade_level" class="form-control" value="${s.grade_level||''}">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small">คณะสี</label>
+                      <select name="house" class="form-select">
+                        <option value="">--</option>
+                        ${sel(s.house||'', ['ขุนสรรค์','ขุนศรี','เจ้ายี่','ธรรมจักร'])}
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-bold small">เบอร์โทรศัพท์</label>
+                      <input name="phone" class="form-control" value="${s.phone||''}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-bold small">อีเมล</label>
+                      <input name="email" type="email" class="form-control" value="${s.email||''}">
+                    </div>
+                  </div>
+                </form>`;
+
+            Swal.fire({
+                title: 'แก้ไขข้อมูลนักเรียน',
+                html, width: 720,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก',
+                preConfirm: async () => {
+                    const f = document.getElementById('editStudentForm');
+                    if (!f.checkValidity()) { f.reportValidity(); return false; }
+                    const data = Object.fromEntries(new FormData(f).entries());
+                    try {
+                        const res = await fetch('../api/admin/update_student.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                        });
+                        const j = await res.json();
+                        if (!j.success) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
+                        return j;
+                    } catch (e) {
+                        Swal.showValidationMessage(e.message);
+                        return false;
+                    }
+                },
+            }).then(r => {
+                if (r.isConfirmed && r.value) {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: r.value.message, showConfirmButton: false, timer: 2500 });
+                    loadStudents();
+                }
+            });
+        }
+
+        async function deleteStudent(id) {
+            const result = await Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: 'ข้อมูลนักเรียน รวมถึงการเช็คชื่อ คะแนน จะถูกลบทั้งหมด',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#ef4444',
+            });
+            if (!result.isConfirmed) return;
+            try {
+                const res = await fetch(`../api/admin/students.php?id=${id}`, { method: 'DELETE' });
+                const j = await res.json();
+                if (j.success) { Swal.fire('สำเร็จ', 'ลบนักเรียนแล้ว', 'success'); loadStudents(); }
+                else            Swal.fire('ผิดพลาด', j.error || 'ลบไม่สำเร็จ', 'error');
+            } catch (e) {
+                Swal.fire('ผิดพลาด', 'เชื่อมต่อ server ไม่ได้', 'error');
+            }
+        }
+
+        function addStudent() {
+            const html = `
+                <form id="addStudentForm" class="text-start">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label fw-bold small">รหัสนักเรียน <span class="text-danger">*</span></label>
+                      <input name="student_id" class="form-control" required placeholder="เช่น 36438">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-bold small">เลขที่</label>
+                      <input name="number_in_class" class="form-control" placeholder="เช่น 1">
+                    </div>
+                    <div class="col-md-3">
+                      <label class="form-label fw-bold small">คำนำหน้า</label>
+                      <select name="prefix" class="form-select">
+                        <option value="">--</option>
+                        <option value="เด็กชาย">เด็กชาย</option>
+                        <option value="เด็กหญิง">เด็กหญิง</option>
+                        <option value="นาย">นาย</option>
+                        <option value="นางสาว">นางสาว</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold small">ชื่อ <span class="text-danger">*</span></label>
+                      <input name="first_name_th" class="form-control" required>
+                    </div>
+                    <div class="col-md-5">
+                      <label class="form-label fw-bold small">นามสกุล</label>
+                      <input name="last_name_th" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold small">ห้อง</label>
+                      <input name="room" class="form-control" placeholder="เช่น 101">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold small">ระดับชั้น</label>
+                      <input name="grade_level" class="form-control" placeholder="เช่น มัธยมศึกษาปีที่ 1">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label fw-bold small">คณะสี</label>
+                      <select name="house" class="form-select">
+                        <option value="">--</option>
+                        <option value="ขุนสรรค์">ขุนสรรค์</option>
+                        <option value="ขุนศรี">ขุนศรี</option>
+                        <option value="เจ้ายี่">เจ้ายี่</option>
+                        <option value="ธรรมจักร">ธรรมจักร</option>
+                      </select>
+                    </div>
+                  </div>
+                  <p class="small text-muted mt-3 mb-0">
+                    💡 รหัสผ่านเริ่มต้น: <code>cnp12345</code> — username = รหัสนักเรียน
+                  </p>
+                </form>`;
+            Swal.fire({
+                title: 'เพิ่มนักเรียนใหม่',
+                html,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                cancelButtonText: 'ยกเลิก',
+                width: 720,
+                preConfirm: async () => {
+                    const f = document.getElementById('addStudentForm');
+                    if (!f.checkValidity()) { f.reportValidity(); return false; }
+                    const data = Object.fromEntries(new FormData(f).entries());
+                    try {
+                        const res = await fetch('../api/admin/update_student.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data),
+                        });
+                        const j = await res.json();
+                        if (!j.success) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
+                        return j;
+                    } catch (e) {
+                        Swal.showValidationMessage(e.message);
+                        return false;
+                    }
+                },
+            }).then(r => {
+                if (r.isConfirmed && r.value) {
+                    Swal.fire('สำเร็จ', r.value.message, 'success');
+                    loadStudents();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
