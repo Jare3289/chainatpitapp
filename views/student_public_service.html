@@ -187,7 +187,12 @@
         let allRecords = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth(['student']);
+            const user = await checkAuth(['student', 'teacher']);
+            if (!user) return;
+            if (user.role === 'teacher') {
+                window.location.href = 'admin_public_service.html';
+                return;
+            }
             
             // Init Choices.js
             const teacherSelect = document.getElementById('teacher-select');
@@ -255,12 +260,18 @@
             list.innerHTML = records.map(r => {
                 const s = r.status;
                 const statusCls = s === 'approved' ? 'status-approved' : (s === 'rejected' ? 'status-rejected' : 'status-pending');
-                const statusTxt = s === 'approved' ? 'รับรองแล้ว' : (s === 'rejected' ? 'ไม่ผ่าน' : 'รอรับรอง');
+                const statusTxt = s === 'approved' ? '✅ รับรองแล้ว' : (s === 'rejected' ? '❌ ไม่ผ่าน' : '⏳ รอรับรอง');
+                const teacherName = (r.approver_name || r.certifier_name || '').trim() || '-';
+                const teacherLabel = s === 'approved'
+                    ? `รับรองโดย`
+                    : (s === 'rejected' ? `ปฏิเสธโดย` : `รอ คุณครูรับรอง`);
+                const teacherColor = s === 'approved' ? '#15803d' : (s === 'rejected' ? '#b91c1c' : '#a16207');
+
                 return `
                     <div class="activity-item shadow-sm">
                         <div class="row align-items-center">
                             <div class="col-md-8">
-                                <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
                                     <span class="status-pill ${statusCls}">${statusTxt}</span>
                                     <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
                                 </div>
@@ -272,8 +283,11 @@
                                 </div>` : ''}
                             </div>
                             <div class="col-md-4 text-md-end mt-3 mt-md-0 pt-3 pt-md-0 border-top border-md-0">
-                                <div class="small text-muted mb-1">ครูผู้รับรอง</div>
-                                <div class="fw-bold text-navy"><i class="bi bi-person-badge me-1"></i>${r.certifier_name || '-'}</div>
+                                <div class="small text-muted mb-1">${teacherLabel}</div>
+                                <div class="fw-bold" style="color:${teacherColor};"><i class="bi bi-person-badge me-1"></i>${teacherName}</div>
+                                ${s === 'pending' ? `<div class="x-small text-muted mt-2"><i class="bi bi-hourglass-split me-1"></i>คำขอถูกส่งไปแล้ว รอคุณครูตรวจสอบ</div>` : ''}
+                                ${s === 'approved' ? `<div class="x-small text-success mt-2"><i class="bi bi-patch-check-fill me-1"></i>นับเข้าสถิติแล้ว</div>` : ''}
+                                ${s === 'rejected' ? `<div class="x-small text-danger mt-2"><i class="bi bi-info-circle me-1"></i>ลองส่งคำขอใหม่อีกครั้ง</div>` : ''}
                             </div>
                         </div>
                     </div>

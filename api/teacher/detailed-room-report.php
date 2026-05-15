@@ -22,7 +22,7 @@ if (empty($room)) {
 
 // Security: If teacher, verify it's their room
 if ($role === 'teacher') {
-    $stmtVerify = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
+    $stmtVerify = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
     $stmtVerify->execute([$user_id]);
     $assigned_room = $stmtVerify->fetchColumn();
     
@@ -34,7 +34,7 @@ if ($role === 'teacher') {
 
 try {
     // 1. Get all students in this room
-    $stmtStudents = $pdo->prepare("SELECT id, student_id, first_name_th, last_name_th, prefix, number_in_class FROM students WHERE room = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
+    $stmtStudents = $pdo->prepare("SELECT id, student_id, first_name_th, last_name_th, prefix, number_in_class FROM students WHERE class_name = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
     $stmtStudents->execute([$room]);
     $students = $stmtStudents->fetchAll(PDO::FETCH_ASSOC);
 

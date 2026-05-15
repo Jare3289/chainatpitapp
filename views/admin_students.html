@@ -254,15 +254,30 @@
         let allStudents = [];
         let viewMode = 'table';
 
+        let currentRole = '';
+        let advisoryRoom = '';
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = await checkAuth('admin');
-            if (user) { loadData(); }
+            const user = await checkAuth(['admin', 'teacher']);
+            if (!user) return;
+            currentRole = user.role || '';
+            // Hide Excel import for teachers
+            if (currentRole === 'teacher') {
+                document.querySelectorAll('[onclick="openImport()"]').forEach(el => el.classList.add('d-none'));
+            }
+            loadData();
         });
 
         async function loadData() {
             const res = await fetch('../api/admin/students.php');
             const data = await res.json();
             allStudents = data.data || data.students || [];
+            // Show advisory room badge for teachers
+            if (data.advisory_room) {
+                advisoryRoom = data.advisory_room;
+                const hdr = document.querySelector('h4.fw-black.text-navy');
+                if (hdr) hdr.innerHTML = `นักเรียนในที่ปรึกษา <span class="badge rounded-pill ms-2 fw-bold" style="background:#1e3a8a;font-size:.7rem;">${advisoryRoom}</span>`;
+            }
             renderContent();
         }
 
@@ -299,8 +314,39 @@
 
         function renderTable() {
             const tbody = document.getElementById('studentTableBody');
-            const h = groupStudents();
             const buffer = [];
+
+            // Teacher: flat list (no grouping)
+            if (currentRole === 'teacher') {
+                const sorted = [...allStudents].sort((a,b)=>(parseInt(a.number_in_class)||0)-(parseInt(b.number_in_class)||0));
+                if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบนักเรียนในห้องที่ปรึกษา</td></tr>'; return; }
+                sorted.forEach(s => {
+                    const age = calculateAge(s.birth_date);
+                    const photo = s.photo ? '../'+s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th)}&background=1e3a8a&color=fff`;
+                    buffer.push(`
+                        <tr onclick="viewStudent(${s.id})" style="cursor:pointer;">
+                            <td class="ps-4 text-center fw-bold text-navy">${s.number_in_class || '-'}</td>
+                            <td><div class="d-flex align-items-center gap-3">
+                                <img src="${photo}" class="rounded-3 border shadow-sm" style="width:40px;height:40px;object-fit:cover;" loading="lazy">
+                                <div><div class="fw-bold text-dark mb-0">${s.prefix||''}${s.first_name_th} ${s.last_name_th}</div><div class="small text-muted" style="font-size:0.6rem;">ID: ${s.student_id}</div></div>
+                            </div></td>
+                            <td class="text-center small fw-bold text-navy">${s.nickname || '-'}</td>
+                            <td class="text-center small">${s.faculty || '-'}</td>
+                            <td class="text-center small">${age.y} ปี</td>
+                            <td class="text-end pe-4" onclick="event.stopPropagation()">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn-modern-action" onclick="viewStudent(${s.id})" title="ดูข้อมูล"><i class="bi bi-eye-fill"></i></button>
+                                    <button class="btn-modern-action btn-modern-edit" onclick="editStudent(${s.id})" title="แก้ไข"><i class="bi bi-pencil-fill"></i></button>
+                                    <button class="btn-modern-action btn-modern-delete" onclick="deleteStudent(${s.id})" title="ลบ"><i class="bi bi-trash-fill"></i></button>
+                                </div>
+                            </td>
+                        </tr>`);
+                });
+                tbody.innerHTML = buffer.join('');
+                return;
+            }
+
+            const h = groupStudents();
             let glIdx = 0;
             let groupIdx = 0;
 
@@ -360,8 +406,34 @@
 
         function renderCards() {
             const container = document.getElementById('card-view');
-            const h = groupStudents();
             const buffer = [];
+
+            // Teacher: flat card grid (no grouping)
+            if (currentRole === 'teacher') {
+                const sorted = [...allStudents].sort((a,b)=>(parseInt(a.number_in_class)||0)-(parseInt(b.number_in_class)||0));
+                buffer.push(`<div class="student-grid">`);
+                sorted.forEach(s => {
+                    const photo = s.photo ? '../'+s.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th)}&background=1e3a8a&color=fff&size=500`;
+                    buffer.push(`
+                        <div class="modern-profile-card" onclick="viewStudent(${s.id})">
+                            <div class="number-badge">${s.number_in_class || '-'}</div>
+                            <div class="card-bg" style="background-image: url('${photo}');"></div>
+                            <div class="card-overlay"></div>
+                            <div class="card-content-modern">
+                                <h3 class="fw-black mb-1" style="font-size: 1rem; line-height: 1.2;">${s.first_name_th}<br>${s.last_name_th}</h3>
+                                <p class="small opacity-75 mb-0" style="font-size: 0.7rem;">${s.nickname ? 'ชื่อเล่น: '+s.nickname : 'รหัส: '+s.student_id}</p>
+                                <button class="btn-view-profile" onclick="event.stopPropagation(); viewStudent(${s.id})">
+                                    <i class="bi bi-person-fill me-2"></i>ดูข้อมูล
+                                </button>
+                            </div>
+                        </div>`);
+                });
+                buffer.push(`</div>`);
+                container.innerHTML = buffer.join('');
+                return;
+            }
+
+            const h = groupStudents();
             let glIdx = 0;
             let groupIdx = 0;
 
@@ -522,11 +594,11 @@
                     </div>
                     <div class="col-md-3">
                       <label class="form-label fw-bold small">ห้อง</label>
-                      <input name="room" class="form-control" value="${s.room||''}">
+                      <input name="room" class="form-control" value="${s.room||''}" ${currentRole==='teacher'?'readonly':''}>
                     </div>
                     <div class="col-md-3">
                       <label class="form-label fw-bold small">ระดับชั้น</label>
-                      <input name="grade_level" class="form-control" value="${s.grade_level||''}">
+                      <input name="grade_level" class="form-control" value="${s.grade_level||''}" ${currentRole==='teacher'?'readonly':''}>
                     </div>
                     <div class="col-md-3">
                       <label class="form-label fw-bold small">คณะสี</label>
@@ -541,7 +613,8 @@
                     </div>
                     <div class="col-md-6">
                       <label class="form-label fw-bold small">อีเมล</label>
-                      <input name="email" type="email" class="form-control" value="${s.email||''}">
+                      <input name="email" type="email" class="form-control" value="${s.email||''}" placeholder="ชื่อ@chainatpit.ac.th">
+                      <div class="form-text">ต้องใช้ @chainatpit.ac.th เท่านั้น</div>
                     </div>
                   </div>
                 </form>`;
@@ -556,6 +629,10 @@
                     const f = document.getElementById('editStudentForm');
                     if (!f.checkValidity()) { f.reportValidity(); return false; }
                     const data = Object.fromEntries(new FormData(f).entries());
+                    if (data.email && !data.email.toLowerCase().endsWith('@chainatpit.ac.th')) {
+                        Swal.showValidationMessage('อีเมลต้องเป็น @chainatpit.ac.th เท่านั้น');
+                        return false;
+                    }
                     try {
                         const res = await fetch('../api/admin/update_student.php', {
                             method: 'POST',
@@ -573,7 +650,7 @@
             }).then(r => {
                 if (r.isConfirmed && r.value) {
                     Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: r.value.message, showConfirmButton: false, timer: 2500 });
-                    loadStudents();
+                    loadData();
                 }
             });
         }
@@ -592,7 +669,7 @@
             try {
                 const res = await fetch(`../api/admin/students.php?id=${id}`, { method: 'DELETE' });
                 const j = await res.json();
-                if (j.success) { Swal.fire('สำเร็จ', 'ลบนักเรียนแล้ว', 'success'); loadStudents(); }
+                if (j.success) { Swal.fire('สำเร็จ', 'ลบนักเรียนแล้ว', 'success'); loadData(); }
                 else            Swal.fire('ผิดพลาด', j.error || 'ลบไม่สำเร็จ', 'error');
             } catch (e) {
                 Swal.fire('ผิดพลาด', 'เชื่อมต่อ server ไม่ได้', 'error');
@@ -600,6 +677,11 @@
         }
 
         function addStudent() {
+            const isTeacher = currentRole === 'teacher';
+            const roomField = isTeacher
+                ? `<div class="col-12"><div class="alert alert-info py-2 small mb-0"><i class="bi bi-info-circle me-1"></i>นักเรียนที่เพิ่มจะอยู่ในห้อง <b>${advisoryRoom}</b> อัตโนมัติ</div><input type="hidden" name="class_name" value="${advisoryRoom}"></div>`
+                : `<div class="col-md-4"><label class="form-label fw-bold small">ห้อง</label><input name="room" class="form-control" placeholder="เช่น 101"></div>
+                   <div class="col-md-4"><label class="form-label fw-bold small">ระดับชั้น</label><input name="grade_level" class="form-control" placeholder="เช่น มัธยมศึกษาปีที่ 1"></div>`;
             const html = `
                 <form id="addStudentForm" class="text-start">
                   <div class="row g-3">
@@ -629,14 +711,7 @@
                       <label class="form-label fw-bold small">นามสกุล</label>
                       <input name="last_name_th" class="form-control">
                     </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-bold small">ห้อง</label>
-                      <input name="room" class="form-control" placeholder="เช่น 101">
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-bold small">ระดับชั้น</label>
-                      <input name="grade_level" class="form-control" placeholder="เช่น มัธยมศึกษาปีที่ 1">
-                    </div>
+                    ${roomField}
                     <div class="col-md-4">
                       <label class="form-label fw-bold small">คณะสี</label>
                       <select name="house" class="form-select">
@@ -680,7 +755,7 @@
             }).then(r => {
                 if (r.isConfirmed && r.value) {
                     Swal.fire('สำเร็จ', r.value.message, 'success');
-                    loadStudents();
+                    loadData();
                 }
             });
         }

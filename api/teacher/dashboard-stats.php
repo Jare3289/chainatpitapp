@@ -2,6 +2,7 @@
 // api/teacher/dashboard-stats.php
 header('Content-Type: application/json');
 require_once '../../config.php';
+require_once '../../inc/classroom_codes.php';
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -32,16 +33,34 @@ try {
 
     // 2. Get Teacher Info & Assigned Room
     // Try user_id first, then fallback to username/email
-    $stmt = $pdo->prepare("SELECT classroom, id, first_name_th FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+    // Use COALESCE: prefer rooms.classroom_code (via advisory_room_id), fall back to teachers.classroom text
+    $teacherSql = "SELECT t.id, t.first_name_th, COALESCE(r.classroom_code, t.classroom) AS classroom
+                   FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id
+                   WHERE t.%s = ? LIMIT 1";
+    try {
+        $stmt = $pdo->prepare(sprintf($teacherSql, 'user_id'));
+        $stmt->execute([$user_id]);
+        $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $stmt = $pdo->prepare("SELECT classroom, id, first_name_th FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     if (!$teacher) {
         $username = $_SESSION['username'] ?? '';
-        $stmt = $pdo->prepare("SELECT classroom, id, first_name_th FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$username, $username]);
-        $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
-        
+        try {
+            $stmt = $pdo->prepare("SELECT t.id, t.first_name_th, COALESCE(r.classroom_code, t.classroom) AS classroom
+                                   FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id
+                                   WHERE t.teacher_id = ? OR t.email = ? LIMIT 1");
+            $stmt->execute([$username, $username]);
+            $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            $stmt = $pdo->prepare("SELECT classroom, id, first_name_th FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$username, $username]);
+            $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
         if ($teacher && $user_id) {
             // Auto-link for future
             try {
@@ -49,9 +68,13 @@ try {
             } catch(Exception $e) {}
         }
     }
-    
-    $room = $teacher ? trim($teacher['classroom']) : null;
+
+    $room = $teacher ? trim($teacher['classroom'] ?? '') : null;
+    if ($room === '') $room = null;
     $teacher_name = $teacher ? $teacher['first_name_th'] : 'คุณครู';
+
+    $roomVariants = $room ? cnp_classroom_code_variants((string) $room) : [];
+    $roomInPh     = $roomVariants ? implode(',', array_fill(0, count($roomVariants), '?')) : '';
 
     if (!$room) {
         echo json_encode([
@@ -67,8 +90,8 @@ try {
     }
 
     // 3. Count Total Students in advisory room
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE (room = ? OR class_name = ?)");
-    $stmt->execute([$room, $room]);
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM students WHERE class_name IN ($roomInPh)");
+    $stmt->execute($roomVariants);
     $totalStudents = $stmt->fetchColumn();
 
     // 4. Get Today's Attendance Stats
@@ -87,18 +110,32 @@ try {
         SUM(CASE WHEN status = 'ลา' OR status = 'ลากิจ' THEN 1 ELSE 0 END) as leave_val,
         SUM(CASE WHEN status = 'ป่วย' THEN 1 ELSE 0 END) as sick
         FROM attendance 
-        WHERE class_name = ? AND $dateCol = ? AND type = 'daily'");
-    $stmt->execute([$room, $today]);
+        WHERE class_name IN ($roomInPh) AND $dateCol = ? AND type = 'daily'");
+    $stmt->execute(array_merge($roomVariants, [$today]));
     $summary = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // 5. Get Recent Activities from both tables
-    $stmt = $pdo->prepare("
-        (SELECT date as date_val, 'daily' as type, class_name FROM attendance WHERE recorded_by = ?)
-        UNION
-        (SELECT date as date_val, 'subject' as type, class_name FROM attendance_subjects WHERE recorded_by = ?)
-        ORDER BY date_val DESC LIMIT 10
-    ");
-    $stmt->execute([$user_id, $user_id]);
+    // 5. Get Recent Activities — check if attendance_subjects exists first
+    $subjectTableExists = false;
+    try {
+        $chk = $pdo->query("SELECT 1 FROM attendance_subjects LIMIT 0");
+        $subjectTableExists = ($chk !== false);
+    } catch (Exception $e) { $subjectTableExists = false; }
+
+    if ($subjectTableExists) {
+        $stmt = $pdo->prepare("
+            (SELECT date as date_val, 'daily' as type, class_name FROM attendance WHERE recorded_by = ?)
+            UNION
+            (SELECT date as date_val, 'subject' as type, class_name FROM attendance_subjects WHERE recorded_by = ?)
+            ORDER BY date_val DESC LIMIT 10
+        ");
+        $stmt->execute([$user_id, $user_id]);
+    } else {
+        $stmt = $pdo->prepare("
+            SELECT date as date_val, 'daily' as type, class_name FROM attendance WHERE recorded_by = ?
+            ORDER BY date_val DESC LIMIT 10
+        ");
+        $stmt->execute([$user_id]);
+    }
     $recentData = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     $recent = [];

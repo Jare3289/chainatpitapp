@@ -238,8 +238,9 @@
         async function loadData() {
             const status = document.getElementById('filterStatus').value;
             const search = document.getElementById('searchInput').value;
-            const type = (await checkAuth()).role === 'teacher' ? 'room' : '';
-            
+            // Empty type lets the API decide: teacher sees (approver=me OR my room); admin sees all
+            const type = '';
+
             try {
                 const res = await fetch(`../api/public_service.php?status=${status}&search=${search}&type=${type}`);
                 const data = await res.json();
@@ -333,7 +334,7 @@
                 const j = await res.json();
                 if (j.success) {
                     Swal.fire('สำเร็จ', j.message || `ดำเนินการ ${ids.length} รายการ`, 'success');
-                    loadRecords();
+                    loadData();
                 } else {
                     Swal.fire('ผิดพลาด', j.error || 'ไม่สามารถดำเนินการได้', 'error');
                 }

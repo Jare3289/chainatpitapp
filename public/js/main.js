@@ -265,8 +265,9 @@ function renderSidebar(role, user, settings = {}) {
             } else if (role === 'student') {
                 const firstName = (user.first_name_th || '').trim() || user.username;
                 const studentId = user.student_id || user.username;
-                return `<div class="user-name text-truncate" style="max-width: 150px;">${firstName}</div>
-                                     <div class="user-role">ID: ${studentId}</div>`;
+                const classInfo = user.class_name ? ` · ห้อง ${user.class_name}` : '';
+                return `<div class="user-name text-truncate" style="max-width: 180px;">${firstName}</div>
+                                     <div class="user-role text-truncate" style="max-width: 180px;">ID: ${studentId}${classInfo}</div>`;
             }
             return `<div class="user-name">${user.username}</div><div class="user-role">นักเรียน</div>`;
         })()}
@@ -348,18 +349,19 @@ function renderSidebar(role, user, settings = {}) {
         }
         if (role === 'teacher') {
             html += _navItem('timetable.html', 'bi bi-table text-info', 'ตารางสอน', a('timetable.html'));
+            html += _navItem('admin_students.html', 'bi bi-people-fill', 'นักเรียนที่ปรึกษา', a('admin_students.html'));
         }
         html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
 
-        const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service_report.html'].some(x => a(x));
-        let psItems = [
-            { href: 'admin_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('admin_public_service.html') }
-        ];
-        if (role === 'teacher') {
-            psItems.push({ href: 'teacher_public_service_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสาธา', active: a('teacher_public_service_report.html') });
-        }
+        const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
+        let psItems = [];
         if (role === 'admin') {
+            psItems.push({ href: 'admin_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('admin_public_service.html') });
             psItems.push({ href: 'admin_public_service_stats.html', icon: 'bi bi-bar-chart-line', label: 'รายงานและสถิติ', active: a('admin_public_service_stats.html') });
+        }
+        if (role === 'teacher') {
+            psItems.push({ href: 'teacher_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('teacher_public_service.html') });
+            psItems.push({ href: 'teacher_public_service_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสาธา', active: a('teacher_public_service_report.html') });
         }
         html += _navGroup('bi bi-heart-fill text-danger', 'สาธารณประโยชน์', psItems, isPublicServiceActive);
     }
@@ -553,7 +555,7 @@ function getCurrentPeriod(scheduleKey) {
         const endTime = eH * 60 + eM;
 
         if (currentTime >= startTime && currentTime < endTime) {
-            return i + 1;
+            return i;
         }
     }
     return null;
@@ -699,8 +701,8 @@ function renderHeader(role, user, settings = {}) {
             const cfg = SCHEDULE_CONFIG[activeSchedule] || SCHEDULE_CONFIG['normal'];
             const cfgName = cfg ? cfg.name : 'คาบปกติ';
             const currentPeriod = getCurrentPeriod(activeSchedule);
-            periodEl.innerHTML = currentPeriod
-                ? `<span class="text-primary fw-bold"><i class="bi bi-clock-history me-1"></i> ${cfgName} · คาบที่ ${currentPeriod}</span>`
+            periodEl.innerHTML = currentPeriod != null
+                ? `<span class="text-primary fw-bold"><i class="bi bi-clock-history me-1"></i> ${cfgName} · คาบ ${currentPeriod}</span>`
                 : `<span><i class="bi bi-moon-stars me-1"></i> ${cfgName} · นอกเวลาเรียน</span>`;
         }
     }

@@ -15,8 +15,8 @@ $date = $_GET['date'] ?? date('Y-m-d');
 try {
     // 1. Overall Completion KPI
     $totalRooms = (int)$pdo->query("
-        SELECT COUNT(DISTINCT room) FROM students
-        WHERE room IS NOT NULL AND room <> ''
+        SELECT COUNT(DISTINCT class_name) FROM students
+        WHERE class_name IS NOT NULL AND class_name <> ''
     ")->fetchColumn();
 
     $checkedRoomsStmt = $pdo->prepare("
@@ -66,7 +66,7 @@ try {
 
     // 5. Room Gender Summary
     $roomGenderStmt = $pdo->prepare("
-        SELECT s.room,
+        SELECT s.class_name AS room,
             SUM(CASE WHEN s.gender = 'ชาย' THEN 1 ELSE 0 END) AS total_m,
             SUM(CASE WHEN s.gender = 'หญิง' THEN 1 ELSE 0 END) AS total_f,
             SUM(CASE WHEN a.status = 'มา' AND s.gender = 'ชาย' THEN 1 ELSE 0 END) AS present_m,
@@ -76,9 +76,9 @@ try {
             COUNT(a.id) AS checked_count
         FROM students s
         LEFT JOIN attendance a ON s.id = a.student_id AND a.date = ? AND a.type = 'daily'
-        WHERE s.room IS NOT NULL AND s.room <> ''
-        GROUP BY s.room
-        ORDER BY CAST(s.room AS UNSIGNED) ASC, s.room ASC
+        WHERE s.class_name IS NOT NULL AND s.class_name <> ''
+        GROUP BY s.class_name
+        ORDER BY CAST(s.class_name AS UNSIGNED) ASC, s.class_name ASC
     ");
     $roomGenderStmt->execute([$date]);
     $roomGenderStats = $roomGenderStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -96,14 +96,14 @@ try {
 
     // 7. At-Risk Students: ≥5 absences cumulative (not requiring absent today)
     $atRiskStmt = $pdo->prepare("
-        SELECT s.first_name_th, s.last_name_th, s.room, s.student_id,
+        SELECT s.first_name_th, s.last_name_th, s.class_name AS room, s.student_id,
                COUNT(a.id) AS total_absent
         FROM students s
         JOIN attendance a ON s.id = a.student_id
         WHERE a.status = 'ขาด' AND a.type = 'daily'
         GROUP BY s.id
         HAVING total_absent >= 5
-        ORDER BY total_absent DESC, s.room ASC
+        ORDER BY total_absent DESC, s.class_name ASC
         LIMIT 20
     ");
     $atRiskStmt->execute();
@@ -112,20 +112,20 @@ try {
     // 8. Unreported rooms: rooms with students but no attendance today
     //    Includes grade_level + advisor first name only
     $unreportedStmt = $pdo->prepare("
-        SELECT s.room,
+        SELECT s.class_name AS room,
                MAX(s.grade_level) AS grade_level,
                COUNT(s.id) AS total_students,
                MAX(t.first_name_th) AS advisor_name
         FROM students s
-        LEFT JOIN rooms r ON s.room_id = r.id
+        LEFT JOIN rooms r ON r.classroom_code = s.class_name
         LEFT JOIN teachers t ON t.advisory_room_id = r.id
-        WHERE s.room IS NOT NULL AND s.room <> ''
-          AND s.room NOT IN (
+        WHERE s.class_name IS NOT NULL AND s.class_name <> ''
+          AND s.class_name NOT IN (
               SELECT DISTINCT class_name FROM attendance
               WHERE date = ? AND type = 'daily' AND class_name IS NOT NULL
           )
-        GROUP BY s.room
-        ORDER BY MAX(s.grade_level) ASC, CAST(s.room AS UNSIGNED) ASC, s.room ASC
+        GROUP BY s.class_name
+        ORDER BY MAX(s.grade_level) ASC, CAST(s.class_name AS UNSIGNED) ASC, s.class_name ASC
     ");
     $unreportedStmt->execute([$date]);
     $unreportedRooms = $unreportedStmt->fetchAll(PDO::FETCH_ASSOC);

@@ -2,142 +2,433 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8" />
-    <title>รายชื่อนักเรียนในหัวข้อ | CNP APP</title>
+    <title>นักเรียนในที่ปรึกษา | CNP APP</title>
     <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="../public/css/style.css"></head>
-<body class="bg-light">
-    <div class="wrapper">
-        <div class="sidebar" id="mainSidebar"></div>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background: #f8fafc; color: #1e293b; }
+        .table-premium th { background: #f8fafc; padding: 14px 16px; font-weight: 700; color: #64748b; font-size: 0.78rem; border-bottom: 2px solid #eef2f6; text-transform: uppercase; letter-spacing: 0.5px; }
+        .table-premium td { padding: 11px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .table-premium tbody tr { transition: .15s; cursor: pointer; }
+        .table-premium tbody tr:hover { background: #f1f5f9; }
+        .btn-navy { background: #1e3a8a; color: #fff; border: none; }
+        .btn-navy:hover { background: #1e40af; color: #fff; }
+        .btn-icon { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0; background: #fff; display: inline-flex; align-items: center; justify-content: center; color: #64748b; transition: .15s; cursor: pointer; }
+        .btn-icon:hover.edit { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+        .btn-icon:hover.del  { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .avatar { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; border: 1px solid #f1f5f9; }
+        .room-badge { background: linear-gradient(135deg,#1e3a8a,#3b82f6); color: #fff; padding: 6px 18px; border-radius: 20px; font-weight: 800; font-size: 0.9rem; }
+        .has-account { color: #10b981; font-size: 0.7rem; font-weight: 700; }
+        .no-account  { color: #f59e0b; font-size: 0.7rem; font-weight: 700; }
+        /* Profile modal */
+        .info-label { font-size: 0.68rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .4px; }
+        .info-value { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+        .section-title { font-weight: 800; color: #1e3a8a; border-left: 4px solid #1e3a8a; padding-left: 12px; margin: 0 0 14px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
+    <main class="main-panel d-flex flex-column min-vh-100" id="main">
+        <div id="header-container"></div>
+        <div class="app-content page-content flex-grow-1 py-4">
+            <div class="container-fluid">
 
-        <main class="app-main main-panel d-flex flex-column min-vh-100 d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
-            <div class="app-content-header main-header sticky-top bg-white shadow-sm">
-                <div class="container-fluid d-flex align-items-center justify-content-between py-2">
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="btn btn-link text-navy d-lg-none px-0" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-                        <h5 class="mb-0 fw-bold text-navy">ข้อมูลนักเรียนในห้องเรียนที่รับผิดชอบ</h5>
+                <!-- Header -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h4 class="fw-black text-navy mb-1">นักเรียนในห้องที่ปรึกษา</h4>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="text-muted small">ห้อง:</span>
+                            <span class="room-badge" id="roomBadge">กำลังโหลด...</span>
+                            <span class="badge bg-light text-navy border fw-bold" id="countBadge">0 คน</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <input type="text" id="searchInput" class="form-control rounded-pill border-0 bg-white shadow-sm"
+                               placeholder="ค้นหาชื่อ/รหัส..." oninput="filterTable()" style="max-width:220px;">
+                        <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="addStudent()">
+                            <i class="bi bi-person-plus-fill me-1"></i>เพิ่มนักเรียน
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="app-content page-content py-4 flex-grow-1 d-flex flex-column py-4 flex-grow-1 d-flex flex-column">
-                <div class="container-fluid">
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-body p-4">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="small fw-bold text-muted mb-2">เลือกห้องเรียน</label>
-                                    <select id="classSelect" class="form-select border-0 bg-light py-2 rounded-pill shadow-none" onchange="loadStudents()"></select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="small fw-bold text-muted mb-2">ค้นหาชื่อ/รหัส</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text border-0 bg-light rounded-start-pill"><i class="fas fa-search text-muted"></i></span>
-                                        <input type="text" id="searchInput" class="form-control border-0 bg-light py-2 rounded-end-pill shadow-none" placeholder="พิมพ์ชื่อเพื่อค้นหา..." onkeyup="filterTable()">
-                                    </div>
-                                </div>
+                <!-- Table -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+                    <div class="table-responsive">
+                        <table class="table-premium w-100 mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4" style="width:60px;">เลขที่</th>
+                                    <th>นักเรียน / รหัส</th>
+                                    <th class="text-center" style="width:80px;">คณะสี</th>
+                                    <th class="text-center" style="width:80px;">บัญชี</th>
+                                    <th class="text-end pe-4" style="width:100px;">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <tr><td colspan="5" class="text-center py-5 text-muted">
+                                    <div class="spinner-border text-primary mb-2"></div><br>กำลังโหลด...
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <footer id="footer-container" class="mt-auto"></footer>
+    </main>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-white border-0 p-4 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-navy p-2 rounded-3 text-white" style="background:#1e3a8a!important;"><i class="bi bi-person-vcard fs-5"></i></div>
+                    <div><h5 class="fw-black text-navy mb-0">ข้อมูลนักเรียน</h5><small class="text-muted">รายละเอียดส่วนตัว</small></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="p-4 bg-light border-bottom border-top mt-3">
+                    <div class="row align-items-center g-3">
+                        <div class="col-auto">
+                            <img id="prof_photo" src="" class="rounded-4 shadow-sm" width="100" height="120" style="object-fit:cover;border:3px solid #fff;">
+                        </div>
+                        <div class="col">
+                            <div class="badge bg-navy rounded-pill px-3 mb-2" style="background:#1e3a8a!important;">ID: <span id="prof_sid"></span></div>
+                            <h4 id="prof_name" class="fw-black text-navy mb-1"></h4>
+                            <div class="d-flex flex-wrap gap-3 small fw-bold text-muted">
+                                <span><i class="bi bi-door-open-fill text-success me-1"></i><span id="prof_room"></span></span>
+                                <span class="border-start ps-3"><i class="bi bi-droplet-fill text-danger me-1"></i>กรุ๊ปเลือด: <span id="prof_blood"></span></span>
+                                <span class="border-start ps-3"><i class="bi bi-person-fill me-1"></i>Username: <span id="prof_username" class="text-primary"></span></span>
                             </div>
                         </div>
                     </div>
-
-                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0 table-modern" id="studentTable">
-                                <thead class="bg-light">
-                                    <tr>
-                                        <th class="ps-4">เลขที่</th>
-                                        <th>รหัสนักเรียน</th>
-                                        <th>ชื่อ-นามสกุล</th>
-                                        <th>ชื่อเล่น</th>
-                                        <th class="text-end pe-4">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="studentTableBody"></tbody>
-                            </table>
+                </div>
+                <div class="p-4">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="section-title">ข้อมูลพื้นฐาน</div>
+                            <div class="vstack gap-2 ps-2">
+                                <div><div class="info-label">วันเกิด</div><div class="info-value" id="prof_birth">-</div></div>
+                                <div><div class="info-label">โทรศัพท์</div><div class="info-value" id="prof_phone">-</div></div>
+                                <div><div class="info-label">อีเมล</div><div class="info-value" id="prof_email">-</div></div>
+                                <div><div class="info-label">เลขบัตรประชาชน</div><div class="info-value" id="prof_idcard">-</div></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="section-title">ผู้ปกครอง</div>
+                            <div class="vstack gap-2 ps-2">
+                                <div><div class="info-label">ผู้ปกครอง</div><div class="info-value" id="prof_guardian">-</div></div>
+                                <div><div class="info-label">เบอร์ฉุกเฉิน</div><div class="info-value fw-black text-primary" id="prof_gphone">-</div></div>
+                                <div><div class="info-label">ที่อยู่</div><div class="info-value small" id="prof_addr">-</div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="modal-footer border-0 bg-light p-3">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" id="editFromModal" class="btn btn-navy rounded-pill px-4 fw-bold" style="background:#1e3a8a;color:#fff;border:none;">
+                    <i class="bi bi-pencil me-1"></i>แก้ไขข้อมูล
+                </button>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- VIEW MODAL (Reuse from Admin or similar) -->
-    <div class="modal fade" id="profileModal" tabindex="-1">
-        <!-- Content will be injected dynamically -->
-    </div><script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../public/js/main.js"></script>
-    <script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../public/js/main.js"></script>
+<script>
+let allStudents = [];
+let advisoryRoom = '';
+const EMAIL_DOMAIN = '@chainatpit.ac.th';
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const user = await checkAuth('teacher');
-            if (user) {
-                await loadMyClasses();
-                loadStudents();
-            }
-        });
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = await checkAuth(['teacher']);
+    if (!user) return;
+    loadData();
+});
 
-        async function loadMyClasses() {
-            const res = await fetch('../api/teacher/my-classes.php');
-            if (res.ok) {
-                const data = await res.json();
-                const select = document.getElementById('classSelect');
-                const classes = data.classes || [];
-                select.innerHTML = '<option value="">เลือกห้องเรียน...</option>';
-                classes.forEach(c => select.add(new Option(c.trim(), c.trim())));
+async function loadData() {
+    const tbody = document.getElementById('studentTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-border text-primary mb-2"></div><br>กำลังโหลด...</td></tr>';
+    try {
+        const res  = await fetch('../api/admin/students.php');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'โหลดไม่ได้');
 
-                const advisoryRoom = data.advisory_room;
-                if (advisoryRoom) {
-                    const roomVal = advisoryRoom.toString().trim();
-                    let exists = Array.from(select.options).some(opt => opt.value === roomVal);
-                    if (!exists) select.add(new Option(roomVal, roomVal));
-                    select.value = roomVal;
-                } else if (classes.length > 0) {
-                    select.value = classes[0].trim();
-                }
-                if (select.value) loadStudents();
-            }
+        allStudents  = data.students || [];
+        advisoryRoom = data.advisory_room || '';
+        document.getElementById('roomBadge').textContent  = advisoryRoom || '(ไม่มีห้องที่ปรึกษา)';
+        document.getElementById('countBadge').textContent = `${allStudents.length} คน`;
+        renderTable(allStudents);
+    } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-danger">${e.message}</td></tr>`;
+    }
+}
+
+function renderTable(list) {
+    const tbody = document.getElementById('studentTableBody');
+    if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1 opacity-25 d-block mb-2"></i>ไม่พบนักเรียนในห้องนี้</td></tr>';
+        return;
+    }
+    tbody.innerHTML = list.map(s => {
+        const photo = s.photo ? `../${s.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th||'?')}&background=1e3a8a&color=fff`;
+        const name  = `${s.prefix||''}${s.first_name_th||''} ${s.last_name_th||''}`.trim();
+        const hasAcc = s.username ? `<span class="has-account"><i class="bi bi-check-circle-fill me-1"></i>${s.username}</span>`
+                                  : `<span class="no-account"><i class="bi bi-exclamation-circle me-1"></i>ไม่มีบัญชี</span>`;
+        return `
+        <tr onclick="viewStudent(${s.id})">
+            <td class="ps-4 fw-bold text-navy text-center">${s.number_in_class || '-'}</td>
+            <td>
+                <div class="d-flex align-items-center gap-3">
+                    <img src="${photo}" class="avatar" onerror="this.src='../public/img/default-avatar.png'">
+                    <div>
+                        <div class="fw-bold">${name}</div>
+                        <div class="small text-muted">รหัส: ${s.student_id || '-'}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="text-center small">${s.house || s.faculty || '-'}</td>
+            <td class="text-center">${hasAcc}</td>
+            <td class="text-end pe-4" onclick="event.stopPropagation()">
+                <div class="d-flex justify-content-end gap-1">
+                    <button class="btn-icon edit" title="แก้ไข" onclick="editStudent(${s.id})"><i class="bi bi-pencil-fill" style="font-size:.75rem;"></i></button>
+                    <button class="btn-icon del"  title="ลบ"    onclick="deleteStudent(${s.id}, '${name.replace(/'/g,"\\'")}')"><i class="bi bi-trash-fill" style="font-size:.75rem;"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    renderTable(allStudents.filter(s =>
+        (s.first_name_th || '').toLowerCase().includes(q) ||
+        (s.last_name_th  || '').toLowerCase().includes(q) ||
+        (s.student_id    || '').toLowerCase().includes(q) ||
+        (s.nickname      || '').toLowerCase().includes(q)
+    ));
+}
+
+function viewStudent(id) {
+    const s = allStudents.find(x => x.id == id); if (!s) return;
+    document.getElementById('prof_photo').src    = s.photo ? `../${s.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(s.first_name_th||'?')}&background=1e3a8a&color=fff&size=200`;
+    document.getElementById('prof_name').textContent     = `${s.prefix||''}${s.first_name_th||''} ${s.last_name_th||''}`.trim();
+    document.getElementById('prof_sid').textContent      = s.student_id || '-';
+    document.getElementById('prof_room').textContent     = `ชั้น ${s.grade_level || ''}/${s.class_name || s.room || ''}`;
+    document.getElementById('prof_blood').textContent    = s.blood_group || '-';
+    document.getElementById('prof_username').textContent = s.username || '(ยังไม่มีบัญชี)';
+    document.getElementById('prof_birth').textContent    = s.birth_date || '-';
+    document.getElementById('prof_phone').textContent    = s.phone || '-';
+    document.getElementById('prof_email').textContent    = s.email || '-';
+    document.getElementById('prof_idcard').textContent   = s.id_card || '-';
+    document.getElementById('prof_guardian').textContent = `${s.g_first_name||'-'} ${s.g_last_name||''}`.trim();
+    document.getElementById('prof_gphone').textContent   = s.g_phone || '-';
+    const addr = [s.curr_house_no, s.curr_subdistrict ? 'ต.'+s.curr_subdistrict : '', s.curr_district ? 'อ.'+s.curr_district : '', s.curr_province ? 'จ.'+s.curr_province : ''].filter(Boolean).join(' ');
+    document.getElementById('prof_addr').textContent = addr || '-';
+    document.getElementById('editFromModal').onclick = () => { bootstrap.Modal.getInstance('#profileModal').hide(); editStudent(id); };
+    new bootstrap.Modal(document.getElementById('profileModal')).show();
+}
+
+async function deleteStudent(id, name) {
+    const r = await Swal.fire({
+        title: 'ลบนักเรียน?',
+        html: `<b>${name}</b><br><small class="text-danger">ข้อมูลการเช็คชื่อ คะแนน และบัญชีผู้ใช้จะถูกลบด้วย</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#ef4444',
+    });
+    if (!r.isConfirmed) return;
+    try {
+        const res = await fetch(`../api/admin/students.php?id=${id}`, { method: 'DELETE' });
+        const d   = await res.json();
+        if (d.success) {
+            Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1400, showConfirmButton: false, toast: true, position: 'top-end' });
+            loadData();
+        } else {
+            Swal.fire('ผิดพลาด', d.error || 'ลบไม่สำเร็จ', 'error');
         }
+    } catch (e) { Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+}
 
-        async function loadStudents() {
-            const className = document.getElementById('classSelect').value;
-            if (!className) return;
+function addStudent() {
+    const html = `
+        <form id="addStudentForm" class="text-start">
+          <div class="alert alert-info rounded-3 small py-2 mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            นักเรียนที่เพิ่มจะอยู่ในห้อง <b>${advisoryRoom}</b> อัตโนมัติ
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-bold small">รหัสนักเรียน <span class="text-danger">*</span></label>
+              <input name="student_id" class="form-control" required placeholder="เช่น 36438">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold small">เลขที่</label>
+              <input name="number_in_class" class="form-control" placeholder="เช่น 1">
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-bold small">คำนำหน้า</label>
+              <select name="prefix" class="form-select">
+                <option value="">--</option>
+                <option>เด็กชาย</option><option>เด็กหญิง</option>
+                <option>นาย</option><option>นางสาว</option>
+              </select>
+            </div>
+            <div class="col-8">
+              <label class="form-label fw-bold small">ชื่อ <span class="text-danger">*</span></label>
+              <input name="first_name_th" class="form-control" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold small">นามสกุล</label>
+              <input name="last_name_th" class="form-control">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold small">อีเมล</label>
+              <div class="input-group">
+                <input name="email" type="email" class="form-control" placeholder="ชื่อผู้ใช้">
+                <span class="input-group-text fw-bold text-muted">@chainatpit.ac.th</span>
+              </div>
+              <div class="form-text">หากระบุ ต้องเป็น @chainatpit.ac.th เท่านั้น</div>
+            </div>
+          </div>
+          <div class="alert alert-success rounded-3 small py-2 mt-3 mb-0">
+            <i class="bi bi-key me-1"></i>
+            บัญชีผู้ใช้: <b>username = รหัสนักเรียน</b> / รหัสผ่าน: <b>cnp12345</b>
+          </div>
+        </form>`;
 
-            const res = await fetch(`../api/teacher/attendance.php?type=daily&class_name=${encodeURIComponent(className)}`);
-            const result = await res.json();
-            
-            const tbody = document.getElementById('studentTableBody');
-            if (result.success) {
-                tbody.innerHTML = result.students.map(s => `
-                <tr>
-                    <td class="ps-4 fw-bold text-muted">${s.number_in_class || '-'}</td>
-                    <td class="small fw-bold text-navy">${s.student_id}</td>
-                    <td class="fw-semibold">${s.full_name_th || (s.first_name_th + ' ' + s.last_name_th)}</td>
-                    <td class="text-muted">${s.nickname || '-'}</td>
-                    <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="viewDetails(${s.id})">ดูประวัติ</button>
-                    </td>
-                </tr>
-            `).join('');
+    Swal.fire({
+        title: 'เพิ่มนักเรียน',
+        html, width: 560,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-person-plus me-1"></i>เพิ่มนักเรียน',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#1e3a8a',
+        preConfirm: async () => {
+            const f = document.getElementById('addStudentForm');
+            if (!f.checkValidity()) { f.reportValidity(); return false; }
+            const formData = Object.fromEntries(new FormData(f).entries());
+
+            // Frontend email validation
+            if (formData.email && !formData.email.endsWith(EMAIL_DOMAIN)) {
+                Swal.showValidationMessage(`อีเมลต้องเป็น ${EMAIL_DOMAIN} เท่านั้น`);
+                return false;
             }
-        }
 
-        function filterTable() {
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const rows = document.getElementById("studentTableBody").getElementsByTagName("tr");
-            for (let row of rows) {
-                row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+            try {
+                const res = await fetch('../api/admin/update_student.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                const j = await res.json();
+                if (!j.success) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
+                return j;
+            } catch (e) {
+                Swal.showValidationMessage(e.message);
+                return false;
             }
+        },
+    }).then(r => {
+        if (r.isConfirmed && r.value) {
+            Swal.fire({
+                icon: 'success',
+                title: 'เพิ่มนักเรียนสำเร็จ',
+                html: `<div class="text-start small">${r.value.message}</div>`,
+                confirmButtonText: 'รับทราบ'
+            });
+            loadData();
         }
+    });
+}
 
-        function viewDetails(id) {
-            Swal.fire('Info', 'ฟังก์ชันดูรายละเอียดเชิงลึกกำลังถูกย้ายมาจากส่วนกลางครับ', 'info');
+function editStudent(id) {
+    const s = allStudents.find(x => x.id == id); if (!s) return;
+    const html = `
+        <form id="editStudentForm" class="text-start">
+          <input type="hidden" name="id" value="${s.id}">
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-bold small">รหัสนักเรียน</label>
+              <input name="student_id" class="form-control" required value="${s.student_id||''}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold small">เลขที่</label>
+              <input name="number_in_class" class="form-control" value="${s.number_in_class||''}">
+            </div>
+            <div class="col-4">
+              <label class="form-label fw-bold small">คำนำหน้า</label>
+              <select name="prefix" class="form-select">
+                <option value="">--</option>
+                ${['เด็กชาย','เด็กหญิง','นาย','นางสาว'].map(v=>`<option${s.prefix===v?' selected':''}>${v}</option>`).join('')}
+              </select>
+            </div>
+            <div class="col-8">
+              <label class="form-label fw-bold small">ชื่อ <span class="text-danger">*</span></label>
+              <input name="first_name_th" class="form-control" required value="${s.first_name_th||''}">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-bold small">นามสกุล</label>
+              <input name="last_name_th" class="form-control" value="${s.last_name_th||''}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold small">โทรศัพท์</label>
+              <input name="phone" class="form-control" value="${s.phone||''}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-bold small">อีเมล</label>
+              <input name="email" type="email" class="form-control" value="${s.email||''}" placeholder="@chainatpit.ac.th">
+            </div>
+          </div>
+        </form>`;
+
+    Swal.fire({
+        title: 'แก้ไขข้อมูลนักเรียน',
+        html, width: 560,
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก', cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#1e3a8a',
+        preConfirm: async () => {
+            const f = document.getElementById('editStudentForm');
+            if (!f.checkValidity()) { f.reportValidity(); return false; }
+            const formData = Object.fromEntries(new FormData(f).entries());
+            if (formData.email && !formData.email.endsWith(EMAIL_DOMAIN)) {
+                Swal.showValidationMessage(`อีเมลต้องเป็น ${EMAIL_DOMAIN} เท่านั้น`);
+                return false;
+            }
+            try {
+                const res = await fetch('../api/admin/update_student.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+                const j = await res.json();
+                if (!j.success) throw new Error(j.error || 'บันทึกไม่สำเร็จ');
+                return j;
+            } catch (e) { Swal.showValidationMessage(e.message); return false; }
+        },
+    }).then(r => {
+        if (r.isConfirmed && r.value) {
+            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1400, showConfirmButton: false, toast: true, position: 'top-end' });
+            loadData();
         }
-    </script>
+    });
+}
+</script>
 </body>
 </html>

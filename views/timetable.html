@@ -30,7 +30,7 @@
         .tt-table { border-collapse:separate; border-spacing:4px; min-width:900px; width:100%; table-layout:fixed; }
         .tt-table th { background:#f1f5f9; font-size:0.72rem; font-weight:800; text-align:center;
             padding:8px 6px; border-radius:8px; color:#64748b; white-space:nowrap; }
-        .tt-table th.day-hd, .tt-table td.day-hd { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color:#fff; width:100px; border-radius:12px; border:none; box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2); }
+        .tt-table th.day-hd, .tt-table td.day-hd { background: #1e3a8a; color:#fff; width:70px; min-width:60px; max-width:80px; border-radius:12px; border:none; box-shadow: 0 4px 6px rgba(30, 58, 138, 0.2); font-size:0.85rem; }
         .tt-cell { background:#fff; border-radius:12px; padding:8px 10px; vertical-align:middle; text-align:center;
             min-height:70px; border:1px solid #f1f5f9; transition:.2s; position:relative; }
         .tt-cell:empty, .tt-cell.empty { background:#f8fafc; border:1.5px dashed #e2e8f0; }
@@ -234,9 +234,31 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../public/js/main.js"></script>
 <script>
+// Build class label: grade_level="ม.1" + class_name="1/1" → "ม.101"
+function buildClassLabel(grade, cls) {
+    const gNum = (grade || '').replace(/^ม\./, '').trim();
+    if (!cls) return gNum ? `ม.${gNum}` : '';
+    const slash = cls.indexOf('/');
+    if (slash !== -1) {
+        const room = cls.substring(slash + 1).trim();
+        return `ม.${gNum || cls.substring(0, slash)}${room.padStart(2, '0')}`;
+    }
+    // class_name already like "101"
+    if (gNum && !cls.startsWith('ม.')) return `ม.${cls}`;
+    return cls;
+}
+
 const DAYS = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
 const PERIODS = 12; // 0–11
 const PERIOD_COLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7'];
+
+// สีประจำวันแบบไทย (จันทร์=เหลือง, อังคาร=ชมพู, พุธ=เขียว, พฤหัส=ส้ม, ศุกร์=ฟ้า, เสาร์=ม่วง, อาทิตย์=แดง)
+const DAY_COLORS = ['#fbbf24','#ec4899','#10b981','#f97316','#3b82f6','#a855f7','#ef4444'];
+
+// ล็อกคาบประจำ — วันพุธ (3) คาบ 8 = ชุมนุม
+const LOCKED_SLOTS = [
+    { day_of_week: 3, period: 8, subject_name: 'ชุมนุม', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true }
+];
 
 const todayDow = new Date().getDay(); // 0=Sun
 const todayTimetableDay = todayDow === 0 ? 7 : todayDow; // 1=Mon…7=Sun
@@ -289,8 +311,11 @@ async function loadTimetable() {
     if (sem)     params.set('semester', sem);
 
     try {
-        const res  = await fetch('../api/timetable.php?' + params.toString());
+        const res  = await fetch('../api/timetable.php?' + params.toString(), { credentials: 'same-origin' });
         const json = await res.json();
+        if (json.success === false) {
+            console.error('timetable API:', json.error || json);
+        }
         allData = json.data || [];
         showLoading(false);
         if (allData.length === 0) { showEmpty(true); return; }
@@ -322,11 +347,24 @@ function buildMap(data) {
         for (let p = 0; p < PERIODS; p++) map[d][p] = [];
     }
     data.forEach(row => {
-        const d = row.day_of_week;
-        const p = row.period;
+        const d = parseInt(row.day_of_week, 10);
+        const p = parseInt(row.period, 10);
+        if (!Number.isFinite(d) || !Number.isFinite(p) || d < 1 || d > 7 || p < 0 || p >= PERIODS) return;
         if (map[d] && map[d][p] !== undefined) map[d][p].push(row);
     });
+    // Override locked slots (ชุมนุม วันพุธ คาบ 8)
+    LOCKED_SLOTS.forEach(slot => {
+        if (map[slot.day_of_week] && map[slot.day_of_week][slot.period] !== undefined) {
+            map[slot.day_of_week][slot.period] = [slot];
+        }
+    });
     return map;
+}
+
+/* ── Period range based on role: student = 1–9, others = 0–11 ── */
+function getPeriodRange() {
+    if (currentUserRole === 'student') return { startP: 1, endP: 9 };
+    return { startP: 0, endP: PERIODS - 1 };
 }
 
 /* ── DESKTOP ── */
@@ -340,21 +378,23 @@ function renderDesktop(data) {
     const activeSchedule = window.__cnpActiveSchedule || 'normal';
     const currentPeriodNum = typeof getCurrentPeriod === 'function' ? getCurrentPeriod(activeSchedule) : null;
 
-    let startP = 0;
-    let endP = PERIODS - 1;
-    if (currentUserRole === 'student') {
-        startP = 1;
-        endP = 9;
-    }
+    // Period range — student เห็น 1–9, role อื่นเห็น 0–11
+    const { startP, endP } = getPeriodRange();
 
     // Header (หัวตาราง: วัน/คาบ แล้วตามด้วยเลขคาบ)
-    let headHtml = '<tr><th class="day-hd" style="min-width:100px; text-align:center;">วัน \\ คาบ</th>';
+    let headHtml = '<tr><th class="day-hd" style="text-align:center;">วัน \\ คาบ</th>';
     const config = SCHEDULE_CONFIG[activeSchedule] || SCHEDULE_CONFIG['normal'];
 
     for (let p = startP; p <= endP; p++) {
         const isCurrentP = (p === currentPeriodNum);
+        const times = config.periods[p];
+        const timeHtml = times
+            ? `<div style="font-size:0.58rem;color:${isCurrentP?'#3b82f6':'#94a3b8'};margin-top:4px;line-height:1.3;">${times[0]}<br>${times[1]}</div>`
+            : '';
+        const badgeColor = PERIOD_COLORS[p] || '#64748b';
         headHtml += `<th style="text-align:center;" class="${isCurrentP ? 'current-period-hd' : ''}">
-            <div class="period-badge" style="background:${isCurrentP ? '#3b82f6' : '#64748b'}; margin:auto;">${p}</div>
+            <div class="period-badge" style="background:${badgeColor}; margin:auto; ${isCurrentP ? 'box-shadow:0 0 0 3px rgba(59,130,246,0.35);' : ''}">${p}</div>
+            ${timeHtml}
         </th>`;
     }
     headHtml += '</tr>';
@@ -364,11 +404,15 @@ function renderDesktop(data) {
     let bodyHtml = '';
     activeDays.forEach(d => {
         const isToday = (d === todayTimetableDay);
+        const dayColor = DAY_COLORS[d - 1] || '#1e3a8a';
+        const dayCellStyle = isToday
+            ? `background:${dayColor} !important; color:#fff; vertical-align:middle; text-align:center; font-size:0.85rem; font-weight:800;`
+            : `vertical-align:middle; text-align:center; font-size:0.85rem;`;
         bodyHtml += `<tr class="${isToday ? 'today-row' : ''}">
-            <td class="day-hd ${isToday ? 'today-hd' : ''}" style="vertical-align:middle; text-align:center; font-size:1.1rem;">
-                ${DAYS[d-1]}${isToday ? ' 📍' : ''}
+            <td class="day-hd" style="${dayCellStyle}">
+                ${DAYS[d-1]}
             </td>`;
-        
+
         for (let p = startP; p <= endP; p++) {
             const cells = map[d][p];
             const isCurrentNow = (isToday && p === currentPeriodNum);
@@ -380,7 +424,10 @@ function renderDesktop(data) {
                 let inner = '';
                 cells.forEach(c => {
                     const isBreak = /พัก|break/i.test(c.subject_name);
-                    if (isBreak) {
+                    const isLocked = c._locked === true;
+                    if (isLocked) {
+                        inner += `<div class="w-100 text-center" style="background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:8px; padding:6px;"><div class="subject" style="color:#92400e;">🔒 ${c.subject_name}</div></div>`;
+                    } else if (isBreak) {
                         inner += `<div class="w-100 text-center"><div class="subject">☕ ${c.subject_name}</div></div>`;
                     } else {
                         let teacherDisplay = '';
@@ -395,12 +442,13 @@ function renderDesktop(data) {
                             }
                         }
 
+                        const classLabel = buildClassLabel(c.grade_level, c.class_name);
                         inner += `
                             <div style="margin-bottom:${cells.length>1?'8px':'0'}; padding-bottom:${cells.length>1?'8px':'0'}; border-bottom:${cells.length>1?'1px solid #f1f5f9':'none'};">
                                 <div class="subject mb-1">${c.subject_name}</div>
                                 <div class="meta d-flex flex-wrap gap-1 justify-content-center">
-                                    ${c.grade_level ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>ม.${c.grade_level}</span>` : ''}
-                                    ${c.room_location || c.class_name ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location || c.class_name}</span>` : ''}
+                                    ${classLabel ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
+                                    ${c.room_location ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
                                 </div>
                                 ${teacherDisplay}
                             </div>`;
@@ -434,8 +482,10 @@ function renderMobile(data) {
     let tabsHtml = '';
     activeDays.forEach(d => {
         const isToday = (d === today);
-        tabsHtml += `<button class="day-tab ${d===activeMobileDay?'active':''}" onclick="switchDay(${d})" id="daytab-${d}">
-            ${DAYS[d-1]} ${isToday ? '📍' : ''}
+        const dayColor = DAY_COLORS[d - 1] || '#1e3a8a';
+        const tabStyle = isToday ? `background:${dayColor}; color:#fff;` : '';
+        tabsHtml += `<button class="day-tab ${d===activeMobileDay?'active':''}" onclick="switchDay(${d})" id="daytab-${d}" style="${tabStyle}">
+            ${DAYS[d-1]}
         </button>`;
     });
     document.getElementById('dayTabs').innerHTML = tabsHtml;
@@ -460,12 +510,7 @@ function renderDayCards(day, map) {
     const currentPeriodNum = typeof getCurrentPeriod === 'function' ? getCurrentPeriod(activeSchedule) : null;
     const isToday = (day === todayTimetableDay);
 
-    let startP = 0;
-    let endP = PERIODS - 1;
-    if (currentUserRole === 'student') {
-        startP = 1;
-        endP = 9;
-    }
+    const { startP, endP } = getPeriodRange();
 
     for (let p = startP; p <= endP; p++) {
         const cells = map[day][p];
@@ -475,11 +520,13 @@ function renderDayCards(day, map) {
 
         cells.forEach(c => {
             const isBreak = /พัก|break/i.test(c.subject_name);
+            const isLocked = c._locked === true;
             const config = SCHEDULE_CONFIG[activeSchedule] || SCHEDULE_CONFIG['normal'];
             const timeRange = config.periods[p] ? `${config.periods[p][0]} - ${config.periods[p][1]}` : '';
-            
+            const badgeColor = isLocked ? '#f59e0b' : (isBreak ? '#cbd5e1' : (PERIOD_COLORS[p] || '#64748b'));
+
             let teacherDisplay = '';
-            if (!isBreak && (c.teacher_name || c.teacher_first_name)) {
+            if (!isBreak && !isLocked && (c.teacher_name || c.teacher_first_name)) {
                 if (currentUserRole === 'teacher') {
                     teacherDisplay = ''; // ไม่ต้องแสดงชื่อตัวเอง
                 } else if (currentUserRole === 'student') {
@@ -490,17 +537,20 @@ function renderDayCards(day, map) {
                 }
             }
 
+            const slotPrefix = isLocked ? '🔒 ' : (isBreak ? '☕ ' : '');
+            const slotExtraStyle = isLocked ? 'background:linear-gradient(135deg,#fef3c7,#fde68a);' : '';
+
             html += `
-            <div class="mobile-slot ${isBreak ? 'is-break' : ''} ${isCurrentP ? 'current-period-slot' : ''}">
+            <div class="mobile-slot ${isBreak ? 'is-break' : ''} ${isCurrentP ? 'current-period-slot' : ''}" style="${slotExtraStyle}">
                 <div class="slot-period">
-                    <div class="period-badge" style="background:${isBreak ? '#cbd5e1' : (isCurrentP ? '#3b82f6' : '#64748b')}">${p}</div>
+                    <div class="period-badge" style="background:${badgeColor}; ${isCurrentP ? 'box-shadow:0 0 0 3px rgba(59,130,246,0.35);' : ''}">${p}</div>
                 </div>
                 <div class="slot-body">
-                    <div class="subject mb-1">${isBreak ? '☕ ' : ''}${c.subject_name}</div>
-                    ${isBreak ? '' : `
+                    <div class="subject mb-1" style="${isLocked ? 'color:#92400e;' : ''}">${slotPrefix}${c.subject_name}</div>
+                    ${(isBreak || isLocked) ? '' : `
                         <div class="meta d-flex flex-wrap gap-1 align-items-center">
-                            ${c.grade_level ? `<span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>ม.${c.grade_level}</span>` : ''}
-                            ${c.room_location || c.class_name ? `<span class="badge bg-light text-secondary border"><i class="bi bi-geo-alt me-1"></i>${c.room_location || c.class_name}</span>` : ''}
+                            ${buildClassLabel(c.grade_level, c.class_name) ? `<span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>${buildClassLabel(c.grade_level, c.class_name)}</span>` : ''}
+                            ${c.room_location ? `<span class="badge bg-light text-secondary border"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
                         </div>
                         ${teacherDisplay}
                     `}
@@ -543,7 +593,7 @@ function updateLessonStatus(data) {
     const todayData = data.filter(r => parseInt(r.day_of_week) === todayTimetableDay);
     const widget = document.getElementById('lessonStatusWidget');
 
-    if (!todayData.length || !currentP) {
+    if (!todayData.length || currentP == null) {
         widget.classList.add('d-none');
         return;
     }

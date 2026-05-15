@@ -19,7 +19,7 @@ try {
     // Search by student_id, nickname, first_name_th, last_name_th
     $query = "%$q%";
     $sql = "SELECT id, student_id, first_name_th, last_name_th, nickname,
-                   room, room AS class_name, grade_level, number_in_class, photo
+                   class_name, class_name AS room, grade_level, number_in_class, photo
             FROM students
             WHERE student_id LIKE ?
                OR nickname LIKE ?

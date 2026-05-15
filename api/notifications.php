@@ -3,6 +3,7 @@
 header('Content-Type: application/json');
 require_once '../config.php';
 require_once '../inc/security.php';
+require_once '../inc/classroom_codes.php';
 session_start();
 cnp_verify_origin();
 cnp_csrf_verify();
@@ -49,12 +50,16 @@ function handleGet($pdo, $user_id) {
             $psParams = [];
             
             if ($role === 'teacher') {
-                $stmtRoom = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
+                $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
                 $stmtRoom->execute([$user_id]);
                 $room = $stmtRoom->fetchColumn();
                 if ($room) {
-                    $psSql .= " AND s.room = ?";
-                    $psParams[] = $room;
+                    $vars = cnp_classroom_code_variants((string) $room);
+                    $ph   = implode(',', array_fill(0, count($vars), '?'));
+                    $psSql .= " AND s.class_name IN ($ph)";
+                    foreach ($vars as $v) {
+                        $psParams[] = $v;
+                    }
                 } else {
                     $psSql .= " AND (r.approver_id = ? OR 1=0)"; // Fallback or strict
                     $psParams[] = $user_id;
@@ -79,10 +84,75 @@ function handleGet($pdo, $user_id) {
                 ];
             }
 
-            // Check for students at risk (Attendance < 80%)
-            if ($role === 'admin') {
-                // Simplified check: anyone with > 3 absences this month?
-                // For now, let's just stick to the PS requests as a clear 'task'
+            // Teacher: ยังไม่เช็คชื่อโฮมรูมวันนี้
+            if ($role === 'teacher' && isset($room) && $room) {
+                $today = date('Y-m-d');
+                $varsR = cnp_classroom_code_variants((string) $room);
+                $phR = implode(',', array_fill(0, count($varsR), '?'));
+                $chkSql = "SELECT COUNT(*) FROM attendance WHERE date = ? AND class_name IN ($phR) AND type = 'daily'";
+                $stmtChk = $pdo->prepare($chkSql);
+                $stmtChk->execute(array_merge([$today], $varsR));
+                $todayChecked = (int) $stmtChk->fetchColumn();
+
+                $hour = (int) date('G');
+                if ($todayChecked === 0 && $hour >= 8 && $hour < 18) {
+                    $actions[] = [
+                        'id' => 'alert_not_checked',
+                        'type' => 'action',
+                        'title' => 'ยังไม่ได้เช็คชื่อวันนี้',
+                        'message' => "ห้อง {$room} ยังไม่มีการเช็คชื่อวันนี้ — กดเพื่อเช็คชื่อ",
+                        'link' => 'attendance_daily.html?class_name=' . urlencode($room),
+                        'icon' => 'bi-clipboard-x-fill',
+                        'color' => '#ef4444',
+                        'is_read' => 0,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                }
+            }
+        }
+
+        // Student: dynamic alerts (today's absence summary, PS status)
+        if ($role === 'student') {
+            $stmtSid = $pdo->prepare("SELECT id FROM students WHERE user_id = ? LIMIT 1");
+            $stmtSid->execute([$user_id]);
+            $sid = (int) ($stmtSid->fetchColumn() ?: 0);
+            if ($sid > 0) {
+                // วันนี้ถูกบันทึก ขาด/สาย?
+                $today = date('Y-m-d');
+                $stmtToday = $pdo->prepare("SELECT status FROM attendance WHERE student_id = ? AND date = ? AND type = 'daily' LIMIT 1");
+                $stmtToday->execute([$sid, $today]);
+                $todayStatus = $stmtToday->fetchColumn();
+                if ($todayStatus === 'ขาด' || $todayStatus === 'สาย') {
+                    $actions[] = [
+                        'id' => 'alert_today_attendance',
+                        'type' => 'action',
+                        'title' => $todayStatus === 'ขาด' ? '⚠️ วันนี้ถูกบันทึก: ขาด' : '⏰ วันนี้ถูกบันทึก: สาย',
+                        'message' => 'กดเพื่อดูประวัติการเช็คชื่อ',
+                        'link' => 'student_attendance_history.html',
+                        'icon' => 'bi-clipboard2-x-fill',
+                        'color' => $todayStatus === 'ขาด' ? '#ef4444' : '#f59e0b',
+                        'is_read' => 0,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                }
+
+                // คำขอ PS ที่ยังรอ
+                $stmtPS = $pdo->prepare("SELECT COUNT(*) FROM public_service_records WHERE student_id = ? AND status = 'pending'");
+                $stmtPS->execute([$sid]);
+                $pendingMine = (int) $stmtPS->fetchColumn();
+                if ($pendingMine > 0) {
+                    $actions[] = [
+                        'id' => 'alert_my_ps_pending',
+                        'type' => 'action',
+                        'title' => 'คำขอสาธารณประโยชน์รอตรวจ',
+                        'message' => "มีคำขอที่รอครูรับรอง {$pendingMine} รายการ",
+                        'link' => 'student_public_service.html',
+                        'icon' => 'bi-hourglass-split',
+                        'color' => '#a16207',
+                        'is_read' => 0,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                }
             }
         }
 

@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $search = $_GET['q'] ?? '';
 
 try {
-    $sql = "SELECT id, student_id as code, prefix, first_name_th, last_name_th, room
+    $sql = "SELECT id, student_id as code, prefix, first_name_th, last_name_th, class_name AS room
             FROM students
             WHERE student_id LIKE ? OR first_name_th LIKE ? OR last_name_th LIKE ?
             LIMIT 50";

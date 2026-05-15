@@ -13,7 +13,7 @@ $user_id = $_SESSION['user_id'];
 
 try {
     // 1. Get teacher's room
-    $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
+    $stmt = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
     $stmt->execute([$user_id]);
     $teacher = $stmt->fetch();
 
@@ -25,7 +25,7 @@ try {
     $room = $teacher['classroom'];
 
     // 2. Get students in that room
-    $stmt = $pdo->prepare("SELECT id, student_id, prefix, first_name_th, last_name_th, number_in_class, photo FROM students WHERE room = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC");
+    $stmt = $pdo->prepare("SELECT id, student_id, prefix, first_name_th, last_name_th, number_in_class, photo FROM students WHERE class_name = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC");
     $stmt->execute([$room]);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

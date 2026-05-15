@@ -16,7 +16,7 @@ $year = $_GET['year'] ?? date('Y');
 try {
     if (empty($room)) {
         // --- OVERVIEW MODE: Summarize all rooms for the month ---
-        $roomsStmt = $pdo->query("SELECT DISTINCT room FROM students WHERE room IS NOT NULL AND room != '' ORDER BY room ASC");
+        $roomsStmt = $pdo->query("SELECT DISTINCT class_name FROM students WHERE class_name IS NOT NULL AND class_name != '' ORDER BY CAST(class_name AS UNSIGNED) ASC, class_name ASC");
         $rooms = $roomsStmt->fetchAll(PDO::FETCH_COLUMN);
 
         $startDate = sprintf("%04d-%02d-01", $year, $month);
@@ -31,7 +31,7 @@ try {
         $stmtAtt->execute([$startDate, $endDate]);
         $allAtt = $stmtAtt->fetchAll(PDO::FETCH_ASSOC);
 
-        $roomStats = [];
+        $grouped = [];
         foreach ($allAtt as $row) {
             $grouped[$row['room']][$row['status']] = (int)$row['count'];
         }
@@ -41,7 +41,7 @@ try {
             $stats = $grouped[$r] ?? [];
             
             // Get total students for this room
-            $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM students WHERE room = ?");
+            $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM students WHERE class_name = ?");
             $stmtCount->execute([$r]);
             $totalInRoom = (int)$stmtCount->fetchColumn();
 
@@ -75,7 +75,7 @@ try {
 
     // --- DETAILED MODE: Day-by-day for a specific room ---
     // (Existing logic remains below)
-    $stmtStudents = $pdo->prepare("SELECT id, gender FROM students WHERE room = ?");
+    $stmtStudents = $pdo->prepare("SELECT id, gender FROM students WHERE class_name = ?");
     $stmtStudents->execute([$room]);
     $students = $stmtStudents->fetchAll(PDO::FETCH_ASSOC);
     $totalStudentsInRoom = count($students);

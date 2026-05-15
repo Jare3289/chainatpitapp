@@ -1,6 +1,24 @@
+# Deny access to .env (works on any Apache config)
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
 # Increase upload limits for large Excel/CSV files
-php_value upload_max_filesize 100M
-php_value post_max_size 100M
-php_value memory_limit 512M
-php_value max_execution_time 600
-php_value max_input_time 600
+# Note: php_value works with mod_php (XAMPP local). Plesk uses PHP-FPM —
+# wrap in IfModule so Apache doesn't fail when mod_php is absent.
+# On Plesk: set these via Websites & Domains → PHP Settings instead.
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 100M
+    php_value memory_limit 512M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+</IfModule>
+<IfModule mod_php.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 100M
+    php_value memory_limit 512M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+</IfModule>

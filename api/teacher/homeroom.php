@@ -5,6 +5,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/classroom_codes.php';
 session_start();
 
 if (empty($_SESSION['user_id'])) {
@@ -22,14 +23,16 @@ try {
 
         $session = null;
         if ($className !== '') {
+            $vars = cnp_classroom_code_variants($className);
+            $ph   = implode(',', array_fill(0, count($vars), '?'));
             $stmt = $pdo->prepare("
                 SELECT h.*, r.classroom_code
                 FROM homeroom_sessions h
                 JOIN rooms r ON h.room_id = r.id
-                WHERE h.date = ? AND r.classroom_code = ?
+                WHERE h.date = ? AND r.classroom_code IN ($ph)
                 LIMIT 1
             ");
-            $stmt->execute([$date, $className]);
+            $stmt->execute(array_merge([$date], $vars));
             $session = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         }
 
@@ -73,9 +76,11 @@ try {
             exit;
         }
 
-        // Resolve room_id
-        $stmt = $pdo->prepare("SELECT id FROM rooms WHERE classroom_code = ? LIMIT 1");
-        $stmt->execute([$className]);
+        // Resolve room_id (รองรับ 101 / 1/1 / ม.1/1)
+        $vars = cnp_classroom_code_variants($className);
+        $ph   = implode(',', array_fill(0, count($vars), '?'));
+        $stmt = $pdo->prepare("SELECT id FROM rooms WHERE classroom_code IN ($ph) LIMIT 1");
+        $stmt->execute($vars);
         $roomId = $stmt->fetchColumn();
         if (!$roomId) {
             http_response_code(400);

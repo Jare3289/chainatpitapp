@@ -10,6 +10,7 @@ ini_set('memory_limit', '512M');
 @ignore_user_abort(true);
 
 require_once '../../config.php';
+require_once '../../inc/classroom_codes.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
@@ -39,7 +40,7 @@ $mapping = [
     "ชื่อจริง"         => "full_name_th",
 
     // ── Optional: ห้อง / ระดับชั้น / คณะ ──
-    "ห้อง"             => "room",          // เลขห้อง เช่น 101, 506
+    "ห้อง"             => "class_name",   // เลขห้อง เช่น 101, 506 (ตรง rooms.classroom_code)
     "ระดับชั้น"         => "grade_level",   // เช่น มัธยมศึกษาปีที่ 1
     "คณะ"             => "house",          // ขุนสรรค์/ขุนศรี/เจ้ายี่/ธรรมจักร
     "แผนการเรียน"       => "faculty",        // วิทย์-คณิต / ศิลป์-ภาษา ฯลฯ
@@ -200,7 +201,7 @@ try {
 
     // ── Pre-fetch existing student_ids (1 query instead of N) ──
     $existingMap = [];
-    foreach ($pdo->query("SELECT student_id, first_name_th, last_name_th, room FROM students")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    foreach ($pdo->query("SELECT student_id, first_name_th, last_name_th, class_name FROM students")->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $existingMap[$row['student_id']] = $row;
     }
 
@@ -254,9 +255,9 @@ try {
                     'student_id'   => $stdId,
                     'old_name'     => $oldName,
                     'new_name'     => $newName,
-                    'old_class'    => $existing['room'] ?? '-',
+                    'old_class'    => $existing['class_name'] ?? '-',
                     'new_class'    => $roomVal ?: '-',
-                    'is_different' => ($newName !== $oldName || ($existing['room'] ?? '') !== $roomVal),
+                    'is_different' => ($newName !== $oldName || ($existing['class_name'] ?? '') !== $roomVal),
                 ];
                 $updateCount++;
             } else {
@@ -287,11 +288,16 @@ try {
                 }
             }
 
-            // Normalise room
-            if ($dbCol === 'room' && !preg_match('/^[1-6]\d{2}$/', $val)) {
-                preg_match_all('/\d+/', $val, $matches);
-                if (count($matches[0]) >= 2) {
-                    $val = $matches[0][0] . str_pad($matches[0][1], 2, '0', STR_PAD_LEFT);
+            // Normalise classroom code (class_name) — ม.1/1 / 1/1 → 101 เมื่อจับรูปแบบได้
+            if ($dbCol === 'class_name') {
+                $can = cnp_classroom_canonical_code($val);
+                if ($can !== null) {
+                    $val = $can;
+                } elseif (!preg_match('/^[1-6]\d{2}$/', $val)) {
+                    preg_match_all('/\d+/', $val, $matches);
+                    if (count($matches[0]) >= 2) {
+                        $val = $matches[0][0] . str_pad($matches[0][1], 2, '0', STR_PAD_LEFT);
+                    }
                 }
             }
 

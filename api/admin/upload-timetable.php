@@ -6,6 +6,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once '../../config.php';
+require_once '../../inc/classroom_codes.php';
 // ต้องปิด error อีกรอบหลังจากเรียก config.php เพราะในนั้นอาจจะสั่งเปิดไว้
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -190,7 +191,41 @@ try {
             $skipCount++; $skipReasons[] = "แถวที่ $rowNo: เลขคาบไม่ถูกต้อง ($periodRaw)"; continue;
         }
 
-        $className = col($raw, ['ห้องเรียน', 'ห้อง', 'class_name']);
+        $className = col($raw, ['ห้องเรียน', 'รหัสห้อง', 'ห้องตามสมุด', 'class_name', 'กลุ่มเรียน']);
+        $grade_level = col($raw, ['ระดับชั้น', 'ชั้นเรียน']);
+        $room_location = col($raw, ['ห้องที่สอน', 'ห้องสอน', 'สถานที่สอน', 'อาคาร/ห้อง']);
+        $chan = col($raw, ['ชั้น']);
+        $hong = col($raw, ['ห้อง']);
+
+        // คอลัมน์ "ชั้น" ใน Excel บางไฟล์ใส่รหัสห้อง (101) — อย่าใส่ใน grade_level
+        if ($chan !== '') {
+            $chanIsHomeroom = cnp_classroom_canonical_code($chan) !== null
+                || (bool) preg_match('/^ม\.?\s*\d+\s*\/\s*\d+/u', $chan);
+            if ($chanIsHomeroom) {
+                if ($className === '') {
+                    $className = $chan;
+                }
+            } elseif ($grade_level === '') {
+                $grade_level = $chan;
+            }
+        }
+        // "ห้อง" แบบรวม: ถ้าเป็นรหัสห้อง → class_name; ถ้าเป็นข้อความที่ตั้ง → room_location
+        if ($hong !== '') {
+            $hongIsHomeroom = cnp_classroom_canonical_code($hong) !== null
+                || (bool) preg_match('/^ม\.?\s*\d+\s*\/\s*\d+/u', $hong);
+            if ($hongIsHomeroom && $className === '') {
+                $className = $hong;
+            } elseif (!$hongIsHomeroom && $room_location === '') {
+                $room_location = $hong;
+            }
+        }
+        if ($className !== '') {
+            $cn = cnp_classroom_canonical_code($className);
+            if ($cn !== null) {
+                $className = $cn;
+            }
+        }
+
         $year      = col($raw, ['ปีการศึกษา', 'ปีการศึกษา (เช่น 2569)', 'ปี']) ?: '2569';
         $semester  = (int)col($raw, ['ภาคเรียน', 'เทอม']) ?: 1;
         
@@ -216,11 +251,11 @@ try {
 
             if ($existId) {
                 $pdo->prepare("UPDATE timetable SET subject_name=?, grade_level=?, class_name=?, room_location=?, academic_year=?, semester=?, note=? WHERE id=?")
-                    ->execute([$subject, col($raw,['ชั้น']), $className, col($raw,['ห้องที่สอน']), $year, $semester, col($raw,['หมายเหตุ']), $existId]);
+                    ->execute([$subject, $grade_level ?: null, $className ?: null, $room_location ?: null, $year, $semester, col($raw, ['หมายเหตุ']), $existId]);
                 $updateCount++;
             } else {
                 $pdo->prepare("INSERT INTO timetable (teacher_id, day_of_week, period, subject_name, grade_level, class_name, room_location, academic_year, semester, note) VALUES (?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$teacherPk, $day, $period, $subject, col($raw,['ชั้น']), $className, col($raw,['ห้องที่สอน']), $year, $semester, col($raw,['หมายเหตุ'])]);
+                    ->execute([$teacherPk, $day, $period, $subject, $grade_level ?: null, $className ?: null, $room_location ?: null, $year, $semester, col($raw, ['หมายเหตุ'])]);
                 
                 // อัปเดต Map เพื่อป้องกันการเพิ่มซ้ำในไฟล์เดียวกัน
                 $insertId = $pdo->lastInsertId();

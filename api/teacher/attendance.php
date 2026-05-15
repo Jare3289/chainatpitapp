@@ -3,6 +3,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/notifications.php';
 session_start();
 cnp_verify_origin();
 cnp_csrf_verify();
@@ -79,8 +80,8 @@ if ($method === 'GET') {
 
     try {
         // 1. Get students in room
-        $stmt = $pdo->prepare("SELECT * FROM students WHERE (room = ? OR class_name = ?) ORDER BY CAST(number_in_class AS UNSIGNED) ASC");
-        $stmt->execute([$class_name, $class_name]);
+        $stmt = $pdo->prepare("SELECT * FROM students WHERE class_name = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC");
+        $stmt->execute([$class_name]);
         $students = $stmt->fetchAll();
 
         foreach ($students as &$s) {
@@ -167,6 +168,36 @@ if ($method === 'GET') {
         }
 
         $pdo->commit();
+
+        // 🔔 Notify each student whose status was set to ขาด / สาย / ลา / ป่วย / กิจ / ลากิจ
+        $notable = ['ขาด','สาย','ลา','ป่วย','กิจ','ลากิจ'];
+        foreach ($records as $r) {
+            $st = $r['status'] ?? '';
+            if (!in_array($st, $notable, true)) continue;
+            $sid = (int)($r['student_id'] ?? 0);
+            if ($sid <= 0) continue;
+            // Get student's user_id
+            $look = $pdo->prepare("SELECT user_id FROM students WHERE id = ? LIMIT 1");
+            $look->execute([$sid]);
+            $uid = (int) ($look->fetchColumn() ?: 0);
+            if ($uid <= 0) continue;
+
+            $emoji = ['ขาด'=>'⚠️','สาย'=>'⏰','ลา'=>'📝','ป่วย'=>'🤒','กิจ'=>'📝','ลากิจ'=>'📝'][$st] ?? '🔔';
+            $color = ['ขาด'=>'#ef4444','สาย'=>'#f59e0b','ลา'=>'#3b82f6','ป่วย'=>'#06b6d4','กิจ'=>'#3b82f6','ลากิจ'=>'#3b82f6'][$st] ?? '#3b82f6';
+            $title = "{$emoji} ผลการเช็คชื่อ: {$st}";
+            $msg   = ($type === 'subject')
+                ? "วันที่ " . date('j/n/Y', strtotime($date)) . " คาบ {$period} — สถานะ: {$st}"
+                : "วันที่ " . date('j/n/Y', strtotime($date)) . " (โฮมรูม) — สถานะ: {$st}";
+            cnp_notify(
+                $pdo, $uid, $title, $msg,
+                'student_attendance_history.html',
+                'bi-clipboard2-check-fill',
+                $color,
+                'attendance',
+                'att_' . $type . '_' . $date . '_' . ($period ?? 'd') . '_' . $sid
+            );
+        }
+
         echo json_encode(['success' => true, 'message' => 'บันทึกข้อมูลเรียบร้อยแล้ว']);
     } catch (PDOException $e) {
         $pdo->rollBack();

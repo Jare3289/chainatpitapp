@@ -12,6 +12,7 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../inc/security.php';
+require_once __DIR__ . '/../../inc/classroom_codes.php';
 session_start();
 cnp_verify_origin();
 cnp_csrf_verify();
@@ -59,7 +60,12 @@ try {
             $where  = [];
             $params = [];
             if (!empty($_GET['teacher_id'])) { $where[] = 't.teacher_id = ?'; $params[] = (int)$_GET['teacher_id']; }
-            if (!empty($_GET['class_name']))  { $where[] = 't.class_name = ?'; $params[] = $_GET['class_name']; }
+            if (!empty($_GET['class_name'])) {
+                $alts = cnp_classroom_code_variants(trim((string) $_GET['class_name']));
+                [$clsSql, $clsParams] = cnp_timetable_homeroom_where_sql('t', $alts);
+                $where[] = $clsSql;
+                $params  = array_merge($params, $clsParams);
+            }
             if (!empty($_GET['grade_level'])) { $where[] = 't.grade_level = ?'; $params[] = $_GET['grade_level']; }
             if (isset($_GET['day']) && $_GET['day'] !== '') { $where[] = 't.day_of_week = ?'; $params[] = (int)$_GET['day']; }
             if (!empty($_GET['academic_year'])) { $where[] = 't.academic_year = ?'; $params[] = $_GET['academic_year']; }
@@ -68,7 +74,7 @@ try {
             $sql = "SELECT t.*, 
                            CONCAT(COALESCE(tc.prefix,''), COALESCE(tc.first_name_th,''), ' ', COALESCE(tc.last_name_th,'')) AS teacher_name
                     FROM timetable t
-                    LEFT JOIN teachers tc ON tc.user_id = t.teacher_id";
+                    LEFT JOIN teachers tc ON tc.id = t.teacher_id";
             if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
             $sql .= ' ORDER BY t.day_of_week, t.period, t.class_name';
 

@@ -236,6 +236,16 @@
             const user = await checkAuth(['teacher', 'admin']);
             if (!user) return;
             document.getElementById('dateSelect').valueAsDate = new Date();
+
+            // Pre-fill period from current schedule before suggestion arrives
+            const activeSchedule = window.__cnpActiveSchedule || 'normal';
+            if (typeof getCurrentPeriod === 'function') {
+                const p = getCurrentPeriod(activeSchedule);
+                if (p !== null && p >= 1 && p <= 9) {
+                    document.getElementById('periodSelect').value = p;
+                }
+            }
+
             await loadSubjects();    // load subjects FIRST (user chooses subject first)
             await loadClasses();
         });
@@ -290,6 +300,14 @@
                         showConfirmButton: false
                     });
                 } else {
+                    // No timetable suggestion — use current period from schedule
+                    const activeSchedule = window.__cnpActiveSchedule || 'normal';
+                    if (typeof getCurrentPeriod === 'function') {
+                        const p = getCurrentPeriod(activeSchedule);
+                        if (p !== null && p >= 1 && p <= 9) {
+                            document.getElementById('periodSelect').value = p;
+                        }
+                    }
                     onSubjectChange();
                 }
             } catch (e) { console.error(e); }
@@ -392,8 +410,8 @@
                         id:               s.id,
                         student_id:       s.student_id,
                         prefix:           s.prefix || '',
-                        first_name_th:    s.first_name_th || '',
-                        last_name_th:     s.last_name_th  || '',
+                        first_name_th:    s.first_name_th || s.first_name || '',
+                        last_name_th:     s.last_name_th  || s.last_name  || '',
                         nickname:         s.nickname      || '',
                         number_in_class:  s.number_in_class,
                         status:           ex ? ex.status : 'มา',     // ← default "มา"

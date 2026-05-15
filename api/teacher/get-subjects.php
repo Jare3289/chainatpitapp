@@ -6,6 +6,7 @@
 //   ?room=101&recent=1  → also return recent attendance sessions for this room
 header('Content-Type: application/json');
 require_once '../../config.php';
+require_once '../../inc/classroom_codes.php';
 session_start();
 
 if (empty($_SESSION['user_id'])) {
@@ -128,11 +129,15 @@ try {
             $stmt->execute([$teacherId, $dayOfWeek, $currentPeriod]);
             $found = $stmt->fetch();
             if ($found) {
+                $cn = trim((string) ($found['class_name'] ?? ''));
+                if ($cn === '' && !empty($found['grade_level']) && cnp_classroom_canonical_code((string) $found['grade_level']) !== null) {
+                    $cn = trim((string) $found['grade_level']);
+                }
                 $suggestion = [
                     'subject_code' => $found['subject_code'],
-                    'class_name' => $found['class_name'],
-                    'period' => $currentPeriod,
-                    'date' => $now->format('Y-m-d')
+                    'class_name'   => $cn,
+                    'period'       => $currentPeriod,
+                    'date'         => $now->format('Y-m-d'),
                 ];
             }
         }

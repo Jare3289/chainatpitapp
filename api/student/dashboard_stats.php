@@ -30,13 +30,13 @@ try {
     $student_id = $student['id'];
     $fullName = trim(($student['prefix'] ?? '') . $student['first_name_th'] . ' ' . $student['last_name_th']);
 
-    // 2. Fetch Attendance Stats
-    $stmt = $pdo->prepare("SELECT 
+    // 2. Fetch Attendance Stats — daily only, matching student_attendance_history.html daily tab
+    $stmt = $pdo->prepare("SELECT
         COUNT(CASE WHEN status = 'มา' THEN 1 END) as present,
         COUNT(CASE WHEN status = 'ขาด' THEN 1 END) as absent,
         COUNT(CASE WHEN status = 'สาย' THEN 1 END) as late,
-        COUNT(CASE WHEN status IN ('ลา', 'ป่วย') THEN 1 END) as leave_count
-        FROM attendance WHERE student_id = ? OR student_id = ?");
+        COUNT(CASE WHEN status IN ('ลา', 'ป่วย', 'กิจ', 'ลากิจ') THEN 1 END) as leave_count
+        FROM attendance WHERE (student_id = ? OR student_id = ?) AND (type = 'daily' OR type IS NULL)");
     $stmt->execute([$student_id, $_SESSION['username']]);
     $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 

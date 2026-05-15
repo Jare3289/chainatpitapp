@@ -1,7 +1,4 @@
--- ============================================================
--- Migration 20260510_sync_triggers  (patched for production)
--- หมายเหตุ phpMyAdmin: ต้องเปลี่ยน Delimiter เป็น $$ ก่อนรัน
--- ============================================================
+﻿DELIMITER $$
 
 DROP TRIGGER IF EXISTS students_sync_fk_insert$$
 DROP TRIGGER IF EXISTS students_sync_fk_update$$
@@ -48,3 +45,5 @@ BEGIN
         SET NEW.room_id = (SELECT id FROM rooms WHERE classroom_code = NEW.class_name LIMIT 1);
     END IF;
 END$$
+
+DELIMITER ;

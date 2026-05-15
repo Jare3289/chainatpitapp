@@ -3,6 +3,8 @@
 header('Content-Type: application/json');
 require_once '../config.php';
 require_once '../inc/security.php';
+require_once '../inc/classroom_codes.php';
+require_once '../inc/notifications.php';
 session_start();
 cnp_verify_origin();
 cnp_csrf_verify();
@@ -57,9 +59,9 @@ function handleGet($pdo) {
     $params = [];
 
     // Get the user's assigned classroom (if any)
-    $stmtRoom = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
+    $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
     $stmtRoom->execute([$user_id]);
-    $userRoom = $stmtRoom->fetchColumn();
+    $userRoom = $stmtRoom->fetchColumn() ?: null;
 
     if ($role === 'student') {
         $stmtS = $pdo->prepare("SELECT id FROM students WHERE user_id = ?");
@@ -82,26 +84,33 @@ function handleGet($pdo) {
         $year = ''; $semester = '';
     } else {
         // Teacher or Admin
-        if ($type === 'room' || (!$type && $userRoom && $role !== 'admin')) {
-            // Default: Filter by my room if I have one
-            if ($userRoom) {
-                $where .= " AND (s.room = ? OR s.class_name = ?)";
-                $params[] = $userRoom;
-                $params[] = $userRoom;
+        if ($role === 'teacher') {
+            if ($type === 'room') {
+                // Report page: show all records from teacher's advisory room
+                if ($userRoom) {
+                    cnp_classroom_append_sql_in($where, $params, 's.class_name', (string) $userRoom);
+                } else {
+                    $where .= " AND 1=0";
+                }
+            } else {
+                // Default / type=my: show records where this teacher is the approver
+                $where .= " AND r.approver_id = ?";
+                $params[] = $user_id;
             }
-        } elseif ($type === 'my') {
-            $where .= " AND r.approver_id = ?";
-            $params[] = $user_id;
-        } elseif ($type === 'pending') {
-            $where .= " AND r.status = 'pending'";
-            // If teacher, still filter by room
-            if ($role === 'teacher' && $userRoom) {
-                $where .= " AND (s.room = ? OR s.class_name = ?)";
-                $params[] = $userRoom;
-                $params[] = $userRoom;
+        } else {
+            // Admin: optional filters
+            if ($type === 'room' && $userRoom) {
+                cnp_classroom_append_sql_in($where, $params, 's.class_name', (string) $userRoom);
+            } elseif ($type === 'my') {
+                $where .= " AND r.approver_id = ?";
+                $params[] = $user_id;
             }
+            // Empty/all: admin sees everything
         }
-        // If role is admin and type is empty or 'all', they see 1=1 (all)
+
+        if ($type === 'pending') {
+            $where .= " AND r.status = 'pending'";
+        }
     }
 
     // Common filters
@@ -116,7 +125,7 @@ function handleGet($pdo) {
 
     try {
         $sql = "SELECT r.*, s.first_name_th, s.last_name_th, s.student_id as student_code,
-                       COALESCE(NULLIF(s.class_name,''), s.room) AS class_name,
+                       s.class_name,
                        s.photo,
                        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers t WHERE t.user_id = r.approver_id) as approver_name
                 FROM public_service_records r
@@ -146,9 +155,7 @@ function handleGet($pdo) {
         $statsParams = [$year, $semester];
         
         if ($role === 'teacher' && $userRoom) {
-            $statsSql .= " AND (s.room = ? OR s.class_name = ?)";
-            $statsParams[] = $userRoom;
-            $statsParams[] = $userRoom;
+            cnp_classroom_append_sql_in($statsSql, $statsParams, 's.class_name', (string) $userRoom);
         }
 
         $statsStmt = $pdo->prepare($statsSql);
@@ -178,6 +185,17 @@ function handlePost($pdo) {
             $stmt = $pdo->prepare("SELECT id FROM students WHERE user_id = ?");
             $stmt->execute([$_SESSION['user_id']]);
             $student_id = $stmt->fetchColumn();
+            if (!$student_id) {
+                $uname = $_SESSION['username'] ?? '';
+                if ($uname) {
+                    $stmt2 = $pdo->prepare("SELECT id FROM students WHERE student_id = ? OR email = ? LIMIT 1");
+                    $stmt2->execute([$uname, $uname]);
+                    $student_id = $stmt2->fetchColumn();
+                    if ($student_id) {
+                        try { $pdo->prepare("UPDATE students SET user_id = ? WHERE id = ?")->execute([$_SESSION['user_id'], $student_id]); } catch (Exception $e) {}
+                    }
+                }
+            }
         } else {
             // Admin/Teacher can provide internal ID or Student Code
             $providedId = $data['student_internal_id'] ?? $data['student_id'] ?? '';
@@ -226,6 +244,25 @@ function handlePost($pdo) {
             $student_id, $data['activity_name'], $data['location'], $data['impact_benefit'] ?? '',
             $data['activity_date'], $data['certifier_name'] ?? '', $approver_id, $status, $year, $semester
         ]);
+        $newRecordId = (int) $pdo->lastInsertId();
+
+        // 🔔 Notify the approver (teacher) if student submitted and selected a certifier
+        if ($_SESSION['role'] === 'student' && $approver_id) {
+            $sName = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) AS nm FROM students WHERE id = ?");
+            $sName->execute([$student_id]);
+            $studentName = $sName->fetchColumn() ?: 'นักเรียน';
+            cnp_notify(
+                $pdo,
+                (int) $approver_id,
+                'คำขอรับรองสาธารณประโยชน์',
+                "นักเรียน {$studentName} ขอให้คุณรับรองกิจกรรม: {$data['activity_name']}",
+                'teacher_public_service.html',
+                'bi-hand-thumbs-up-fill',
+                '#3b82f6',
+                'public_service',
+                'ps_request_' . $newRecordId
+            );
+        }
 
         echo json_encode(['success' => true]);
     } catch (PDOException $e) { error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['success' => false, 'message' => 'ระบบขัดข้องชั่วคราว']); }
@@ -249,22 +286,13 @@ function handlePut($pdo) {
             $ids = array_map('intval', $data['ids']);
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
-            // If teacher, only allow approving records from their advisory room
+            // Teacher: only allow batch on records where they are the approver
             if ($_SESSION['role'] === 'teacher') {
-                $stmtRoom = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
-                $stmtRoom->execute([$userId]);
-                $room = $stmtRoom->fetchColumn();
-                if (!$room) {
-                    echo json_encode(['success' => false, 'error' => 'ไม่ได้เป็นที่ปรึกษาห้องใด']);
-                    return;
-                }
-                // Filter to records in this teacher's advisory room
                 $verify = $pdo->prepare("
-                    SELECT r.id FROM public_service_records r
-                    JOIN students s ON r.student_id = s.id
-                    WHERE r.id IN ($placeholders) AND s.class_name = ?
+                    SELECT id FROM public_service_records
+                    WHERE id IN ($placeholders) AND approver_id = ?
                 ");
-                $verify->execute(array_merge($ids, [$room]));
+                $verify->execute(array_merge($ids, [$userId]));
                 $allowedIds = $verify->fetchAll(PDO::FETCH_COLUMN);
                 if (empty($allowedIds)) {
                     echo json_encode(['success' => false, 'error' => 'ไม่มีรายการที่อนุญาตให้ปฏิบัติ']);
@@ -277,6 +305,29 @@ function handlePut($pdo) {
             $sql = "UPDATE public_service_records SET status = ?, approver_id = ?, updated_at = NOW() WHERE id IN ($placeholders)";
             $params = array_merge([$status, $userId], $ids);
             $pdo->prepare($sql)->execute($params);
+
+            // 🔔 Notify each affected student
+            $studentLookup = $pdo->prepare("
+                SELECT r.id, r.activity_name, s.user_id, CONCAT(COALESCE(s.prefix,''), s.first_name_th, ' ', s.last_name_th) AS sname
+                FROM public_service_records r
+                JOIN students s ON r.student_id = s.id
+                WHERE r.id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")");
+            $studentLookup->execute($ids);
+            while ($row = $studentLookup->fetch(PDO::FETCH_ASSOC)) {
+                if (!$row['user_id']) continue;
+                $isOk = ($status === 'approved');
+                cnp_notify(
+                    $pdo,
+                    (int) $row['user_id'],
+                    $isOk ? '✅ กิจกรรมได้รับการรับรองแล้ว' : '❌ กิจกรรมไม่ผ่านการรับรอง',
+                    "กิจกรรม: {$row['activity_name']}",
+                    'student_public_service.html',
+                    $isOk ? 'bi-patch-check-fill' : 'bi-x-circle-fill',
+                    $isOk ? '#10b981' : '#ef4444',
+                    'public_service',
+                    'ps_status_' . $row['id']
+                );
+            }
 
             echo json_encode(['success' => true, 'count' => count($ids), 'message' => "ดำเนินการ " . count($ids) . " รายการ"]);
             return;
@@ -305,6 +356,34 @@ function handlePut($pdo) {
             $stmt = $pdo->prepare("UPDATE public_service_records SET status = ?, approver_id = ? WHERE id = ?");
             $stmt->execute([$data['status'], $_SESSION['user_id'], $data['id']]);
         }
+
+        // 🔔 Notify the affected student for single-record updates
+        $lookup = $pdo->prepare("
+            SELECT r.id, r.activity_name, s.user_id
+            FROM public_service_records r
+            JOIN students s ON r.student_id = s.id
+            WHERE r.id = ?");
+        $lookup->execute([$data['id']]);
+        $info = $lookup->fetch(PDO::FETCH_ASSOC);
+        if ($info && $info['user_id']) {
+            $newStatus = $data['status'];
+            $isOk = ($newStatus === 'approved');
+            $title = $isOk ? '✅ กิจกรรมได้รับการรับรองแล้ว'
+                   : ($newStatus === 'rejected' ? '❌ กิจกรรมไม่ผ่านการรับรอง'
+                                                : '🔄 สถานะกิจกรรมถูกปรับ');
+            cnp_notify(
+                $pdo,
+                (int) $info['user_id'],
+                $title,
+                "กิจกรรม: {$info['activity_name']}",
+                'student_public_service.html',
+                $isOk ? 'bi-patch-check-fill' : ($newStatus === 'rejected' ? 'bi-x-circle-fill' : 'bi-arrow-repeat'),
+                $isOk ? '#10b981' : ($newStatus === 'rejected' ? '#ef4444' : '#3b82f6'),
+                'public_service',
+                'ps_status_' . $info['id']
+            );
+        }
+
         echo json_encode(['success' => true]);
     } catch (PDOException $e) { error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => 'ระบบขัดข้องชั่วคราว']); }
 }

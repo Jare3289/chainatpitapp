@@ -16,9 +16,18 @@ $end_date = $_GET['end_date'] ?? date('Y-m-d');
 
 if (!$room) {
     // If room not provided, try to find the teacher's advisory room
-    $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $room = $stmt->fetchColumn();
+    // Prefer rooms.classroom_code (via advisory_room_id), fall back to teachers.classroom text
+    try {
+        $stmt = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS room_code
+                               FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id
+                               WHERE t.user_id = ? LIMIT 1");
+        $stmt->execute([$user_id]);
+        $room = $stmt->fetchColumn() ?: null;
+    } catch (Exception $e) {
+        $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
+        $room = $stmt->fetchColumn() ?: null;
+    }
 }
 
 if (!$room) {
@@ -58,7 +67,7 @@ try {
                        COUNT(a.id) as total_sessions
                 FROM students s
                 LEFT JOIN attendance a ON s.id = a.student_id AND a.date BETWEEN ? AND ? AND a.type = 'daily'
-                WHERE s.room = ?
+                WHERE s.class_name = ?
                 GROUP BY s.id
                 ORDER BY absent_count DESC, CAST(s.number_in_class AS UNSIGNED) ASC";
     $stmt = $pdo->prepare($sqlRank);

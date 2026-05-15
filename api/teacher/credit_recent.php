@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once '../../config.php';
+require_once '../../inc/classroom_codes.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
@@ -20,12 +21,16 @@ try {
         $params[] = $user_id;
     } elseif ($type === 'room') {
         // Keep room type for other potential uses, but teachers are now locked to 'my' by default or choice
-        $stmtRoom = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ?");
+        $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
         $stmtRoom->execute([$user_id]);
         $room = $stmtRoom->fetchColumn();
         if ($room) {
-            $whereClauses[] = "s.room = ?";
-            $params[] = $room;
+            $vars = cnp_classroom_code_variants((string) $room);
+            $ph   = implode(',', array_fill(0, count($vars), '?'));
+            $whereClauses[] = "s.class_name IN ($ph)";
+            foreach ($vars as $v) {
+                $params[] = $v;
+            }
         }
     } elseif ($type === 'my') {
         $whereClauses[] = "t.recorded_by = ?";
@@ -43,7 +48,7 @@ try {
                 s.student_id,
                 s.first_name_th,
                 s.last_name_th,
-                s.room,
+                s.class_name AS room,
                 i.item_name as reason,
                 u.username as teacher_name
             FROM point_transactions t

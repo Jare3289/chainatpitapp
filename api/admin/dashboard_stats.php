@@ -62,16 +62,16 @@ try {
 
     // 5. Top 10 rooms with most problem attendance (absent + leave + late combined)
     $problemRooms = $pdo->prepare("
-        SELECT r.classroom_code AS room_code,
+        SELECT s.class_name AS room_code,
                SUM(CASE WHEN a.status = 'ขาด' THEN 1 ELSE 0 END) AS absent,
                SUM(CASE WHEN a.status = 'สาย' THEN 1 ELSE 0 END) AS late,
                SUM(CASE WHEN a.status IN ('ลา','ป่วย') THEN 1 ELSE 0 END) AS leave_count,
                SUM(CASE WHEN a.status IN ('ขาด','สาย','ลา','ป่วย') THEN 1 ELSE 0 END) AS problem_total
-        FROM rooms r
-        JOIN students s ON s.room_id = r.id
+        FROM students s
         JOIN attendance a ON a.student_id = s.id
         WHERE a.date = ? AND a.type = 'daily'
-        GROUP BY r.id, r.classroom_code
+          AND s.class_name IS NOT NULL AND s.class_name <> ''
+        GROUP BY s.class_name
         HAVING problem_total > 0
         ORDER BY problem_total DESC, absent DESC
         LIMIT 10

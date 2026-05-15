@@ -33,13 +33,14 @@ try {
 
     // 4. Room Attendance (Top 5 or selected)
     $roomData = $pdo->prepare("
-        SELECT s.room, 
+        SELECT s.class_name AS room,
                COUNT(*) as total,
                SUM(CASE WHEN a.status = 'มา' THEN 1 ELSE 0 END) as present
         FROM students s
         LEFT JOIN attendance a ON s.id = a.student_id AND a.date = ?
-        GROUP BY s.room
-        ORDER BY s.room ASC
+        WHERE s.class_name IS NOT NULL AND s.class_name <> ''
+        GROUP BY s.class_name
+        ORDER BY CAST(s.class_name AS UNSIGNED) ASC, s.class_name ASC
         LIMIT 10
     ");
     $roomData->execute([$today]);

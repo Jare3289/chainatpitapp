@@ -6,7 +6,7 @@
  * 
  * Query params:
  *   ?teacher_id=<id>         → ตารางสอนของครูคนนั้น
- *   ?class_name=<1/1>        → ตารางสอนของห้องนั้น (นักเรียนดู)
+ *   ?class_name=101|1/1|ม.1/1 → กรองตารางสอนของห้อง (รูปแบบเทียบเท่า)
  *   ?grade_level=<ม.1>       → กรองตามชั้น
  *   ?day=<1-7>               → กรองตามวัน
  *   ?academic_year=<2568>    → กรองตามปีการศึกษา
@@ -16,6 +16,7 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../inc/security.php';
+require_once __DIR__ . '/../inc/classroom_codes.php';
 session_start();
 cnp_verify_origin();
 
@@ -37,19 +38,21 @@ try {
 
         // 1. นักเรียนดูได้เฉพาะของห้องตัวเอง
         if ($role === 'student') {
-            $stmtStud = $pdo->prepare("SELECT COALESCE(NULLIF(class_name,''), room) AS class_name FROM students WHERE user_id = ? LIMIT 1");
+            $stmtStud = $pdo->prepare("SELECT class_name FROM students WHERE user_id = ? LIMIT 1");
             $stmtStud->execute([$userId]);
             $studInfo = $stmtStud->fetch(PDO::FETCH_ASSOC);
 
             if (!$studInfo && isset($_SESSION['username'])) {
-                $stmtStud2 = $pdo->prepare("SELECT COALESCE(NULLIF(class_name,''), room) AS class_name FROM students WHERE student_id = ? LIMIT 1");
-                $stmtStud2->execute([$_SESSION['username']]);
+                $stmtStud2 = $pdo->prepare("SELECT class_name FROM students WHERE student_id = ? OR email = ? LIMIT 1");
+                $stmtStud2->execute([$_SESSION['username'], $_SESSION['username']]);
                 $studInfo = $stmtStud2->fetch(PDO::FETCH_ASSOC);
             }
 
             if ($studInfo && !empty($studInfo['class_name'])) {
-                $where[]  = 't.class_name = ?';
-                $params[] = $studInfo['class_name'];
+                $alts = cnp_classroom_code_variants((string) $studInfo['class_name']);
+                [$clsSql, $clsParams] = cnp_timetable_homeroom_where_sql('t', $alts);
+                $where[] = $clsSql;
+                $params  = array_merge($params, $clsParams);
             } else {
                 $where[] = '1=0';
             }
@@ -69,8 +72,11 @@ try {
         }
 
         if (!empty($_GET['class_name'])) {
-            $where[]  = 't.class_name = ?';
-            $params[] = $_GET['class_name'];
+            $cn   = trim((string) $_GET['class_name']);
+            $alts = cnp_classroom_code_variants($cn);
+            [$clsSql, $clsParams] = cnp_timetable_homeroom_where_sql('t', $alts);
+            $where[] = $clsSql;
+            $params  = array_merge($params, $clsParams);
         }
         if (!empty($_GET['grade_level'])) {
             $where[]  = 't.grade_level = ?';

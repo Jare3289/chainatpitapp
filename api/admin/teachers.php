@@ -139,23 +139,31 @@ $method = $_SERVER['REQUEST_METHOD'];
 
             // Attempt to create user account
             $email = trim($data['email'] ?? '');
-            $idt = trim($data['teacher_id'] ?? '');
-            $username = filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : $idt;
-            
-            if (!$username) {
-                echo json_encode(['error' => 'กรุณาระบุรหัสครู (IDT) หรืออีเมลเพื่อใช้เป็นชื่อบัญชีผู้ใช้']);
+            $idt   = trim($data['teacher_id'] ?? '');
+
+            // Enforce @chainatpit.ac.th domain
+            if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo json_encode(['error' => 'กรุณาระบุอีเมลให้ถูกต้อง'], JSON_UNESCAPED_UNICODE);
                 exit;
             }
+            if (!str_ends_with(strtolower($email), '@chainatpit.ac.th')) {
+                echo json_encode(['error' => 'อีเมลต้องเป็น @chainatpit.ac.th เท่านั้น'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            $username = $email;
 
             $pdo->beginTransaction();
 
-            $stmtUser = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, 'teacher') 
-                                        ON DUPLICATE KEY UPDATE password = VALUES(password)");
-            $stmtUser->execute([$username, password_hash('cnp12345', PASSWORD_DEFAULT)]);
-            
-            $stmtGetUid = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-            $stmtGetUid->execute([$username]);
-            $uid = $stmtGetUid->fetchColumn();
+            $teacherRoleId = (int)($pdo->query("SELECT id FROM roles WHERE name = 'teacher' LIMIT 1")->fetchColumn() ?: 0);
+            $stmtUser = $pdo->prepare("INSERT INTO users (username, password, role, role_id) VALUES (?, ?, 'teacher', ?)
+                                        ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)");
+            $stmtUser->execute([$username, password_hash('cnp12345', PASSWORD_DEFAULT), $teacherRoleId ?: null]);
+            $uid = (int)$pdo->lastInsertId();
+            if (!$uid) {
+                $stmtGetUid = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+                $stmtGetUid->execute([$username]);
+                $uid = (int)$stmtGetUid->fetchColumn();
+            }
 
             $insertCols = ['user_id'];
             $params = [$uid];
@@ -198,7 +206,7 @@ $method = $_SERVER['REQUEST_METHOD'];
             $stmt->execute($params);
 
             $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'เพิ่มข้อมูลครูสำเร็จ (รหัสผ่านเริ่มต้น: cnp12345)']);
+            echo json_encode(['success' => true, 'message' => "เพิ่มข้อมูลครูสำเร็จ (Username: $username / รหัสผ่าน: cnp12345)"], JSON_UNESCAPED_UNICODE);
         }
     } catch (Exception $e) {
         if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();

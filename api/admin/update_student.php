@@ -2,12 +2,15 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/classroom_codes.php';
 session_start();
 cnp_verify_origin();
 cnp_csrf_verify();
 
-// Auth
-if (empty($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+$role   = $_SESSION['role'] ?? '';
+$userId = (int)($_SESSION['user_id'] ?? 0);
+
+if (!$userId || !in_array($role, ['admin', 'teacher'], true)) {
     http_response_code(403);
     echo json_encode(['error' => 'Forbidden']);
     exit;
@@ -20,13 +23,34 @@ if (!$input) {
     exit;
 }
 
+// Teacher: get advisory room (required for INSERT, checked for UPDATE)
+$advisoryRoom = null;
+if ($role === 'teacher') {
+    try {
+        $stmt = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS room
+                               FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id
+                               WHERE t.user_id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $advisoryRoom = $stmt->fetchColumn() ?: null;
+    } catch (Exception $e) {
+        $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $advisoryRoom = $stmt->fetchColumn() ?: null;
+    }
+    if (!$advisoryRoom) {
+        http_response_code(403);
+        echo json_encode(['error' => 'คุณไม่ได้เป็นครูที่ปรึกษาของห้องใด']);
+        exit;
+    }
+}
+
 $id = $input['id'] ?? null;
 
 // Allowed fields — must exist in students table
 $allowedFields = [
     'student_id', 'prefix', 'first_name_th', 'last_name_th', 'first_name_en', 'last_name_en',
     'nickname', 'id_card', 'birth_date', 'nationality', 'ethnicity', 'religion',
-    'grade_level', 'room', 'number_in_class', 'faculty', 'house',
+    'grade_level', 'class_name', 'number_in_class', 'faculty', 'house',
     'phone', 'email', 'line_id', 'facebook',
     'address_status',
     'curr_house_no', 'curr_moo', 'curr_soi', 'curr_road', 'curr_subdistrict',
@@ -40,13 +64,19 @@ $allowedFields = [
     'weight', 'height', 'blood_group', 'food_allergies', 'drug_allergies', 'congenital_disease',
 ];
 
-// Verify columns actually exist in DB (defensive — also normalize legacy `class_name`)
+// Validate email domain
+$emailInput = trim($input['email'] ?? '');
+if ($emailInput !== '' && !str_ends_with(strtolower($emailInput), '@chainatpit.ac.th')) {
+    echo json_encode(['error' => 'อีเมลต้องเป็น @chainatpit.ac.th เท่านั้น'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 $validCols = [];
 foreach ($pdo->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN) as $col) {
     $validCols[$col] = true;
 }
-if (isset($input['class_name']) && !isset($input['room'])) {
-    $input['room'] = $input['class_name'];     // legacy alias
+if (isset($input['room']) && !isset($input['class_name'])) {
+    $input['class_name'] = $input['room'];
 }
 
 try {
@@ -67,7 +97,19 @@ try {
     }
 
     if ($id) {
-        // UPDATE existing student — only fields actually provided
+        // UPDATE — teacher can only update students in their advisory room
+        if ($role === 'teacher') {
+            $vars = cnp_classroom_code_variants($advisoryRoom);
+            $ph   = implode(',', array_fill(0, count($vars), '?'));
+            $chk  = $pdo->prepare("SELECT id FROM students WHERE id = ? AND class_name IN ($ph) LIMIT 1");
+            $chk->execute(array_merge([(int)$id], $vars));
+            if (!$chk->fetchColumn()) {
+                $pdo->rollBack();
+                echo json_encode(['error' => 'นักเรียนคนนี้ไม่อยู่ในห้องที่ปรึกษาของคุณ'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        }
+
         $fieldsToUpdate = [];
         $values = [];
         foreach ($input as $key => $val) {
@@ -76,22 +118,18 @@ try {
             $fieldsToUpdate[] = "`$key` = ?";
             $values[]         = ($val === '') ? null : $val;
         }
-        if ($photo_path) {
-            $fieldsToUpdate[] = "`photo` = ?";
-            $values[]         = $photo_path;
-        }
+        if ($photo_path) { $fieldsToUpdate[] = "`photo` = ?"; $values[] = $photo_path; }
 
-        if (empty($fieldsToUpdate)) {
-            throw new Exception("ไม่มีข้อมูลที่จะอัปเดต");
-        }
+        if (empty($fieldsToUpdate)) throw new Exception("ไม่มีข้อมูลที่จะอัปเดต");
 
         $values[] = $id;
         $pdo->prepare("UPDATE students SET " . implode(', ', $fieldsToUpdate) . " WHERE id = ?")
             ->execute($values);
         $message = "อัปเดตข้อมูลนักเรียนสำเร็จ";
+
     } else {
         // INSERT new student
-        $stdId = trim($input['student_id'] ?? '');
+        $stdId     = trim($input['student_id'] ?? '');
         $firstName = trim($input['first_name_th'] ?? '');
         if (!$stdId)     throw new Exception("กรุณาระบุรหัสนักเรียน");
         if (!$firstName) throw new Exception("กรุณาระบุชื่อ");
@@ -99,31 +137,31 @@ try {
         // Check duplicate
         $exists = $pdo->prepare("SELECT id FROM students WHERE student_id = ? LIMIT 1");
         $exists->execute([$stdId]);
-        if ($exists->fetchColumn()) {
-            throw new Exception("รหัสนักเรียน $stdId มีอยู่แล้ว");
+        if ($exists->fetchColumn()) throw new Exception("รหัสนักเรียน $stdId มีอยู่แล้ว");
+
+        // Teacher: force class_name to their advisory room
+        if ($role === 'teacher') {
+            $input['class_name'] = $advisoryRoom;
+            if (isset($input['room'])) $input['room'] = $advisoryRoom;
         }
 
-        // Get student role id
         $studentRoleId = (int)$pdo->query("SELECT id FROM roles WHERE name = 'student' LIMIT 1")->fetchColumn();
-
-        // Create user account
         $stmtUser = $pdo->prepare("
             INSERT INTO users (username, password, role, role_id)
             VALUES (?, ?, 'student', ?)
             ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)
         ");
         $stmtUser->execute([$stdId, password_hash('cnp12345', PASSWORD_DEFAULT), $studentRoleId]);
-        $userId = $pdo->lastInsertId();
-        if (!$userId) {
+        $userId2 = (int)$pdo->lastInsertId();
+        if (!$userId2) {
             $g = $pdo->prepare("SELECT id FROM users WHERE username = ?");
             $g->execute([$stdId]);
-            $userId = $g->fetchColumn();
+            $userId2 = (int)$g->fetchColumn();
         }
 
-        // Insert student — only fields provided + that exist
         $fields       = ['user_id'];
         $placeholders = ['?'];
-        $values       = [$userId];
+        $values       = [$userId2];
 
         foreach ($input as $key => $val) {
             if (!in_array($key, $allowedFields, true)) continue;
@@ -133,14 +171,11 @@ try {
             $placeholders[] = '?';
             $values[]       = $val;
         }
-        if ($photo_path) {
-            $fields[]       = "`photo`";
-            $placeholders[] = '?';
-            $values[]       = $photo_path;
-        }
+        if ($photo_path) { $fields[] = "`photo`"; $placeholders[] = '?'; $values[] = $photo_path; }
 
-        $sql = "INSERT INTO students (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
-        $pdo->prepare($sql)->execute($values);
+        $pdo->prepare("INSERT INTO students (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")")
+            ->execute($values);
+
         $message = "เพิ่มนักเรียนใหม่สำเร็จ (Username: $stdId / รหัสผ่าน: cnp12345)";
     }
 

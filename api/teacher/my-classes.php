@@ -14,47 +14,50 @@ $user_id = (int)$_SESSION['user_id'];
 $role    = $_SESSION['role'] ?? '';
 
 try {
-    // ดึงห้องทั้งหมดที่มีนักเรียนอยู่ (ผ่าน FK ไป rooms.classroom_code)
+    // รหัสห้องทั้งหมดจาก students.class_name (เช่น 101 — ตรงกับ rooms.classroom_code / attendance.class_name)
+    $classes = [];
     $stmt = $pdo->query("
-        SELECT DISTINCT r.classroom_code
-        FROM rooms r
-        JOIN students s ON s.room_id = r.id
-        ORDER BY CAST(r.classroom_code AS UNSIGNED) ASC, r.classroom_code ASC
+        SELECT DISTINCT class_name
+        FROM students
+        WHERE class_name IS NOT NULL AND class_name != ''
+        ORDER BY CAST(class_name AS UNSIGNED) ASC, class_name ASC
     ");
-    $classes = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $classes = array_values(array_filter($stmt->fetchAll(PDO::FETCH_COLUMN)));
 
     $advisory = null;
     if ($role === 'teacher') {
-        // ลำดับการหาห้องที่ปรึกษา:
-        //   1) advisory_room_id FK → rooms.classroom_code (ถ้าตั้งไว้)
-        //   2) classroom text (legacy)
-        $stmt = $pdo->prepare("
-            SELECT COALESCE(r.classroom_code, t.classroom) AS room_code
-            FROM teachers t
-            LEFT JOIN rooms r ON r.id = t.advisory_room_id
-            WHERE t.user_id = ?
-            LIMIT 1
-        ");
-        $stmt->execute([$user_id]);
-        $advisory = $stmt->fetchColumn() ?: null;
-
-        // Fallback: เผื่อ teacher record ใช้ teacher_id (รหัสบุคลากร) แทน user_id
-        if (!$advisory && !empty($_SESSION['username'])) {
+        // ลำดับการหาห้องที่ปรึกษา
+        try {
             $stmt = $pdo->prepare("
                 SELECT COALESCE(r.classroom_code, t.classroom) AS room_code
                 FROM teachers t
                 LEFT JOIN rooms r ON r.id = t.advisory_room_id
-                WHERE t.teacher_id = ? OR t.email = ?
+                WHERE t.user_id = ?
                 LIMIT 1
             ");
-            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $stmt->execute([$user_id]);
             $advisory = $stmt->fetchColumn() ?: null;
+        } catch (Exception $e) {
+            // rooms.advisory_room_id ไม่มี — ใช้ classroom text โดยตรง
+            $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ? LIMIT 1");
+            $stmt->execute([$user_id]);
+            $advisory = $stmt->fetchColumn() ?: null;
+        }
+
+        if (!$advisory && !empty($_SESSION['username'])) {
+            try {
+                $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE teacher_id = ? OR email = ? LIMIT 1");
+                $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+                $advisory = $stmt->fetchColumn() ?: null;
+            } catch (Exception $e) { $advisory = null; }
         }
     }
 
-    // Get first attendance date
-    $stmtFirst = $pdo->query("SELECT MIN(date) FROM attendance WHERE type = 'daily'");
-    $firstDate = $stmtFirst->fetchColumn() ?: date('Y-m-d');
+    $firstDate = date('Y-m-d');
+    try {
+        $stmtFirst = $pdo->query("SELECT MIN(date) FROM attendance WHERE type = 'daily'");
+        $firstDate = $stmtFirst->fetchColumn() ?: date('Y-m-d');
+    } catch (Exception $e) {}
 
     echo json_encode([
         'success'       => true,

@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'teac
 }
 
 try {
-    $sql = "SELECT t.*, s.student_id, s.prefix, s.first_name_th, s.last_name_th, s.room, 
+    $sql = "SELECT t.*, s.student_id, s.prefix, s.first_name_th, s.last_name_th, s.class_name AS room, 
             i.item_name, c.category_name, u.username as recorder_name
             FROM point_transactions t
             JOIN students s ON t.student_id = s.id

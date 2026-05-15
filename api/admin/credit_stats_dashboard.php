@@ -17,7 +17,7 @@ $forceGrade = '';
 
 if ($role === 'teacher') {
     // Get teacher's room from teachers table
-    $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
     $stmt->execute([$userId]);
     $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($teacher && $teacher['classroom']) {

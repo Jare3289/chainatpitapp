@@ -46,12 +46,12 @@ try {
             $userData = array_merge($userData, $details);
         }
     } else if ($role === 'student') {
-        $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, student_id, photo, COALESCE(NULLIF(class_name,''), room) AS class_name, grade_level, number_in_class FROM students WHERE user_id = ?");
+        $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, student_id, photo, class_name, grade_level, number_in_class FROM students WHERE user_id = ?");
         $stmt->execute([$user_id]);
         $details = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$details && isset($_SESSION['username'])) {
-            $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, student_id, photo, COALESCE(NULLIF(class_name,''), room) AS class_name, grade_level, number_in_class FROM students WHERE student_id = ? OR email = ?");
+            $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, student_id, photo, class_name, grade_level, number_in_class FROM students WHERE student_id = ? OR email = ?");
             $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
             $details = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($details && !empty($details['id'])) {

@@ -13,12 +13,12 @@ if (!isset($_SESSION['user_id'])) {
 $date = $_GET['date'] ?? date('Y-m-d');
 
 try {
-    // 1. Get all rooms that have students (via FK)
+    // 1. All homeroom codes that have students (matches rooms.classroom_code / attendance.class_name)
     $stmt = $pdo->query("
-        SELECT DISTINCT r.classroom_code
-        FROM rooms r
-        JOIN students s ON s.room_id = r.id
-        ORDER BY CAST(r.classroom_code AS UNSIGNED) ASC, r.classroom_code ASC
+        SELECT DISTINCT class_name
+        FROM students
+        WHERE class_name IS NOT NULL AND class_name <> ''
+        ORDER BY CAST(class_name AS UNSIGNED) ASC, class_name ASC
     ");
     $classes = $stmt->fetchAll(PDO::FETCH_COLUMN);
 

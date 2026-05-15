@@ -45,7 +45,7 @@ try {
             exit;
         }
         
-        $stmt = $pdo->prepare("SELECT id, student_id, prefix, first_name_th, last_name_th, room, number_in_class 
+        $stmt = $pdo->prepare("SELECT id, student_id, prefix, first_name_th, last_name_th, class_name AS room, number_in_class 
                              FROM students 
                              WHERE student_id LIKE ? OR first_name_th LIKE ? OR last_name_th LIKE ? 
                              LIMIT 10");

@@ -12,15 +12,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 $date = $_GET['date'] ?? date('Y-m-d');
 
 try {
-    // Get all rooms from the system
-    // We assume classes or students.room defines the rooms
-    $roomsStmt = $pdo->query("SELECT DISTINCT room FROM students WHERE room IS NOT NULL AND room != '' ORDER BY room ASC");
+    // Get all rooms from the system (classroom code on students.class_name)
+    $roomsStmt = $pdo->query("SELECT DISTINCT class_name FROM students WHERE class_name IS NOT NULL AND class_name != '' ORDER BY CAST(class_name AS UNSIGNED) ASC, class_name ASC");
     $rooms = $roomsStmt->fetchAll(PDO::FETCH_COLUMN);
 
     $report = [];
     foreach ($rooms as $room) {
         // Count students in room
-        $stmtTotal = $pdo->prepare("SELECT COUNT(*) FROM students WHERE room = ?");
+        $stmtTotal = $pdo->prepare("SELECT COUNT(*) FROM students WHERE class_name = ?");
         $stmtTotal->execute([$room]);
         $total = $stmtTotal->fetchColumn();
 
