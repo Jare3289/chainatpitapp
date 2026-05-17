@@ -2,379 +2,827 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ตั้งค่าข้อมูลส่วนตัวนักเรียน | CNP APP</title>
+    <title>โปรไฟล์นักเรียน | CNP APP</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../public/css/style.css">
     <style>
-        :root { --bs-primary: #0f172a; --house-color: #0f172a; --accent-blue: #3b82f6; }
-        body { font-family: 'Google Sans', sans-serif; background-color: #f1f5f9; color: #1e293b; }
-        
-        .id-badge { border-radius: 28px; border: none; background-color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); position: relative; border: 1px solid rgba(255,255,255,0.8); overflow: hidden; transition: 0.3s; }
-        .id-badge:hover { transform: translateY(-5px); }
-        .id-badge-header { height: 160px; background-color: var(--house-color); background-image: url('../public/img/bgprofile.png'); background-size: cover; position: relative; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        .id-badge-header::before { content: ""; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--house-color); opacity: 0.6; mix-blend-mode: multiply; }
-        
-        .profile-avatar-wrapper { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); z-index: 10; }
-        .profile-avatar { width: 120px; height: 120px; border: 5px solid white; object-fit: cover; border-radius: 50%; background: #f8fafc; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        
-        .change-photo-btn { position: absolute; bottom: 5px; right: 5px; width: 34px; height: 34px; border-radius: 12px; background: white; border: none; display: flex; align-items: center; justify-content: center; color: var(--house-color); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 12; transition: 0.2s; }
-        
-        .id-badge-body { padding: 65px 25px 30px 25px; text-align: center; }
-        .id-badge-name-th { font-size: 1.4rem; color: #0f172a; margin-bottom: 2px; font-weight: 800; }
-        .id-badge-student-id { font-size: 0.9rem; font-weight: 600; color: #94a3b8; margin-bottom: 15px; }
-        .id-badge-class { font-size: 0.9rem; color: #475569; font-weight: 700; padding: 4px 12px; background: #f1f5f9; display: inline-block; border-radius: 10px; }
-        
-        .nav-pills-modern { background: #e2e8f0; padding: 6px; border-radius: 18px; display: flex; gap: 4px; }
-        .nav-link-custom { color: #64748b; border-radius: 14px !important; padding: 10px 20px; font-weight: 700; border: none !important; font-size: 0.8rem; transition: 0.3s; flex: 1; text-align: center; }
-        .nav-link-custom.active { background-color: white !important; color: #0f172a !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        
-        .card-modern { border-radius: 24px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .section-header { position: relative; padding-left: 15px; margin-bottom: 20px; }
-        .section-header::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--house-color); border-radius: 4px; }
-        
-        /* View Mode */
-        .view-mode .form-control, .view-mode .form-select {
-            background-color: transparent !important;
-            border: none !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            border-radius: 0 !important;
-            padding-left: 0 !important;
-            cursor: default !important;
-            box-shadow: none !important;
-            pointer-events: none;
-        }
+        :root { --house-color: #0f172a; }
+        body { font-family: 'Google Sans', sans-serif; background: #f1f5f9; color: #1e293b; overflow-x: hidden; }
+        .text-navy { color: #0f172a !important; }
+        .bg-navy { background-color: #0f172a !important; }
+        .btn-navy { background: #0f172a; color: white; border: none; border-radius: 50px; }
+        .btn-navy:hover { background: #1e293b; color: white; }
 
-        .house-option { cursor: pointer; transition: 0.2s; }
-        .house-option:hover { transform: scale(1.2); }
+        /* ID Badge */
+        .id-badge { border-radius: 28px; background: white; box-shadow: 0 20px 50px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 18px; }
+        .id-badge-header { height: 155px; background-color: #0f172a; background-image: url('../public/img/bgprofile.png'); background-size: cover; position: relative; transition: background-color 0.5s; }
+        .id-badge-header::before { content: ""; position: absolute; inset: 0; background: var(--house-color); opacity: 0.55; mix-blend-mode: multiply; transition: background 0.5s; }
+        .profile-avatar-wrapper { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        .profile-avatar { width: 118px; height: 118px; border: 5px solid white; object-fit: cover; border-radius: 50%; box-shadow: 0 8px 25px rgba(0,0,0,0.12); background: #f8fafc; }
+        .id-badge-body { padding: 62px 22px 26px; text-align: center; }
+        .id-badge-name-th { font-size: 1.3rem; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 2px; }
+        .id-badge-name-en { font-size: 0.73rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+
+        /* Cards */
+        .card-modern { border-radius: 20px; border: none; box-shadow: 0 8px 24px rgba(0,0,0,0.05); background: white; margin-bottom: 16px; }
+        .section-title { font-size: 0.95rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+        .section-title .icon-box { width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border-radius: 9px; color: var(--house-color); font-size: 1rem; }
+
+        /* Group Dividers */
+        .group-divider { display: flex; align-items: center; gap: 14px; margin: 30px 0 14px; }
+        .group-divider h5 { font-weight: 900; color: #0f172a; margin: 0; font-size: 1.05rem; white-space: nowrap; }
+        .group-divider .divider-line { flex-grow: 1; height: 2px; background: linear-gradient(to right, var(--house-color), transparent); border-radius: 2px; opacity: 0.4; }
+
+        /* Form Controls */
+        .form-label { font-weight: 700; color: #475569; font-size: 0.82rem; margin-bottom: 5px; display: block; }
+        .form-control, .form-select { border-radius: 12px; padding: 11px 15px; border: 2px solid #e2e8f0; font-size: 0.92rem; font-weight: 500; transition: border-color 0.2s; background: white; }
+        .form-control:focus, .form-select:focus { border-color: var(--house-color); box-shadow: 0 0 0 4px rgba(15,23,42,0.06); outline: none; }
+        .form-control:disabled, .form-select:disabled { background: #f8fafc; color: #64748b; }
+
+        /* Radio Toggle Group */
+        .btn-group-modern { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; width: fit-content; flex-wrap: wrap; }
+        .btn-group-modern .btn { border: none; border-radius: 9px !important; font-weight: 700; font-size: 0.8rem; padding: 8px 14px; color: #64748b; background: transparent; transition: 0.2s; }
+        .btn-check:checked + .btn-outline-primary { background: var(--house-color) !important; color: white !important; border-color: var(--house-color) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        /* View Mode — inputs look like text */
+        #profileForm.view-mode .form-control,
+        #profileForm.view-mode .form-select {
+            background: transparent !important; border: none !important;
+            border-bottom: 1px solid #e2e8f0 !important; border-radius: 0 !important;
+            padding-left: 0 !important; padding-right: 0 !important;
+            pointer-events: none !important; -webkit-appearance: none !important; appearance: none !important;
+            font-weight: 600 !important; color: #1e293b !important; box-shadow: none !important;
+        }
+        #profileForm.view-mode .btn-group-modern { background: transparent; padding: 0; gap: 0; }
+        #profileForm.view-mode .btn-check:not(:checked) + .btn-outline-primary { display: none !important; }
+        #profileForm.view-mode .btn-check:checked + .btn-outline-primary {
+            background: transparent !important; color: var(--house-color) !important;
+            border: none !important; padding-left: 0 !important; font-size: 0.92rem; box-shadow: none !important;
+        }
+        #profileForm.view-mode [for="photoInput"] { display: none !important; }
+
+        /* Completion bar */
+        .completion-wrap { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 18px 20px; margin-bottom: 18px; }
+
+        /* House card */
+        .house-card { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 16px 20px; margin-bottom: 18px; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="sidebar" id="mainSidebar"></div>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
 
-        <main class="app-main main-panel d-flex flex-column min-vh-100" id="main">
-            <div class="app-content page-content py-4">
-                <div class="container-fluid">
-                    
-                    <form id="profileForm" onsubmit="saveProfile(event)" class="view-mode">
-                        <div class="row g-4">
-                            <!-- Left -->
-                            <div class="col-lg-3">
-                                <div class="id-badge mb-4">
-                                    <div class="id-badge-header">
-                                        <div class="profile-avatar-wrapper">
-                                            <img id="displayAvatar" src="../public/img/default-avatar.png" class="profile-avatar">
-                                            <label for="photoInput" class="change-photo-btn shadow-sm" style="display:none;">
-                                                <i class="bi bi-camera-fill"></i>
-                                            </label>
-                                            <input type="file" id="photoInput" class="d-none" accept="image/*" onchange="previewPhoto(this)">
-                                        </div>
-                                    </div>
-                                    <div class="id-badge-body">
-                                        <div class="id-badge-name-th" id="displayNameTH">กำลังโหลด...</div>
-                                        <div class="id-badge-student-id" id="displayStudentId">ID: -</div>
-                                        <div class="id-badge-class" id="displayClassInfo">ระดับชั้น -</div>
-                                        <div class="mt-4">
-                                            <img id="profileQR" src="" style="width: 140px; height: 140px;" alt="QR">
-                                        </div>
-                                    </div>
-                                    <div class="id-badge-footer text-center py-3 bg-light">
-                                        <div class="small fw-bold text-muted">โรงเรียนชัยนาทพิทยาคม</div>
+    <main class="app-main main-panel d-flex flex-column min-vh-100" id="main">
+        <div class="app-content page-content py-4">
+            <div class="container-fluid">
+
+                <form id="profileForm" onsubmit="saveProfile(event)" class="view-mode">
+                    <div class="row g-4 align-items-start">
+
+                        <!-- ===== LEFT: ID Badge ===== -->
+                        <div class="col-lg-3">
+                            <!-- Badge -->
+                            <div class="id-badge">
+                                <div class="id-badge-header">
+                                    <div class="profile-avatar-wrapper">
+                                        <img id="displayAvatar" src="../public/img/default-avatar.png" class="profile-avatar" alt="avatar">
+                                        <label for="photoInput" class="btn btn-white btn-sm rounded-circle shadow position-absolute" style="bottom:0;right:0;padding:6px;cursor:pointer;">
+                                            <i class="bi bi-camera-fill text-primary"></i>
+                                        </label>
+                                        <input type="file" id="photoInput" class="d-none" accept="image/*" onchange="previewPhoto(this)">
                                     </div>
                                 </div>
-
-                                <div class="card card-modern p-3">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="flex-grow-1">
-                                            <h6 class="fw-bold mb-0">คณะสี (HOUSE)</h6>
-                                            <small id="displayHouse" class="text-muted">-</small>
-                                        </div>
-                                        <div id="houseIndicator" class="rounded-circle" style="width:15px; height:15px; background:#ddd;"></div>
+                                <div class="id-badge-body">
+                                    <div class="id-badge-name-th" id="displayNameTH">กำลังโหลด...</div>
+                                    <div class="id-badge-name-en" id="displayNameEN"></div>
+                                    <div class="badge bg-light text-navy px-3 py-2 rounded-pill fw-bold mb-2 shadow-sm" id="displayStudentId">ID: -</div>
+                                    <div class="d-block mt-1 mb-3">
+                                        <span class="badge bg-navy px-3 py-2 rounded-pill" id="displayClassInfo">ระดับชั้น -</span>
                                     </div>
-                                    <div class="d-flex gap-2 justify-content-between px-1" id="housePicker">
-                                        <div class="house-option rounded-circle" data-value="ขุนสรรค์" onclick="selectHouse(this)" title="ขุนสรรค์" style="width:28px; height:28px; background:#db2777;"></div>
-                                        <div class="house-option rounded-circle" data-value="ขุนศรี" onclick="selectHouse(this)" title="ขุนศรี" style="width:28px; height:28px; background:#dc2626;"></div>
-                                        <div class="house-option rounded-circle" data-value="เจ้ายี่" onclick="selectHouse(this)" title="เจ้ายี่" style="width:28px; height:28px; background:#16a34a;"></div>
-                                        <div class="house-option rounded-circle" data-value="ธรรมจักร" onclick="selectHouse(this)" title="ธรรมจักร" style="width:28px; height:28px; background:#ca8a04;"></div>
+                                    <div class="p-2 bg-light rounded-3 d-inline-block">
+                                        <img id="profileQR" src="" style="width:130px;height:130px;display:block;" alt="QR">
                                     </div>
-                                    <input type="hidden" name="house" id="houseInput">
                                 </div>
                             </div>
 
-                            <!-- Right -->
-                            <div class="col-lg-9">
-                                <div class="card card-modern overflow-hidden">
-                                    <div class="p-4 bg-light border-bottom">
-                                        
-                                        <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-4 d-none" id="completionAlert">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-exclamation-circle-fill fs-4 text-warning me-3"></i>
-                                                <div class="flex-grow-1">
-                                                    <h6 class="mb-1 fw-bold">ข้อมูลโปรไฟล์ยังไม่ครบถ้วน</h6>
-                                                    <p class="mb-0 small text-muted">กรุณากรอกข้อมูลเพื่อความสมบูรณ์ของประวัติ <span id="missingFields" class="fw-bold text-dark"></span></p>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-primary rounded-pill" onclick="toggleEditMode(true)">แก้ไข</button>
-                                            </div>
-                                        </div>
+                            <!-- House -->
+                            <div class="house-card">
+                                <div class="section-title mb-2" style="font-size:0.88rem;">
+                                    <span class="icon-box"><i class="bi bi-palette-fill"></i></span>คณะสี (House)
+                                </div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div id="houseIndicator" class="rounded-circle shadow-sm" style="width:22px;height:22px;background:#ddd;border:3px solid white;flex-shrink:0;"></div>
+                                    <span id="displayHouse" class="fw-black text-navy fs-6">-</span>
+                                </div>
+                                <input type="hidden" name="house" id="houseInput">
+                            </div>
 
-                                        <ul class="nav nav-pills-modern mb-4">
-                                            <li class="nav-item flex-fill"><button type="button" class="nav-link nav-link-custom active w-100" data-bs-toggle="tab" data-bs-target="#tab-basic">ข้อมูลส่วนตัว</button></li>
-                                            <li class="nav-item flex-fill"><button type="button" class="nav-link nav-link-custom w-100" data-bs-toggle="tab" data-bs-target="#tab-family">ครอบครัว</button></li>
-                                            <li class="nav-item flex-fill"><button type="button" class="nav-link nav-link-custom w-100" data-bs-toggle="tab" data-bs-target="#tab-contact">ติดต่อ/ที่อยู่</button></li>
-                                            <li class="nav-item flex-fill"><button type="button" class="nav-link nav-link-custom w-100" data-bs-toggle="tab" data-bs-target="#tab-health">สุขภาพ</button></li>
-                                        </ul>
-
-                                        <div class="d-flex justify-content-end gap-2">
-                                            <button type="button" id="editBtn" class="btn btn-navy rounded-pill px-4" onclick="toggleEditMode(true)"><i class="bi bi-pencil me-2"></i>แก้ไขโปรไฟล์</button>
-                                            <button type="button" id="cancelBtn" class="btn btn-light border rounded-pill px-4" onclick="toggleEditMode(false)" style="display:none;">ยกเลิก</button>
-                                            <button type="submit" id="saveBtn" class="btn btn-primary rounded-pill px-4" style="display:none;">บันทึกข้อมูล</button>
-                                        </div>
-                                    </div>
-
-                                    <div class="card-body p-4 pt-5 tab-content">
-                                        <!-- Basic Info -->
-                                        <div class="tab-pane fade show active" id="tab-basic">
-                                            <div class="section-header"><h6 class="fw-bold">ข้อมูลพื้นฐาน</h6></div>
-                                            <div class="row g-3 mb-5">
-                                                <div class="col-md-2"><label class="form-label">คำนำหน้า</label><select name="prefix" class="form-select"><option value="ด.ช.">ด.ช.</option><option value="ด.ญ.">ด.ญ.</option><option value="นาย">นาย</option><option value="นางสาว">นางสาว</option></select></div>
-                                                <div class="col-md-5"><label class="form-label">ชื่อ (TH)</label><input type="text" name="first_name_th" class="form-control" required></div>
-                                                <div class="col-md-5"><label class="form-label">นามสกุล (TH)</label><input type="text" name="last_name_th" class="form-control" required></div>
-                                                <div class="col-md-3"><label class="form-label">ชื่อเล่น</label><input type="text" name="nickname" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">First Name (EN)</label><input type="text" name="first_name_en" class="form-control"></div>
-                                                <div class="col-md-5"><label class="form-label">Last Name (EN)</label><input type="text" name="last_name_en" class="form-control"></div>
-                                            </div>
-
-                                            <div class="section-header"><h6 class="fw-bold">ข้อมูลระบุตัวตน</h6></div>
-                                            <div class="row g-3">
-                                                <div class="col-md-4"><label class="form-label">เลขบัตรประชาชน</label><input type="text" name="id_card" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">วันเกิด</label><input type="date" name="birth_date" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">เพศ</label><select name="gender" class="form-select"><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select></div>
-                                                <div class="col-md-4"><label class="form-label">สัญชาติ</label><input type="text" name="nationality" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">เชื้อชาติ</label><input type="text" name="ethnicity" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">ศาสนา</label><input type="text" name="religion" class="form-control"></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Family -->
-                                        <div class="tab-pane fade" id="tab-family">
-                                            <div class="section-header"><h6 class="fw-bold">ข้อมูลบิดา-มารดา</h6></div>
-                                            <div class="row g-3 mb-4">
-                                                <div class="col-md-6"><label class="form-label">ชื่อ-นามสกุล บิดา</label><input type="text" name="father_name" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">ชื่อ-นามสกุล มารดา</label><input type="text" name="mother_name" class="form-control"></div>
-                                            </div>
-                                            <div class="section-header"><h6 class="fw-bold">ข้อมูลผู้ปกครอง (ที่สามารถติดต่อได้)</h6></div>
-                                            <div class="row g-3">
-                                                <div class="col-md-6"><label class="form-label">ชื่อ-นามสกุล ผู้ปกครอง</label><input type="text" name="guardian_name" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">ความสัมพันธ์</label><input type="text" name="guardian_relation" class="form-control" placeholder="เช่น ลุง, น้า, พี่สาว..."></div>
-                                                <div class="col-md-4"><label class="form-label">เบอร์โทรศัพท์ผู้ปกครอง</label><input type="text" name="guardian_phone" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">อาชีพ</label><input type="text" name="guardian_occupation" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">รายได้ต่อเดือน</label><input type="number" name="guardian_income" class="form-control"></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Contact -->
-                                        <div class="tab-pane fade" id="tab-contact">
-                                            <div class="section-header"><h6 class="fw-bold">การติดต่อ</h6></div>
-                                            <div class="row g-3 mb-5">
-                                                <div class="col-md-6"><label class="form-label">อีเมล</label><input type="email" name="email" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">เบอร์โทรศัพท์</label><input type="text" name="phone" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">LINE ID</label><input type="text" name="line_id" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">Facebook</label><input type="text" name="facebook" class="form-control"></div>
-                                            </div>
-
-                                            <div class="section-header"><h6 class="fw-bold">ที่อยู่ปัจจุบัน</h6></div>
-                                            <div class="row g-3">
-                                                <div class="col-md-3"><label class="form-label">บ้านเลขที่</label><input type="text" name="address_no" class="form-control"></div>
-                                                <div class="col-md-9"><label class="form-label">ถนน/ซอย</label><input type="text" name="address_road" class="form-control"></div>
-                                                <div class="col-md-4"><label class="form-label">จังหวัด</label><select name="address_province" class="form-select province-select" data-target-district="address_district"></select></div>
-                                                <div class="col-md-4"><label class="form-label">อำเภอ</label><select name="address_district" class="form-select district-select" data-target-subdistrict="address_subdistrict"></select></div>
-                                                <div class="col-md-4"><label class="form-label">ตำบล</label><select name="address_subdistrict" class="form-select subdistrict-select" data-target-zipcode="address_zipcode"></select></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Health -->
-                                        <div class="tab-pane fade" id="tab-health">
-                                            <div class="section-header"><h6 class="fw-bold">ข้อมูลสุขภาพ</h6></div>
-                                            <div class="row g-3">
-                                                <div class="col-md-3"><label class="form-label">น้ำหนัก (กก.)</label><input type="number" step="0.1" name="weight" class="form-control"></div>
-                                                <div class="col-md-3"><label class="form-label">ส่วนสูง (ซม.)</label><input type="number" step="0.1" name="height" class="form-control"></div>
-                                                <div class="col-md-3"><label class="form-label">กรุ๊ปเลือด</label><select name="blood_group" class="form-select"><option value="">ระบุ</option><option value="A">A</option><option value="B">B</option><option value="AB">AB</option><option value="O">O</option></select></div>
-                                                <div class="col-md-3"><label class="form-label">วัคซีนโควิด</label><input type="text" name="covid_vaccine" class="form-control"></div>
-                                                <div class="col-md-12"><label class="form-label">โรคประจำตัว</label><input type="text" name="congenital_disease" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">ประวัติการแพ้ยา</label><input type="text" name="drug_allergies" class="form-control"></div>
-                                                <div class="col-md-6"><label class="form-label">ประวัติการแพ้อาหาร</label><input type="text" name="food_allergies" class="form-control"></div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <!-- Completion -->
+                            <div class="completion-wrap">
+                                <div class="fw-bold text-muted small mb-2">ความสมบูรณ์ของโปรไฟล์</div>
+                                <div class="progress rounded-pill mb-2" style="height:10px;">
+                                    <div id="completionProgress" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%; background:var(--house-color);"></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div id="completionLabel" class="fw-black text-navy">0%</div>
+                                    <div id="completionStatus" class="small"></div>
                                 </div>
                             </div>
                         </div>
-                    </form>
 
-                </div>
+                        <!-- ===== RIGHT: All sections ===== -->
+                        <div class="col-lg-9">
+
+                            <!-- Header row -->
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div>
+                                    <h4 class="fw-black text-navy mb-1">โปรไฟล์นักเรียน</h4>
+                                    <p class="text-muted small mb-0">ข้อมูลประวัติและสารสนเทศเชิงลึก</p>
+                                </div>
+                                <div class="d-flex gap-2 flex-shrink-0">
+                                    <button type="button" id="editBtn" class="btn btn-navy px-4 py-2 fw-bold" onclick="toggleEditMode(true)">
+                                        <i class="bi bi-pencil-square me-2"></i>แก้ไข
+                                    </button>
+                                    <button type="button" id="cancelBtn" class="btn btn-light border rounded-pill px-4 py-2 fw-bold" onclick="toggleEditMode(false)" style="display:none;">ยกเลิก</button>
+                                    <button type="submit" id="saveBtn" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" style="display:none;">
+                                        <i class="bi bi-save2-fill me-2"></i>บันทึก
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ── GROUP 1: การศึกษา & ชื่อ ── -->
+                            <div class="group-divider">
+                                <h5><i class="bi bi-mortarboard-fill me-2" style="color:var(--house-color);"></i>ข้อมูลการศึกษา & ชื่อ</h5>
+                                <div class="divider-line"></div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-mortarboard-fill"></i></span>ข้อมูลในระบบการศึกษา</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3"><label class="form-label">รหัสนักเรียน</label><input type="text" name="student_id" class="form-control" disabled></div>
+                                    <div class="col-md-3"><label class="form-label">ระดับชั้น</label><input type="text" name="grade_level" class="form-control" disabled></div>
+                                    <div class="col-md-3"><label class="form-label">ห้องเรียน</label><input type="text" name="class_name" class="form-control" disabled></div>
+                                    <div class="col-md-3"><label class="form-label">เลขที่</label><input type="text" name="number_in_class" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">คณะ</label><input type="text" name="house" class="form-control" disabled></div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-person-fill"></i></span>ชื่อ-นามสกุล</div>
+                                <div class="row g-3">
+                                    <div class="col-md-2"><label class="form-label">คำนำหน้า</label><select name="prefix" class="form-select"></select></div>
+                                    <div class="col-md-5"><label class="form-label">ชื่อ (ภาษาไทย)</label><input type="text" name="first_name_th" class="form-control" required></div>
+                                    <div class="col-md-5"><label class="form-label">นามสกุล (ภาษาไทย)</label><input type="text" name="last_name_th" class="form-control" required></div>
+                                    <div class="col-md-6"><label class="form-label">FIRST NAME (EN)</label><input type="text" name="first_name_en" class="form-control" oninput="this.value=this.value.toUpperCase()"></div>
+                                    <div class="col-md-6"><label class="form-label">LAST NAME (EN)</label><input type="text" name="last_name_en" class="form-control" oninput="this.value=this.value.toUpperCase()"></div>
+                                    <div class="col-md-3"><label class="form-label">ชื่อเล่น</label><input type="text" name="nickname" class="form-control"></div>
+                                    <div class="col-md-9"><label class="form-label">ชื่อจริง (กรณีเปลี่ยนชื่อ)</label><input type="text" name="full_name_th" class="form-control" placeholder="ระบุชื่อจริงเต็ม ถ้ามีการเปลี่ยน"></div>
+                                </div>
+                            </div>
+
+                            <!-- ── GROUP 2: ข้อมูลส่วนบุคคล ── -->
+                            <div class="group-divider">
+                                <h5><i class="bi bi-card-list me-2" style="color:var(--house-color);"></i>ข้อมูลส่วนบุคคล</h5>
+                                <div class="divider-line"></div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-fingerprint"></i></span>ข้อมูลยืนยันตัวตน & อัตลักษณ์</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6"><label class="form-label">เลขบัตรประชาชน (13 หลัก)</label><input type="text" name="id_card" class="form-control" maxlength="13"></div>
+                                    <div class="col-md-6"><label class="form-label">วันเดือนปีเกิด</label><input type="date" name="birth_date" class="form-control"></div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">เพศกำเนิด</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="birth_sex" id="sex_m" value="ชาย"><label class="btn btn-outline-primary" for="sex_m">ชาย</label>
+                                            <input type="radio" class="btn-check" name="birth_sex" id="sex_f" value="หญิง"><label class="btn btn-outline-primary" for="sex_f">หญิง</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6"><label class="form-label">เพศสภาพ (Gender Identity)</label><select name="gender" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">เชื้อชาติ</label><select name="ethnicity" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">สัญชาติ</label><select name="nationality" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">ศาสนา</label><select name="religion" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">เป็นบุตรคนที่</label><input type="number" name="child_order" class="form-control" min="1"></div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-telephone-fill"></i></span>ช่องทางการติดต่อ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6"><label class="form-label">เบอร์โทรศัพท์</label><input type="tel" name="phone" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">อีเมล</label><input type="email" name="email" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">LINE ID</label><input type="text" name="line_id" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">Facebook</label><input type="text" name="facebook" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">Instagram (IG)</label><input type="text" name="instagram" class="form-control"></div>
+                                </div>
+                            </div>
+
+                            <!-- ── GROUP 3: ที่อยู่ ── -->
+                            <div class="group-divider">
+                                <h5><i class="bi bi-geo-alt-fill me-2" style="color:var(--house-color);"></i>ที่อยู่ & สภาพบ้าน</h5>
+                                <div class="divider-line"></div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-house-fill"></i></span>ที่อยู่ตามทะเบียนบ้าน</div>
+                                <div class="row g-3">
+                                    <div class="col-md-2"><label class="form-label">บ้านเลขที่</label><input type="text" name="reg_house_no" class="form-control"></div>
+                                    <div class="col-md-2"><label class="form-label">หมู่ที่</label><input type="text" name="reg_moo" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ซอย</label><input type="text" name="reg_soi" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ถนน</label><input type="text" name="reg_road" class="form-control"></div>
+                                    <div class="col-md-12"><label class="form-label">ชื่อหมู่บ้าน</label><input type="text" name="reg_village" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">จังหวัด</label><select name="reg_province" class="form-select province-select" data-target-district="reg_district"><option value="">เลือกจังหวัด</option></select></div>
+                                    <div class="col-md-4"><label class="form-label">อำเภอ/เขต</label><select name="reg_district" class="form-select district-select" data-target-subdistrict="reg_subdistrict"><option value="">เลือกอำเภอ</option></select></div>
+                                    <div class="col-md-4"><label class="form-label">ตำบล/แขวง</label><select name="reg_subdistrict" class="form-select subdistrict-select" data-zipcode="reg_zipcode"><option value="">เลือกตำบล</option></select></div>
+                                    <div class="col-md-3"><label class="form-label">รหัสไปรษณีย์</label><input type="text" name="reg_zipcode" class="form-control" readonly></div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="section-title mb-0"><span class="icon-box"><i class="bi bi-geo-alt-fill"></i></span>ที่อยู่ปัจจุบัน</div>
+                                    <div class="btn-group-modern">
+                                        <input type="radio" class="btn-check" name="address_status" id="addr_reg" value="ตามทะเบียนบ้าน" onchange="syncAddress(this)">
+                                        <label class="btn btn-outline-primary" for="addr_reg">🏠 ตามทะเบียนบ้าน</label>
+                                        <input type="radio" class="btn-check" name="address_status" id="addr_curr" value="ไม่ได้อยู่ตามทะเบียนบ้าน">
+                                        <label class="btn btn-outline-primary" for="addr_curr">📍 ที่อยู่ใหม่</label>
+                                    </div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-2"><label class="form-label">บ้านเลขที่</label><input type="text" name="curr_house_no" class="form-control"></div>
+                                    <div class="col-md-2"><label class="form-label">หมู่ที่</label><input type="text" name="curr_moo" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ซอย</label><input type="text" name="curr_soi" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ถนน</label><input type="text" name="curr_road" class="form-control"></div>
+                                    <div class="col-md-12"><label class="form-label">ชื่อหมู่บ้าน</label><input type="text" name="curr_village" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">จังหวัด</label><select name="curr_province" class="form-select province-select" data-target-district="curr_district"><option value="">เลือกจังหวัด</option></select></div>
+                                    <div class="col-md-4"><label class="form-label">อำเภอ/เขต</label><select name="curr_district" class="form-select district-select" data-target-subdistrict="curr_subdistrict"><option value="">เลือกอำเภอ</option></select></div>
+                                    <div class="col-md-4"><label class="form-label">ตำบล/แขวง</label><select name="curr_subdistrict" class="form-select subdistrict-select" data-zipcode="curr_zipcode"><option value="">เลือกตำบล</option></select></div>
+                                    <div class="col-md-3"><label class="form-label">รหัสไปรษณีย์</label><input type="text" name="curr_zipcode" class="form-control" readonly></div>
+                                    <div class="col-md-9"><label class="form-label">พิกัด Lat, Long</label><input type="text" name="location_coords" class="form-control" placeholder="เช่น 15.1234, 100.1234"></div>
+                                    <div class="col-md-6"><label class="form-label">จุดสังเกต</label><input type="text" name="location_landmark" class="form-control"></div>
+                                    <div class="col-md-3"><label class="form-label">ผู้ใหญ่บ้าน</label><input type="text" name="village_headman" class="form-control"></div>
+                                    <div class="col-md-3"><label class="form-label">กำนัน</label><input type="text" name="subdistrict_headman" class="form-control"></div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-house-heart-fill"></i></span>สภาพความเป็นอยู่ & สาธารณูปโภค</div>
+                                <div class="row g-3">
+                                    <div class="col-md-4"><label class="form-label">ประเภทบ้าน</label><select name="house_type" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">ลักษณะบ้าน</label><select name="house_style" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">สภาพตัวบ้าน</label><select name="house_condition" class="form-select"></select></div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">ความสะอาด</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="house_cleanliness" id="clean_1" value="เป็นระเบียบ"><label class="btn btn-outline-primary" for="clean_1">เป็นระเบียบ</label>
+                                            <input type="radio" class="btn-check" name="house_cleanliness" id="clean_2" value="ไม่ค่อยสะอาด"><label class="btn btn-outline-primary" for="clean_2">ไม่ค่อยสะอาด</label>
+                                            <input type="radio" class="btn-check" name="house_cleanliness" id="clean_3" value="สกปรก"><label class="btn btn-outline-primary" for="clean_3">สกปรก</label>
+                                            <input type="radio" class="btn-check" name="house_cleanliness" id="clean_4" value="ไม่มีระเบียบ"><label class="btn btn-outline-primary" for="clean_4">ไม่มีระเบียบ</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">ไฟฟ้า</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="has_electricity" id="elec_y" value="มี"><label class="btn btn-outline-primary" for="elec_y">มี</label>
+                                            <input type="radio" class="btn-check" name="has_electricity" id="elec_n" value="ไม่มี"><label class="btn btn-outline-primary" for="elec_n">ไม่มี</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">น้ำประปา</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="has_water" id="water_y" value="มี"><label class="btn btn-outline-primary" for="water_y">มี</label>
+                                            <input type="radio" class="btn-check" name="has_water" id="water_n" value="ไม่มี"><label class="btn btn-outline-primary" for="water_n">ไม่มี</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">ห้องน้ำ</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="has_toilet" id="toilet_y" value="มี"><label class="btn btn-outline-primary" for="toilet_y">มี</label>
+                                            <input type="radio" class="btn-check" name="has_toilet" id="toilet_n" value="ไม่มี"><label class="btn btn-outline-primary" for="toilet_n">ไม่มี</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4"><label class="form-label">ระยะทางจากโรงเรียน (กม.)</label><input type="number" step="0.1" name="dist_to_school" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ใช้เวลาเดินทาง (นาที)</label><input type="number" name="travel_time" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">เดินทางโดย</label><select name="travel_method" class="form-select"></select></div>
+                                </div>
+                            </div>
+
+                            <!-- ── GROUP 4: ครอบครัว ── -->
+                            <div class="group-divider">
+                                <h5><i class="bi bi-people-fill me-2" style="color:var(--house-color);"></i>ครอบครัว & ผู้ปกครอง</h5>
+                                <div class="divider-line"></div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-person-heart"></i></span>ข้อมูลบิดา</div>
+                                <div class="row g-3">
+                                    <div class="col-md-2"><label class="form-label">คำนำหน้า</label><select name="f_prefix" class="form-select"></select></div>
+                                    <div class="col-md-5"><label class="form-label">ชื่อบิดา</label><input type="text" name="f_first_name" class="form-control"></div>
+                                    <div class="col-md-5"><label class="form-label">นามสกุลบิดา</label><input type="text" name="f_last_name" class="form-control"></div>
+                                    <div class="col-md-2"><label class="form-label">อายุ</label><input type="number" name="f_age" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">เบอร์โทรศัพท์</label><input type="tel" name="f_phone" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">วุฒิการศึกษา</label><select name="f_education" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">อาชีพ</label><input type="text" name="f_job" class="form-control"></div>
+                                    <div class="col-md-8"><label class="form-label">สถานที่ทำงาน</label><input type="text" name="f_workplace" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">รายได้ต่อเดือน (บาท)</label><input type="number" name="f_income" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">สถานะบิดา</label><select name="f_family_status" class="form-select"></select></div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">เบิกค่าเล่าเรียน</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="f_welfare" id="f_wel_y" value="ได้"><label class="btn btn-outline-primary" for="f_wel_y">ได้</label>
+                                            <input type="radio" class="btn-check" name="f_welfare" id="f_wel_n" value="ไม่ได้"><label class="btn btn-outline-primary" for="f_wel_n">ไม่ได้</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-person-heart"></i></span>ข้อมูลมารดา</div>
+                                <div class="row g-3">
+                                    <div class="col-md-2"><label class="form-label">คำนำหน้า</label><select name="m_prefix" class="form-select"></select></div>
+                                    <div class="col-md-5"><label class="form-label">ชื่อมารดา</label><input type="text" name="m_first_name" class="form-control"></div>
+                                    <div class="col-md-5"><label class="form-label">นามสกุลมารดา</label><input type="text" name="m_last_name" class="form-control"></div>
+                                    <div class="col-md-2"><label class="form-label">อายุ</label><input type="number" name="m_age" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">เบอร์โทรศัพท์</label><input type="tel" name="m_phone" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">วุฒิการศึกษา</label><select name="m_education" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">อาชีพ</label><input type="text" name="m_job" class="form-control"></div>
+                                    <div class="col-md-8"><label class="form-label">สถานที่ทำงาน</label><input type="text" name="m_workplace" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">รายได้ต่อเดือน (บาท)</label><input type="number" name="m_income" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">สถานะมารดา</label><select name="m_family_status" class="form-select"></select></div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">เบิกค่าเล่าเรียน</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="m_welfare" id="m_wel_y" value="ได้"><label class="btn btn-outline-primary" for="m_wel_y">ได้</label>
+                                            <input type="radio" class="btn-check" name="m_welfare" id="m_wel_n" value="ไม่ได้"><label class="btn btn-outline-primary" for="m_wel_n">ไม่ได้</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-person-check-fill"></i></span>ข้อมูลผู้ปกครอง</div>
+                                <div class="row g-3">
+                                    <div class="col-md-5"><label class="form-label">สถานภาพครอบครัวรวม</label><select name="family_status" class="form-select"></select></div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">ผู้ปกครองคือ</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="guardian_relation" id="g_rel_f" value="บิดา"><label class="btn btn-outline-primary" for="g_rel_f">บิดา</label>
+                                            <input type="radio" class="btn-check" name="guardian_relation" id="g_rel_m" value="มารดา"><label class="btn btn-outline-primary" for="g_rel_m">มารดา</label>
+                                            <input type="radio" class="btn-check" name="guardian_relation" id="g_rel_o" value="ผู้อื่น"><label class="btn btn-outline-primary" for="g_rel_o">ผู้อื่น</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3"><label class="form-label">รายได้รวมผู้ปกครอง (บาท)</label><input type="number" name="g_income" class="form-control"></div>
+                                    <div class="col-12"><hr class="my-1"></div>
+                                    <div class="col-md-2"><label class="form-label">คำนำหน้า</label><select name="g_prefix" class="form-select"></select></div>
+                                    <div class="col-md-5"><label class="form-label">ชื่อผู้ปกครอง</label><input type="text" name="g_first_name" class="form-control"></div>
+                                    <div class="col-md-5"><label class="form-label">นามสกุลผู้ปกครอง</label><input type="text" name="g_last_name" class="form-control"></div>
+                                    <div class="col-md-3"><label class="form-label">เบอร์โทรศัพท์</label><input type="tel" name="g_phone" class="form-control"></div>
+                                    <div class="col-md-2"><label class="form-label">อายุ</label><input type="number" name="g_age" class="form-control"></div>
+                                    <div class="col-md-7"><label class="form-label">วุฒิการศึกษา</label><select name="g_education" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">อาชีพ</label><input type="text" name="g_job" class="form-control"></div>
+                                    <div class="col-md-8"><label class="form-label">สถานที่ทำงาน</label><input type="text" name="g_workplace" class="form-control"></div>
+                                </div>
+                            </div>
+
+                            <!-- ── GROUP 5: สมาชิก & สังคม ── -->
+                            <div class="group-divider">
+                                <h5><i class="bi bi-house-heart-fill me-2" style="color:var(--house-color);"></i>สมาชิก & สภาพสังคม</h5>
+                                <div class="divider-line"></div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-people-fill"></i></span>สมาชิกในครัวเรือน</div>
+                                <div class="row g-3">
+                                    <div class="col-md-4"><label class="form-label">สมาชิกทั้งหมด (คน)</label><input type="number" name="total_family_members" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ชาย (คน)</label><input type="number" name="male_members" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">หญิง (คน)</label><input type="number" name="female_members" class="form-control"></div>
+                                    <div class="col-12 mt-2"><p class="small fw-bold text-muted mb-0">พี่น้องร่วมบิดามารดา</p></div>
+                                    <div class="col-md-4"><label class="form-label">จำนวน (คน)</label><input type="number" name="full_siblings" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ชาย (คน)</label><input type="number" name="full_siblings_male" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">หญิง (คน)</label><input type="number" name="full_siblings_female" class="form-control"></div>
+                                    <div class="col-12 mt-1"><p class="small fw-bold text-muted mb-0">พี่น้องต่างบิดามารดา</p></div>
+                                    <div class="col-md-4"><label class="form-label">จำนวน (คน)</label><input type="number" name="half_siblings" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ชาย (คน)</label><input type="number" name="half_siblings_male" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">หญิง (คน)</label><input type="number" name="half_siblings_female" class="form-control"></div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-chat-heart-fill"></i></span>ความสัมพันธ์ & วิถีชีวิต</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6"><label class="form-label">ความสัมพันธ์ของสมาชิก</label><select name="family_relationship" class="form-select"></select></div>
+                                    <div class="col-md-3"><label class="form-label">กับบิดา</label><select name="rel_father" class="form-select"></select></div>
+                                    <div class="col-md-3"><label class="form-label">กับมารดา</label><select name="rel_mother" class="form-select"></select></div>
+                                    <div class="col-md-3"><label class="form-label">กับพี่/น้องชาย</label><select name="rel_brothers" class="form-select"></select></div>
+                                    <div class="col-md-3"><label class="form-label">กับพี่/น้องสาว</label><select name="rel_sisters" class="form-select"></select></div>
+                                    <div class="col-md-3"><label class="form-label">กับปู่ย่าตายาย</label><select name="rel_grandparents" class="form-select"></select></div>
+                                    <div class="col-md-3"><label class="form-label">กับญาติพี่น้อง</label><select name="rel_relatives" class="form-select"></select></div>
+                                    <div class="col-md-4"><label class="form-label">เวลาอยู่ร่วมกัน (ชม./วัน)</label><input type="number" step="0.5" name="time_spent_together" class="form-control"></div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">ได้รับเงินจาก</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="allowance_source" id="money_f" value="บิดา"><label class="btn btn-outline-primary" for="money_f">บิดา</label>
+                                            <input type="radio" class="btn-check" name="allowance_source" id="money_m" value="มารดา"><label class="btn btn-outline-primary" for="money_m">มารดา</label>
+                                            <input type="radio" class="btn-check" name="allowance_source" id="money_g" value="ผู้ปกครอง"><label class="btn btn-outline-primary" for="money_g">ผู้ปกครอง</label>
+                                            <input type="radio" class="btn-check" name="allowance_source" id="money_r" value="ญาติ"><label class="btn btn-outline-primary" for="money_r">ญาติ</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4"><label class="form-label">ได้เงินวันละ (บาท)</label><input type="number" name="allowance_per_day" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">ภาระรับผิดชอบในบ้าน</label><textarea name="responsibilities" class="form-control" rows="2"></textarea></div>
+                                    <div class="col-md-6"><label class="form-label">อยู่กับใครเมื่อผู้ปกครองไม่ว่าง</label><select name="caregiver_when_away" class="form-select"></select></div>
+                                    <div class="col-md-6"><label class="form-label">ทำงานพิเศษ (ลักษณะงาน)</label><input type="text" name="part_time_job" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">รายได้จากงานพิเศษ (บาท)</label><input type="number" name="part_time_income" class="form-control"></div>
+                                </div>
+                            </div>
+
+                            <!-- ── GROUP 6: สุขภาพ & ทักษะ ── -->
+                            <div class="group-divider">
+                                <h5><i class="bi bi-activity me-2" style="color:var(--house-color);"></i>สุขภาพ & ทักษะ</h5>
+                                <div class="divider-line"></div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-heart-pulse-fill"></i></span>ข้อมูลทางกายภาพ & สุขภาพ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3"><label class="form-label">น้ำหนัก (กก.)</label><input type="number" step="0.1" name="weight" class="form-control bmi-calc"></div>
+                                    <div class="col-md-3"><label class="form-label">ส่วนสูง (ซม.)</label><input type="number" step="0.1" name="height" class="form-control bmi-calc"></div>
+                                    <div class="col-md-3"><label class="form-label">BMI</label><input type="text" id="displayBMI" class="form-control fw-bold text-center" readonly></div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">กรุ๊ปเลือด</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_a" value="A"><label class="btn btn-outline-primary" for="bg_a">A</label>
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_b" value="B"><label class="btn btn-outline-primary" for="bg_b">B</label>
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_ab" value="AB"><label class="btn btn-outline-primary" for="bg_ab">AB</label>
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_o" value="O"><label class="btn btn-outline-primary" for="bg_o">O</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4"><label class="form-label">แพ้อาหาร</label><input type="text" name="food_allergies" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">แพ้ยา</label><input type="text" name="drug_allergies" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">โรคประจำตัว</label><input type="text" name="congenital_disease" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">การฉีดวัคซีนโควิด</label><select name="covid_vaccine" class="form-select"></select></div>
+                                </div>
+                            </div>
+
+                            <div class="card-modern p-4">
+                                <div class="section-title"><span class="icon-box"><i class="bi bi-star-fill"></i></span>ทักษะ & ความสนใจ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">เข้าถึงอินเทอร์เน็ต</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="internet_access" id="net_y" value="ได้"><label class="btn btn-outline-primary" for="net_y">ได้</label>
+                                            <input type="radio" class="btn-check" name="internet_access" id="net_n" value="ไม่ได้"><label class="btn btn-outline-primary" for="net_n">ไม่ได้</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8"><label class="form-label">ใช้โซเชียลมีเดีย (ชม./วัน)</label><input type="number" step="0.5" name="social_media_usage" class="form-control"></div>
+                                    <div class="col-md-6"><label class="form-label">ความสามารถพิเศษ</label><textarea name="talents" class="form-control" rows="2"></textarea></div>
+                                    <div class="col-md-6"><label class="form-label">ความสนใจ</label><textarea name="interests" class="form-control" rows="2"></textarea></div>
+                                    <div class="col-12"><label class="form-label">งานอดิเรก</label><textarea name="hobbies" class="form-control" rows="2"></textarea></div>
+                                </div>
+                            </div>
+
+                        </div><!-- /col-lg-9 -->
+                    </div><!-- /row -->
+                </form>
+
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../public/js/main.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../public/js/main.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-    <script>
-        let currentPhotoBase64 = null;
-        let isEditing = false;
+<script>
+    // ──── Data Constants ────
+    const TH_PREFIXES        = ['เด็กชาย','เด็กหญิง','นาย','นางสาว','นาง','หม่อมหลวง','หม่อมราชวงศ์','หม่อมเจ้า'];
+    const TH_PREFIXES_ADULT  = ['นาย','นาง','นางสาว','ดร.','พลเอก','พลโท','พลตรี','พันเอก','พันโท','พันตรี','ร้อยเอก','ร้อยโท','ร้อยตรี'];
+    const GENDERS            = ['ชาย','หญิง','เกย์','กระเทย','ทอม','เลสเบี้ยน','ไบเซกชวล','ผู้ชายข้ามเพศ','ผู้หญิงข้ามเพศ','นอนไบนารี','ไม่ต้องการระบุ','อื่น ๆ'];
+    const ETHNICITIES        = ['ไทย','จีน','มอญ','พม่า','ลาว','กัมพูชา','มลายู','อินเดีย','ญี่ปุ่น','เกาหลี','อื่น ๆ'];
+    const NATIONALITIES      = ['ไทย','จีน','พม่า','ลาว','กัมพูชา','มาเลเซีย','เวียดนาม','ฟิลิปปินส์','อินโดนีเซีย','อินเดีย','ญี่ปุ่น','เกาหลีใต้','อื่น ๆ','ไม่ต้องการระบุ'];
+    const RELIGIONS          = ['พุทธ','คริสต์','อิสลาม','พราหมณ์-ฮินดู','ซิกข์','ไม่มีศาสนา','อื่น ๆ','ไม่ต้องการระบุ'];
+    const EDUCATIONS         = ['ประถมศึกษา','มัธยมศึกษา','ประกาศนียบัตรวิชาชีพ','ประกาศนียบัตรวิชาชีพชั้นสูง','อนุปริญญา','ปริญญาบัณฑิต','ปริญญามหาบัณฑิต','ปริญญาดุษฎีบัณฑิต','ไม่มีข้อมูล'];
+    const FAMILY_STATUSES_OVERALL    = ['อยู่ด้วยกันจดทะเบียนสมรส','อยู่ด้วยกันไม่ได้จดทะเบียนสมรส','หย่าร้าง','แยกกันอยู่','บิดาหรือมารดาถึงแก่กรรม','บิดาและมารดาถึงแก่กรรม','บิดาถึงแก่กรรมมารดาแต่งงานใหม่','มารดาถึงแก่กรรมบิดาแต่งงานใหม่'];
+    const FAMILY_STATUSES_INDIVIDUAL = ['อยู่ด้วยกัน','หย่าร้าง','แยกกันอยู่','ถึงแก่กรรม'];
+    const RELATION_LEVELS    = ['สนิทสนม','เฉย ๆ','ห่างเหิน','ขัดแย้ง','ไม่มี'];
+    const HOUSE_TYPES        = ['บ้านของตัวเอง','บ้านญาติ','บ้านเช่า','บ้านพักราชการ','หอพัก'];
+    const HOUSE_STYLES       = ['บ้านเดี่ยว','บ้านแฝด','ทาวน์เฮ้าส์','อาคารพาณิชย์','ห้องชุด'];
+    const HOUSE_CONDITIONS   = ['ดี','พอใช้','เก่าทรุดโทรม','พื้นที่คับแคบ','ไม่มีความเป็นสัดส่วน'];
+    const TRAVEL_METHODS     = ['ผู้ปกครองมาส่ง','รถรับส่ง','รถโดยสารประจำทาง','รถจักรยาน','รถยนต์ส่วนตัว','รถจักรยนต์','เดิน'];
+    const VACCINES           = ['1 เข็ม','2 เข็ม','3 เข็ม','4 เข็ม','มากกว่า 5 เข็ม'];
+    const CAREGIVERS         = ['บิดา','มารดา','ปู่-ย่า','ตา-ยาย','ลุง','ป้า','น้า','อา','ญาติ','อยู่คนเดียว','หอพัก'];
+    const FAMILY_RELATIONSHIPS_MEMBER = ['รักใคร่กันดี','ขัดแย้งทะเลาะกันบางครั้ง','ขัดแย้งทะเลาะกันบ่อยครั้ง','ห่างเหิน','ขัดแย้งและทำร้ายร่างกายบางครั้ง','ขัดแย้งและทำร้ายร่างกายบ่อยครั้ง'];
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const user = await checkAuth('student');
-            if (user) {
-                await setupAddressDropdowns();
-                await fetchProfile();
+    // ──── State ────
+    let currentPhotoBase64 = null;
+    let isEditing = false;
+    let addressCache = { provinces: [], districts: {}, subdistricts: {} };
+
+    // ──── Boot ────
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = await checkAuth('student');
+        console.log('[student/profile] auth user:', user);
+        if (user) {
+            populateStaticSelects();
+            await setupAddressDropdowns();
+            await fetchProfile();
+            setupBMICalc();
+        }
+    });
+
+    // Populate all non-address select elements from JS constants
+    function populateStaticSelects() {
+        const map = {
+            'prefix':             TH_PREFIXES,
+            'gender':             GENDERS,
+            'ethnicity':          ETHNICITIES,
+            'nationality':        NATIONALITIES,
+            'religion':           RELIGIONS,
+            'f_prefix':           TH_PREFIXES_ADULT,
+            'f_education':        EDUCATIONS,
+            'f_family_status':    FAMILY_STATUSES_INDIVIDUAL,
+            'm_prefix':           TH_PREFIXES_ADULT,
+            'm_education':        EDUCATIONS,
+            'm_family_status':    FAMILY_STATUSES_INDIVIDUAL,
+            'g_prefix':           TH_PREFIXES_ADULT,
+            'g_education':        EDUCATIONS,
+            'family_status':      FAMILY_STATUSES_OVERALL,
+            'family_relationship':FAMILY_RELATIONSHIPS_MEMBER,
+            'rel_father':         RELATION_LEVELS,
+            'rel_mother':         RELATION_LEVELS,
+            'rel_brothers':       RELATION_LEVELS,
+            'rel_sisters':        RELATION_LEVELS,
+            'rel_grandparents':   RELATION_LEVELS,
+            'rel_relatives':      RELATION_LEVELS,
+            'house_type':         HOUSE_TYPES,
+            'house_style':        HOUSE_STYLES,
+            'house_condition':    HOUSE_CONDITIONS,
+            'travel_method':      TRAVEL_METHODS,
+            'covid_vaccine':      VACCINES,
+            'caregiver_when_away':CAREGIVERS,
+        };
+        for (const [name, opts] of Object.entries(map)) {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el && el.tagName === 'SELECT') {
+                el.innerHTML = '';
+                opts.forEach(v => el.add(new Option(v, v)));
             }
+        }
+    }
+
+    // ──── Fetch & Populate ────
+    async function fetchProfile() {
+        try {
+            const res = await fetch('../api/student/profile.php');
+            const result = await res.json();
+            console.log('[student/profile] API response:', result);
+            if (!result.success) {
+                console.warn('[student/profile] failed:', result.error);
+                Swal.fire('ไม่พบข้อมูล', result.error || 'ไม่พบข้อมูลนักเรียน', 'warning');
+                return;
+            }
+            const data = result.data;
+            console.log('[student/profile] data keys:', Object.keys(data));
+            window.currentStudentData = data;
+
+            // Badge
+            document.getElementById('displayNameTH').innerText = `${data.prefix || ''}${data.first_name_th || ''} ${data.last_name_th || ''}`.trim() || 'ไม่มีชื่อ';
+            document.getElementById('displayNameEN').innerText = `${data.first_name_en || ''} ${data.last_name_en || ''}`.trim();
+            document.getElementById('displayStudentId').innerText = 'ID: ' + (data.student_id || '-');
+
+            const grade = (data.grade_level || '-').toString().replace('มัธยมศึกษาปีที่', '').replace('ม.', '').trim();
+            const room  = (data.class_name || '-').toString().replace(grade, '').trim() || data.class_name || '-';
+            document.getElementById('displayClassInfo').innerText = `ม.${grade} ห้อง ${room}`;
+
+            if (data.photo) document.getElementById('displayAvatar').src = '../' + data.photo;
+
+            try {
+                const qr = new QRious({ value: data.student_id || '-', size: 130 });
+                document.getElementById('profileQR').src = qr.toDataURL();
+            } catch(qrErr) { console.warn('[QR student]', qrErr); }
+
+            setHouseValue(data.house);
+            console.log('[debug] ค่าจริง:', { first_name_th: data.first_name_th, student_id: data.student_id, house: data.house, grade_level: data.grade_level });
+
+            // Populate form fields
+            const form = document.getElementById('profileForm');
+            for (const key in data) {
+                const val = data[key];
+                if (val === null || val === undefined) continue;
+                const inputs = form.querySelectorAll(`[name="${key}"]`);
+                if (!inputs.length) continue;
+
+                if (inputs[0].type === 'radio') {
+                    inputs.forEach(r => { r.checked = (r.value === String(val)); });
+                } else if (key.endsWith('_province')) {
+                    inputs[0].value = val;
+                    if (val) {
+                        const distKey = key.replace('_province', '_district');
+                        const subKey  = key.replace('_province', '_subdistrict');
+                        const zipKey  = key.replace('_province', '_zipcode');
+                        await handleProvinceChange(inputs[0], data[distKey], data[subKey], data[zipKey]);
+                    }
+                } else if (key.endsWith('_district') || key.endsWith('_subdistrict') || key.endsWith('_zipcode')) {
+                    // handled by cascade above
+                } else {
+                    inputs.forEach(el => { el.value = val; });
+                }
+            }
+
+            calcBMI();
+            checkCompletion();
+            toggleEditMode(false);
+        } catch (e) {
+            console.error(e);
+            Swal.fire('ผิดพลาด', 'ไม่สามารถโหลดข้อมูลได้', 'error');
+        }
+    }
+
+    // ──── Address Cascades ────
+    async function setupAddressDropdowns() {
+        const res = await fetch('../api/get-address.php?type=provinces');
+        addressCache.provinces = await res.json();
+        document.querySelectorAll('.province-select').forEach(sel => {
+            sel.innerHTML = '<option value="">เลือกจังหวัด</option>';
+            addressCache.provinces.forEach(p => sel.add(new Option(p.name, p.name)));
+            sel.onchange = function() { handleProvinceChange(this); };
+        });
+    }
+
+    async function handleProvinceChange(sel, distVal = '', subVal = '', zipVal = '') {
+        const pName = sel.value;
+        const p = addressCache.provinces.find(x => x.name === pName);
+        const distSel = document.querySelector(`[name="${sel.dataset.targetDistrict}"]`);
+        if (!distSel) return;
+        if (p) {
+            await populateDistricts(p.id, distSel, distVal, subVal, zipVal);
+        } else {
+            distSel.innerHTML = '<option value="">เลือกอำเภอ</option>';
+        }
+    }
+
+    async function populateDistricts(pId, sel, distVal = '', subVal = '', zipVal = '') {
+        if (!addressCache.districts[pId]) {
+            const res = await fetch(`../api/get-address.php?type=districts&parentId=${pId}`);
+            addressCache.districts[pId] = await res.json();
+        }
+        sel.innerHTML = '<option value="">เลือกอำเภอ</option>';
+        addressCache.districts[pId].forEach(d => sel.add(new Option(d.name, d.name, d.name === distVal, d.name === distVal)));
+        sel.onchange = async function() {
+            const d = addressCache.districts[pId].find(x => x.name === this.value);
+            const sSel = document.querySelector(`[name="${this.dataset.targetSubdistrict}"]`);
+            if (d && sSel) await populateSubdistricts(d.id, sSel);
+            else if (sSel) sSel.innerHTML = '<option value="">เลือกตำบล</option>';
+        };
+        if (distVal) {
+            const d = addressCache.districts[pId].find(x => x.name === distVal);
+            const sSel = document.querySelector(`[name="${sel.dataset.targetSubdistrict}"]`);
+            if (d && sSel) await populateSubdistricts(d.id, sSel, subVal, zipVal);
+        }
+    }
+
+    async function populateSubdistricts(dId, sel, subVal = '', zipVal = '') {
+        if (!addressCache.subdistricts[dId]) {
+            const res = await fetch(`../api/get-address.php?type=subdistricts&parentId=${dId}`);
+            addressCache.subdistricts[dId] = await res.json();
+        }
+        sel.innerHTML = '<option value="">เลือกตำบล</option>';
+        addressCache.subdistricts[dId].forEach(s => {
+            const opt = new Option(s.name, s.name, s.name === subVal, s.name === subVal);
+            opt.dataset.zip = s.postcode;
+            sel.add(opt);
+        });
+        sel.onchange = function() {
+            const zipField = document.querySelector(`[name="${this.dataset.zipcode}"]`);
+            const opt = this.options[this.selectedIndex];
+            if (zipField && opt.dataset.zip) zipField.value = opt.dataset.zip;
+        };
+        if (zipVal) {
+            const zipField = document.querySelector(`[name="${sel.dataset.zipcode}"]`);
+            if (zipField) zipField.value = zipVal;
+        }
+    }
+
+    // ──── View / Edit Toggle ────
+    function toggleEditMode(editing) {
+        isEditing = editing;
+        const form = document.getElementById('profileForm');
+        if (editing) form.classList.remove('view-mode'); else form.classList.add('view-mode');
+
+        const locked = ['student_id', 'grade_level', 'class_name'];
+        form.querySelectorAll('input, select, textarea').forEach(el => {
+            if (locked.includes(el.name)) el.disabled = true;
+            else el.disabled = !editing;
         });
 
-        async function fetchProfile() {
-            try {
-                const res = await fetch('../api/student/profile.php');
-                const result = await res.json();
-                if (result.success) {
-                    const data = result.data;
-                    document.getElementById('displayNameTH').innerText = `${data.prefix || ''}${data.first_name_th || ''} ${data.last_name_th || ''}`;
-                    document.getElementById('displayStudentId').innerText = 'ID: ' + (data.student_id || '-');
-                    document.getElementById('displayClassInfo').innerText = `ม.${data.grade_level || '-'}/${data.class_name || '-'}`;
-                    if (data.photo) document.getElementById('displayAvatar').src = '../' + data.photo;
-                    
-                    const qr = new QRious({ value: data.student_id || '-', size: 140 });
-                    document.getElementById('profileQR').src = qr.toDataURL();
+        document.getElementById('saveBtn').style.display   = editing ? 'inline-block' : 'none';
+        document.getElementById('cancelBtn').style.display = editing ? 'inline-block' : 'none';
+        document.getElementById('editBtn').style.display   = editing ? 'none' : 'inline-block';
+    }
 
-                    const form = document.getElementById('profileForm');
-                    const provinces = await fetch('../api/get-address.php?type=provinces').then(r => r.json());
+    // ──── House ────
+    function setHouseValue(val) {
+        if (!val) return;
+        const colors = { 'ขุนสรรค์': '#db2777', 'ขุนศรี': '#dc2626', 'เจ้ายี่': '#16a34a', 'ธรรมจักร': '#ca8a04' };
+        const color = colors[val] || '#0f172a';
+        document.documentElement.style.setProperty('--house-color', color);
+        document.getElementById('completionProgress').style.background = color;
+        document.getElementById('houseIndicator').style.background = color;
+        document.getElementById('displayHouse').innerText = val;
+        document.getElementById('houseInput').value = val;
+        // Sync the form field [name="house"]
+        const houseInput = document.querySelector('input[name="house"]');
+        if (houseInput) houseInput.value = val;
+    }
 
-                    for (let key in data) {
-                        const el = form.elements[key];
-                        if (key === 'house') {
-                            const house = data[key];
-                            const opt = document.querySelector(`.house-option[data-value="${house}"]`);
-                            if (opt) selectHouse(opt);
-                        } else if (el) {
-                            if (key.includes('_province')) {
-                                el.value = data[key];
-                                const provId = provinces.find(p => p.name === data[key])?.id;
-                                if (provId) await populateDistricts(provId, form.elements[key.replace('_province', '_district')], data[key.replace('_province', '_district')], data[key.replace('_province', '_subdistrict')]);
-                            } else if (key.includes('_district') || key.includes('_subdistrict')) {
-                                // Handled by cascade
-                            } else {
-                                el.value = data[key] || '';
-                            }
-                        }
-                    }
-                    checkCompletion(data);
-                    setTimeout(() => toggleEditMode(false), 100);
-                } else {
-                    Swal.fire('ไม่พบข้อมูล', result.error || 'ไม่สามารถดึงข้อมูลโปรไฟล์ได้', 'warning');
-                    document.getElementById('displayNameTH').innerText = 'ไม่พบข้อมูล';
-                }
-            } catch (e) { 
-                console.error(e);
-                Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์', 'error');
-            }
-        }
-
-        function toggleEditMode(editing) {
-            isEditing = editing;
-            const form = document.getElementById('profileForm');
-            if (editing) form.classList.remove('view-mode'); else form.classList.add('view-mode');
-            
-            form.querySelectorAll('input, select, textarea').forEach(el => el.disabled = !editing);
-            document.getElementById('saveBtn').style.display = editing ? 'inline-block' : 'none';
-            document.getElementById('cancelBtn').style.display = editing ? 'inline-block' : 'none';
-            document.getElementById('editBtn').style.display = editing ? 'none' : 'inline-block';
-            document.querySelector('.change-photo-btn').style.display = editing ? 'flex' : 'none';
-        }
-
-        function checkCompletion(data) {
-            const essential = {
-                id_card: 'เลขบัตรประชาชน',
-                phone: 'เบอร์โทรศัพท์',
-                guardian_name: 'ชื่อผู้ปกครอง',
-                guardian_phone: 'เบอร์โทรผู้ปกครอง',
-                house: 'คณะสี'
-            };
-            let missing = [];
-            for (let k in essential) if (!data[k]) missing.push(essential[k]);
-            const alert = document.getElementById('completionAlert');
-            if (missing.length > 0) {
-                alert.classList.remove('d-none');
-                document.getElementById('missingFields').innerText = '(ขาด: ' + missing.join(', ') + ')';
-            } else alert.classList.add('d-none');
-        }
-
-        function selectHouse(el) {
-            if (!isEditing && document.getElementById('houseInput').value !== "") return;
-            const val = el.dataset.value;
-            document.querySelectorAll('.house-option').forEach(o => o.style.border = 'none');
-            el.style.border = '3px solid #0f172a';
-            document.getElementById('houseInput').value = val;
-            document.getElementById('displayHouse').innerText = val;
-            const colors = { 'ขุนสรรค์': '#db2777', 'ขุนศรี': '#dc2626', 'เจ้ายี่': '#16a34a', 'ธรรมจักร': '#ca8a04' };
-            document.documentElement.style.setProperty('--house-color', colors[val] || '#0f172a');
-            document.getElementById('houseIndicator').style.background = colors[val] || '#ddd';
-        }
-
-        function previewPhoto(i) {
-            if (i.files && i.files[0]) {
-                const r = new FileReader();
-                r.onload = e => { document.getElementById('displayAvatar').src = e.target.result; currentPhotoBase64 = e.target.result; };
-                r.readAsDataURL(i.files[0]);
-            }
-        }
-
-        async function setupAddressDropdowns() {
-            const provinces = await fetch('../api/get-address.php?type=provinces').then(r => r.json());
-            document.querySelectorAll('.province-select').forEach(s => {
-                s.innerHTML = '<option value="">เลือกจังหวัด</option>';
-                provinces.forEach(p => s.add(new Option(p.name, p.name)));
-                s.onchange = async function() {
-                    const id = provinces.find(p => p.name === this.value)?.id;
-                    await populateDistricts(id, document.querySelector(`[name="${this.dataset.targetDistrict}"]`));
-                };
+    // ──── Address Sync ────
+    async function syncAddress(el) {
+        if (el.checked && el.value === 'ตามทะเบียนบ้าน') {
+            const f = document.getElementById('profileForm');
+            const simple = ['house_no','moo','soi','road','village'];
+            simple.forEach(k => {
+                const src = f.elements['reg_' + k];
+                const dst = f.elements['curr_' + k];
+                if (src && dst) dst.value = src.value;
             });
+            const prov = f.elements['reg_province'].value;
+            f.elements['curr_province'].value = prov;
+            await handleProvinceChange(f.elements['curr_province'], f.elements['reg_district'].value, f.elements['reg_subdistrict'].value, f.elements['reg_zipcode'].value);
         }
+    }
 
-        async function populateDistricts(pId, sel, val = '', subVal = '') {
-            sel.innerHTML = '<option value="">เลือกอำเภอ</option>';
-            if (!pId) return;
-            const ds = await fetch(`../api/get-address.php?type=districts&parentId=${pId}`).then(r => r.json());
-            ds.forEach(d => sel.add(new Option(d.name, d.name, d.name === val, d.name === val)));
-            sel.onchange = async function() {
-                const dId = ds.find(d => d.name === this.value)?.id;
-                await populateSubdistricts(dId, document.querySelector(`[name="${this.dataset.targetSubdistrict}"]`), subVal);
-            };
-            if (val) sel.onchange();
+    // ──── BMI ────
+    function setupBMICalc() {
+        document.querySelectorAll('.bmi-calc').forEach(el => el.addEventListener('input', calcBMI));
+    }
+    function calcBMI() {
+        const w = parseFloat(document.querySelector('[name="weight"]').value);
+        const h = parseFloat(document.querySelector('[name="height"]').value) / 100;
+        const el = document.getElementById('displayBMI');
+        if (w > 0 && h > 0) {
+            const bmi = (w / (h * h)).toFixed(2);
+            el.value = bmi;
+            el.className = `form-control fw-bold text-center ${bmi < 18.5 ? 'text-warning' : bmi < 25 ? 'text-success' : 'text-danger'}`;
+        } else {
+            el.value = '';
         }
+    }
 
-        async function populateSubdistricts(dId, sel, val = '') {
-            sel.innerHTML = '<option value="">เลือกตำบล</option>';
-            if (!dId) return;
-            const ss = await fetch(`../api/get-address.php?type=subdistricts&parentId=${dId}`).then(r => r.json());
-            ss.forEach(s => sel.add(new Option(s.name, s.name, s.name === val, s.name === val)));
-            if (val) sel.onchange();
+    // ──── Completion ────
+    function checkCompletion() {
+        const s = window.currentStudentData || {};
+        const essential = ['first_name_th','last_name_th','id_card','phone','reg_province','weight','f_first_name','m_first_name'];
+        const filled = essential.filter(k => s[k] && String(s[k]).trim() !== '' && s[k] !== '-').length;
+        const pct = Math.round((filled / essential.length) * 100);
+        document.getElementById('completionProgress').style.width = pct + '%';
+        document.getElementById('completionLabel').innerText = pct + '%';
+        document.getElementById('completionStatus').innerHTML =
+            pct < 100 ? `<span class="text-danger">ขาดอีก ${essential.length - filled} รายการ</span>` :
+                        '<span class="text-success fw-bold">สมบูรณ์!</span>';
+    }
+
+    // ──── Photo Preview ────
+    function previewPhoto(i) {
+        if (i.files && i.files[0]) {
+            const r = new FileReader();
+            r.onload = e => { document.getElementById('displayAvatar').src = e.target.result; currentPhotoBase64 = e.target.result; };
+            r.readAsDataURL(i.files[0]);
         }
+    }
 
-        async function saveProfile(e) {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target).entries());
-            if (currentPhotoBase64) data.photo_base64 = currentPhotoBase64;
-            
-            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-            const res = await fetch('../api/student/profile.php', { method: 'POST', body: JSON.stringify(data) });
+    // ──── Save ────
+    async function saveProfile(e) {
+        e.preventDefault();
+        const form = e.target;
+        const disabled = Array.from(form.querySelectorAll(':disabled'));
+        disabled.forEach(el => el.disabled = false);
+        const data = Object.fromEntries(new FormData(form).entries());
+        disabled.forEach(el => el.disabled = true);
+        if (currentPhotoBase64) data.photo_base64 = currentPhotoBase64;
+
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch('../api/student/profile.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
             const result = await res.json();
-            if (result.success) { Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย', 'success'); fetchProfile(); } else { Swal.fire('ผิดพลาด', result.error, 'error'); }
+            if (result.success) {
+                await Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'บันทึกข้อมูลเรียบร้อย', timer: 1500, showConfirmButton: false });
+                location.reload();
+            } else {
+                Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกได้', 'error');
+            }
+        } catch (err) {
+            Swal.fire('ผิดพลาด', 'ระบบขัดข้อง กรุณาลองใหม่', 'error');
         }
-    </script>
+    }
+</script>
 </body>
 </html>
