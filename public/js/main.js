@@ -253,14 +253,18 @@ function renderSidebar(role, user, settings = {}) {
                 <div class="info ps-3">
                     ${(() => {
             if (role === 'admin') {
-                const name = (user.first_name_th || '') + ' ' + (user.last_name_th || '');
+                let name = user.first_name_th || user.username;
+                name = name.replace(/^(นาย|นาง|นางสาว|ดร\.|รศ\.|ผศ\.)\s*/, '');
+                name = name.split(' ')[0];
                 const pos = user.position || 'ผู้ดูแลระบบ';
-                return `<div class="user-name">${name.trim() || 'ผู้ดูแลระบบ'}</div>
+                return `<div class="user-name">${name}</div>
                                     <div class="user-role">${pos}</div>`;
             } else if (role === 'teacher') {
-                const name = user.full_name_th || ((user.first_name_th || '') + ' ' + (user.last_name_th || '')).trim();
+                let name = user.first_name_th || user.username;
+                name = name.replace(/^(นาย|นาง|นางสาว|ดร\.|รศ\.|ผศ\.)\s*/, '');
+                name = name.split(' ')[0];
                 const pos = user.academic_standing || user.position || 'ครูผู้สอน';
-                return `<div class="user-name">${name || user.username.split('@')[0]}</div>
+                return `<div class="user-name">${name}</div>
                                     <div class="user-role text-truncate" style="max-width: 130px;">${pos}</div>`;
             } else if (role === 'student') {
                 const firstName = (user.first_name_th || '').trim() || user.username;
@@ -352,6 +356,8 @@ function renderSidebar(role, user, settings = {}) {
             html += _navItem('admin_students.html', 'bi bi-people-fill', 'นักเรียนที่ปรึกษา', a('admin_students.html'));
         }
         html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
+        const supervisionUrl = (role === 'admin') ? 'supervision.html' : 'teacher_supervision.html';
+        html += _navItem(supervisionUrl, 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a(supervisionUrl));
 
         const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
         let psItems = [];
@@ -507,7 +513,8 @@ const SCHEDULE_CONFIG = {
             ['08:00', '08:30'], // คาบ 0 (Homeroom)
             ['08:30', '09:25'], ['09:25', '10:20'], ['10:20', '11:15'],
             ['11:15', '12:10'], ['12:10', '13:05'], ['13:05', '14:00'],
-            ['14:00', '14:55'], ['14:55', '15:50'], ['15:50', '16:45']
+            ['14:00', '14:55'], ['14:55', '15:50'], ['15:50', '16:45'],
+            ['16:45', '17:40'], ['17:40', '18:35']
         ]
     },
     friday: {
@@ -516,7 +523,8 @@ const SCHEDULE_CONFIG = {
             ['08:00', '08:30'], // คาบ 0 (Homeroom)
             ['09:00', '09:50'], ['09:50', '10:40'], ['10:40', '11:35'],
             ['11:35', '12:25'], ['12:25', '13:15'], ['13:15', '14:05'],
-            ['14:05', '15:00'], ['15:00', '15:50'], ['15:50', '16:45']
+            ['14:05', '15:00'], ['15:00', '15:50'], ['15:50', '16:45'],
+            ['16:45', '17:35'], ['17:35', '18:25']
         ]
     },
     sport_1: {
@@ -525,7 +533,8 @@ const SCHEDULE_CONFIG = {
             ['08:00', '08:30'], // คาบ 0 (Homeroom)
             ['08:30', '09:15'], ['09:15', '10:00'], ['10:00', '10:45'],
             ['10:45', '11:30'], ['11:30', '12:15'], ['12:15', '13:00'],
-            ['13:00', '13:45'], ['13:45', '14:30'], ['14:30', '15:15']
+            ['13:00', '13:45'], ['13:45', '14:30'], ['14:30', '15:15'],
+            ['15:15', '16:00'], ['16:00', '16:45']
         ]
     },
     sport_2: {
@@ -534,7 +543,8 @@ const SCHEDULE_CONFIG = {
             ['08:00', '08:30'], // คาบ 0 (Homeroom)
             ['09:00', '09:45'], ['09:45', '10:30'], ['10:30', '11:15'],
             ['11:15', '12:00'], ['12:00', '12:45'], ['12:45', '13:30'],
-            ['13:30', '14:15'], ['14:15', '15:00'], ['15:00', '15:45']
+            ['13:30', '14:15'], ['14:15', '15:00'], ['15:00', '15:45'],
+            ['15:45', '16:30'], ['16:30', '17:15']
         ]
     }
 };

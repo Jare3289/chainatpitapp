@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmt->execute([$user_id]);
         $teacher = $stmt->fetch();
         if ($teacher) {
+            $teacher['house'] = $teacher['faculty'] ?? null; // alias สำหรับ house picker
             echo json_encode(['success' => true, 'data' => $teacher]);
         } else {
             // ดึงข้อมูล username จากตาราง users
@@ -62,6 +63,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     $response_message = 'บันทึกข้อมูลเรียบร้อยแล้ว';
+
+    // map frontend 'house' field → 'faculty' DB column
+    if (!empty($data['house'])) {
+        $data['faculty'] = $data['house'];
+    }
+    unset($data['house']);
 
     // 1. Update Username/Password in users table
     try {

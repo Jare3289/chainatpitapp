@@ -96,7 +96,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // ---------- 4) Database ----------
 $host    = env('DB_HOST', '127.0.0.1');
-$db      = env('DB_NAME', 'cnpapp_system');
+$db      = env('DB_NAME', 'admin_cnpapp');
 $user    = env('DB_USER', 'root');
 $pass    = env('DB_PASS', '');
 $charset = 'utf8mb4';

@@ -70,15 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
 
         // Filter fields
-        $allowed = [
-            'prefix', 'first_name_th', 'last_name_th', 'first_name_en', 'last_name_en', 'nickname',
-            'id_card', 'birth_date', 'nationality', 'ethnicity', 'religion', 'gender',
-            'email', 'phone', 'line_id', 'facebook', 'photo',
-            'weight', 'height', 'blood_group', 'congenital_disease', 'drug_allergies', 'food_allergies', 'covid_vaccine',
-            'house', 'address_no', 'address_road', 'address_subdistrict', 'address_district', 'address_province', 'address_zipcode',
-            'home_address_no', 'home_address_road', 'home_address_subdistrict', 'home_address_district', 'home_address_province', 'home_address_zipcode',
-            'father_name', 'mother_name', 'guardian_name', 'guardian_relation', 'guardian_phone', 'guardian_occupation', 'guardian_income'
-        ];
+        $allowed = ['id_card','student_id_card','house','room_id','grade_level_id','faculty','photo','prefix','first_name_th','last_name_th','is_active','full_name_th','first_name_en','last_name_en','nickname','email','gender','birth_sex','ethnicity','nationality','religion','birth_date','child_order','phone','line_id','facebook','instagram','address_status','reg_house_no','reg_soi','reg_road','reg_moo','reg_village','reg_subdistrict','reg_district','reg_province','reg_zipcode','curr_house_no','curr_soi','curr_road','curr_moo','curr_village','curr_subdistrict','curr_district','curr_province','curr_zipcode','location_coords','location_landmark','village_headman','subdistrict_headman','house_type','house_style','house_condition','house_cleanliness','has_electricity','has_water','has_toilet','dist_to_school','travel_time','travel_method','f_prefix','f_first_name','f_last_name','f_age','f_phone','f_education','f_job','f_workplace','f_family_status','f_welfare','f_income','m_prefix','m_first_name','m_last_name','m_age','m_phone','m_education','m_job','m_workplace','m_family_status','m_welfare','m_income','family_status','guardian_relation','g_prefix','g_first_name','g_last_name','g_age','g_phone','g_education','g_job','g_workplace','g_income','total_family_members','male_members','female_members','full_siblings','full_siblings_male','full_siblings_female','half_siblings','half_siblings_male','half_siblings_female','family_relationship','rel_father','rel_mother','rel_brothers','rel_sisters','rel_grandparents','rel_relatives','time_spent_together','allowance_source','allowance_per_day','responsibilities','caregiver_when_away','part_time_job','part_time_income','weight','height','blood_group','food_allergies','drug_allergies','congenital_disease','covid_vaccine','internet_access','social_media_usage','talents','interests','hobbies'];
 
         $updateParts = [];
         $params = [];
