@@ -293,6 +293,16 @@
                                     </div>
                                     <i class="bi bi-chevron-right quick-arrow"></i>
                                 </a>
+                                <a href="javascript:void(0)" onclick="printDailyReport()" class="quick-item">
+                                    <div class="quick-icon bg-danger-subtle text-danger">
+                                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                                    </div>
+                                    <div class="quick-info">
+                                        <h6>พิมพ์รายงานการมาเรียน PDF</h6>
+                                        <p>สรุปผลรายวันแบบ PDF / A4</p>
+                                    </div>
+                                    <i class="bi bi-printer-fill quick-arrow"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -311,20 +321,19 @@
             
             const user = await checkAuth('admin');
             if (user) { 
-                let displayName = 'ผู้ดูแลระบบ';
-                if (user.first_name_th) {
-                    displayName = user.first_name_th;
-                } else if (user.name) {
-                    // ลบคำนำหน้าชื่อที่พบบ่อย
-                    let name = user.name.replace(/^(นาย|นาง|นางสาว|ดร\.|รศ\.|ผศ\.)\s*/, '');
-                    displayName = name.split(' ')[0];
-                } else {
-                    displayName = user.username;
-                }
+                let name = user.first_name_th || user.name || user.username;
+                // Remove common Thai prefixes and take only the first part
+                name = name.replace(/^(นาย|นาง|นางสาว|ดร\.|รศ\.|ผศ\.)\s*/, '');
+                displayName = name.split(' ')[0];
                 document.getElementById('adminName').textContent = displayName; 
                 loadDashboardData();
             }
         });
+
+        function printDailyReport() {
+            const today = new Date().toISOString().split('T')[0];
+            window.open(`daily_attendance_print.html?date=${today}`, '_blank');
+        }
 
         function updateDateTime() {
             const now = new Date();
@@ -371,6 +380,14 @@
                 const pct = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
                 if(document.getElementById('stat_attendance_pct')) {
                     document.getElementById('stat_attendance_pct').textContent = pct + '%';
+                }
+
+                // Update Banner Academic Year and Last Login Time
+                if (document.getElementById('termBadge') && data.academic_year) {
+                    document.getElementById('termBadge').textContent = `ภาคเรียนที่ ${data.semester}/${data.academic_year}`;
+                }
+                if (document.getElementById('lastLoginTime') && data.last_login) {
+                    document.getElementById('lastLoginTime').textContent = data.last_login;
                 }
 
                 // 1. Gender Chart

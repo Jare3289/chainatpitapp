@@ -106,7 +106,25 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             currentUser = await checkAuth(['teacher', 'admin']);
-            if (currentUser) loadData();
+            if (currentUser) {
+                try {
+                    const settings = await fetchSettings();
+                    if (settings.current_academic_year) {
+                        const yrSelect = document.getElementById('filter-year');
+                        if (![...yrSelect.options].some(o => o.value === settings.current_academic_year)) {
+                            const opt = document.createElement('option');
+                            opt.value = settings.current_academic_year;
+                            opt.textContent = `ปีการศึกษา ${settings.current_academic_year}`;
+                            yrSelect.appendChild(opt);
+                        }
+                        yrSelect.value = settings.current_academic_year;
+                    }
+                    if (settings.current_semester) {
+                        document.getElementById('filter-semester').value = settings.current_semester;
+                    }
+                } catch (e) {}
+                loadData();
+            }
         });
 
         function switchTab(tab) {
@@ -131,8 +149,16 @@
                 if (data.success) {
                     renderCharts(data.records);
                     if (currentTab === 'room') {
-                        renderRoomReport(data.records);
+                        if (data.records && data.records.length > 0 && data.records[0].class_name) {
+                            document.getElementById('room-subtitle').textContent = `สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์ ห้อง ${data.records[0].class_name}`;
+                        } else if (currentUser && currentUser.classroom) {
+                            document.getElementById('room-subtitle').textContent = `สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์ ห้อง ${currentUser.classroom}`;
+                        } else {
+                            document.getElementById('room-subtitle').textContent = 'สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์ นักเรียนในที่ปรึกษา';
+                        }
+                        renderRoomReport(data.records, data.students);
                     } else {
+                        document.getElementById('room-subtitle').textContent = 'ประวัติการรับรองกิจกรรมสาธารณประโยชน์ที่ผ่านมาของคุณ';
                         renderMyHistory(data.records);
                     }
                 }
@@ -194,7 +220,7 @@
             });
         }
 
-        function renderRoomReport(records) {
+        function renderRoomReport(records, roomStudents = []) {
             const body = document.getElementById('table-body');
             const head = document.getElementById('table-head');
             head.innerHTML = `
@@ -202,13 +228,22 @@
                     <th class="ps-4">นักเรียน</th>
                     <th>จำนวนครั้งที่ทำ</th>
                     <th>ความคืบหน้า (เป้าหมาย 20)</th>
+                    <th class="text-center">พิมพ์รายงาน</th>
                     <th class="text-end pe-4">สถานะ</th>
                 </tr>
             `;
             const students = {};
+
+            if (roomStudents && roomStudents.length > 0) {
+                roomStudents.forEach(s => {
+                    const prefix = s.prefix || '';
+                    students[s.id] = { name: `${prefix}${s.first_name_th} ${s.last_name_th}`.trim(), code: s.student_code, count: 0 };
+                });
+            }
+
             records.forEach(r => {
                 if (!students[r.student_id]) {
-                    students[r.student_id] = { name: r.first_name_th + ' ' + r.last_name_th, code: r.student_code, count: 0 };
+                    students[r.student_id] = { name: `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim(), code: r.student_code, count: 0 };
                 }
                 if (r.status === 'approved') students[r.student_id].count++;
             });
@@ -232,13 +267,18 @@
                                 <small class="fw-bold text-muted">${percent.toFixed(0)}%</small>
                             </div>
                         </td>
+                        <td class="text-center">
+                            <a href="student_public_service_print.html?student_id=${s.code}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-navy shadow-sm">
+                                <i class="bi bi-printer-fill text-primary me-1"></i> พิมพ์
+                            </a>
+                        </td>
                         <td class="text-end pe-4">
                             ${percent >= 100 ? '<span class="badge bg-success-subtle text-success rounded-pill px-3">ครบกำหนด</span>' : '<span class="badge bg-warning-subtle text-warning rounded-pill px-3">ยังไม่ครบ</span>'}
                         </td>
                     </tr>
                 `;
             });
-            body.innerHTML = html || '<tr><td colspan="4" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียนในห้อง</td></tr>';
+            body.innerHTML = html || '<tr><td colspan="5" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียนในห้อง</td></tr>';
         }
 
         function renderMyHistory(records) {
@@ -264,7 +304,7 @@
                         </td>
                         <td><div class="fw-bold text-navy">${r.activity_name}</div></td>
                         <td class="small text-muted">${r.location}</td>
-                        <td class="text-end pe-4"><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration} ${r.duration_unit}</span></td>
+                        <td class="text-end pe-4"><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration || 1} ${r.duration_unit || 'ครั้ง'}</span></td>
                     </tr>
                 `;
             });

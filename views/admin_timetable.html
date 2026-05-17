@@ -70,39 +70,32 @@
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-3">
                         <div class="row g-2 align-items-end">
-                            <div class="col-6 col-md-3">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label mb-1">ครูผู้สอน</label>
-                                <select id="filterTeacher" class="form-select form-select-sm">
+                                <select id="filterTeacher" class="form-select">
                                     <option value="">— ครูทุกคน —</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label mb-1">ห้องเรียน (ระบบ 3 หลัก)</label>
+                                <select id="filterClassroom" class="form-select">
+                                    <option value="">— ทุกห้อง —</option>
                                 </select>
                             </div>
                             <div class="col-6 col-md-2">
                                 <label class="form-label mb-1">วัน</label>
-                                <select id="filterDay" class="form-select form-select-sm">
+                                <select id="filterDay" class="form-select">
                                     <option value="">— ทุกวัน —</option>
                                     <option value="1">จันทร์</option><option value="2">อังคาร</option>
                                     <option value="3">พุธ</option><option value="4">พฤหัสบดี</option>
-                                    <option value="5">ศุกร์</option><option value="6">เสาร์</option>
-                                    <option value="7">อาทิตย์</option>
+                                    <option value="5">ศุกร์</option>
                                 </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label mb-1">ชั้น</label>
-                                <select id="filterGrade" class="form-select form-select-sm">
-                                    <option value="">— ทุกชั้น —</option>
-                                    <option>ม.1</option><option>ม.2</option><option>ม.3</option>
-                                    <option>ม.4</option><option>ม.5</option><option>ม.6</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label mb-1">ห้อง</label>
-                                <input type="text" id="filterClass" class="form-control form-control-sm" placeholder="เช่น 1/1">
                             </div>
                             <div class="col-12 col-md-3 d-flex gap-2">
-                                <button class="btn btn-primary btn-sm flex-fill rounded-3" onclick="loadData()">
+                                <button class="btn btn-primary-navy flex-fill rounded-3 shadow-sm" onclick="loadData()">
                                     <i class="bi bi-search me-1"></i>ค้นหา
                                 </button>
-                                <button class="btn btn-light btn-sm rounded-3" onclick="clearFilters()">รีเซ็ต</button>
+                                <button class="btn btn-light rounded-3 border" onclick="clearFilters()"><i class="bi bi-arrow-clockwise"></i></button>
                             </div>
                         </div>
                     </div>
@@ -254,9 +247,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = await checkAuth('admin');
     if (!user) return;
     ttModal = new bootstrap.Modal(document.getElementById('ttModal'));
+    populateClassroomFilter();
     await loadTeachers();
     loadData();
 });
+
+function populateClassroomFilter() {
+    const sel = document.getElementById('filterClassroom');
+    if (!sel) return;
+    let html = '<option value="">— ทุกห้อง —</option>';
+    // Generate ม.1-6, Rooms 1-15
+    for (let g = 1; g <= 6; g++) {
+        for (let r = 1; r <= 15; r++) {
+            const val = `${g}${r.toString().padStart(2, '0')}`;
+            html += `<option value="${val}">ม.${val}</option>`;
+        }
+    }
+    sel.innerHTML = html;
+}
 
 function openImport() {
     initImportModal({
@@ -284,12 +292,17 @@ async function loadData() {
     const params = new URLSearchParams();
     const t = document.getElementById('filterTeacher').value;
     const d = document.getElementById('filterDay').value;
-    const g = document.getElementById('filterGrade').value;
-    const c = document.getElementById('filterClass').value.trim();
+    const cr = document.getElementById('filterClassroom').value;
+
     if (t) params.set('teacher_id', t);
     if (d) params.set('day', d);
-    if (g) params.set('grade_level', g);
-    if (c) params.set('class_name', c);
+    
+    if (cr) {
+        // System 3-digit: e.g. 101 -> Grade ม.1, Class 101
+        const gradeNum = cr.charAt(0);
+        params.set('grade_level', 'ม.' + gradeNum);
+        params.set('class_name', cr);
+    }
 
     const res  = await fetch('../api/admin/timetable.php?' + params.toString());
     const json = await res.json();
@@ -332,8 +345,10 @@ async function loadData() {
 }
 
 function clearFilters() {
-    ['filterTeacher','filterDay','filterGrade'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('filterClass').value = '';
+    ['filterTeacher', 'filterDay', 'filterClassroom'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
     loadData();
 }
 

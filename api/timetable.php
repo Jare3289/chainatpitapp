@@ -94,6 +94,10 @@ try {
             $where[]  = 't.semester = ?';
             $params[] = (int) $_GET['semester'];
         }
+        if (!empty($_GET['department'])) {
+            $where[]  = 'tc.department = ?';
+            $params[] = $_GET['department'];
+        }
 
         $sql = "SELECT 
                     t.*,

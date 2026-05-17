@@ -62,81 +62,171 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <!-- Left: Overview Charts (Mockup with bars) -->
-                        <div class="col-lg-7">
-                            <div class="report-card shadow-sm h-100">
-                                <h6 class="fw-black text-navy mb-4"><i class="bi bi-bar-chart me-2"></i> สรุปจำนวนชั่วโมงสะสมแยกตามระดับชั้น</h6>
-                                
-                                <div id="levelStatsContainer">
-                                    <!-- Dynamic Bars -->
-                                    <div class="mb-4">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 1</span>
-                                            <span class="small text-navy fw-bold" id="hour-m1">0 ชม.</span>
+                    <!-- Filter Section -->
+                    <div class="report-card p-4 mb-4 shadow-sm filter-section">
+                        <div class="row align-items-center g-3">
+                            <div class="col-md-auto">
+                                <label class="fw-bold text-navy small mb-0"><i class="bi bi-funnel-fill me-1"></i> ตัวกรองข้อมูล:</label>
+                            </div>
+                            <div class="col-md-3">
+                                <select id="filter-year" class="form-select border-0 bg-light rounded-pill" onchange="loadStats()">
+                                    <option value="2569" selected>ปีการศึกษา 2569</option>
+                                    <option value="2568">ปีการศึกษา 2568</option>
+                                    <option value="2567">ปีการศึกษา 2567</option>
+                                </select>
+                            </div>
+                            <div class="col-md-auto ms-auto">
+                                <div class="small text-muted"><i class="bi bi-info-circle me-1"></i> สถิติจะคำนวณจากรายการที่ได้รับการ "อนุมัติ" เท่านั้น</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="report-card p-3 mb-0 shadow-sm text-center">
+                                <div class="stat-badge mx-auto mb-2 bg-primary-subtle text-primary"><i class="bi bi-clock-fill"></i></div>
+                                <h3 class="fw-black text-navy mb-0" id="stat-total-hours">0</h3>
+                                <div class="small text-muted">จำนวนครั้งรวมทั้งหมด</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="report-card p-3 mb-0 shadow-sm text-center">
+                                <div class="stat-badge mx-auto mb-2 bg-success-subtle text-success"><i class="bi bi-people-fill"></i></div>
+                                <h3 class="fw-black text-navy mb-0" id="stat-total-students">0</h3>
+                                <div class="small text-muted">นักเรียนที่ร่วมกิจกรรม</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="report-card p-3 mb-0 shadow-sm text-center">
+                                <div class="stat-badge mx-auto mb-2 bg-warning-subtle text-warning"><i class="bi bi-check-circle-fill"></i></div>
+                                <h3 class="fw-black text-navy mb-0" id="stat-passed-goal">0</h3>
+                                <div class="small text-muted">ผ่านเกณฑ์ (20 ครั้ง)</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="report-card p-3 mb-0 shadow-sm text-center">
+                                <div class="stat-badge mx-auto mb-2 bg-info-subtle text-info"><i class="bi bi-graph-up"></i></div>
+                                <h3 class="fw-black text-navy mb-0" id="stat-participation">0%</h3>
+                                <div class="small text-muted">อัตราการมีส่วนร่วม</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-pills gap-2 mb-4" id="statsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="btn btn-outline-navy rounded-pill active px-4 fw-bold" id="tab-overview" data-bs-toggle="pill" data-bs-target="#pane-overview" type="button" role="tab" aria-selected="true">
+                                <i class="bi bi-grid-1x2-fill me-2"></i> ภาพรวม
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="btn btn-outline-navy rounded-pill px-4 fw-bold" id="tab-levels" data-bs-toggle="pill" data-bs-target="#pane-levels" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-bar-chart-fill me-2"></i> แยกตามระดับชั้น
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="btn btn-outline-navy rounded-pill px-4 fw-bold" id="tab-history" data-bs-toggle="pill" data-bs-target="#pane-history" type="button" role="tab" aria-selected="false">
+                                <i class="bi bi-clock-history me-2"></i> ประวัติกิจกรรม
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="statsTabContent">
+                        <!-- Tab 1: Overview -->
+                        <div class="tab-pane fade show active" id="pane-overview" role="tabpanel" aria-labelledby="tab-overview">
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <div class="report-card shadow-sm h-100">
+                                        <h6 class="fw-black text-navy mb-4"><i class="bi bi-star-fill text-warning me-2"></i> นักเรียนดีเด่น (ทำกิจกรรมสูงสุด)</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-borderless align-middle mb-0">
+                                                <tbody id="top-students-list">
+                                                    <!-- Top Students -->
+                                                </tbody>
+                                            </table>
                                         </div>
-                                        <div class="progress"><div class="progress-bar" id="bar-m1" style="width: 0%"></div></div>
                                     </div>
-                                    <div class="mb-4">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 2</span>
-                                            <span class="small text-navy fw-bold" id="hour-m2">0 ชม.</span>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="report-card shadow-sm h-100">
+                                        <h6 class="fw-black text-navy mb-4"><i class="bi bi-trophy-fill text-primary me-2"></i> ห้องเรียนยอดเยี่ยม</h6>
+                                        <div id="topRoomsContainer">
+                                            <!-- Top Rooms -->
                                         </div>
-                                        <div class="progress"><div class="progress-bar" id="bar-m2" style="width: 0%"></div></div>
                                     </div>
-                                    <div class="mb-4">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 3</span>
-                                            <span class="small text-navy fw-bold" id="hour-m3">0 ชม.</span>
+                                </div>
+                                <div class="col-12">
+                                    <div class="report-card shadow-sm">
+                                        <h6 class="fw-black text-navy mb-4"><i class="bi bi-activity me-2"></i> กิจกรรมล่าสุด</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-custom align-middle mb-0">
+                                                <tbody id="recent-activities-simple">
+                                                    <!-- Recent simple list -->
+                                                </tbody>
+                                            </table>
                                         </div>
-                                        <div class="progress"><div class="progress-bar" id="bar-m3" style="width: 0%"></div></div>
-                                    </div>
-                                    <div class="mb-4">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 4</span>
-                                            <span class="small text-navy fw-bold" id="hour-m4">0 ชม.</span>
-                                        </div>
-                                        <div class="progress"><div class="progress-bar" id="bar-m4" style="width: 0%"></div></div>
-                                    </div>
-                                    <div class="mb-4">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 5</span>
-                                            <span class="small text-navy fw-bold" id="hour-m5">0 ชม.</span>
-                                        </div>
-                                        <div class="progress"><div class="progress-bar" id="bar-m5" style="width: 0%"></div></div>
-                                    </div>
-                                    <div class="mb-0">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="small fw-bold">มัธยมศึกษาปีที่ 6</span>
-                                            <span class="small text-navy fw-bold" id="hour-m6">0 ชม.</span>
-                                        </div>
-                                        <div class="progress"><div class="progress-bar" id="bar-m6" style="width: 0%"></div></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right: Top 5 Active Rooms -->
-                        <div class="col-lg-5">
-                            <div class="report-card shadow-sm h-100">
-                                <h6 class="fw-black text-navy mb-4"><i class="bi bi-trophy me-2"></i> ห้องเรียนยอดเยี่ยม (ชั่วโมงสะสมสูงสุด)</h6>
-                                <div id="topRoomsContainer">
-                                    <!-- Dynamic Room List -->
+                        <!-- Tab 2: Level Stats -->
+                        <div class="tab-pane fade" id="pane-levels" role="tabpanel" aria-labelledby="tab-levels">
+                            <div class="row">
+                                <div class="col-lg-7">
+                                    <div class="report-card shadow-sm h-100">
+                                        <h6 class="fw-black text-navy mb-4"><i class="bi bi-bar-chart me-2"></i> สรุปชั่วโมงสะสมแยกตามระดับชั้น (ร้อยละความสำเร็จ)</h6>
+                                        <div id="levelStatsContainer">
+                                            <!-- Level rows (clickable) -->
+                                            <div class="level-row mb-4" onclick="drillDown(1)" style="cursor: pointer;">
+                                                <div class="d-flex justify-content-between mb-1"><span class="small fw-bold">มัธยมศึกษาปีที่ 1</span><span class="small text-navy fw-bold" id="hour-m1">0%</span></div>
+                                                <div class="progress"><div class="progress-bar" id="bar-m1" style="width: 0%"></div></div>
+                                            </div>
+                                            <div class="level-row mb-4" onclick="drillDown(2)" style="cursor: pointer;">
+                                                <div class="d-flex justify-content-between mb-1"><span class="small fw-bold">มัธยมศึกษาปีที่ 2</span><span class="small text-navy fw-bold" id="hour-m2">0%</span></div>
+                                                <div class="progress"><div class="progress-bar" id="bar-m2" style="width: 0%"></div></div>
+                                            </div>
+                                            <div class="level-row mb-4" onclick="drillDown(3)" style="cursor: pointer;">
+                                                <div class="d-flex justify-content-between mb-1"><span class="small fw-bold">มัธยมศึกษาปีที่ 3</span><span class="small text-navy fw-bold" id="hour-m3">0%</span></div>
+                                                <div class="progress"><div class="progress-bar" id="bar-m3" style="width: 0%"></div></div>
+                                            </div>
+                                            <div class="level-row mb-4" onclick="drillDown(4)" style="cursor: pointer;">
+                                                <div class="d-flex justify-content-between mb-1"><span class="small fw-bold">มัธยมศึกษาปีที่ 4</span><span class="small text-navy fw-bold" id="hour-m4">0%</span></div>
+                                                <div class="progress"><div class="progress-bar" id="bar-m4" style="width: 0%"></div></div>
+                                            </div>
+                                            <div class="level-row mb-4" onclick="drillDown(5)" style="cursor: pointer;">
+                                                <div class="d-flex justify-content-between mb-1"><span class="small fw-bold">มัธยมศึกษาปีที่ 5</span><span class="small text-navy fw-bold" id="hour-m5">0%</span></div>
+                                                <div class="progress"><div class="progress-bar" id="bar-m5" style="width: 0%"></div></div>
+                                            </div>
+                                            <div class="level-row mb-0" onclick="drillDown(6)" style="cursor: pointer;">
+                                                <div class="d-flex justify-content-between mb-1"><span class="small fw-bold">มัธยมศึกษาปีที่ 6</span><span class="small text-navy fw-bold" id="hour-m6">0%</span></div>
+                                                <div class="progress"><div class="progress-bar" id="bar-m6" style="width: 0%"></div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-5">
+                                    <div class="report-card shadow-sm h-100" id="drillDownPanel">
+                                        <div id="drillDownPlaceholder" class="text-center py-5 text-muted">
+                                            <i class="bi bi-arrow-left-circle fs-1 opacity-25 d-block mb-3"></i>
+                                            คลิกที่ระดับชั้นเพื่อดูสรุปรายห้อง
+                                        </div>
+                                        <div id="drillDownHeader" class="d-none">
+                                            <h6 class="fw-black text-navy mb-4"><i class="bi bi-diagram-3 me-2"></i> รายละเอียดระดับชั้น ม.<span id="selectedLevelTitle"></span></h6>
+                                        </div>
+                                        <div id="drillDownContainer" class="d-none">
+                                            <!-- Dynamic Room List -->
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Full Width: Detailed History -->
-                        <div class="col-12 mt-4">
+                        <!-- Tab 3: Detailed History -->
+                        <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history">
                             <div class="report-card shadow-sm">
                                 <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <h6 class="fw-black text-navy mb-0"><i class="bi bi-clock-history me-2"></i> ประวัติการทำกิจกรรมย้อนหลัง (ภาพรวม)</h6>
-                                    <div class="d-flex gap-2">
-                                        <select class="form-select form-select-sm border-0 bg-light" id="filter-year" onchange="loadStats()">
-                                            <option value="2569">2569</option>
-                                            <option value="2568" selected>2568</option>
-                                        </select>
-                                    </div>
+                                    <h6 class="fw-black text-navy mb-0"><i class="bi bi-clock-history me-2"></i> ประวัติการทำกิจกรรมอย่างละเอียด</h6>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-custom align-middle mb-0">
@@ -173,42 +263,164 @@
             loadStats();
         });
 
+        let allRecords = [];
+        let classCounts = {};
+
         async function loadStats() {
             const year = document.getElementById('filter-year').value;
+            resetDrillDown();
+
             try {
-                const res = await fetch(`../api/public_service.php?year=${year}&semester=all&status=approved&limit=10`);
+                const res = await fetch(`../api/public_service.php?year=${year}&semester=all&limit=500`);
+                console.log("Fetching stats for year:", year);
+                if (!res.ok) throw new Error('Network response was not ok');
                 const data = await res.json();
+                console.log("Stats API Response:", data);
 
                 if (data.success) {
-                    renderLevelStats(data.records); // We'll group them manually for mockup logic
-                    renderTopRooms(data.records);
-                    renderHistoryLog(data.records);
+                    allRecords = data.records || [];
+                    classCounts = data.class_counts || {};
+                    renderSummaryCards(data.stats);
+                    renderTopStudents(data.top_students || []);
+                    renderLevelStats(allRecords);
+                    renderTopRooms(allRecords);
+                    renderHistoryLog(allRecords);
+                } else {
+                    console.error("API error success=false:", data.error || data.message);
+                    showNoData();
                 }
             } catch (e) {
-                console.error("Failed to load stats", e);
+                console.error("Failed to load stats:", e);
+                showNoData();
             }
         }
 
-        function renderLevelStats(records) {
-            // Mock grouping logic based on first digit of room or similar
-            const levels = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
-            records.forEach(r => {
-                const lv = r.room.charAt(0);
-                if (levels[lv] !== undefined) levels[lv] += parseFloat(r.duration);
+        function renderTopStudents(students) {
+            const container = document.getElementById('top-students-list');
+            if (!container) return;
+            
+            if (students.length === 0) {
+                container.innerHTML = '<tr><td class="text-center py-4 text-muted">ยังไม่มีข้อมูลนักเรียนดีเด่น</td></tr>';
+                return;
+            }
+
+            container.innerHTML = students.map((s, idx) => `
+                <tr>
+                    <td class="py-2" style="width: 40px;"><div class="stat-badge bg-light text-navy fw-bold" style="width:30px; height:30px;">${idx + 1}</div></td>
+                    <td class="py-2">
+                        <div class="fw-bold small">${s.first_name_th} ${s.last_name_th}</div>
+                        <div class="small text-muted">ห้อง ${s.class_name}</div>
+                    </td>
+                    <td class="py-2 text-end">
+                        <div class="text-navy fw-black small">${parseFloat(s.total).toFixed(0)} ครั้ง</div>
+                        <div class="progress mt-1" style="height:4px; width: 60px; margin-left: auto;"><div class="progress-bar bg-success" style="width: ${Math.min((s.total/20)*100, 100)}%"></div></div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSummaryCards(stats) {
+            if (!stats) return;
+            document.getElementById('stat-total-hours').textContent = stats.approved_count || 0;
+            document.getElementById('stat-total-students').textContent = stats.total_students || 0;
+            document.getElementById('stat-passed-goal').textContent = stats.passed_count || 0; // We might need to count this on frontend if not in stats
+            document.getElementById('stat-participation').textContent = (stats.avg_progress || 0) + '%';
+        }
+
+        function showNoData() {
+            allRecords = [];
+            document.getElementById('topRoomsContainer').innerHTML = '<div class="text-center py-4 text-muted small">ไม่พบข้อมูลสถิติ</div>';
+            document.getElementById('history-log').innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบประวัติกิจกรรม</td></tr>';
+            // Reset bars
+            for (let i = 1; i <= 6; i++) {
+                const hourEl = document.getElementById(`hour-m${i}`);
+                const barEl = document.getElementById(`bar-m${i}`);
+                if (hourEl) hourEl.textContent = '0 ชม.';
+                if (barEl) barEl.style.width = '0%';
+            }
+        }
+
+        function drillDown(level) {
+            document.getElementById('selectedLevelTitle').textContent = level;
+            document.getElementById('drillDownPlaceholder').classList.add('d-none');
+            document.getElementById('drillDownHeader').classList.remove('d-none');
+            document.getElementById('drillDownContainer').classList.remove('d-none');
+
+            const rooms = {};
+            const approvedRecords = allRecords.filter(r => r.status === 'approved');
+            approvedRecords.forEach(r => {
+                const roomStr = String(r.room || r.class_name || '');
+                const match = roomStr.match(/[1-6]/);
+                if (match && match[0] == level) {
+                    rooms[roomStr] = (rooms[roomStr] || 0) + parseFloat(r.duration || 1);
+                }
             });
 
-            const max = Math.max(...Object.values(levels), 1);
+            const sortedRooms = Object.entries(rooms).sort((a,b) => b[1] - a[1]);
+            const container = document.getElementById('drillDownContainer');
+            
+            if (sortedRooms.length === 0) {
+                container.innerHTML = '<div class="text-center py-5 text-muted">ไม่พบข้อมูลห้องเรียนในระดับชั้นนี้</div>';
+                return;
+            }
+
+            container.innerHTML = sortedRooms.map(([room, val], idx) => {
+                const studentCount = classCounts[room] || 1;
+                const percentage = Math.min((val / (studentCount * 20)) * 100, 100).toFixed(1);
+                return `
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold">ห้อง ${room} (${val} ครั้ง)</span>
+                            <span class="small text-navy fw-bold">${percentage}%</span>
+                        </div>
+                        <div class="progress" style="height: 8px;"><div class="progress-bar bg-info" style="width: ${percentage}%"></div></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetDrillDown() {
+            document.getElementById('drillDownPlaceholder').classList.remove('d-none');
+            document.getElementById('drillDownHeader').classList.add('d-none');
+            document.getElementById('drillDownContainer').classList.add('d-none');
+        }
+
+        function renderLevelStats(records) {
+            const levels = { 1:{total:0, students:0}, 2:{total:0, students:0}, 3:{total:0, students:0}, 4:{total:0, students:0}, 5:{total:0, students:0}, 6:{total:0, students:0} };
+            
+            // Calculate students per level
+            Object.keys(classCounts).forEach(room => {
+                const lv = room.charAt(0);
+                if (levels[lv]) levels[lv].students += classCounts[room];
+            });
+
+            const approvedRecords = allRecords.filter(r => r.status === 'approved');
+            approvedRecords.forEach(r => {
+                const roomStr = String(r.room || r.class_name || '');
+                const match = roomStr.match(/[1-6]/);
+                if (match) {
+                    const lv = match[0];
+                    levels[lv].total += parseFloat(r.duration || 1);
+                }
+            });
+
             Object.keys(levels).forEach(lv => {
-                const val = levels[lv];
-                document.getElementById(`hour-m${lv}`).textContent = `${val} ชม.`;
-                document.getElementById(`bar-m${lv}`).style.width = `${(val / max) * 100}%`;
+                const data = levels[lv];
+                const totalStudents = data.students || 1;
+                const percentage = Math.min((data.total / (totalStudents * 20)) * 100, 100).toFixed(1);
+                
+                const hourEl = document.getElementById(`hour-m${lv}`);
+                const barEl = document.getElementById(`bar-m${lv}`);
+                if (hourEl) hourEl.textContent = `${percentage}%`;
+                if (barEl) barEl.style.width = `${percentage}%`;
             });
         }
 
         function renderTopRooms(records) {
             const rooms = {};
             records.forEach(r => {
-                rooms[r.room] = (rooms[r.room] || 0) + parseFloat(r.duration);
+                const roomName = r.room || r.class_name || 'ไม่ระบุ';
+                rooms[roomName] = (rooms[roomName] || 0) + parseFloat(r.duration || 1);
             });
 
             const sortedRooms = Object.entries(rooms).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -224,32 +436,60 @@
                     <div class="stat-badge">${idx + 1}</div>
                     <div class="flex-grow-1">
                         <div class="fw-bold small">ห้อง ${room}</div>
-                        <div class="small text-muted">คะแนนความดีสะสม</div>
+                        <div class="small text-muted">จำนวนครั้งสะสม</div>
                     </div>
-                    <div class="text-navy fw-black">${val} ชม.</div>
+                    <div class="text-navy fw-black">${val.toFixed(0)} ครั้ง</div>
                 </div>
             `).join('');
         }
 
         function renderHistoryLog(records) {
             const list = document.getElementById('history-log');
-            if (records.length === 0) {
+            const simpleList = document.getElementById('recent-activities-simple');
+
+            if (!records || records.length === 0) {
                 list.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">ไม่พบประวัติกิจกรรม</td></tr>';
+                if (simpleList) simpleList.innerHTML = '<tr><td class="text-center py-4 text-muted">ไม่มีกิจกรรมล่าสุด</td></tr>';
                 return;
             }
 
-            list.innerHTML = records.map(r => `
+            const html = records.map(r => {
+                const isApproved = r.status === 'approved';
+                const statusBadge = isApproved 
+                    ? '<span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">อนุมัติแล้ว</span>'
+                    : (r.status === 'rejected' 
+                        ? '<span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1">ไม่ผ่าน</span>'
+                        : '<span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1">รอตรวจสอบ</span>');
+                
+                return `
                 <tr>
-                    <td><div class="small fw-bold">${r.activity_date_th}</div></td>
+                    <td><div class="small fw-bold">${r.activity_date_th || r.activity_date}</div></td>
                     <td>
                         <div class="fw-bold">${r.first_name_th} ${r.last_name_th}</div>
-                        <div class="small text-muted">${r.student_id} | ห้อง ${r.room}</div>
+                        <div class="small text-muted">${r.student_code || r.student_id} | ห้อง ${r.room || r.class_name}</div>
                     </td>
                     <td><div class="text-navy fw-bold">${r.activity_name}</div></td>
-                    <td><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration} ${r.duration_unit}</span></td>
-                    <td><span class="badge bg-success-subtle text-success rounded-pill px-3 py-1">อนุมัติแล้ว</span></td>
+                    <td><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration || 1} ${r.duration_unit || 'ครั้ง'}</span></td>
+                    <td>${statusBadge}</td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
+            list.innerHTML = html;
+
+            if (simpleList) {
+                simpleList.innerHTML = records.slice(0, 10).map(r => `
+                    <tr>
+                        <td>
+                            <div class="fw-bold">${r.activity_name}</div>
+                            <div class="small text-muted">${r.first_name_th} · ห้อง ${r.room}</div>
+                        </td>
+                        <td class="text-end">
+                            <div class="text-navy fw-bold">${r.duration || 1} ครั้ง</div>
+                            <div class="small text-muted">${r.activity_date_th}</div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
         }
     </script>
 </body>

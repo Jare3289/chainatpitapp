@@ -35,14 +35,13 @@ try {
         $attendanceMap[$record['student_id']][$record['date']] = $record['status'];
     }
 
-    // 4. Generate list of dates in range
-    $dates = [];
-    $current = strtotime($startDate);
-    $last = strtotime($endDate);
-    while ($current <= $last) {
-        $dates[] = date('Y-m-d', $current);
-        $current = strtotime('+1 day', $current);
+    // 4. Generate list of dates in range that actually have data
+    $datesMap = [];
+    foreach ($attendanceRecords as $record) {
+        $datesMap[$record['date']] = true;
     }
+    $dates = array_keys($datesMap);
+    sort($dates);
 
     echo json_encode([
         'success' => true,

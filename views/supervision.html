@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>ระบบนิเทศการสอน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../public/css/style.css">
+    
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f4f7fa; color: #1e293b; }
+        
+        /* Custom Animations */
+        @keyframes pulse-soft {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        
+        .bg-gradient-navy {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        .banner-icon-bg {
+            position: absolute;
+            right: -30px;
+            bottom: -30px;
+            font-size: 12rem;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+            color: white;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .text-navy { color: #1e3a8a; }
+
+        /* Advice Box - Premium Light Theme */
+        .advice-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #3b82f6;
+            border-radius: 16px;
+            padding: 20px 25px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .advice-icon { 
+            font-size: 1.8rem; 
+            color: #3b82f6; 
+            background: #eff6ff;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .advice-content h6 { color: #1e3a8a; font-weight: 900; margin-bottom: 5px; font-size: 1.05rem; }
+        .advice-content p { font-size: 0.9rem; color: #475569; margin-bottom: 0; line-height: 1.6; }
+        
+        .advice-toggle-btn {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            margin-top: 30px;
+            transition: all 0.3s;
+        }
+        .advice-toggle-btn:hover { background: #f1f5f9; }
+        .advice-toggle-btn[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+        .advice-icon-small {
+            color: #3b82f6;
+            background: #eff6ff;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+
+
+        /* Status Banner (Central Card) */
+        .status-overview-card {
+            margin-bottom: 30px;
+        }
+
+        /* Horizontal Stepper - Refined for White Panel */
+        .super-stepper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 40px;
+            margin-top: 10px;
+            max-width: 1000px;
+            z-index: 2;
+        }
+        .stepper-line {
+            position: absolute;
+            top: 30px;
+            left: 60px;
+            right: 60px;
+            height: 4px;
+            background: #f1f5f9;
+            border-radius: 2px;
+            z-index: 1;
+        }
+        .stepper-line-active {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #10b981;
+            width: 66%;
+            border-radius: 2px;
+        }
+        .super-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+        .step-circle {
+            width: 60px;
+            height: 60px;
+            background: #f8fafc;
+            border: 3px solid #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.4rem;
+            color: #94a3b8;
+            transition: all 0.3s ease;
+        }
+        .super-step.completed .step-circle {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+        .super-step.active .step-circle {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            transform: scale(1.1);
+            animation: pulse-soft 2s infinite;
+        }
+        .step-label { font-weight: 800; font-size: 0.95rem; margin-bottom: 4px; color: #1e293b; transition: 0.3s; }
+        .step-subtext { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+        .step-count-badge {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 900;
+            display: inline-block;
+            margin-top: 8px;
+            color: #64748b;
+        }
+        .super-step.active .step-count-badge {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+        .super-step.completed .step-label { color: #10b981; }
+
+        /* Action Cards Grid */
+        .action-grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .action-box {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none !important;
+            transition: 0.3s;
+            position: relative;
+        }
+        .action-box:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.04); border-color: #3b82f6; }
+        .action-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #eff6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #3b82f6;
+            flex-shrink: 0;
+        }
+        .action-info h6 { font-weight: 800; font-size: 0.9rem; margin-bottom: 0; color: #1e293b; }
+        .action-info p { font-size: 0.7rem; color: #8c8885; margin-bottom: 0; font-weight: 600; }
+        .action-arrow { margin-left: auto; color: #ece8e1; font-size: 0.8rem; }
+
+        /* Circular Progress Indicator - Widget Style */
+        .circular-progress-widget {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+        .progress-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 12px solid #f1f5f9;
+            border-top: 12px solid #10b981;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 2.2rem;
+            margin: 0 auto 20px;
+            color: #1e3a8a;
+            position: relative;
+        }
+        .progress-circle small { font-size: 0.9rem; opacity: 0.6; font-weight: 600; margin-top: -5px; }
+
+        /* Bottom Sections */
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title h5 { font-weight: 800; font-size: 1.1rem; margin-bottom: 0; }
+        .see-all { font-size: 0.8rem; font-weight: 800; color: #8c8885; text-decoration: none; }
+
+        .dashboard-panel {
+            background: white;
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+
+        .list-item-modern {
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            position: relative;
+        }
+        .list-item-modern:last-child { border-bottom: none; }
+        
+        .date-badge {
+            width: 45px;
+            background: #f8fafc;
+            border-radius: 10px;
+            text-align: center;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+        .date-day { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; }
+        .date-num { display: block; font-size: 1.2rem; font-weight: 900; color: #1e3a8a; line-height: 1; }
+
+        .pending-tag {
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 4px;
+            background: #fde6e6;
+            color: #ef4444;
+        }
+        .person-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ece8e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #8c8885;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 1200px) {
+            .action-grid-5 { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 992px) {
+            .action-grid-5 { grid-template-columns: repeat(2, 1fr); }
+            .circular-progress-widget { height: auto; padding: 25px; }
+        }
+        @media (max-width: 768px) {
+            .display-5 { font-size: 2rem; }
+            .action-grid-5 { grid-template-columns: repeat(1, 1fr); }
+            .status-overview-card { padding: 15px; }
+            
+            /* Vertical Stepper Fixed Alignment */
+            .super-stepper { 
+                flex-direction: column; 
+                gap: 0; 
+                align-items: flex-start; 
+                padding: 10px 0;
+                position: relative;
+            }
+            .stepper-line { display: none; }
+            
+            .super-step { 
+                text-align: left; 
+                display: flex; 
+                gap: 20px; 
+                align-items: flex-start;
+                width: 100%; 
+                flex: none; 
+                position: relative;
+                padding-bottom: 30px;
+                z-index: 2;
+            }
+            .super-step:last-child { padding-bottom: 0; }
+            
+            /* Connect each step to the next */
+            .super-step::after {
+                content: '';
+                position: absolute;
+                left: 21.5px; /* Center of 45px circle, minus 1px width */
+                top: 45px;
+                bottom: 0;
+                width: 2px;
+                background: #e2e8f0;
+                z-index: 1;
+            }
+            .super-step:last-child::after { display: none !important; }
+            
+            /* Colored vertical line for completed steps */
+            .super-step.completed::after { background: #10b981; }
+
+            .step-circle { 
+                margin: 0; 
+                width: 45px; 
+                height: 45px; 
+                font-size: 1.1rem; 
+                flex-shrink: 0; 
+                position: relative;
+                z-index: 3;
+                background: white;
+            }
+            .step-content { flex-grow: 1; }
+            .step-label { font-size: 0.95rem; margin-top: 2px; }
+            .step-subtext { font-size: 0.75rem; margin-top: 2px; }
+            .step-count-badge { margin-top: 6px; }
+            
+            .advice-box { flex-direction: column; text-align: left; gap: 10px; padding: 15px; }
+            .advice-icon { display: none; } /* Hide large icon on mobile */
+            .advice-toggle-btn { margin-top: 20px; }
+            
+            .circular-progress-widget { padding: 25px 15px; }
+            .progress-circle { width: 110px; height: 110px; font-size: 1.6rem; border-width: 8px; }
+            
+            /* Section Titles Fix */
+            .section-title { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; padding: 0 5px; }
+            .section-title h5 { font-size: 1rem; margin-bottom: 0; }
+            
+            /* Avoid Floating Button Overlap */
+            .list-item-modern { padding-right: 50px; }
+            
+            /* Mobile Footer Overlap Fix */
+            .container-fluid { padding-bottom: 100px; }
+        }
+        @media (max-width: 480px) {
+            .display-5 { font-size: 1.8rem; }
+            .action-box { padding: 15px; }
+            .action-icon { width: 35px; height: 35px; font-size: 1rem; }
+            .action-info h6 { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <aside class="sidebar" id="mainSidebar"></aside>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <!-- Header Navigation Tabs -->
+
+
+            <div class="app-content page-content flex-grow-1">
+                <div class="container-fluid">
+                    
+
+
+                    <!-- Header Banner -->
+                    <div class="row g-4 mb-4 animate-up" style="animation-delay: 0.1s">
+                        <div class="col-12">
+                            <div class="card border-0 bg-gradient-navy rounded-4 position-relative overflow-hidden shadow-lg">
+                                <i class="fas fa-chart-pie banner-icon-bg"></i>
+                                <div class="card-body p-4 p-md-5 text-white position-relative" style="z-index: 1;">
+                                    <h1 class="display-5 fw-black mb-1">ภาพรวมการนิเทศการสอน</h1>
+                                    <p class="lead mb-0 opacity-75">แดชบอร์ดสำหรับผู้บริหารและคณะกรรมการวิชาการ | ปีการศึกษา 2569</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Stat Cards (Admin) -->
+                    <div class="row g-4 mb-4 animate-up" style="animation-delay: 0.15s">
+                        <div class="col-6 col-md-3">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                                    <i class="bi bi-envelope-paper fs-1 text-warning"></i>
+                                </div>
+                                <div class="text-muted small fw-bold mb-2">คำร้องรออนุมัติ</div>
+                                <h2 class="fw-black text-warning mb-0" id="admin-pending-requests">12</h2>
+                                <div class="small text-danger mt-2 fw-bold"><i class="bi bi-exclamation-circle"></i> ต้องจัดการด่วน</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                                    <i class="bi bi-calendar-event fs-1 text-primary"></i>
+                                </div>
+                                <div class="text-muted small fw-bold mb-2">รอนิเทศ (อนุมัติแล้ว)</div>
+                                <h2 class="fw-black text-primary mb-0" id="admin-upcoming-supervisions">45</h2>
+                                <div class="small text-muted mt-2">สัปดาห์นี้: 8 รายการ</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                                </div>
+                                <div class="text-muted small fw-bold mb-2">นิเทศเสร็จสิ้น</div>
+                                <h2 class="fw-black text-success mb-0" id="admin-completed-supervisions">28</h2>
+                                <div class="small text-muted mt-2">จากทั้งหมด 120 คน</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card border-0 shadow-sm rounded-4 h-100 p-3 p-md-4 position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-25">
+                                    <i class="bi bi-printer fs-1 text-info"></i>
+                                </div>
+                                <div class="text-muted small fw-bold mb-2">พิมพ์บันทึกแล้ว</div>
+                                <h2 class="fw-black text-info mb-0" id="admin-printed-records">15</h2>
+                                <div class="small text-muted mt-2">รอผู้บริหารเซ็น: 5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div class="row g-4 animate-up" style="animation-delay: 0.2s">
+                        <!-- Pending Requests Table -->
+                        <div class="col-lg-8">
+                            <div class="section-title">
+                                <h5><i class="bi bi-envelope-paper text-warning me-2"></i>คำร้องขอรับการนิเทศ (รออนุมัติ)</h5>
+                                <a href="#" class="see-all">จัดการทั้งหมด <i class="bi bi-chevron-right"></i></a>
+                            </div>
+                            <div class="dashboard-panel p-0 overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="py-3 px-4 border-bottom-0 text-muted small fw-bold">ผู้ขอรับการนิเทศ</th>
+                                                <th class="py-3 px-4 border-bottom-0 text-muted small fw-bold">วิชา / ชั้น</th>
+                                                <th class="py-3 px-4 border-bottom-0 text-muted small fw-bold">วันที่เสนอ</th>
+                                                <th class="py-3 px-4 border-bottom-0 text-muted small fw-bold text-end">จัดการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-pending-list">
+                                            <!-- Dummy Data for Visual -->
+                                            <tr>
+                                                <td class="px-4 py-3">
+                                                    <div class="fw-bold small">อ.สมหญิง ใจดี</div>
+                                                    <div class="text-muted" style="font-size: 0.75rem;">คณิตศาสตร์ • ไม่มีวิทยฐานะ</div>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <div class="fw-bold small">ค31101</div>
+                                                    <div class="text-muted" style="font-size: 0.75rem;">ม.4/2 • คาบ 3</div>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <div class="fw-bold small">20 พ.ค. 69</div>
+                                                    <div class="text-danger" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> รอมา 2 วัน</div>
+                                                </td>
+                                                <td class="px-4 py-3 text-end">
+                                                    <button class="btn btn-sm btn-navy rounded-pill fw-bold" style="font-size: 0.75rem;">ตรวจสอบ & อนุมัติ</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-4 py-3">
+                                                    <div class="fw-bold small">อ.วิชัย รักเรียน</div>
+                                                    <div class="text-muted" style="font-size: 0.75rem;">วิทยาศาสตร์ฯ • ชำนาญการ</div>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <div class="fw-bold small">ว32205</div>
+                                                    <div class="text-muted" style="font-size: 0.75rem;">ม.5/1 • คาบ 5</div>
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    <div class="fw-bold small">21 พ.ค. 69</div>
+                                                    <div class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> เพิ่งส่งเมื่อวาน</div>
+                                                </td>
+                                                <td class="px-4 py-3 text-end">
+                                                    <button class="btn btn-sm btn-navy rounded-pill fw-bold" style="font-size: 0.75rem;">ตรวจสอบ & อนุมัติ</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Schedule -->
+                        <div class="col-lg-4">
+                            <div class="section-title">
+                                <h5><i class="bi bi-calendar-check text-success me-2"></i>ตารางนิเทศวันนี้</h5>
+                                <span class="text-muted small fw-bold">18 พ.ค. 2569</span>
+                            </div>
+                            <div class="dashboard-panel">
+                                <div class="list-item-modern">
+                                    <div class="date-badge bg-primary bg-opacity-10 text-primary">
+                                        <span class="date-day">คาบ</span>
+                                        <span class="date-num">2</span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small mb-1">อ.สุดาพร พัฒนา</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">ภาษาไทย • ม.3/4</div>
+                                        <div class="text-muted mt-1" style="font-size: 0.7rem;"><i class="bi bi-geo-alt"></i> ห้อง 215</div>
+                                    </div>
+                                </div>
+                                <div class="list-item-modern">
+                                    <div class="date-badge bg-primary bg-opacity-10 text-primary">
+                                        <span class="date-day">คาบ</span>
+                                        <span class="date-num">5</span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold small mb-1">อ.ธนเดช ยอดเยี่ยม</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">สังคมศึกษาฯ • ม.6/1</div>
+                                        <div class="text-muted mt-1" style="font-size: 0.7rem;"><i class="bi bi-geo-alt"></i> ห้อง 402</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-light w-100 rounded-pill mt-3 fw-bold small border text-muted">ดูตารางทั้งหมด</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <!-- (Removed Teacher Modal from Admin View) -->
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const currentUser = await checkAuth(['admin']); // Only admin for this overview
+            if (currentUser) {
+                // Future Admin Logic: Load pending requests, stats, etc.
+            }
+        });
+    </script>
+</body>
+
+</html>

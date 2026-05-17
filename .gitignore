@@ -42,7 +42,14 @@ vendor/
 
 # ─── Dev / scratch / debug ───
 scratch/
+scratch_*.php
+scratch_*.txt
 session_summary_*.txt
+/search_*.php
+/verify_*.php
+/db_row.txt
+/schema_*.txt
+api/debug_session.php
 api/teacher/debug_*.php
 api/teacher/diagnose.php
 api/teacher/test-db.php
@@ -51,6 +58,9 @@ api/sync_address_data.php
 api/admin/repair-links.php
 api/admin/repair-rooms.php
 api/admin/reset_all_passwords.php
+
+# ─── Auth bypass tools — must never be in production ───
+/views/auto_login.php
 
 # ─── Root-level dev/admin tools (DO NOT push to production) ───
 /check_cats.php

@@ -1,3 +1,39 @@
+<?php
+/**
+ * index.php — หน้า Login
+ * ถ้ามี session หรือ persistent token (cnp_auth) ที่ยังใช้ได้ → redirect ไปหน้า dashboard ทันที
+ * ทำให้ PWA / "จำการเข้าสู่ระบบ" ทำงานได้จริง โดยไม่ต้อง login ซ้ำ
+ */
+require_once 'config.php';
+require_once 'inc/security.php';
+session_start();
+
+$_cnp_dashboard = [
+    'admin'   => 'views/admin_dashboard.html',
+    'teacher' => 'views/teacher_dashboard.html',
+    'student' => 'views/student_dashboard.html',
+];
+
+// 1. มี session ที่ active อยู่แล้ว → redirect ทันที
+if (!empty($_SESSION['user_id']) && !empty($_SESSION['role'])) {
+    $dest = $_cnp_dashboard[$_SESSION['role']] ?? null;
+    if ($dest) { header('Location: ' . $dest); exit; }
+}
+
+// 2. ไม่มี session แต่มี persistent token (cnp_auth) → auto-login แล้ว redirect
+if (!empty($_COOKIE['cnp_auth'])) {
+    try {
+        $userId = cnp_auth_token_check($pdo);
+        if ($userId && !empty($_SESSION['role'])) {
+            $dest = $_cnp_dashboard[$_SESSION['role']] ?? null;
+            if ($dest) { header('Location: ' . $dest); exit; }
+        }
+    } catch (Exception $e) {
+        error_log('[index] auto-login failed: ' . $e->getMessage());
+    }
+}
+// ถ้าไม่เข้าเงื่อนไขใดเลย → แสดงหน้า login ตามปกติ
+?>
 <!DOCTYPE html>
 <html lang="th">
 

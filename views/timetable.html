@@ -151,47 +151,66 @@
                     </div>
                 </div>
 
+                <!-- DEPARTMENT QUICK FILTERS -->
+                <div class="mb-4 d-flex gap-2 overflow-x-auto pb-2 scroll-hide d-none" id="deptQuickFilters">
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap active-dept" onclick="setDepartmentFilter('')">ทั้งหมด</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('บริหาร')">บริหาร</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('วิทยาศาสตร์และเทคโนโลยี')">วิทยาศาสตร์ฯ</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('คณิตศาสตร์')">คณิตศาสตร์</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ภาษาไทย')">ภาษาไทย</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ภาษาต่างประเทศ')">ภาษาต่างประเทศ</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('สังคมศึกษา ศาสนา และวัฒนธรรม')">สังคมศึกษาฯ</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('สุขศึกษาและพลศึกษา')">สุขศึกษาฯ</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ศิลปะ')">ศิลปะ</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('การงานอาชีพ')">การงานอาชีพ</button>
+                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('กิจกรรมพัฒนาผู้เรียน')">กิจกรรมฯ</button>
+                </div>
+
+                <style>
+                    .scroll-hide::-webkit-scrollbar { display: none; }
+                    .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+                    .btn-white { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+                    .btn-white:hover { background: #f8fafc; color: #1e3a8a; }
+                    .active-dept { background: #1e3a8a !important; color: white !important; border-color: #1e3a8a !important; }
+                </style>
+
                 <!-- FILTER BAR (Admins Only) -->
                 <div class="filter-bar d-none" id="filterBarContainer">
                     <div class="row g-2 align-items-end">
-                        <div class="col-6 col-md-3">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">กลุ่มสาระ</label>
+                            <select id="filterDept" class="form-select">
+                                <option value="">— ทุกกลุ่มสาระ —</option>
+                                <option>บริหาร</option>
+                                <option>วิทยาศาสตร์และเทคโนโลยี</option>
+                                <option>คณิตศาสตร์</option>
+                                <option>ภาษาไทย</option>
+                                <option>ภาษาต่างประเทศ</option>
+                                <option>สังคมศึกษา ศาสนา และวัฒนธรรม</option>
+                                <option>สุขศึกษาและพลศึกษา</option>
+                                <option>ศิลปะ</option>
+                                <option>การงานอาชีพ</option>
+                                <option>กิจกรรมพัฒนาผู้เรียน</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
                             <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ครูผู้สอน</label>
                             <select id="filterTeacher" class="form-select">
                                 <option value="">— ครูทุกคน —</option>
                             </select>
                         </div>
-                        <div class="col-6 col-md-2">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ชั้น</label>
-                            <select id="filterGrade" class="form-select">
-                                <option value="">— ทุกชั้น —</option>
-                                <option>ม.1</option><option>ม.2</option><option>ม.3</option>
-                                <option>ม.4</option><option>ม.5</option><option>ม.6</option>
+                        <div class="col-12 col-md-2">
+                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ห้องเรียน</label>
+                            <select id="filterClassroom" class="form-select">
+                                <option value="">— ทุกห้อง —</option>
                             </select>
                         </div>
-                        <div class="col-6 col-md-2">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ห้อง</label>
-                            <input type="text" id="filterClass" class="form-control" placeholder="เช่น 1/1">
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ปีการศึกษา</label>
-                            <select id="filterYear" class="form-select">
-                                <option value="">— ทุกปี —</option>
-                                <option>2569</option><option>2568</option><option>2567</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-1">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ภาค</label>
-                            <select id="filterSem" class="form-select">
-                                <option value="">ทั้งหมด</option>
-                                <option value="1">1</option><option value="2">2</option>
-                            </select>
-                        </div>
-                        <div class="col-6 col-md-2 d-flex gap-2">
-                            <button class="btn btn-primary rounded-3 fw-bold flex-fill" onclick="loadTimetable()">
+                        <div class="col-12 col-md-4 d-flex gap-2">
+                            <button class="btn btn-primary rounded-3 fw-bold flex-fill shadow-sm" onclick="loadTimetable()">
                                 <i class="bi bi-search me-1"></i> ค้นหา
                             </button>
-                            <button class="btn btn-light rounded-3" onclick="clearFilters()">
-                                <i class="bi bi-x-lg"></i>
+                            <button class="btn btn-light rounded-3 border" onclick="clearFilters()">
+                                <i class="bi bi-arrow-clockwise"></i>
                             </button>
                         </div>
                     </div>
@@ -265,30 +284,64 @@ const todayTimetableDay = todayDow === 0 ? 7 : todayDow; // 1=Mon…7=Sun
 let allData = [];
 let activeMobileDay = 1;
 let currentUserRole = '';
+let currentUser = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const user = await checkAuth(['admin','teacher','student']);
     if (!user) return;
+    currentUser = user;
     currentUserRole = user.role;
 
     // Only Admin can see and use filters
     if (user.role === 'admin') {
         document.getElementById('filterBarContainer').classList.remove('d-none');
+        document.getElementById('deptQuickFilters').classList.remove('d-none');
+        populateClassroomFilter();
         await loadTeacherOptions();
+        
+        // Default to 'บริหาร' (Executive) for admin to avoid heavy initial load
+        setDepartmentFilter('บริหาร');
+    } else {
+        loadTimetable();
     }
-    
-    loadTimetable();
 });
+
+function setDepartmentFilter(dept) {
+    const sel = document.getElementById('filterDept');
+    if (sel) {
+        sel.value = dept;
+        // Highlight active button
+        document.querySelectorAll('#deptQuickFilters .btn').forEach(btn => {
+            btn.classList.toggle('active-dept', btn.getAttribute('onclick').includes(`'${dept}'`));
+        });
+        loadTimetable();
+    }
+}
+
+function populateClassroomFilter() {
+    const sel = document.getElementById('filterClassroom');
+    if (!sel) return;
+    let html = '<option value="">— ทุกห้อง —</option>';
+    for (let g = 1; g <= 6; g++) {
+        for (let r = 1; r <= 15; r++) {
+            const val = `${g}${r.toString().padStart(2, '0')}`;
+            html += `<option value="${val}">ม.${val}</option>`;
+        }
+    }
+    sel.innerHTML = html;
+}
 
 async function loadTeacherOptions(preselect = null) {
     try {
         const res = await fetch('../api/get_teachers_list.php');
         const data = await res.json();
         const sel = document.getElementById('filterTeacher');
-        (data.teachers || data.data || []).forEach(t => {
+        sel.innerHTML = '<option value="">— ครูทุกคน —</option>';
+        const teachers = data.teachers || data.data || [];
+        teachers.forEach(t => {
             const opt = document.createElement('option');
-            opt.value = t.user_id || t.id;
-            opt.textContent = (t.prefix||'') + (t.first_name_th||'') + ' ' + (t.last_name_th||'');
+            opt.value = t.id || t.user_id;
+            opt.textContent = (t.name || (t.prefix||'') + (t.first_name_th||'') + ' ' + (t.last_name_th||'')).trim();
             sel.appendChild(opt);
         });
         if (preselect) sel.value = preselect;
@@ -298,17 +351,17 @@ async function loadTeacherOptions(preselect = null) {
 async function loadTimetable() {
     showLoading(true);
     const params = new URLSearchParams();
+    const dept    = document.getElementById('filterDept') ? document.getElementById('filterDept').value : '';
     const teacher = document.getElementById('filterTeacher').value;
-    const grade   = document.getElementById('filterGrade').value;
-    const cls     = document.getElementById('filterClass').value.trim();
-    const year    = document.getElementById('filterYear').value;
-    const sem     = document.getElementById('filterSem').value;
+    const cr      = document.getElementById('filterClassroom') ? document.getElementById('filterClassroom').value : '';
 
+    if (dept)    params.set('department', dept);
     if (teacher) params.set('teacher_id', teacher);
-    if (grade)   params.set('grade_level', grade);
-    if (cls)     params.set('class_name', cls);
-    if (year)    params.set('academic_year', year);
-    if (sem)     params.set('semester', sem);
+    if (cr) {
+        const gradeNum = cr.charAt(0);
+        params.set('grade_level', 'ม.' + gradeNum);
+        params.set('class_name', cr);
+    }
 
     try {
         const res  = await fetch('../api/timetable.php?' + params.toString(), { credentials: 'same-origin' });
@@ -331,11 +384,9 @@ async function loadTimetable() {
 }
 
 function clearFilters() {
-    document.getElementById('filterTeacher').value = '';
-    document.getElementById('filterGrade').value   = '';
-    document.getElementById('filterClass').value   = '';
-    document.getElementById('filterYear').value    = '';
-    document.getElementById('filterSem').value     = '';
+    if (document.getElementById('filterDept')) document.getElementById('filterDept').value = '';
+    if (document.getElementById('filterTeacher')) document.getElementById('filterTeacher').value = '';
+    if (document.getElementById('filterClassroom')) document.getElementById('filterClassroom').value = '';
     loadTimetable();
 }
 
@@ -422,37 +473,48 @@ function renderDesktop(data) {
                 bodyHtml += `<td class="${cellClass}"></td>`;
             } else {
                 let inner = '';
+                // Group by subject (handle cases with multiple teachers for same subject/class)
+                const groupedBySubject = {};
                 cells.forEach(c => {
+                    const key = `${c.subject_name}|${c.class_name || ''}`;
+                    if (!groupedBySubject[key]) groupedBySubject[key] = { ...c, teachers: [] };
+                    if (c.teacher_first_name || c.teacher_name) {
+                        const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim().replace(/^ครู/, '').split(' ')[0] : '');
+                        groupedBySubject[key].teachers.push('ครู' + fname);
+                    }
+                });
+
+                Object.values(groupedBySubject).forEach(c => {
                     const isBreak = /พัก|break/i.test(c.subject_name);
                     const isLocked = c._locked === true;
-                    if (isLocked) {
-                        inner += `<div class="w-100 text-center" style="background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:8px; padding:6px;"><div class="subject" style="color:#92400e;">🔒 ${c.subject_name}</div></div>`;
-                    } else if (isBreak) {
-                        inner += `<div class="w-100 text-center"><div class="subject">☕ ${c.subject_name}</div></div>`;
-                    } else {
-                        let teacherDisplay = '';
-                        if (c.teacher_name || c.teacher_first_name) {
-                            if (currentUserRole === 'teacher') {
-                                teacherDisplay = ''; // ไม่ต้องแสดงชื่อตัวเอง
-                            } else if (currentUserRole === 'student') {
-                                const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim() : '');
-                                teacherDisplay = `<div class="teacher-name"><i class="bi bi-person me-1"></i>ครู${fname}</div>`;
-                            } else {
-                                teacherDisplay = `<div class="teacher-name"><i class="bi bi-person me-1"></i>${c.teacher_name ? c.teacher_name.trim() : ''}</div>`;
-                            }
-                        }
 
-                        const classLabel = buildClassLabel(c.grade_level, c.class_name);
-                        inner += `
-                            <div style="margin-bottom:${cells.length>1?'8px':'0'}; padding-bottom:${cells.length>1?'8px':'0'}; border-bottom:${cells.length>1?'1px solid #f1f5f9':'none'};">
-                                <div class="subject mb-1">${c.subject_name}</div>
-                                <div class="meta d-flex flex-wrap gap-1 justify-content-center">
-                                    ${classLabel ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
-                                    ${c.room_location ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
-                                </div>
-                                ${teacherDisplay}
-                            </div>`;
+                    if (isLocked) {
+                        inner += `<div class="w-100 text-center mb-1" style="background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:8px; padding:6px;"><div class="subject" style="color:#92400e;">🔒 ${c.subject_name}</div></div>`;
+                        return;
                     }
+                    if (isBreak) {
+                        inner += `<div class="w-100 text-center mb-1"><div class="subject">☕ ${c.subject_name}</div></div>`;
+                        return;
+                    }
+
+                    const teacherNames = [...new Set(c.teachers)].filter(n => n !== '');
+                    const groupedTeachers = teacherNames.join(' + ');
+                    let teacherDisplay = groupedTeachers ? `<div class="teacher-name"><i class="bi bi-person me-1"></i>${groupedTeachers}</div>` : '';
+
+                    if (currentUserRole === 'teacher' && groupedTeachers === 'ครู' + (currentUser.first_name_th || '')) {
+                        teacherDisplay = '';
+                    }
+
+                    const classLabel = buildClassLabel(c.grade_level, c.class_name);
+                    inner += `
+                        <div style="margin-bottom:${Object.keys(groupedBySubject).length > 1 ? '8px' : '0'}; padding-bottom:${Object.keys(groupedBySubject).length > 1 ? '8px' : '0'}; border-bottom:${Object.keys(groupedBySubject).length > 1 ? '1px solid #f1f5f9' : 'none'};">
+                            <div class="subject mb-1">${c.subject_name}</div>
+                            <div class="meta d-flex flex-wrap gap-1 justify-content-center">
+                                ${classLabel ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
+                                ${c.room_location ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
+                            </div>
+                            ${teacherDisplay}
+                        </div>`;
                 });
                 const hasBreak = cells.some(c => /พัก|break/i.test(c.subject_name));
                 bodyHtml += `<td class="${cellClass} ${hasBreak ? 'is-break' : ''}">${inner}</td>`;
@@ -518,22 +580,30 @@ function renderDayCards(day, map) {
         hasContent = true;
         const isCurrentP = (isToday && p === currentPeriodNum);
 
+        // Group by subject for mobile
+        const groupedBySubject = {};
         cells.forEach(c => {
+            const key = `${c.subject_name}|${c.class_name || ''}`;
+            if (!groupedBySubject[key]) groupedBySubject[key] = { ...c, teachers: [] };
+            if (c.teacher_first_name || c.teacher_name) {
+                const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim().replace(/^ครู/, '').split(' ')[0] : '');
+                groupedBySubject[key].teachers.push('ครู' + fname);
+            }
+        });
+
+        Object.values(groupedBySubject).forEach(c => {
             const isBreak = /พัก|break/i.test(c.subject_name);
             const isLocked = c._locked === true;
             const config = SCHEDULE_CONFIG[activeSchedule] || SCHEDULE_CONFIG['normal'];
-            const timeRange = config.periods[p] ? `${config.periods[p][0]} - ${config.periods[p][1]}` : '';
             const badgeColor = isLocked ? '#f59e0b' : (isBreak ? '#cbd5e1' : (PERIOD_COLORS[p] || '#64748b'));
 
+            const teacherNames = [...new Set(c.teachers)].filter(n => n !== '');
+            const groupedTeachers = teacherNames.join(' + ');
             let teacherDisplay = '';
-            if (!isBreak && !isLocked && (c.teacher_name || c.teacher_first_name)) {
-                if (currentUserRole === 'teacher') {
-                    teacherDisplay = ''; // ไม่ต้องแสดงชื่อตัวเอง
-                } else if (currentUserRole === 'student') {
-                    const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim() : '');
-                    teacherDisplay = `<div class="meta" style="color:#3b82f6;"><i class="bi bi-person me-1"></i>ครู${fname}</div>`;
-                } else {
-                    teacherDisplay = `<div class="meta" style="color:#3b82f6;"><i class="bi bi-person me-1"></i>${c.teacher_name ? c.teacher_name.trim() : ''}</div>`;
+            if (!isBreak && !isLocked && groupedTeachers) {
+                teacherDisplay = `<div class="meta" style="color:#3b82f6;"><i class="bi bi-person me-1"></i>${groupedTeachers}</div>`;
+                if (currentUserRole === 'teacher' && groupedTeachers === 'ครู' + (currentUser.first_name_th || '')) {
+                    teacherDisplay = '';
                 }
             }
 

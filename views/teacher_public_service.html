@@ -12,14 +12,15 @@
     <link rel="stylesheet" href="../public/css/style.css">
     <style>
         body { font-family: 'Google Sans', 'Sarabun', sans-serif; background:#f8fafc; }
-        .req-card { background:#fff; border-radius:20px; padding:0; box-shadow:0 4px 16px rgba(0,0,0,0.04); border:1.5px solid #f1f5f9; margin-bottom:18px; overflow:hidden; transition:.2s; }
-        .req-card.selected { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.15); }
-        .req-card .top { padding:18px 22px; background:linear-gradient(135deg,#dbeafe,#bfdbfe); border-bottom:1px solid #e0e7ff; }
-        .req-card .body { padding:18px 22px; }
-        .req-card .actions { padding:14px 22px; background:#f8fafc; border-top:1px solid #f1f5f9; display:flex; gap:10px; }
-        .btn-approve-big { flex:1; padding:14px 18px; border:none; border-radius:14px; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:1rem; transition:.2s; }
-        .btn-approve-big:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(16,185,129,0.35); }
-        .btn-reject-big { flex:1; padding:14px 18px; border:1px solid #fecaca; border-radius:14px; background:#fff; color:#dc2626; font-weight:800; font-size:1rem; transition:.2s; }
+        .req-card { background:#fff; border-radius:18px; padding:0; box-shadow:0 4px 12px rgba(0,0,0,0.03); border:1.5px solid #f1f5f9; margin-bottom:12px; overflow:hidden; transition:.2s; }
+        .req-card.selected { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+        .req-card .top { padding:12px 18px; background:linear-gradient(135deg,#f8fafc,#f1f5f9); border-bottom:1px solid #f1f5f9; }
+        .req-card .body { padding:12px 18px; cursor: pointer; }
+        .req-card .body:hover { background: #fcfdfe; }
+        .req-card .actions { padding:10px 18px; background:#fff; border-top:1px solid #f1f5f9; display:flex; gap:8px; }
+        .btn-approve-big { flex:1; padding:10px; border:none; border-radius:12px; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:0.9rem; transition:.2s; }
+        .btn-approve-big:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(16,185,129,0.2); }
+        .btn-reject-big { flex:1; padding:10px; border:1px solid #fecaca; border-radius:12px; background:#fff; color:#dc2626; font-weight:800; font-size:0.9rem; transition:.2s; }
         .btn-reject-big:hover { background:#fef2f2; }
 
         .status-pill { font-weight:800; font-size:0.7rem; padding:6px 14px; border-radius:50px; text-transform:uppercase; letter-spacing:0.5px; display:inline-block; }
@@ -143,6 +144,24 @@
     </main>
 </div>
 
+<!-- DETAIL MODAL -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="fw-black text-navy mb-0">รายละเอียดคำขอ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="detailBody">
+                <!-- Dynamic Content -->
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light rounded-pill w-100 fw-bold" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -258,36 +277,81 @@ function renderCard(r) {
     const studentName = `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim();
 
     return `
-        <div class="req-card ${isSelected ? 'selected' : ''}" id="card-${r.id}" ${isPending ? `onclick="toggleCard(${r.id}, event)"` : ''} style="${isPending ? 'cursor:pointer;' : ''}">
-            <div class="top d-flex align-items-center gap-3">
+        <div class="req-card ${isSelected ? 'selected' : ''}" id="card-${r.id}">
+            <div class="top d-flex align-items-center gap-2">
                 ${isPending ? `<div class="card-checkbox ${isSelected ? 'checked' : ''}" id="chk-${r.id}" onclick="toggleCard(${r.id}, event)"></div>` : ''}
                 <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'"
-                     style="width:56px; height:56px; border-radius:50%; object-fit:cover; border:3px solid #fff;">
+                     style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #fff;">
                 <div class="flex-grow-1 overflow-hidden">
-                    <div class="fw-black text-navy text-truncate" style="font-size:1rem;">${studentName}</div>
-                    <div class="student-meta">รหัส ${r.student_code} · ห้อง ${r.class_name || '-'}</div>
+                    <div class="fw-black text-navy text-truncate" style="font-size:0.9rem;">${studentName}</div>
+                    <div class="student-meta" style="font-size:0.75rem;">ห้อง ${r.class_name || '-'}</div>
                 </div>
-                <span class="status-pill ${statusCls}">${statusTxt}</span>
+                <span class="status-pill ${statusCls} px-2 py-1" style="font-size: 0.6rem;">${statusTxt}</span>
             </div>
-            <div class="body" onclick="event.stopPropagation()">
-                <div class="activity-title">${r.activity_name}</div>
-                <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+            <div class="body" onclick="showDetail(${r.id})">
+                <div class="activity-title" style="font-size: 0.95rem;">${r.activity_name}</div>
+                <div class="d-flex flex-wrap gap-2 small text-muted mb-0" style="font-size: 0.75rem;">
                     <span><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
                     <span><i class="bi bi-geo-alt-fill me-1 text-primary"></i>${r.location || '-'}</span>
                 </div>
-                ${r.impact_benefit ? `<div class="impact-box">"${r.impact_benefit}"</div>` : ''}
             </div>
             ${isPending ? `
-                <div class="actions" onclick="event.stopPropagation()">
+                <div class="actions">
                     <button class="btn-reject-big" onclick="decide(${r.id}, 'rejected', '${(studentName).replace(/'/g, "\\'")}', '${(r.activity_name || '').replace(/'/g, "\\'")}')">
-                        <i class="bi bi-x-circle me-1"></i> ปฏิเสธ
+                        ปฏิเสธ
                     </button>
                     <button class="btn-approve-big" onclick="decide(${r.id}, 'approved', '${(studentName).replace(/'/g, "\\'")}', '${(r.activity_name || '').replace(/'/g, "\\'")}')">
-                        <i class="bi bi-check2-circle me-1"></i> รับรอง
+                        รับรอง
                     </button>
                 </div>` : ''}
         </div>
     `;
+}
+
+function showDetail(id) {
+    const r = allRecords.find(x => x.id == id);
+    if (!r) return;
+
+    const studentName = `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim();
+    const avatar = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
+    const statusCls = r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
+    const statusTxt = r.status === 'approved' ? 'อนุมัติแล้ว' : (r.status === 'rejected' ? 'ไม่ผ่าน' : 'รอรับรอง');
+
+    document.getElementById('detailBody').innerHTML = `
+        <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+            <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid #fff;">
+            <div>
+                <div class="fw-black text-navy h6 mb-1">${studentName}</div>
+                <div class="small text-muted">รหัส ${r.student_code} · ห้อง ${r.class_name || '-'}</div>
+            </div>
+        </div>
+        <div class="mb-4">
+            <span class="status-pill ${statusCls} mb-2">${statusTxt}</span>
+            <h5 class="fw-black text-navy">${r.activity_name}</h5>
+            <div class="small text-muted mb-3"><i class="bi bi-calendar3 me-1"></i> ${r.activity_date_th}</div>
+            
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <div class="p-2 px-3 bg-light rounded-3 small">
+                        <div class="fw-bold text-muted" style="font-size:0.7rem;">สถานที่</div>
+                        <div class="fw-bold">${r.location || '-'}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2 px-3 bg-light rounded-3 small">
+                        <div class="fw-bold text-muted" style="font-size:0.7rem;">จำนวนครั้ง</div>
+                        <div class="fw-bold">${r.duration || 1} ครั้ง</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded-4 small">
+                <div class="fw-bold text-muted mb-1" style="font-size:0.7rem;">ผลที่เกิดขึ้น / ความประทับใจ</div>
+                <div class="text-navy" style="font-style:italic;">"${r.impact_benefit || 'ไม่มีข้อมูล'}"</div>
+            </div>
+        </div>
+    `;
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
 function toggleCard(id, e) {

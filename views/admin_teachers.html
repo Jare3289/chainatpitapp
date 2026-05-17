@@ -2,8 +2,10 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8" />
-    <title>ข้อมูลครู | CNP APP</title>
-    <meta content='width=device-width, initial-scale=1.0' name='viewport' />
+    <title>ข้อมูลครูและบุคลากร | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -11,40 +13,202 @@
     <link rel="stylesheet" href="../public/css/style.css">
     <style>
         body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
-        .bg-navy { background-color: #1e3a8a !important; }
         .text-navy { color: #1e3a8a !important; }
-        .btn-navy { background: #1e3a8a; color: white; border: none; }
-        .btn-navy:hover { background: #1e40af; color: white; }
-        .fw-black { font-weight: 900; }
-        .active-toggle { background: #1e3a8a !important; color: white !important; }
+        .bg-navy { background-color: #1e3a8a !important; }
+        .fw-black { font-weight: 800; }
 
-        /* Executive Banner */
-        .exec-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); border-radius: 24px; padding: 28px; color: white; margin-bottom: 28px; }
-        .exec-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin-top: 18px; }
-        .exec-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; padding: 16px; text-align: center; backdrop-filter: blur(10px); }
-        .exec-avatar { width: 65px; height: 65px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.4); object-fit: cover; margin: 0 auto 10px; display: block; background: rgba(255,255,255,0.1); }
-        .exec-pos { font-size: 0.6rem; opacity: 0.65; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .exec-name { font-size: 0.82rem; font-weight: 700; }
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); border-color: #cbd5e1; }
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 1.25rem;
+        }
 
-        /* Table */
-        .table-premium th { background: #f8fafc; padding: 14px 20px; font-weight: 700; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #eef2f6; text-transform: uppercase; letter-spacing: 0.5px; }
-        .table-premium td { padding: 11px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: #334155; }
+        /* Filter Bar */
+        .filter-container {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .search-input-group {
+            position: relative;
+            flex-grow: 1;
+        }
+        .search-input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            z-index: 5;
+        }
+        .search-input-group .form-control {
+            padding-left: 2.75rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            height: 48px;
+            font-weight: 500;
+        }
+        .search-input-group .form-control:focus {
+            box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.1);
+            border-color: #1e3a8a;
+        }
 
-        /* Cards — same as original */
-        .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; padding: 10px 0; }
-        .modern-profile-card { width: 220px; height: 300px; border-radius: 0.8rem; overflow: hidden; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275); margin: 0 auto; }
-        .modern-profile-card:hover { transform: translateY(-15px) scale(1.02); }
-        .card-bg { position: absolute; inset: 0; background-size: cover; background-position: center top; z-index: 1; transition: 0.5s; }
+        /* Table premium */
+        .table-premium { width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
+        .table-premium thead th { background: #f8fafc; padding: 16px 20px; color: #64748b; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; border-bottom: 1px solid #f1f5f9; }
+        .table-premium tbody tr { border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
+        .table-premium tbody tr:last-child { border-bottom: none; }
+        .table-premium tbody tr:hover { background: #f1f5f9 !important; }
+        .table-premium td { padding: 14px 20px; vertical-align: middle; color: #334155; }
+        
+        .row-male { border-left: 4px solid #3b82f6 !important; }
+        .row-female { border-left: 4px solid #ec4899 !important; }
+
+        /* Hierarchy Styling */
+        .group-header-dept { background: #1e3a8a; cursor: pointer; border-bottom: 2px solid #1e40af !important; }
+        .group-header-dept:hover { background: #1e40af; }
+        .chevron-icon { transition: transform 0.3s; color: #94a3b8; }
+        .expanded .chevron-icon { transform: rotate(180deg); }
+
+        /* Modern Profile Card Styling */
+        .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; padding: 10px 0; }
+        .modern-profile-card { 
+            width: 100%;
+            height: 320px;
+            border-radius: 1.5rem; 
+            overflow: hidden; 
+            position: relative; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .modern-profile-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); }
+        .card-bg { 
+            position: absolute; 
+            inset: 0; 
+            background-size: cover; 
+            background-position: center top; 
+            transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
         .modern-profile-card:hover .card-bg { transform: scale(1.1); }
-        .card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 45%, transparent 100%); z-index: 2; }
-        .card-content-modern { position: absolute; bottom: 0; width: 100%; padding: 15px; color: white; z-index: 3; }
-        .btn-view-profile { background: white; color: black; border: none; border-radius: 50px; padding: 8px 20px; font-weight: 700; font-size: 0.75rem; width: 100%; margin-top: 10px; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .btn-view-profile:hover { background: #f8fafc; transform: scale(1.05); }
-        .btn-modern-action { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #f1f5f9; background: #fff; color: #64748b; transition: 0.3s; padding: 0; cursor: pointer; }
-        .btn-modern-action:hover { transform: scale(1.1); }
-        .btn-modern-edit:hover { background: #1e3a8a !important; color: #fff !important; border-color: #1e3a8a !important; }
+        .card-overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.4) 50%, transparent 100%); 
+            z-index: 2;
+        }
+        .card-content-modern { 
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1.5rem; 
+            color: white;
+            z-index: 3;
+        }
+        .btn-view-profile { 
+            background: white; 
+            color: #1e3a8a; 
+            border: none; 
+            border-radius: 50px; 
+            padding: 10px 20px; 
+            font-weight: 800; 
+            font-size: 0.75rem; 
+            width: 100%; 
+            margin-top: 15px; 
+            transition: 0.3s; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-view-profile:hover { background: #f1f5f9; transform: scale(1.03); box-shadow: 0 12px 25px rgba(0,0,0,0.2); }
+        
+        .btn-modern-action { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0; background: #fff; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-modern-action:hover { transform: scale(1.1); background: #f8fafc; color: #1e3a8a; border-color: #1e3a8a; }
+        .btn-modern-edit:hover { background: #1e3a8a !important; color: #fff !important; }
         .btn-modern-delete:hover { background: #ef4444 !important; color: #fff !important; border-color: #ef4444 !important; }
-        .section-title { font-weight: 800; color: #1e3a8a; border-left: 5px solid #1e3a8a; padding-left: 15px; margin: 30px 0 15px; }
+        
+        .house-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 6px 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Filter Chips */
+        .filter-chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .filter-chip {
+            padding: 6px 16px;
+            border-radius: 50px;
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filter-chip:hover { border-color: #1e3a8a; color: #1e3a8a; transform: translateY(-1px); }
+        .filter-chip.active { background: #1e3a8a; border-color: #1e3a8a; color: white; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25); }
+        .filter-label { font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; margin-top: 15px; }
+
+        .active-toggle { background: #1e3a8a !important; color: white !important; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); }
+        .section-title { font-weight: 800; color: #1e3a8a; border-left: 6px solid #1e3a8a; padding-left: 18px; margin: 35px 0 25px; letter-spacing: -0.5px; }
+        .info-pill {
+            background: rgba(30, 58, 138, 0.05);
+            color: #1e3a8a;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            color: #1e3a8a;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -55,53 +219,124 @@
         <div class="app-content page-content flex-grow-1 py-4">
             <div class="container-fluid">
 
-                <!-- Header -->
+                <!-- Header Title Bar -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                     <div>
                         <h4 class="fw-black text-navy mb-1">จัดการข้อมูลครูและบุคลากร</h4>
-                        <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0 small opacity-75">
-                            <li class="breadcrumb-item">หน้าแรก</li>
-                            <li class="breadcrumb-item active">ข้อมูลครู</li>
-                        </ol></nav>
+                        <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0 small opacity-75 fw-bold"><li class="breadcrumb-item">หน้าแรก</li><li class="breadcrumb-item active">ข้อมูลครู</li></ol></nav>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="btn-group bg-white rounded-pill p-1 shadow-sm border me-2">
-                            <button class="btn btn-sm rounded-pill px-3 fw-bold active-toggle" id="btn-table" onclick="setViewMode('table')"><i class="bi bi-table me-1"></i>ตาราง</button>
-                            <button class="btn btn-sm rounded-pill px-3 fw-bold" id="btn-card" onclick="setViewMode('card')"><i class="bi bi-grid-fill me-1"></i>บัตร</button>
+                            <button class="btn btn-sm rounded-pill px-4 py-2 fw-bold active-toggle" id="btn-table" onclick="setViewMode('table')"><i class="bi bi-table me-2"></i>ตาราง</button>
+                            <button class="btn btn-sm rounded-pill px-4 py-2 fw-bold" id="btn-card" onclick="setViewMode('card')"><i class="bi bi-grid-fill me-2"></i>บัตร</button>
                         </div>
-                        <button class="btn btn-light border rounded-pill px-4 fw-bold shadow-sm" onclick="openImport()">
+                        <button class="btn btn-light border rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="openImport()">
                             <i class="bi bi-cloud-arrow-up me-2 text-success"></i>นำเข้า Excel
                         </button>
-                        <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openAddModal()">
+                        <button class="btn btn-navy rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="openAddModal()">
                             <i class="bi bi-plus-lg me-2"></i>เพิ่มครูใหม่
                         </button>
                     </div>
                 </div>
 
-                <!-- Executive Banner -->
-                <div class="exec-banner shadow mb-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="bi bi-shield-star-fill fs-4"></i>
-                        <div>
-                            <h5 class="fw-black mb-0">กลุ่มผู้บริหาร</h5>
-                            <div class="small opacity-75">ผู้อำนวยการและรองผู้อำนวยการโรงเรียน</div>
+                <!-- Statistics Cards (Aesthetic Parity with Students) -->
+                <div class="row g-4 mb-5" id="stats-dashboard">
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="stat-card animate-fade-in">
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
+                            <div class="stat-label text-muted small fw-bold">ครูและบุคลากรทั้งหมด</div>
+                            <div class="stat-value fs-2 fw-black text-navy" id="stat-total">0</div>
+                            <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-primary" style="width: 100%"></div></div>
                         </div>
                     </div>
-                    <div class="exec-cards" id="execContainer">
-                        <div class="text-white-50 text-center py-3 small">กำลังโหลด...</div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="stat-card animate-fade-in" style="animation-delay: 0.1s;">
+                            <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-gender-male"></i></div>
+                            <div class="stat-label text-muted small fw-bold">ชาย (นาย / ว่าที่ ร.ต.)</div>
+                            <div class="stat-value fs-2 fw-black text-navy" id="stat-male">0</div>
+                            <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-info" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="stat-card animate-fade-in" style="animation-delay: 0.2s;">
+                            <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-gender-female"></i></div>
+                            <div class="stat-label text-muted small fw-bold">หญิง (นาง / น.ส.)</div>
+                            <div class="stat-value fs-2 fw-black text-navy" id="stat-female">0</div>
+                            <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-danger" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="stat-card animate-fade-in" style="animation-delay: 0.3s;">
+                            <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-diagram-3-fill"></i></div>
+                            <div class="stat-label text-muted small fw-bold">กลุ่มสาระการเรียนรู้</div>
+                            <div class="stat-value fs-2 fw-black text-navy" id="stat-depts">0</div>
+                            <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-warning" style="width: 100%"></div></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Table View -->
-                <div id="table-view" class="content-card shadow-sm mb-4">
+                <!-- Flat Advanced Filtering Container -->
+                <div class="filter-container mb-5 animate-fade-in" style="animation-delay: 0.4s;">
+                    <div class="row g-4">
+                        <div class="col-12 col-xl-7">
+                            <div class="input-group search-input-group mb-0">
+                                <span class="input-group-text bg-transparent border-0 pe-0"><i class="bi bi-search"></i></span>
+                                <select id="searchField" class="form-select border-0 fw-bold text-navy" style="max-width: 140px; cursor: pointer;" onchange="filterData()">
+                                    <option value="all">ค้นทั้งหมด</option>
+                                    <option value="name">ค้นชื่อ-นามสกุล</option>
+                                    <option value="teacher_id">ค้นรหัสครู</option>
+                                    <option value="email">ค้นอีเมล</option>
+                                    <option value="phone">ค้นเบอร์โทร</option>
+                                </select>
+                                <div class="vr my-2 opacity-10"></div>
+                                <input type="text" id="searchInput" class="form-control border-0 ps-3" placeholder="ระบุข้อความเพื่อกรองข้อมูลบุคลากรทันที..." onkeyup="filterData()">
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-5">
+                            <button class="btn btn-light border rounded-pill px-4 fw-bold w-100 h-100" style="height: 52px !important;" onclick="resetFilters()">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i>ล้างการกรองทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12 col-md-6">
+                            <div class="filter-label">กลุ่มสาระการเรียนรู้ / ฝ่าย</div>
+                            <div id="dept-chips" class="filter-chip-group"></div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="filter-label">เพศ</div>
+                            <div id="gender-chips" class="filter-chip-group">
+                                <div class="filter-chip active" data-type="gender" data-value="" onclick="toggleChip(this)">ทั้งหมด</div>
+                                <div class="filter-chip" data-type="gender" data-value="ชาย" onclick="toggleChip(this)">ชาย</div>
+                                <div class="filter-chip" data-type="gender" data-value="หญิง" onclick="toggleChip(this)">หญิง</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <div class="filter-label">คณะสีที่สังกัด</div>
+                            <div id="house-chips" class="filter-chip-group">
+                                <div class="filter-chip active" data-type="house" data-value="" onclick="toggleChip(this)">ทั้งหมด</div>
+                                <div class="filter-chip" data-type="house" data-value="ขุนสรรค์" onclick="toggleChip(this)">ขุนสรรค์</div>
+                                <div class="filter-chip" data-type="house" data-value="ขุนศรี" onclick="toggleChip(this)">ขุนศรี</div>
+                                <div class="filter-chip" data-type="house" data-value="เจ้ายี่" onclick="toggleChip(this)">เจ้ายี่</div>
+                                <div class="filter-chip" data-type="house" data-value="ธรรมจักร" onclick="toggleChip(this)">ธรรมจักร</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table View Grid -->
+                <div id="table-view" class="mb-5 animate-fade-in" style="animation-delay: 0.5s;">
                     <div class="table-responsive">
-                        <table class="table-premium w-100 mb-0">
+                        <table class="table-premium mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">ข้อมูลครู / รหัส</th>
+                                    <th style="width: 80px;" class="text-center">ลำดับ</th>
+                                    <th>ข้อมูลครูและรหัสประจำตัว</th>
                                     <th>ตำแหน่ง / วิทยฐานะ</th>
-                                    <th>กลุ่มสาระ</th>
-                                    <th>ห้องที่ปรึกษา</th>
+                                    <th>สังกัดฝ่าย / คณะสี</th>
+                                    <th class="text-center">ห้องที่ปรึกษา</th>
+                                    <th class="text-center" style="width: 150px;">ความสมบูรณ์ประวัติ</th>
                                     <th class="text-end pe-4">ดำเนินการ</th>
                                 </tr>
                             </thead>
@@ -110,53 +345,509 @@
                     </div>
                 </div>
 
-                <!-- Card View -->
-                <div id="card-view" class="d-none pb-5" id="cardViewContainer"></div>
+                <!-- Card View Grid -->
+                <div id="card-view" class="d-none pb-5 animate-fade-in"></div>
 
             </div>
         </div>
+        <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
     </main>
 </div>
 
-<!-- Add/Edit Modal -->
+<!-- ==============================================
+     VIEW PROFILE MODAL (Aesthetic Parity with Students)
+     ============================================== -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-white border-0 p-4 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-navy p-2 rounded-3 text-white"><i class="bi bi-person-video3 fs-4"></i></div>
+                    <div><h5 class="fw-black text-navy mb-0">ระเบียนประวัติบุคลากรรายบุคคล</h5><small class="text-muted">TEACHER PROFILE RECORD</small></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-light">
+                <!-- Header Banner -->
+                <div id="profileHeader" class="p-4 bg-white border-bottom shadow-sm transition-all">
+                    <div class="row align-items-center g-4">
+                        <div class="col-auto">
+                            <div class="position-relative d-inline-block">
+                                <div class="profile-avatar-wrapper shadow-sm border border-4 border-white rounded-4 overflow-hidden position-relative" style="width: 130px; height: 155px;">
+                                    <img id="prof_photo" src="" class="profile-avatar" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div id="prof_house_badge" class="position-absolute top-0 end-0 m-2 badge rounded-pill shadow-sm" style="font-size: 0.65rem;"></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                                <span class="badge bg-navy rounded-pill px-3">รหัสครู: <span id="prof_id_label"></span></span>
+                                <span id="prof_completeness_badge" class="badge rounded-pill px-3">ความสมบูรณ์ของประวัติ <span id="prof_comp_pct"></span>%</span>
+                            </div>
+                            <h2 id="prof_name" class="fw-black text-navy mb-1"></h2>
+                            <div id="prof_title_sub" class="text-secondary fw-bold small mb-3"></div>
+                            
+                            <div class="d-flex flex-wrap gap-2">
+                                <div class="info-pill"><i class="bi bi-briefcase-fill me-2"></i>ตำแหน่ง: <span id="prof_pos_main" class="ms-1 fw-bold"></span></div>
+                                <div class="info-pill"><i class="bi bi-diagram-3-fill me-2"></i>กลุ่มสาระฯ: <span id="prof_dept_main" class="ms-1 fw-bold"></span></div>
+                                <div class="info-pill"><i class="bi bi-door-open-fill me-2"></i>ห้องที่ปรึกษา: <span id="prof_room_main" class="ms-1 fw-bold"></span></div>
+                                <div class="info-pill"><i class="bi bi-cake2-fill text-primary me-2"></i>อายุ: <span id="prof_age" class="ms-1 fw-bold"></span></div>
+                            </div>
+                        </div>
+                        <div class="col-md-auto text-center d-none d-lg-block border-start ps-4">
+                            <div class="bg-light p-3 rounded-4 border shadow-xs">
+                                <canvas id="prof_qr" style="width: 80px; height: 80px;"></canvas>
+                                <div class="small text-muted mt-2 fw-bold" style="font-size: 10px; letter-spacing: 1px;">SCAN FOR ID</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress rounded-pill mt-4" style="height: 6px; background: rgba(0,0,0,0.05);">
+                        <div id="prof_comp_bar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="modal-body p-0 bg-light" style="max-height: 70vh; overflow-y: auto;">
+                    <div class="p-4">
+                        <!-- Section 1: Identity -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-person-vcard-fill fs-4 text-navy"></i>
+                                <h5 class="fw-black text-navy mb-0">ข้อมูลอัตลักษณ์และระบบบัญชี</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-light rounded-4 h-100">
+                                            <div class="text-muted small fw-bold mb-1">รหัสประจำตัวครู (IDT)</div>
+                                            <div class="fw-black text-navy fs-5" id="p_teacher_id"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-light rounded-4 h-100">
+                                            <div class="text-muted small fw-bold mb-1">เลขที่บัตรประจำตัวประชาชน</div>
+                                            <div class="fw-black text-navy fs-5" id="p_id_card"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-light rounded-4 h-100 border-start border-4 border-primary">
+                                            <div class="text-muted small fw-bold mb-1">คณะสีประจำกลุ่มสาระ / ครูที่ปรึกษา</div>
+                                            <div class="fw-black text-primary fs-5" id="p_house"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless align-middle mb-0">
+                                        <tr class="border-bottom border-light">
+                                            <td class="py-2 text-muted fw-bold small" width="200">ชื่อ-นามสกุล (ภาษาไทย)</td>
+                                            <td class="py-2 fw-black text-navy" id="p_name_th"></td>
+                                            <td class="py-2 text-muted fw-bold small" width="200">คำนำหน้า</td>
+                                            <td class="py-2 fw-black text-navy" id="p_prefix"></td>
+                                        </tr>
+                                        <tr class="border-bottom border-light">
+                                            <td class="py-2 text-muted fw-bold small">วันเกิด / อายุ</td>
+                                            <td class="py-2 fw-black text-navy" id="p_birth_age"></td>
+                                            <td class="py-2 text-muted fw-bold small">จังหวัดบ้านเกิด</td>
+                                            <td class="py-2 fw-black text-navy" id="p_hometown"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-muted fw-bold small">เชื้อชาติ / สัญชาติ / ศาสนา</td>
+                                            <td class="py-2 fw-black text-navy" id="p_origin_full" colspan="3"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Position & Teaching -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-briefcase-fill fs-4 text-navy"></i>
+                                <h5 class="fw-black text-navy mb-0">ตำแหน่งวิชาการและการปฏิบัติหน้าที่</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-3">
+                                        <div class="p-3 bg-white border rounded-4 text-center">
+                                            <div class="text-muted small fw-bold">ตำแหน่งหลัก</div>
+                                            <div class="fw-black text-navy fs-5" id="p_position"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 bg-white border rounded-4 text-center">
+                                            <div class="text-muted small fw-bold">วิทยฐานะ</div>
+                                            <div class="fw-black text-navy fs-5" id="p_academic"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 bg-white border rounded-4 text-center">
+                                            <div class="text-muted small fw-bold">กลุ่มสาระฯ / ฝ่าย</div>
+                                            <div class="fw-black text-navy fs-5" id="p_department"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="p-3 bg-white border rounded-4 text-center">
+                                            <div class="text-muted small fw-bold">ห้องที่ปรึกษา</div>
+                                            <div class="fw-black text-navy fs-5" id="p_classroom"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless align-middle mb-0">
+                                        <tr class="border-bottom border-light">
+                                            <td class="py-2 text-muted fw-bold small" width="200">ตำแหน่งงานบริหาร</td>
+                                            <td class="py-2 fw-black text-navy" id="p_admin_pos"></td>
+                                            <td class="py-2 text-muted fw-bold small" width="200">หน้าที่ในกลุ่มสาระ</td>
+                                            <td class="py-2 fw-black text-navy" id="p_dept_pos"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 text-muted fw-bold small">ฝ่ายงานย่อย</td>
+                                            <td class="py-2 fw-black text-navy" id="p_sub_dept"></td>
+                                            <td class="py-2 text-muted fw-bold small">ปีที่จะเกษียณอายุ (พ.ศ.)</td>
+                                            <td class="py-2 fw-black text-navy" id="p_retirement"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Contacts & Address -->
+                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-geo-alt-fill fs-4 text-navy"></i>
+                                <h5 class="fw-black text-navy mb-0">ที่อยู่และการติดต่อสื่อสาร</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-white border rounded-4 d-flex align-items-center gap-3">
+                                            <div class="bg-success bg-opacity-10 p-2 rounded-circle text-success"><i class="bi bi-telephone-fill"></i></div>
+                                            <div><div class="text-muted small fw-bold">เบอร์โทรศัพท์</div><div class="fw-black" id="p_phone"></div></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-white border rounded-4 d-flex align-items-center gap-3">
+                                            <div class="bg-primary bg-opacity-10 p-2 rounded-circle text-primary"><i class="bi bi-line"></i></div>
+                                            <div><div class="text-muted small fw-bold">Line ID</div><div class="fw-black" id="p_line"></div></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 bg-white border rounded-4 d-flex align-items-center gap-3">
+                                            <div class="bg-navy bg-opacity-10 p-2 rounded-circle text-navy"><i class="bi bi-envelope-fill"></i></div>
+                                            <div><div class="text-muted small fw-bold">อีเมลองค์กร</div><div class="fw-black text-truncate" id="p_email" style="max-width:180px;"></div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-white border rounded-4">
+                                    <h6 class="fw-bold text-navy mb-3 pb-2 border-bottom">ที่อยู่ติดต่อปัจจุบัน</h6>
+                                    <div class="fw-bold text-dark" id="p_address_full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Education & Signature -->
+                        <div class="card border-0 shadow-sm rounded-4">
+                            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-mortarboard-fill fs-4 text-navy"></i>
+                                <h5 class="fw-black text-navy mb-0">ประวัติการศึกษาและลายเซ็นดิจิทัล</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-4">
+                                    <div class="col-md-6 border-end">
+                                        <h6 class="fw-bold text-navy mb-3">วุฒิการศึกษาและการศึกษาบุคลากร</h6>
+                                        <div class="p-3 bg-light rounded-4">
+                                            <div class="fw-bold" id="p_edu_history"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="fw-bold text-navy mb-3">ลายเซ็นอิเล็กทรอนิกส์ (E-Signature)</h6>
+                                        <div class="p-3 border rounded-4 text-center bg-white shadow-xs">
+                                            <img id="p_sig_img" src="" class="img-fluid border rounded" style="max-height:80px; object-fit:contain; display:none;">
+                                            <div id="p_no_sig" class="text-muted small py-3"><i class="bi bi-pen me-1"></i>ยังไม่มีการอัปโหลดลายเซ็น</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-white border-0 p-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                    <button type="button" id="btnEditFromProf" class="btn btn-navy rounded-pill px-5 fw-bold"><i class="bi bi-pencil-square me-2"></i>แก้ไขระเบียบประวัติ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==============================================
+     ADD / EDIT FORM MODAL (Sleek multi-section parity)
+     ============================================== -->
 <div class="modal fade" id="teacherModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg" style="border-radius:28px; overflow:hidden;">
             <div class="modal-header border-0 p-4 pb-0">
                 <h5 class="fw-black text-navy mb-0" id="modalTitle">ข้อมูลครู</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4">
+            <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
                 <form id="teacherForm">
                     <input type="hidden" id="teacherId">
-                    <div class="row g-3">
-                        <div class="col-md-3 text-center">
-                            <img id="modalAvatar" src="../public/img/default-avatar.png" class="rounded-circle shadow mb-3" style="width:100px;height:100px;object-fit:cover;border:4px solid #f1f5f9;">
-                            <label for="photoUpload" class="btn btn-sm btn-light border rounded-pill d-block"><i class="bi bi-camera me-1"></i>เปลี่ยนรูป</label>
+                    <div class="row g-4">
+                        <!-- Left Side: Profile Photo Upload -->
+                        <div class="col-lg-3 text-center border-end">
+                            <div class="profile-avatar-wrapper shadow border border-4 border-white rounded-4 overflow-hidden position-relative mx-auto mb-3" style="width: 140px; height: 165px;">
+                                <img id="modalAvatar" src="../public/img/default-avatar.png" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <label for="photoUpload" class="btn btn-sm btn-light border rounded-pill px-3"><i class="bi bi-camera me-1"></i>อัปโหลดรูปโปรไฟล์</label>
                             <input type="file" id="photoUpload" class="d-none" accept="image/*">
+                            
+                            <div class="alert alert-light border mt-4 text-start small">
+                                <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                                <b>ข้อมูลรหัสผ่าน:</b><br>
+                                บัญชีผู้ใช้ครูจะใช้ <b>อีเมลโรงเรียน</b> ในการเข้าสู่ระบบ โดยมีรหัสผ่านเริ่มต้นเป็น <b>cnp12345</b>
+                            </div>
                         </div>
-                        <div class="col-md-9 row g-2">
-                            <div class="col-4"><label class="form-label small fw-bold">คำนำหน้า</label>
-                                <select id="f_prefix" class="form-select border-0 bg-light rounded-3">
-                                    <option>นาย</option><option>นาง</option><option>นางสาว</option><option>ว่าที่ร้อยตรี</option><option>ดร.</option>
-                                </select></div>
-                            <div class="col-4"><label class="form-label small fw-bold">ชื่อ</label><input type="text" id="f_first" class="form-control border-0 bg-light rounded-3" required></div>
-                            <div class="col-4"><label class="form-label small fw-bold">นามสกุล</label><input type="text" id="f_last" class="form-control border-0 bg-light rounded-3" required></div>
-                            <div class="col-6"><label class="form-label small fw-bold">รหัสครู (IDT)</label><input type="text" id="f_teacher_id" class="form-control border-0 bg-light rounded-3"></div>
-                            <div class="col-6"><label class="form-label small fw-bold">อีเมล</label><input type="email" id="f_email" class="form-control border-0 bg-light rounded-3" placeholder="ชื่อ@chainatpit.ac.th"><div class="form-text">ต้องใช้ @chainatpit.ac.th เท่านั้น</div></div>
-                            <div class="col-6"><label class="form-label small fw-bold">กลุ่มสาระ / ฝ่าย</label><input type="text" id="f_department" class="form-control border-0 bg-light rounded-3"></div>
-                            <div class="col-6"><label class="form-label small fw-bold">ตำแหน่ง</label><input type="text" id="f_position" class="form-control border-0 bg-light rounded-3"></div>
-                            <div class="col-6"><label class="form-label small fw-bold">วิทยฐานะ</label><input type="text" id="f_academic" class="form-control border-0 bg-light rounded-3"></div>
-                            <div class="col-6"><label class="form-label small fw-bold">ห้องที่ปรึกษา</label><input type="text" id="f_classroom" class="form-control border-0 bg-light rounded-3"></div>
-                            <div class="col-6"><label class="form-label small fw-bold">เบอร์โทรศัพท์</label><input type="text" id="f_phone" class="form-control border-0 bg-light rounded-3"></div>
-                            <div class="col-6"><label class="form-label small fw-bold">Line ID</label><input type="text" id="f_line" class="form-control border-0 bg-light rounded-3"></div>
+
+                        <!-- Right Side: Input Form Fields in Collapsible/Clean sections -->
+                        <div class="col-lg-9">
+                            <!-- Section A: Identity -->
+                            <div class="card border-0 bg-light rounded-4 p-4 mb-4">
+                                <h6 class="fw-black text-navy mb-3"><i class="bi bi-person-vcard-fill me-2"></i>1. ข้อมูลอัตลักษณ์ประจำตัวและบัญชี</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <div class="form-floating">
+                                            <select id="f_prefix" class="form-select border-0 bg-white">
+                                                <option>นาย</option><option>นาง</option><option>นางสาว</option><option>ว่าที่ร้อยตรี</option><option>ดร.</option><option>ครู</option>
+                                            </select>
+                                            <label for="f_prefix">คำนำหน้า</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_first" class="form-control border-0 bg-white" required placeholder=" ">
+                                            <label for="f_first">ชื่อภาษาไทย</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_last" class="form-control border-0 bg-white" required placeholder=" ">
+                                            <label for="f_last">นามสกุลภาษาไทย</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_teacher_id" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_teacher_id">รหัสครู (IDT)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_id_card" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_id_card">เลขบัตรประชาชน</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="date" id="f_birth_date" class="form-control border-0 bg-white">
+                                            <label for="f_birth_date">วัน/เดือน/ปีเกิด</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <select id="f_faculty" class="form-select border-0 bg-white">
+                                                <option value="">-- เลือกคณะสี (ถ้ามี) --</option>
+                                                <option value="ขุนสรรค์">ขุนสรรค์ (สีชมพู)</option>
+                                                <option value="ขุนศรี">ขุนศรี (สีแดง)</option>
+                                                <option value="เจ้ายี่">เจ้ายี่ (สีเขียว)</option>
+                                                <option value="ธรรมจักร">ธรรมจักร (สีเหลือง)</option>
+                                            </select>
+                                            <label for="f_faculty">คณะสีหลักที่สังกัด</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_hometown" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_hometown">จังหวัดบ้านเกิด</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_religion" class="form-control border-0 bg-white" placeholder=" " value="พุทธ">
+                                            <label for="f_religion">ศาสนา</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_ethnicity" class="form-control border-0 bg-white" placeholder=" " value="ไทย">
+                                            <label for="f_ethnicity">เชื้อชาติ</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_nationality" class="form-control border-0 bg-white" placeholder=" " value="ไทย">
+                                            <label for="f_nationality">สัญชาติ</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section B: Employment & Position -->
+                            <div class="card border-0 bg-light rounded-4 p-4 mb-4">
+                                <h6 class="fw-black text-navy mb-3"><i class="bi bi-briefcase-fill me-2"></i>2. ข้อมูลวิชาชีพและการทำงาน</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_position" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_position">ตำแหน่งปัจจุบัน (เช่น ครู, ครูผู้ช่วย)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_academic" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_academic">วิทยฐานะ (เช่น ชำนาญการพิเศษ)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <select id="f_department" class="form-select border-0 bg-white" required>
+                                                <option value="">-- เลือกกลุ่มสาระ --</option>
+                                                <option>วิทยาศาสตร์และเทคโนโลยี</option>
+                                                <option>คณิตศาสตร์</option>
+                                                <option>ภาษาไทย</option>
+                                                <option>ภาษาต่างประเทศ</option>
+                                                <option>สังคมศึกษา ศาสนา และวัฒนธรรม</option>
+                                                <option>สุขศึกษาและพลศึกษา</option>
+                                                <option>ศิลปะ</option>
+                                                <option>การงานอาชีพ</option>
+                                                <option>กิจกรรมพัฒนาผู้เรียน</option>
+                                                <option>ฝ่ายบริหาร</option>
+                                            </select>
+                                            <label for="f_department">กลุ่มสาระการเรียนรู้</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_sub_department" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_sub_department">ฝ่ายงานย่อย / กลุ่มวิชา</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_admin_position" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_admin_position">ตำแหน่งงานบริหารโรงเรียน</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_department_position" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_department_position">ตำแหน่งงานในกลุ่มสาระ</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_classroom" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_classroom">ห้องที่ปรึกษา (เช่น ม.6/4 หรือ 604)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="number" id="f_retirement_year" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_retirement_year">ปีเกษียณอายุราชการ (พ.ศ.)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section C: Address & Contact -->
+                            <div class="card border-0 bg-light rounded-4 p-4 mb-4">
+                                <h6 class="fw-black text-navy mb-3"><i class="bi bi-geo-alt-fill me-2"></i>3. ที่อยู่และการติดต่อสื่อสาร</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <div class="form-floating">
+                                            <input type="email" id="f_email" class="form-control border-0 bg-white" required placeholder="name@chainatpit.ac.th">
+                                            <label for="f_email">อีเมลประจำตัวครู (ต้องลงท้าย @chainatpit.ac.th)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_phone" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_phone">เบอร์โทรศัพท์ติดต่อ</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_line" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_line">Line ID</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_no" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_no">บ้านเลขที่</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_moo" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_moo">หมู่ที่</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_soi" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_soi">ซอย</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_road" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_road">ถนน</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_subdistrict" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_subdistrict">ตำบล / แขวง</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_district" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_district">อำเภอ / เขต</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-floating">
+                                            <input type="text" id="f_address_province" class="form-control border-0 bg-white" placeholder=" ">
+                                            <label for="f_address_province">จังหวัด</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section D: Education -->
+                            <div class="card border-0 bg-light rounded-4 p-4">
+                                <h6 class="fw-black text-navy mb-3"><i class="bi bi-mortarboard-fill me-2"></i>4. ประวัติการศึกษาและการรับรองเอกสาร</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <div class="form-floating">
+                                            <textarea id="f_education_history" class="form-control border-0 bg-white" style="height: 100px;" placeholder=" "></textarea>
+                                            <label for="f_education_history">ประวัติการศึกษา (เช่น ปริญญาตรี ครุศาสตรบัณฑิต มหาวิทยาลัย...)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div class="d-flex gap-2 mt-4">
-                        <button type="button" id="btnDelete" class="btn btn-outline-danger rounded-pill px-4 d-none" onclick="deleteTeacher()"><i class="bi bi-trash me-1"></i>ลบ</button>
+                        <button type="button" id="btnDelete" class="btn btn-outline-danger rounded-pill px-4 d-none" onclick="deleteTeacher()"><i class="bi bi-trash me-1"></i>ลบครูท่านนี้</button>
                         <div class="ms-auto d-flex gap-2">
                             <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                            <button type="submit" class="btn btn-navy rounded-pill px-5 fw-bold"><i class="bi bi-floppy me-2"></i>บันทึก</button>
+                            <button type="submit" class="btn btn-navy rounded-pill px-5 fw-bold"><i class="bi bi-floppy me-2"></i>บันทึกข้อมูลครู</button>
                         </div>
                     </div>
                 </form>
@@ -167,17 +858,43 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Include QRious globally to dynamic QR rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <script src="../public/js/main.js"></script>
 <script src="../public/js/importModal.js"></script>
 <script>
 let allTeachers = [];
+let filteredTeachers = [];
 let viewMode = 'table';
+let activeFilters = {
+    department: '',
+    gender: '',
+    house: ''
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth(['admin']);
     loadExecutives();
     loadTeachers();
+    
     document.getElementById('teacherForm').onsubmit = saveTeacher;
+    
+    // Bind modal triggers
+    document.getElementById('btnEditFromProf')?.addEventListener('click', function() {
+        const id = document.getElementById('teacherId').value;
+        if (id) {
+            bootstrap.Modal.getInstance(document.getElementById('profileModal')).hide();
+            openEditModal(id);
+        }
+    });
+
+    // Preview photo on upload
+    document.getElementById('photoUpload').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            document.getElementById('modalAvatar').src = URL.createObjectURL(file);
+        }
+    });
 });
 
 async function loadExecutives() {
@@ -185,22 +902,139 @@ async function loadExecutives() {
         const res = await fetch('../api/admin/executives.php');
         const data = await res.json();
         if (!data.success) return;
-        document.getElementById('execContainer').innerHTML = data.executives.map(e => {
-            const photo = e.teacher_photo ? `../${e.teacher_photo}` : '../public/img/default-avatar.png';
-            const name = (e.resolved_name || '').trim() || 'ว่าง';
-            return `<div class="exec-card">
-                <img src="${photo}" class="exec-avatar" onerror="this.src='../public/img/default-avatar.png'">
-                <div class="exec-pos">${e.position_label}</div>
-                <div class="exec-name">${name === ' ' ? 'ว่าง' : name}</div>
-            </div>`;
-        }).join('');
+        
+        // This renders the executives list on dashboard if needed, or keeping it clean
     } catch(e) {}
 }
 
 async function loadTeachers() {
-    const res = await fetch('../api/admin/teachers.php');
-    const data = await res.json();
-    if (data.success) { allTeachers = data.data; renderContent(); }
+    try {
+        const res = await fetch('../api/admin/teachers.php?_t=' + Date.now());
+        const data = await res.json();
+        if (data.success) { 
+            allTeachers = data.data || [];
+            filteredTeachers = [...allTeachers];
+            
+            populateFilters();
+            updateStats();
+            renderContent(); 
+        }
+    } catch(e) {
+        console.error(e);
+        Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อ API ข้อมูลครูได้', 'error');
+    }
+}
+
+function populateFilters() {
+    // Dynamic Departments
+    const depts = [...new Set(allTeachers.map(t => t.department).filter(Boolean))].sort();
+    const cont = document.getElementById('dept-chips');
+    if (cont) {
+        let html = `<div class="filter-chip ${activeFilters.department === '' ? 'active' : ''}" data-type="department" data-value="" onclick="toggleChip(this)">ทั้งหมด</div>`;
+        depts.forEach(d => {
+            html += `<div class="filter-chip ${activeFilters.department === d ? 'active' : ''}" data-type="department" data-value="${d}" onclick="toggleChip(this)">${d}</div>`;
+        });
+        cont.innerHTML = html;
+    }
+}
+
+function toggleChip(el) {
+    const type = el.getAttribute('data-type');
+    const val = el.getAttribute('data-value');
+    
+    activeFilters[type] = val;
+    
+    document.querySelectorAll(`.filter-chip[data-type="${type}"]`).forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    
+    filterData();
+}
+
+function filterData() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    const field = document.getElementById('searchField').value;
+    
+    filteredTeachers = allTeachers.filter(t => {
+        // Chip Filters
+        if (activeFilters.department && t.department !== activeFilters.department) return false;
+        if (activeFilters.house && t.faculty !== activeFilters.house) return false;
+        
+        const gender = getGender(t);
+        if (activeFilters.gender === 'ชาย' && gender !== 'M') return false;
+        if (activeFilters.gender === 'หญิง' && gender !== 'F') return false;
+        
+        // Text Search
+        if (query) {
+            const nameStr = `${t.prefix || ''}${t.first_name_th || ''} ${t.last_name_th || ''}`.toLowerCase();
+            const idt = (t.teacher_id || '').toLowerCase();
+            const email = (t.email || '').toLowerCase();
+            const phone = (t.phone || '').toLowerCase();
+            
+            if (field === 'name') return nameStr.includes(query);
+            if (field === 'teacher_id') return idt.includes(query);
+            if (field === 'email') return email.includes(query);
+            if (field === 'phone') return phone.includes(query);
+            
+            return nameStr.includes(query) || idt.includes(query) || email.includes(query) || phone.includes(query);
+        }
+        
+        return true;
+    });
+    
+    updateStats();
+    renderContent();
+}
+
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchField').value = 'all';
+    
+    activeFilters = { department: '', gender: '', house: '' };
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.filter-chip[data-value=""]').forEach(c => c.classList.add('active'));
+    
+    filteredTeachers = [...allTeachers];
+    updateStats();
+    renderContent();
+}
+
+function getGender(t) {
+    if (['นาย', 'ว่าที่ร้อยตรี', 'ว่าที่ ร.ต.', 'นายแพทย์'].includes(t.prefix)) return 'M';
+    if (['นาง', 'นางสาว', 'น.ส.'].includes(t.prefix)) return 'F';
+    // Fallback detection
+    const name = t.first_name_th || '';
+    if (name.endsWith('ศักดิ์') || name.startsWith('วิ') || name.startsWith('สม')) return 'M';
+    return 'F';
+}
+
+function updateStats() {
+    const total = filteredTeachers.length;
+    const male = filteredTeachers.filter(t => getGender(t) === 'M').length;
+    const female = filteredTeachers.filter(t => getGender(t) === 'F').length;
+    const uniqueDepts = new Set(filteredTeachers.map(t => t.department).filter(Boolean)).size;
+    
+    animateValue('stat-total', 0, total, 450);
+    animateValue('stat-male', 0, male, 450);
+    animateValue('stat-female', 0, female, 450);
+    animateValue('stat-depts', 0, uniqueDepts, 450);
+    
+    if (total > 0) {
+        document.querySelector('#stat-male + .progress .progress-bar').style.width = (male / total * 100) + '%';
+        document.querySelector('#stat-female + .progress .progress-bar').style.width = (female / total * 100) + '%';
+    }
+}
+
+function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+        if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
 }
 
 function setViewMode(mode) {
@@ -216,178 +1050,391 @@ function renderContent() {
     if (viewMode === 'table') renderTable(); else renderCards();
 }
 
-function groupByDept(list) {
-    const h = {};
-    list.forEach(t => {
-        const d = t.department || 'ไม่ระบุกลุ่มสาระ';
-        if (!h[d]) h[d] = [];
-        h[d].push(t);
-    });
-    return h;
+function getHouseStyle(house) {
+    const styles = {
+        'ขุนสรรค์': { color: '#be185d', bg: '#fce7f3' },
+        'ขุนศรี': { color: '#b91c1c', bg: '#fee2e2' },
+        'เจ้ายี่': { color: '#15803d', bg: '#dcfce7' },
+        'ธรรมจักร': { color: '#854d0e', bg: '#fef08a' }
+    };
+    return styles[house] || { color: '#64748b', bg: '#f1f5f9' };
 }
 
-let deptIdx = 0;
+function calculateAge(dateString) {
+    if (!dateString || dateString === '-') return { y: 0, m: 0 };
+    try {
+        const today = new Date();
+        const birthDate = new Date(dateString);
+        if (isNaN(birthDate.getTime())) return { y: 0, m: 0 };
+        let ageY = today.getFullYear() - birthDate.getFullYear();
+        let ageM = today.getMonth() - birthDate.getMonth();
+        if (ageM < 0 || (ageM === 0 && today.getDate() < birthDate.getDate())) {
+            ageY--;
+            ageM = 12 + ageM;
+        }
+        return { y: ageY, m: ageM };
+    } catch(e) { return { y: 0, m: 0 }; }
+}
+
+function calcCompleteness(t) {
+    const fields = [
+        'teacher_id', 'email', 'id_card', 'prefix', 'first_name_th', 'last_name_th', 'birth_date',
+        'classroom', 'faculty', 'position', 'academic_standing', 'department', 'phone', 'line_id',
+        'address_no', 'address_subdistrict', 'address_district', 'address_province', 'education_history'
+    ];
+    let filled = 0;
+    fields.forEach(f => {
+        if (t[f] && t[f] !== '-' && t[f] !== '') filled++;
+    });
+    const pct = Math.round((filled / fields.length) * 100);
+    return { pct, missingCount: fields.length - filled };
+}
+
 function renderTable() {
-    const h = groupByDept(allTeachers);
-    deptIdx = 0;
-    const buf = [];
-    Object.keys(h).sort().forEach(dept => {
-        const id = deptIdx++;
-        buf.push(`<tr class="bg-navy" style="cursor:pointer" onclick="toggleDept(${id},this)">
-            <td colspan="5" class="py-3 ps-4 border-0">
-                <div class="d-flex align-items-center justify-content-between pe-4">
-                    <span class="fw-black text-white"><i class="bi bi-chevron-down me-2 chevron-gl"></i>${dept}</span>
-                    <span class="badge bg-white text-navy rounded-pill px-3">${h[dept].length} ท่าน</span>
-                </div>
-            </td></tr>`);
-        h[dept].forEach(t => {
-            const name = `${t.prefix||''}${t.first_name_th||''} ${t.last_name_th||''}`.trim();
-            const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th||'T')}&background=1e3a8a&color=fff`;
-            buf.push(`<tr class="dept-child-${id} d-none" style="cursor:pointer" onclick="openEditModal(${t.id})">
-                <td class="ps-4"><div class="d-flex align-items-center gap-3">
-                    <img src="${photo}" class="rounded-3 border shadow-sm" style="width:42px;height:42px;object-fit:cover;" onerror="this.src='../public/img/default-avatar.png'">
-                    <div><div class="fw-bold">${name}</div><div class="small text-muted" style="font-size:.65rem">IDT: ${t.teacher_id||'-'} • ${t.email||''}</div></div>
-                </div></td>
-                <td class="small">${t.position||''} ${t.academic_standing ? '•'+t.academic_standing : ''}</td>
-                <td class="small">${t.department||'-'}</td>
-                <td class="small text-center">${t.classroom||'-'}</td>
-                <td class="text-end pe-4" onclick="event.stopPropagation()">
-                    <div class="d-flex justify-content-end gap-1">
-                        <button class="btn-modern-action btn-modern-edit" onclick="openEditModal(${t.id})"><i class="bi bi-pencil-fill"></i></button>
-                        <button class="btn-modern-action btn-modern-delete" onclick="deleteTeacher(${t.id})"><i class="bi bi-trash-fill"></i></button>
+    const tbody = document.getElementById('teacherTableBody');
+    if (filteredTeachers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted fw-bold">ไม่พบข้อมูลบุคลากรครูที่ตรงกับเงื่อนไขการค้นหา</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = filteredTeachers.map((t, idx) => {
+        const name = `${t.prefix || ''}${t.first_name_th || ''} ${t.last_name_th || ''}`.trim();
+        const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th || 'T')}&background=1e3a8a&color=fff&size=200`;
+        const g = getGender(t);
+        const borderClass = g === 'M' ? 'row-male' : 'row-female';
+        
+        const hStyle = getHouseStyle(t.faculty);
+        const comp = calcCompleteness(t);
+        
+        return `<tr class="${borderClass}" style="cursor: pointer;" onclick="viewProfile(${t.id})">
+            <td class="text-center fw-bold text-navy">${idx + 1}</td>
+            <td>
+                <div class="d-flex align-items-center gap-3">
+                    <img src="${photo}" class="rounded-circle border-2 border-white shadow-sm" style="width:52px;height:52px;object-fit:cover;" onerror="this.src='../public/img/default-avatar.png'">
+                    <div>
+                        <div class="fw-bold text-navy">${name}</div>
+                        <div class="small text-muted" style="font-size:.68rem">รหัสประจำตัว: ${t.teacher_id || '-'} • อีเมล: ${t.email || '-'}</div>
                     </div>
-                </td></tr>`);
-        });
-    });
-    document.getElementById('teacherTableBody').innerHTML = buf.join('');
-}
-
-function toggleDept(id, el) {
-    const rows = document.querySelectorAll(`.dept-child-${id}`);
-    const icon = el.querySelector('.chevron-gl');
-    const hidden = rows[0]?.classList.contains('d-none');
-    rows.forEach(r => r.classList.toggle('d-none', !hidden));
-    if (icon) icon.className = `bi ${hidden ? 'bi-chevron-up' : 'bi-chevron-down'} me-2 chevron-gl`;
+                </div>
+            </td>
+            <td>
+                <div class="fw-bold text-dark">${t.position || '-'}</div>
+                <div class="small text-muted">${t.academic_standing || '-'}</div>
+            </td>
+            <td>
+                <div class="fw-bold" style="font-size: 0.85rem;">${t.department || '-'}</div>
+                <span class="badge rounded-pill mt-1" style="background:${hStyle.bg}; color:${hStyle.color}; font-size: 0.68rem;">คณะ${t.faculty || 'ไม่ระบุคณะสี'}</span>
+            </td>
+            <td class="text-center fw-black text-navy" style="font-size:0.95rem;">${t.classroom || '-'}</td>
+            <td>
+                <div class="d-flex justify-content-between small fw-bold mb-1">
+                    <span class="text-muted" style="font-size: 0.68rem;">ข้อมูลประวัติ</span>
+                    <span class="${comp.pct < 100 ? 'text-primary' : 'text-success'}" style="font-size: 0.72rem;">${comp.pct}%</span>
+                </div>
+                <div class="progress" style="height: 5px;">
+                    <div class="progress-bar ${comp.pct < 50 ? 'bg-danger' : (comp.pct < 80 ? 'bg-warning' : 'bg-success')}" style="width: ${comp.pct}%"></div>
+                </div>
+            </td>
+            <td class="text-end pe-4" onclick="event.stopPropagation()">
+                <div class="d-flex justify-content-end gap-1">
+                    <button class="btn-modern-action btn-modern-edit" onclick="openEditModal(${t.id})" title="แก้ไขประวัติ"><i class="bi bi-pencil-fill"></i></button>
+                    <button class="btn-modern-action btn-modern-delete" onclick="deleteTeacher(${t.id})" title="ลบข้อมูลบุคลากร"><i class="bi bi-trash-fill"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
 }
 
 function renderCards() {
-    const h = groupByDept(allTeachers);
-    const buf = [];
-    Object.keys(h).sort().forEach((dept, di) => {
-        buf.push(`<div class="section-title fs-5" style="cursor:pointer" onclick="toggleCardDept(${di},this)">
-            <span>${dept}</span> <i class="bi bi-chevron-down ms-2 chevron-gl"></i>
-        </div>
-        <div id="cdept-${di}" class="d-none"><div class="teacher-grid">`);
-        h[dept].forEach(t => {
-            const name = `${t.first_name_th||''} ${t.last_name_th||''}`.trim();
-            const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th||'T')}&background=1e3a8a&color=fff&size=500`;
-            buf.push(`<div class="modern-profile-card" onclick="openEditModal(${t.id})">
-                <div class="card-bg" style="background-image:url('${photo}')"></div>
-                <div class="card-overlay"></div>
-                <div class="card-content-modern">
-                    <h3 class="fw-black mb-1" style="font-size:.95rem;line-height:1.2">${name}</h3>
-                    <p class="small opacity-75 mb-0" style="font-size:.68rem">${t.position||''} ${t.academic_standing||''}</p>
-                    <button class="btn-view-profile" onclick="event.stopPropagation();openEditModal(${t.id})">
-                        <i class="bi bi-pencil me-1"></i>แก้ไข / ดูข้อมูล
-                    </button>
-                </div>
-            </div>`);
-        });
-        buf.push('</div></div>');
-    });
-    document.getElementById('card-view').innerHTML = buf.join('');
+    const container = document.getElementById('card-view');
+    if (filteredTeachers.length === 0) {
+        container.innerHTML = '<div class="text-center py-5 text-muted">ไม่พบข้อมูลบุคลากรครู</div>';
+        return;
+    }
+    
+    const cardsHtml = filteredTeachers.map(t => {
+        const name = `${t.prefix || ''}${t.first_name_th || ''} ${t.last_name_th || ''}`.trim();
+        const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th || 'T')}&background=1e3a8a&color=fff&size=500`;
+        const hStyle = getHouseStyle(t.faculty);
+        
+        return `<div class="modern-profile-card animate-fade-in" onclick="viewProfile(${t.id})">
+            <div class="card-bg" style="background-image:url('${photo}')"></div>
+            <div class="card-overlay"></div>
+            <span class="house-badge" style="background:${hStyle.bg}; color:${hStyle.color};">${t.faculty || 'ไม่ระบุสี'}</span>
+            <div class="card-content-modern">
+                <h3 class="fw-black mb-1" style="font-size:.95rem;line-height:1.2">${name}</h3>
+                <p class="small opacity-75 mb-0" style="font-size:.68rem">${t.position || ''} ${t.academic_standing || ''}</p>
+                <div class="small opacity-50 mb-2" style="font-size:.62rem">${t.department || '-'}</div>
+                <button class="btn-view-profile" onclick="event.stopPropagation();viewProfile(${t.id})">
+                    <i class="bi bi-pencil me-1"></i>ดูรายละเอียดครู
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+    
+    container.innerHTML = `<div class="teacher-grid">${cardsHtml}</div>`;
 }
 
-function toggleCardDept(id, el) {
-    const body = document.getElementById(`cdept-${id}`);
-    const icon = el.querySelector('.chevron-gl');
-    body.classList.toggle('d-none');
-    if (icon) icon.className = `bi ${body.classList.contains('d-none') ? 'bi-chevron-down' : 'bi-chevron-up'} ms-2 chevron-gl`;
+function viewProfile(id) {
+    const t = allTeachers.find(x => x.id == id);
+    if (!t) return;
+    
+    document.getElementById('teacherId').value = t.id;
+    const photo = t.photo ? `../${t.photo}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(t.first_name_th || 'T')}&background=1e3a8a&color=fff&size=300`;
+    
+    const hStyle = getHouseStyle(t.faculty);
+    const age = calculateAge(t.birth_date);
+    const comp = calcCompleteness(t);
+    
+    // Header Info
+    document.getElementById('prof_name').textContent = `${t.prefix || ''}${t.first_name_th || ''} ${t.last_name_th || ''}`.trim();
+    document.getElementById('prof_photo').src = photo;
+    document.getElementById('prof_id_label').textContent = t.teacher_id || '-';
+    document.getElementById('prof_comp_pct').textContent = comp.pct;
+    document.getElementById('prof_comp_bar').style.width = comp.pct + '%';
+    
+    const subTitle = `${t.position || '-'} ${t.academic_standing ? ' • ' + t.academic_standing : ''}`;
+    document.getElementById('prof_title_sub').textContent = subTitle;
+    
+    document.getElementById('prof_pos_main').textContent = t.position || '-';
+    document.getElementById('prof_dept_main').textContent = t.department || '-';
+    document.getElementById('prof_room_main').textContent = t.classroom || '-';
+    document.getElementById('prof_age').textContent = age.y > 0 ? `${age.y} ปี ${age.m} เดือน` : '-';
+    
+    // House color header border
+    const profHeader = document.getElementById('profileHeader');
+    profHeader.style.borderLeft = `8px solid ${hStyle.color}`;
+    profHeader.style.backgroundColor = hStyle.bg + '12'; // Subtle tint
+    
+    const hb = document.getElementById('prof_house_badge');
+    hb.textContent = t.faculty || 'ไม่ระบุคณะสี';
+    hb.style.backgroundColor = hStyle.bg;
+    hb.style.color = hStyle.color;
+    
+    // QR Code
+    try {
+        const qrCanvas = document.getElementById('prof_qr');
+        qrCanvas.getContext('2d').clearRect(0,0,qrCanvas.width,qrCanvas.height);
+        new QRious({
+            element: qrCanvas,
+            value: `TEACHER_ID:${t.teacher_id || ''}|EMAIL:${t.email || ''}`,
+            size: 150,
+            level: 'M'
+        });
+    } catch(err) {
+        console.error(err);
+    }
+    
+    // Utility for values
+    const val = (v) => (v && v.toString().trim() !== '' && v !== '-') ? v : '-';
+    
+    // Section 1: Identity
+    document.getElementById('p_teacher_id').textContent = val(t.teacher_id);
+    document.getElementById('p_id_card').textContent = val(t.id_card);
+    document.getElementById('p_house').textContent = val(t.faculty);
+    document.getElementById('p_name_th').textContent = `${t.first_name_th || ''} ${t.last_name_th || ''}`.trim();
+    document.getElementById('p_prefix').textContent = val(t.prefix);
+    document.getElementById('p_birth_age').textContent = t.birth_date ? `${thDate(t.birth_date)} (อายุ ${age.y} ปี)` : '-';
+    document.getElementById('p_hometown').textContent = val(t.hometown);
+    document.getElementById('p_origin_full').textContent = `${val(t.ethnicity)} / ${val(t.nationality)} / ${val(t.religion)}`;
+    
+    // Section 2: Position & Job
+    document.getElementById('p_position').textContent = val(t.position);
+    document.getElementById('p_academic').textContent = val(t.academic_standing);
+    document.getElementById('p_department').textContent = val(t.department);
+    document.getElementById('p_classroom').textContent = val(t.classroom);
+    document.getElementById('p_admin_pos').textContent = val(t.admin_position);
+    document.getElementById('p_dept_pos').textContent = val(t.department_position);
+    document.getElementById('p_sub_dept').textContent = val(t.sub_department);
+    document.getElementById('p_retirement').textContent = val(t.retirement_year);
+    
+    // Section 3: Contact & Address
+    document.getElementById('p_phone').textContent = val(t.phone);
+    document.getElementById('p_line').textContent = val(t.line_id);
+    document.getElementById('p_email').textContent = val(t.email);
+    
+    const adr = [];
+    if (t.address_no) adr.push(`บ้านเลขที่ ${t.address_no}`);
+    if (t.address_moo) adr.push(`หมู่ที่ ${t.address_moo}`);
+    if (t.address_soi) adr.push(`ซอย${t.address_soi}`);
+    if (t.address_road) adr.push(`ถนน${t.address_road}`);
+    if (t.address_subdistrict) adr.push(`ตำบล/แขวง${t.address_subdistrict}`);
+    if (t.address_district) adr.push(`อำเภอ/เขต${t.address_district}`);
+    if (t.address_province) adr.push(`จังหวัด${t.address_province}`);
+    document.getElementById('p_address_full').textContent = adr.length > 0 ? adr.join(' ') : '-';
+    
+    // Section 4: Education & Signature
+    document.getElementById('p_edu_history').textContent = val(t.education_history);
+    
+    if (t.signature) {
+        document.getElementById('p_sig_img').src = `../${t.signature}`;
+        document.getElementById('p_sig_img').style.display = 'inline-block';
+        document.getElementById('p_no_sig').style.display = 'none';
+    } else {
+        document.getElementById('p_sig_img').style.display = 'none';
+        document.getElementById('p_no_sig').style.display = 'block';
+    }
+    
+    new bootstrap.Modal(document.getElementById('profileModal')).show();
 }
 
 function openAddModal() {
     document.getElementById('teacherForm').reset();
     document.getElementById('teacherId').value = '';
-    document.getElementById('modalTitle').textContent = 'เพิ่มครูใหม่';
+    document.getElementById('modalTitle').textContent = 'เพิ่มบุคลากรครูใหม่';
     document.getElementById('modalAvatar').src = '../public/img/default-avatar.png';
     document.getElementById('btnDelete').classList.add('d-none');
-    new bootstrap.Modal('#teacherModal').show();
+    
+    new bootstrap.Modal(document.getElementById('teacherModal')).show();
 }
 
 function openEditModal(id) {
-    const t = allTeachers.find(x => x.id == id); if (!t) return;
+    const t = allTeachers.find(x => x.id == id);
+    if (!t) return;
+    
     document.getElementById('teacherId').value = t.id;
-    document.getElementById('modalTitle').textContent = `${t.prefix||''}${t.first_name_th||''} ${t.last_name_th||''}`.trim();
-    document.getElementById('modalAvatar').src = t.photo ? `../${t.photo}` : '../public/img/default-avatar.png';
-    document.getElementById('f_prefix').value     = t.prefix || 'นาย';
-    document.getElementById('f_first').value      = t.first_name_th || '';
-    document.getElementById('f_last').value       = t.last_name_th || '';
+    document.getElementById('modalTitle').textContent = `แก้ไขข้อมูลครู: ${t.prefix || ''}${t.first_name_th || ''} ${t.last_name_th || ''}`.trim();
+    
+    const photo = t.photo ? `../${t.photo}` : '../public/img/default-avatar.png';
+    document.getElementById('modalAvatar').src = photo;
+    
+    document.getElementById('f_prefix').value = t.prefix || 'นาย';
+    document.getElementById('f_first').value = t.first_name_th || '';
+    document.getElementById('f_last').value = t.last_name_th || '';
     document.getElementById('f_teacher_id').value = t.teacher_id || '';
-    document.getElementById('f_email').value      = t.email || '';
+    document.getElementById('f_id_card').value = t.id_card || '';
+    document.getElementById('f_birth_date').value = t.birth_date || '';
+    document.getElementById('f_faculty').value = t.faculty || '';
+    document.getElementById('f_hometown').value = t.hometown || '';
+    document.getElementById('f_religion').value = t.religion || 'พุทธ';
+    document.getElementById('f_ethnicity').value = t.ethnicity || 'ไทย';
+    document.getElementById('f_nationality').value = t.nationality || 'ไทย';
+    
+    document.getElementById('f_position').value = t.position || '';
+    document.getElementById('f_academic').value = t.academic_standing || '';
     document.getElementById('f_department').value = t.department || '';
-    document.getElementById('f_position').value   = t.position || '';
-    document.getElementById('f_academic').value   = t.academic_standing || '';
-    document.getElementById('f_classroom').value  = t.classroom || '';
-    document.getElementById('f_phone').value      = t.phone || '';
-    document.getElementById('f_line').value       = t.line_id || '';
+    document.getElementById('f_sub_department').value = t.sub_department || '';
+    document.getElementById('f_admin_position').value = t.admin_position || '';
+    document.getElementById('f_department_position').value = t.department_position || '';
+    document.getElementById('f_classroom').value = t.classroom || '';
+    document.getElementById('f_retirement_year').value = t.retirement_year || '';
+    
+    document.getElementById('f_email').value = t.email || '';
+    document.getElementById('f_phone').value = t.phone || '';
+    document.getElementById('f_line').value = t.line_id || '';
+    
+    document.getElementById('f_address_no').value = t.address_no || '';
+    document.getElementById('f_address_moo').value = t.address_moo || '';
+    document.getElementById('f_address_soi').value = t.address_soi || '';
+    document.getElementById('f_address_road').value = t.address_road || '';
+    document.getElementById('f_address_subdistrict').value = t.address_subdistrict || '';
+    document.getElementById('f_address_district').value = t.address_district || '';
+    document.getElementById('f_address_province').value = t.address_province || '';
+    
+    document.getElementById('f_education_history').value = t.education_history || '';
+    
     document.getElementById('btnDelete').classList.remove('d-none');
-    new bootstrap.Modal('#teacherModal').show();
+    new bootstrap.Modal(document.getElementById('teacherModal')).show();
 }
 
 async function saveTeacher(e) {
     e.preventDefault();
     const id = document.getElementById('teacherId').value;
     const emailVal = (document.getElementById('f_email')?.value || '').trim();
+    
     if (!id && !emailVal) {
-        return Swal.fire('ผิดพลาด', 'กรุณาระบุอีเมล', 'error');
+        return Swal.fire('ผิดพลาด', 'กรุณาระบุอีเมลโรงเรียนเพื่อใช้เข้าสู่ระบบ', 'error');
     }
     if (emailVal && !emailVal.toLowerCase().endsWith('@chainatpit.ac.th')) {
-        return Swal.fire('ผิดพลาด', 'อีเมลต้องเป็น @chainatpit.ac.th เท่านั้น', 'error');
+        return Swal.fire('ผิดพลาด', 'อีเมลต้องลงท้ายด้วย @chainatpit.ac.th เท่านั้น', 'error');
     }
+    
     const fd = new FormData();
     fd.append('id', id);
-    ['f_prefix','f_first','f_last','f_teacher_id','f_email','f_department','f_position','f_academic','f_classroom','f_phone','f_line'].forEach(fid => {
-        const map = { f_prefix:'prefix', f_first:'first_name_th', f_last:'last_name_th', f_teacher_id:'teacher_id', f_email:'email', f_department:'department', f_position:'position', f_academic:'academic_standing', f_classroom:'classroom', f_phone:'phone', f_line:'line_id' };
-        fd.append(map[fid], document.getElementById(fid)?.value || '');
+    
+    // Map input fields
+    const mapping = {
+        f_prefix: 'prefix', f_first: 'first_name_th', f_last: 'last_name_th', f_teacher_id: 'teacher_id',
+        f_id_card: 'id_card', f_birth_date: 'birth_date', f_faculty: 'faculty', f_hometown: 'hometown',
+        f_religion: 'religion', f_ethnicity: 'ethnicity', f_nationality: 'nationality',
+        f_position: 'position', f_academic: 'academic_standing', f_department: 'department',
+        f_sub_department: 'sub_department', f_admin_position: 'admin_position', f_department_position: 'department_position',
+        f_classroom: 'classroom', f_retirement_year: 'retirement_year',
+        f_email: 'email', f_phone: 'phone', f_line: 'line_id',
+        f_address_no: 'address_no', f_address_moo: 'address_moo', f_address_soi: 'address_soi',
+        f_address_road: 'address_road', f_address_subdistrict: 'address_subdistrict',
+        f_address_district: 'address_district', f_address_province: 'address_province',
+        f_education_history: 'education_history'
+    };
+    
+    Object.keys(mapping).forEach(fid => {
+        fd.append(mapping[fid], document.getElementById(fid)?.value || '');
     });
+    
     const photo = document.getElementById('photoUpload').files[0];
     if (photo) fd.append('photo', photo);
+    
     try {
+        Swal.fire({ title: 'กำลังบันทึกข้อมูล...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        
         const res = await fetch('../api/admin/teachers.php', { method: 'POST', body: fd });
         const data = await res.json();
+        
         if (data.success) {
             bootstrap.Modal.getInstance('#teacherModal').hide();
+            
             if (!id) {
-                // New teacher — show credentials prominently
                 await Swal.fire({
                     icon: 'success',
-                    title: 'เพิ่มครูสำเร็จ',
+                    title: 'เพิ่มบุคลากรครูสำเร็จ',
                     html: `<div class="text-start">${data.message.replace('(', '<br><small class="text-muted">(').replace(')', ')</small>')}</div>
                            <div class="mt-3 p-3 rounded-3" style="background:#f0fdf4;border:1px solid #86efac;">
-                             <div class="small text-success fw-bold">สร้างบัญชีผู้ใช้งานแล้ว</div>
-                             <div class="small text-muted mt-1">ครูสามารถเข้าสู่ระบบด้วยข้อมูลด้านบน และเปลี่ยนรหัสผ่านได้ในภายหลัง</div>
+                             <div class="small text-success fw-bold">สร้างบัญชีผู้ใช้งานเสร็จสิ้น</div>
+                             <div class="small text-muted mt-1">ผู้ใช้งานใหม่สามารถเข้าสู่ระบบด้วยอีเมล และรหัสผ่านเริ่มต้น <b>cnp12345</b> ได้ทันที</div>
                            </div>`,
                     confirmButtonText: 'รับทราบ'
                 });
             } else {
-                Swal.fire({ icon:'success', title:'บันทึกสำเร็จ', timer:1500, showConfirmButton:false });
+                Swal.fire({ icon: 'success', title: 'บันทึกประวัติสำเร็จ', timer: 1500, showConfirmButton: false });
             }
             loadTeachers();
-        } else { Swal.fire('ผิดพลาด', data.error, 'error'); }
-    } catch(err) { Swal.fire('Error', err.message, 'error'); }
+        } else {
+            Swal.fire('ผิดพลาด', data.error || 'ไม่สามารถบันทึกได้', 'error');
+        }
+    } catch(err) {
+        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+    }
 }
 
 async function deleteTeacher(id) {
     const delId = id || document.getElementById('teacherId').value;
-    const c = await Swal.fire({ title:'ยืนยันการลบ?', icon:'warning', showCancelButton:true, confirmButtonText:'ลบ', confirmButtonColor:'#ef4444' });
-    if (!c.isConfirmed) return;
-    const res = await fetch(`../api/admin/teachers.php?id=${delId}`, { method:'DELETE' });
-    const data = await res.json();
-    if (data.success) {
-        Swal.fire({ icon:'success', title:'ลบสำเร็จ', timer:1500, showConfirmButton:false });
-        const modal = bootstrap.Modal.getInstance('#teacherModal');
-        if (modal) modal.hide();
-        loadTeachers();
+    
+    const confirm = await Swal.fire({
+        title: 'ยืนยันการลบประวัติครู?',
+        text: "การลบจะลบบัญชีผู้ใช้และข้อมูลการสอนทั้งหมดของบุคลากรท่านนี้ด้วย และไม่สามารถย้อนคืนได้!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยัน ลบข้อมูล',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#ef4444'
+    });
+    
+    if (!confirm.isConfirmed) return;
+    
+    try {
+        const res = await fetch(`../api/admin/teachers.php?id=${delId}`, { method: 'DELETE' });
+        const data = await res.json();
+        
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: 'ลบข้อมูลบุคลากรสำเร็จ', timer: 1500, showConfirmButton: false });
+            const modal = bootstrap.Modal.getInstance('#teacherModal');
+            if (modal) modal.hide();
+            loadTeachers();
+        } else {
+            Swal.fire('ผิดพลาด', data.error, 'error');
+        }
+    } catch(err) {
+        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
     }
 }
 

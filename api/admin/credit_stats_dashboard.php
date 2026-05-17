@@ -33,9 +33,18 @@ try {
     // Get settings for current semester/year
     $stmtSet = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('current_academic_year', 'current_semester')");
     $settings_raw = $stmtSet->fetchAll(PDO::FETCH_KEY_PAIR);
+    $defaultYear     = $settings_raw['current_academic_year'] ?? '2568';
+    $defaultSemester = $settings_raw['current_semester']      ?? '1';
+
+    // Allow override via GET params (admin only; teacher is always locked to active term)
+    $filterYear     = ($role === 'admin' && !empty($_GET['year']))     ? (string)(int)$_GET['year']     : $defaultYear;
+    $filterSemester = ($role === 'admin' && !empty($_GET['semester'])) ? (string)(int)$_GET['semester'] : $defaultSemester;
+
     $settings = [
-        'academic_year' => $settings_raw['current_academic_year'] ?? '2568',
-        'semester' => $settings_raw['current_semester'] ?? '1'
+        'academic_year' => $filterYear,
+        'semester'      => $filterSemester,
+        'default_year'  => $defaultYear,
+        'default_semester' => $defaultSemester,
     ];
 
     if ($grade) {
@@ -134,9 +143,13 @@ try {
     echo json_encode([
         'success' => true,
         'scope' => [
-            'role' => $role,
-            'room' => $room,
-            'grade' => $grade
+            'role'             => $role,
+            'room'             => $room,
+            'grade'            => $grade,
+            'academic_year'    => $settings['academic_year'],
+            'semester'         => $settings['semester'],
+            'default_year'     => $settings['default_year'],
+            'default_semester' => $settings['default_semester'],
         ],
         'charts' => [
             'categories' => $topCategories,

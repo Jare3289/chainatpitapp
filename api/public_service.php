@@ -58,6 +58,11 @@ function handleGet($pdo) {
     $where = "1=1";
     $params = [];
 
+    // Common filters applied BEFORE role-based filtering for stats parity
+    if ($year) { $where .= " AND r.academic_year = ?"; $params[] = $year; }
+    if ($semester && $semester !== 'all') { $where .= " AND r.semester = ?"; $params[] = $semester; }
+    if ($status && $type !== 'pending') { $where .= " AND r.status = ?"; $params[] = $status; }
+
     // Get the user's assigned classroom (if any)
     $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
     $stmtRoom->execute([$user_id]);
@@ -93,9 +98,19 @@ function handleGet($pdo) {
                     $where .= " AND 1=0";
                 }
             } else {
-                // Default / type=my: show records where this teacher is the approver
-                $where .= " AND r.approver_id = ?";
-                $params[] = $user_id;
+                // Default / type=my: show records where this teacher is the approver OR students in teacher's advisory room
+                if ($userRoom) {
+                    $vars = cnp_classroom_code_variants((string) $userRoom);
+                    $ph   = implode(',', array_fill(0, count($vars), '?'));
+                    $where .= " AND (r.approver_id = ? OR s.class_name IN ($ph))";
+                    $params[] = $user_id;
+                    foreach ($vars as $v) {
+                        $params[] = $v;
+                    }
+                } else {
+                    $where .= " AND r.approver_id = ?";
+                    $params[] = $user_id;
+                }
             }
         } else {
             // Admin: optional filters
@@ -113,10 +128,6 @@ function handleGet($pdo) {
         }
     }
 
-    // Common filters
-    if ($year) { $where .= " AND r.academic_year = ?"; $params[] = $year; }
-    if ($semester) { $where .= " AND r.semester = ?"; $params[] = $semester; }
-    if ($status && $type !== 'pending') { $where .= " AND r.status = ?"; $params[] = $status; }
     if ($search) {
         $where .= " AND (s.first_name_th LIKE ? OR s.last_name_th LIKE ? OR s.student_id LIKE ? OR r.activity_name LIKE ?)";
         $s = "%$search%";
@@ -125,7 +136,7 @@ function handleGet($pdo) {
 
     try {
         $sql = "SELECT r.*, s.first_name_th, s.last_name_th, s.student_id as student_code,
-                       s.class_name,
+                       s.class_name, s.class_name as room,
                        s.photo,
                        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers t WHERE t.user_id = r.approver_id) as approver_name
                 FROM public_service_records r
@@ -138,37 +149,86 @@ function handleGet($pdo) {
 
         foreach ($records as &$rec) {
             $date = new DateTime($rec['activity_date']);
-            $months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-            $rec['activity_date_th'] = $date->format('j') . ' ' . $months[(int)$date->format('m')] . ' ' . ($date->format('y') + 543);
+            $months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            $rec['activity_date_th'] = $date->format('j') . ' ' . $months[(int)$date->format('m')] . ' ' . ($date->format('Y') + 543);
         }
 
         // Stats calculation
-        // Stats calculation
-        $statsSql = "SELECT 
-                        COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved_count,
-                        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
-                        COUNT(DISTINCT student_id) as total_students
-                     FROM public_service_records r
-                     JOIN students s ON r.student_id = s.id
-                     WHERE r.academic_year = ? AND r.semester = ?";
-        
-        $statsParams = [$year, $semester];
-        
-        if ($role === 'teacher' && $userRoom) {
-            cnp_classroom_append_sql_in($statsSql, $statsParams, 's.class_name', (string) $userRoom);
+        $statsWhere = "r.academic_year = ?";
+        $statsParams = [$year];
+        if ($semester && $semester !== 'all') {
+            $statsWhere .= " AND r.semester = ?";
+            $statsParams[] = $semester;
         }
+
+        if ($role === 'teacher' && $userRoom) {
+            cnp_classroom_append_sql_in($statsWhere, $statsParams, 's.class_name', (string) $userRoom);
+        }
+
+        $statsSql = "SELECT
+                        COUNT(CASE WHEN r.status = 'approved' THEN 1 END) as approved_count,
+                        COUNT(CASE WHEN r.status = 'pending' THEN 1 END) as pending_count,
+                        COUNT(DISTINCT r.student_id) as total_students
+                     FROM public_service_records r
+                     LEFT JOIN students s ON r.student_id = s.id
+                     WHERE $statsWhere";
 
         $statsStmt = $pdo->prepare($statsSql);
         $statsStmt->execute($statsParams);
         $stats = $statsStmt->fetch(PDO::FETCH_ASSOC);
         
         // Add goal progress
-        if ($stats) {
-            $stats['target_times'] = 20; // 20 times per semester
-            $stats['avg_progress'] = $stats['total_students'] > 0 ? round(($stats['approved_count'] / ($stats['total_students'] * 20)) * 100, 1) : 0;
+        if (!$stats) {
+            $stats = ['approved_count' => 0, 'pending_count' => 0, 'total_students' => 0];
+        }
+        $stats['target_times'] = 20; // 20 times per semester
+        $stats['avg_progress'] = $stats['total_students'] > 0 ? round(($stats['approved_count'] / ($stats['total_students'] * 20)) * 100, 1) : 0;
+
+        // Add goal progress (students with >= 20 times)
+        $passedStmt = $pdo->prepare("
+            SELECT COUNT(*) FROM (
+                SELECT r2.student_id, SUM(r2.duration) as total 
+                FROM public_service_records r2
+                WHERE r2.academic_year = ? AND r2.status = 'approved' 
+                GROUP BY r2.student_id 
+                HAVING total >= 20
+            ) as t");
+        $passedStmt->execute([$year]);
+        $stats['passed_count'] = (int)$passedStmt->fetchColumn();
+
+        // Top 5 active students
+        $topSStmt = $pdo->prepare("
+            SELECT s.first_name_th, s.last_name_th, s.class_name, SUM(r3.duration) as total
+            FROM public_service_records r3
+            JOIN students s ON r3.student_id = s.id
+            WHERE r3.academic_year = ? AND r3.status = 'approved'
+            GROUP BY r3.student_id
+            ORDER BY total DESC
+            LIMIT 5");
+        $topSStmt->execute([$year]);
+        $topStudents = $topSStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Add student counts per class for percentage calculations
+        $countsStmt = $pdo->query("SELECT class_name, COUNT(*) as count FROM students GROUP BY class_name");
+        $classCounts = $countsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        $roomStudents = [];
+        if ($type === 'room' && $userRoom) {
+            $vars = cnp_classroom_code_variants((string) $userRoom);
+            $phRoom = implode(',', array_fill(0, count($vars), '?'));
+            $stmtRoomS = $pdo->prepare("SELECT id, student_id as student_code, prefix, first_name_th, last_name_th, photo FROM students WHERE class_name IN ($phRoom) ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
+            $stmtRoomS->execute($vars);
+            $roomStudents = $stmtRoomS->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        echo json_encode(['success' => true, 'records' => $records, 'stats' => $stats]);
+        echo json_encode([
+            'success' => true,
+            'records' => $records,
+            'students' => $roomStudents,
+            'stats' => $stats,
+            'class_counts' => $classCounts,
+            'top_students' => $topStudents
+        ]);
     } catch (PDOException $e) { error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => 'ระบบขัดข้องชั่วคราว']); }
 }
 
@@ -219,8 +279,8 @@ function handlePost($pdo) {
         }
 
         $sql = "INSERT INTO public_service_records 
-                (student_id, activity_name, location, impact_benefit, activity_date, certifier_name, approver_id, status, academic_year, semester) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                (student_id, activity_name, location, impact_benefit, activity_date, duration, duration_unit, certifier_name, approver_id, status, academic_year, semester) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
         
         $stmtSet = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('current_academic_year', 'current_semester')");
@@ -242,7 +302,8 @@ function handlePost($pdo) {
 
         $stmt->execute([
             $student_id, $data['activity_name'], $data['location'], $data['impact_benefit'] ?? '',
-            $data['activity_date'], $data['certifier_name'] ?? '', $approver_id, $status, $year, $semester
+            $data['activity_date'], $data['duration'] ?? 1, $data['duration_unit'] ?? 'ครั้ง',
+            $data['certifier_name'] ?? '', $approver_id, $status, $year, $semester
         ]);
         $newRecordId = (int) $pdo->lastInsertId();
 
@@ -286,13 +347,29 @@ function handlePut($pdo) {
             $ids = array_map('intval', $data['ids']);
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
-            // Teacher: only allow batch on records where they are the approver
+            // Teacher: only allow batch on records where they are the approver OR students in their advisory room
             if ($_SESSION['role'] === 'teacher') {
-                $verify = $pdo->prepare("
-                    SELECT id FROM public_service_records
-                    WHERE id IN ($placeholders) AND approver_id = ?
-                ");
-                $verify->execute(array_merge($ids, [$userId]));
+                $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
+                $stmtRoom->execute([$userId]);
+                $userRoom = $stmtRoom->fetchColumn() ?: null;
+
+                if ($userRoom) {
+                    $vars = cnp_classroom_code_variants((string) $userRoom);
+                    $phRoom = implode(',', array_fill(0, count($vars), '?'));
+                    $verify = $pdo->prepare("
+                        SELECT r.id FROM public_service_records r
+                        JOIN students s ON r.student_id = s.id
+                        WHERE r.id IN ($placeholders) AND (r.approver_id = ? OR s.class_name IN ($phRoom))
+                    ");
+                    $verify->execute(array_merge($ids, [$userId], $vars));
+                } else {
+                    $verify = $pdo->prepare("
+                        SELECT id FROM public_service_records
+                        WHERE id IN ($placeholders) AND approver_id = ?
+                    ");
+                    $verify->execute(array_merge($ids, [$userId]));
+                }
+                
                 $allowedIds = $verify->fetchAll(PDO::FETCH_COLUMN);
                 if (empty($allowedIds)) {
                     echo json_encode(['success' => false, 'error' => 'ไม่มีรายการที่อนุญาตให้ปฏิบัติ']);
@@ -337,7 +414,7 @@ function handlePut($pdo) {
             // Full record edit
             $sql = "UPDATE public_service_records SET 
                     student_id = ?, activity_name = ?, location = ?, impact_benefit = ?, 
-                    activity_date = ?, certifier_name = ?, status = ?, approver_id = ? 
+                    activity_date = ?, duration = ?, duration_unit = ?, certifier_name = ?, status = ?, approver_id = ? 
                     WHERE id = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
@@ -346,6 +423,8 @@ function handlePut($pdo) {
                 $data['location'], 
                 $data['impact_benefit'] ?? '',
                 $data['activity_date'], 
+                $data['duration'] ?? 1,
+                $data['duration_unit'] ?? 'ครั้ง',
                 $data['certifier_name'] ?? '', 
                 $data['status'], 
                 $_SESSION['user_id'],

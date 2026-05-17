@@ -56,10 +56,11 @@ function handleGet($pdo, $user_id) {
                 if ($room) {
                     $vars = cnp_classroom_code_variants((string) $room);
                     $ph   = implode(',', array_fill(0, count($vars), '?'));
-                    $psSql .= " AND s.class_name IN ($ph)";
+                    $psSql .= " AND (s.class_name IN ($ph) OR r.approver_id = ?)";
                     foreach ($vars as $v) {
                         $psParams[] = $v;
                     }
+                    $psParams[] = $user_id;
                 } else {
                     $psSql .= " AND (r.approver_id = ? OR 1=0)"; // Fallback or strict
                     $psParams[] = $user_id;
@@ -76,7 +77,7 @@ function handleGet($pdo, $user_id) {
                     'type' => 'action',
                     'title' => 'คำขอสาธารณประโยชน์',
                     'message' => "มีนักเรียนในห้องรอให้คุณอนุมัติกิจกรรม $pendingCount รายการ",
-                    'link' => 'admin_public_service.html',
+                    'link' => 'teacher_public_service.html',
                     'icon' => 'bi bi-heart-pulse-fill',
                     'color' => '#e11d48',
                     'is_read' => 0,

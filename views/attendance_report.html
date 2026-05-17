@@ -73,6 +73,22 @@
             .table-detailed th, .table-detailed td { padding: 8px 5px; }
             .date-cell { min-width: 35px; }
         }
+
+        /* Monthly stats table */
+        .table-monthly { border-radius: 16px; overflow: hidden; border: 1px solid #eef2f6; width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+        .table-monthly th { background: #f8fafc; padding: 12px; border: 1px solid #eef2f6; font-weight: 700; text-align: center; }
+        .table-monthly td { padding: 12px; border: 1px solid #f1f5f9; text-align: center; }
+        .bg-navy-light { background: #eff6ff !important; color: #1e3a8a !important; }
+        .bg-green-light { background: #ecfdf5 !important; color: #065f46 !important; }
+        .bg-red-light { background: #fef2f2 !important; color: #991b1b !important; }
+        .status-badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+        .badge-done { background: #ecfdf5; color: #059669; }
+        .badge-not { background: #fff1f2; color: #e11d48; }
+
+        /* Pills Custom style */
+        .nav-pills .nav-link { color: #475569; background: transparent; transition: all 0.2s; }
+        .nav-pills .nav-link:hover { color: #0d6efd; background: rgba(13, 110, 253, 0.05); }
+        .nav-pills .nav-link.active { background: #0d6efd !important; color: #ffffff !important; }
     </style>
 </head>
 <body>
@@ -100,68 +116,164 @@
                         </div>
                     </div>
 
-                    <!-- Filter Section -->
-                    <div class="card card-modern mb-4 bg-white">
-                        <div class="card-body p-4">
-                            <h6 class="fw-bold text-navy mb-4 d-flex align-items-center gap-2">
-                                <i class="bi bi-funnel-fill text-primary"></i> เงื่อนไขการแสดงผล
-                            </h6>
-                            
-                            <div class="row g-4">
-                                <div class="col-lg-3">
-                                    <label class="text-muted small fw-bold mb-2 d-block">ตั้งแต่วันที่:</label>
-                                    <input type="date" id="startDate" class="dropdown-style">
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-pills nav-fill bg-white p-1 rounded-4 shadow-sm border mb-4" id="reportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active fw-bold py-3 rounded-3" id="tab-individual-tab" data-bs-toggle="tab" data-bs-target="#tab-individual" type="button" role="tab" aria-controls="tab-individual" aria-selected="true">
+                                <i class="bi bi-person-check-fill me-2"></i> รายบุคคลรายวัน
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold py-3 rounded-3" id="tab-monthly-tab" data-bs-toggle="tab" data-bs-target="#tab-monthly" type="button" role="tab" aria-controls="tab-monthly" aria-selected="false" onclick="onMonthlyTabActive()">
+                                <i class="bi bi-calendar-range-fill me-2"></i> บันทึกประจำวัน (สถิติรายวันห้องเรียน)
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="reportTabsContent">
+                        <!-- TAB 1: INDIVIDUAL CHECKS -->
+                        <div class="tab-pane fade show active" id="tab-individual" role="tabpanel" aria-labelledby="tab-individual-tab">
+                            <!-- Filter Section -->
+                            <div class="card card-modern mb-4 bg-white">
+                                <div class="card-body p-4">
+                                    <h6 class="fw-bold text-navy mb-4 d-flex align-items-center gap-2">
+                                        <i class="bi bi-funnel-fill text-primary"></i> เงื่อนไขการแสดงผล (รายบุคคล)
+                                    </h6>
+                                    
+                                    <div class="row g-4">
+                                        <div class="col-lg-3">
+                                            <label class="text-muted small fw-bold mb-2 d-block">ตั้งแต่วันที่:</label>
+                                            <input type="date" id="startDate" class="dropdown-style">
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <label class="text-muted small fw-bold mb-2 d-block">ถึงวันที่:</label>
+                                            <input type="date" id="endDate" class="dropdown-style">
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <label class="text-muted small fw-bold mb-2 d-block">ห้องเรียน:</label>
+                                            <select id="detailedRoomSelect" class="dropdown-style" onchange="syncRooms(this.value)">
+                                                <option value="">เลือกห้องเรียน...</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-2 d-flex align-items-end">
+                                            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="loadDetailedData()">
+                                                <i class="bi bi-search me-2"></i> ค้นหา
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-lg-3">
-                                    <label class="text-muted small fw-bold mb-2 d-block">ถึงวันที่:</label>
-                                    <input type="date" id="endDate" class="dropdown-style">
-                                </div>
-                                <div class="col-lg-4">
-                                    <label class="text-muted small fw-bold mb-2 d-block">ห้องเรียน:</label>
-                                    <select id="detailedRoomSelect" class="dropdown-style">
-                                        <option value="">เลือกห้องเรียน...</option>
-                                    </select>
-                                </div>
-                                <div class="col-lg-2 d-flex align-items-end">
-                                    <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="loadDetailedData()">
-                                        <i class="bi bi-search me-2"></i> ค้นหา
+                            </div>
+
+                            <!-- Report Table -->
+                            <div class="card card-modern overflow-hidden mb-5 bg-white">
+                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                                    <h6 class="fw-bold text-navy mb-0"><i class="bi bi-person-check-fill me-2 text-primary"></i> ข้อมูลรายวันรายบุคคล (<span id="roomTitleName">กรุณาเลือกห้อง</span>)</h6>
+                                    <button class="btn btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="exportDetailedToExcel()">
+                                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
                                     </button>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-sticky-container">
+                                        <table class="table-detailed" id="detailedTable">
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2" class="sticky-col-1">#</th>
+                                                    <th rowspan="2" class="sticky-col-2">ชื่อ-นามสกุล</th>
+                                                    <th id="dateHeaderParent" class="bg-primary text-white border-0">วันที่เช็คชื่อ</th>
+                                                    <th colspan="4" class="bg-navy text-white border-0">สรุป (วัน)</th>
+                                                </tr>
+                                                <tr id="detailedHeaderRow2">
+                                                    <th class="bg-sum-p" style="width: 45px;">มา</th>
+                                                    <th class="bg-sum-a" style="width: 45px;">ขาด</th>
+                                                    <th class="bg-sum-l" style="width: 45px;">ลา</th>
+                                                    <th class="bg-sum-s" style="width: 45px;">สาย</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="detailedTableBody">
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">กรุณากดค้นหาเพื่อแสดงข้อมูล</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Report Table -->
-                    <div class="card card-modern overflow-hidden mb-5 bg-white">
-                        <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
-                            <h6 class="fw-bold text-navy mb-0"><i class="bi bi-person-check-fill me-2 text-primary"></i> ข้อมูลรายวันรายบุคคล (<span id="roomTitleName">กรุณาเลือกห้อง</span>)</h6>
-                            <button class="btn btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="exportDetailedToExcel()">
-                                <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
-                            </button>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="table-sticky-container">
-                                <table class="table-detailed" id="detailedTable">
-                                    <thead>
-                                        <tr>
-                                            <th rowspan="2" class="sticky-col-1">#</th>
-                                            <th rowspan="2" class="sticky-col-2">ชื่อ-นามสกุล</th>
-                                            <th id="dateHeaderParent" class="bg-primary text-white border-0">วันที่เช็คชื่อ</th>
-                                            <th colspan="4" class="bg-navy text-white border-0">สรุป (วัน)</th>
-                                        </tr>
-                                        <tr id="detailedHeaderRow2">
-                                            <th class="bg-sum-p" style="width: 45px;">มา</th>
-                                            <th class="bg-sum-a" style="width: 45px;">ขาด</th>
-                                            <th class="bg-sum-l" style="width: 45px;">ลา</th>
-                                            <th class="bg-sum-s" style="width: 45px;">สาย</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="detailedTableBody">
-                                        <tr>
-                                            <td colspan="6" class="text-center py-5 text-muted">กรุณากดค้นหาเพื่อแสดงข้อมูล</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <!-- TAB 2: ROOM MONTHLY STATS -->
+                        <div class="tab-pane fade" id="tab-monthly" role="tabpanel" aria-labelledby="tab-monthly-tab">
+                            <!-- Filter Section -->
+                            <div class="card card-modern mb-4 bg-white">
+                                <div class="card-body p-4">
+                                    <h6 class="fw-bold text-navy mb-4 d-flex align-items-center gap-2">
+                                        <i class="bi bi-funnel-fill text-primary"></i> เงื่อนไขการแสดงผล (ประจำห้องเรียน)
+                                    </h6>
+                                    
+                                    <div class="row g-4">
+                                        <div class="col-lg-3">
+                                            <label class="text-muted small fw-bold mb-2 d-block">เลือกเดือน:</label>
+                                            <select id="monthSelect" class="dropdown-style"></select>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <label class="text-muted small fw-bold mb-2 d-block">เลือกปี พ.ศ.:</label>
+                                            <select id="yearSelect" class="dropdown-style"></select>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <label class="text-muted small fw-bold mb-2 d-block">ห้องเรียน:</label>
+                                            <select id="monthlyRoomSelect" class="dropdown-style" onchange="syncRooms(this.value)">
+                                                <option value="">เลือกห้องเรียน...</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-2 d-flex align-items-end">
+                                            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="loadMonthlyStatsData()">
+                                                <i class="bi bi-search me-2"></i> ค้นหา
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Report Table -->
+                            <div class="card card-modern overflow-hidden mb-5 bg-white">
+                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                                    <h6 class="fw-bold text-navy mb-0"><i class="bi bi-calendar-check me-2 text-primary"></i> บันทึกสถิติห้องเรียนรายวัน (<span id="monthlyRoomTitleName">กรุณาเลือกห้อง</span>)</h6>
+                                    <button class="btn btn-success rounded-pill px-3 fw-bold shadow-sm" onclick="exportMonthlyToExcel()">
+                                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Export Excel
+                                    </button>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table class="table-monthly w-100">
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2" class="bg-navy text-white">วันที่</th>
+                                                    <th colspan="3" class="bg-navy-light border-light" style="background:#eff6ff; color:#1e3a8a;">ทั้งหมด (คน)</th>
+                                                    <th colspan="3" class="bg-green-light border-light" style="background:#ecfdf5; color:#065f46;">มาเรียน (คน)</th>
+                                                    <th colspan="3" class="bg-red-light border-light" style="background:#fef2f2; color:#991b1b;">ไม่มาเรียน (คน)</th>
+                                                    <th rowspan="2" class="bg-light">ร้อยละ</th>
+                                                    <th rowspan="2" class="bg-light">สถานะ</th>
+                                                </tr>
+                                                <tr>
+                                                    <th class="small py-2 bg-navy-light opacity-75 border-light" style="background:#eff6ff; color:#1e3a8a;">ช</th>
+                                                    <th class="small py-2 bg-navy-light opacity-75 border-light" style="background:#eff6ff; color:#1e3a8a;">ญ</th>
+                                                    <th class="small py-2 bg-navy-light fw-bold border-light" style="background:#eff6ff; color:#1e3a8a;">รวม</th>
+                                                    <th class="small py-2 bg-green-light opacity-75 border-light" style="background:#ecfdf5; color:#065f46;">ช</th>
+                                                    <th class="small py-2 bg-green-light opacity-75 border-light" style="background:#ecfdf5; color:#065f46;">ญ</th>
+                                                    <th class="small py-2 bg-green-light fw-bold border-light" style="background:#ecfdf5; color:#065f46;">รวม</th>
+                                                    <th class="small py-2 bg-red-light opacity-75 border-light" style="background:#fef2f2; color:#991b1b;">ช</th>
+                                                    <th class="small py-2 bg-red-light opacity-75 border-light" style="background:#fef2f2; color:#991b1b;">ญ</th>
+                                                    <th class="small py-2 bg-red-light fw-bold border-light" style="background:#fef2f2; color:#991b1b;">รวม</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="monthlyStatsTableBody">
+                                                <tr>
+                                                    <td colspan="12" class="text-center py-5 text-muted">กรุณากดค้นหาเพื่อแสดงข้อมูล</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot id="monthlyStatsTableFooter" class="bg-light fw-bold"></tfoot>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -221,6 +333,7 @@
     <script src="../public/js/main.js"></script>
     <script>
         let allStudents = [];
+        const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await checkAuth(['teacher', 'admin']);
@@ -236,10 +349,30 @@
                     if (breadcrumbHome) breadcrumbHome.href = 'admin_dashboard.html';
                 }
 
+                // Initialize Month & Year dropdown filters
+                initFilters();
+
                 // Load classes and first date
                 await initPage(user);
             }
         });
+
+        function initFilters() {
+            const now = new Date();
+            const ms = document.getElementById('monthSelect');
+            if (ms) {
+                ms.innerHTML = '';
+                monthNames.forEach((m, i) => ms.add(new Option(m, (i+1).toString().padStart(2, '0'))));
+                ms.value = (now.getMonth() + 1).toString().padStart(2, '0');
+            }
+
+            const ys = document.getElementById('yearSelect');
+            if (ys) {
+                ys.innerHTML = '';
+                const curBE = now.getFullYear() + 543;
+                for (let i = 0; i < 5; i++) ys.add(new Option(curBE-i, curBE-i-543));
+            }
+        }
 
         async function initPage(user) {
             // 1. Set Default Dates Immediately
@@ -252,43 +385,78 @@
                 const data = await res.json();
                 
                 const select = document.getElementById('detailedRoomSelect');
+                const mSelect = document.getElementById('monthlyRoomSelect');
                 if (!select) return;
                 
                 select.innerHTML = '<option value="">เลือกห้องเรียน...</option>';
+                mSelect.innerHTML = '<option value="">เลือกห้องเรียน...</option>';
                 
                 if (data.classes) {
                     data.classes.forEach(c => {
-                        if (c) select.add(new Option(c.trim(), c.trim()));
+                        if (c) {
+                            select.add(new Option(c.trim(), c.trim()));
+                            mSelect.add(new Option(c.trim(), c.trim()));
+                        }
                     });
                 }
 
                 // URL Parameter Override
                 const urlParams = new URLSearchParams(window.location.search);
                 const paramRoom = urlParams.get('room') || urlParams.get('class_name');
+                const paramMonth = urlParams.get('month');
+                const paramYear = urlParams.get('year');
                 const advisoryRoom = data.advisory_room || (user ? user.classroom : null);
 
                 if (paramRoom) {
                     const roomVal = paramRoom.toString().trim();
                     let exists = Array.from(select.options).some(opt => opt.value === roomVal);
-                    if (!exists) select.add(new Option(roomVal, roomVal));
+                    if (!exists) {
+                        select.add(new Option(roomVal, roomVal));
+                        mSelect.add(new Option(roomVal, roomVal));
+                    }
                     select.value = roomVal;
+                    mSelect.value = roomVal;
                 } else if (advisoryRoom) {
                     // Advisory Room Logic
                     const roomVal = advisoryRoom.toString().trim();
                     let exists = Array.from(select.options).some(opt => opt.value === roomVal);
-                    if (!exists) select.add(new Option(roomVal, roomVal));
-                    select.value = roomVal;
-                    
-                    // Lock if teacher and NOT using URL param
-                    if (user.role === 'teacher') {
-                        select.disabled = true;
+                    if (!exists) {
+                        select.add(new Option(roomVal, roomVal));
+                        mSelect.add(new Option(roomVal, roomVal));
                     }
+                    select.value = roomVal;
+                    mSelect.value = roomVal;
+                    
+                    // Allowed for both teacher and admin to query other rooms
                 }
 
-                if (select.value) {
+                if (paramMonth && document.getElementById('monthSelect')) {
+                    document.getElementById('monthSelect').value = paramMonth.toString().padStart(2, '0');
+                }
+                if (paramYear && document.getElementById('yearSelect')) {
+                    document.getElementById('yearSelect').value = paramYear;
+                }
+
+                if (paramMonth && paramYear) {
+                    // If month & year exist in URL params, switch to the monthly tab immediately
+                    const tab = bootstrap.Tab.getOrCreateInstance(document.getElementById('tab-monthly-tab'));
+                    tab.show();
+                    loadMonthlyStatsData();
+                } else if (select.value) {
                     loadDetailedData();
                 }
             } catch (e) { console.error('Init failed', e); }
+        }
+
+        function syncRooms(val) {
+            document.getElementById('detailedRoomSelect').value = val;
+            document.getElementById('monthlyRoomSelect').value = val;
+        }
+
+        function onMonthlyTabActive() {
+            if ($('#monthlyRoomSelect').val()) {
+                loadMonthlyStatsData();
+            }
         }
 
         async function loadDetailedData() {
@@ -305,6 +473,13 @@
                 const data = await res.json();
                 if (data.success) {
                     allStudents = data.students;
+                    if (!data.dates || data.dates.length === 0) {
+                        $('#detailedHeaderRow2').find('th:not(.bg-sum-p, .bg-sum-a, .bg-sum-l, .bg-sum-s)').remove();
+                        $('#dateHeaderParent').attr('colspan', 1);
+                        $('#detailedTableBody').html('<tr><td colspan="6" class="text-center py-5 text-muted fw-bold"><i class="bi bi-calendar-x me-2 text-warning fs-4"></i>ไม่พบข้อมูลการเช็คชื่อในช่วงเวลาที่เลือก</td></tr>');
+                        $('#roomTitleName').text(`ห้อง ${room}`);
+                        return;
+                    }
                     const dateHeaders = data.dates.map(d => {
                         const dO = new Date(d);
                         return `<th class="date-cell bg-white text-navy border-light">${dO.getDate().toString().padStart(2, '0')}/${(dO.getMonth()+1).toString().padStart(2, '0')}</th>`;
@@ -346,7 +521,89 @@
             }
         }
 
+        async function loadMonthlyStatsData() {
+            const room = $('#monthlyRoomSelect').val();
+            const month = $('#monthSelect').val();
+            const year = $('#yearSelect').val();
+
+            if (!room) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกห้องเรียน', 'warning');
+
+            $('#monthlyStatsTableBody').html('<tr><td colspan="12" class="text-center py-5"><div class="spinner-border text-primary opacity-25"></div></td></tr>');
+
+            try {
+                const res = await fetch(`../api/admin/monthly_stats.php?room=${room}&month=${month}&year=${year}`);
+                const data = await res.json();
+                if (data.success) {
+                    if (!data.report || data.report.length === 0) {
+                        $('#monthlyStatsTableBody').html('<tr><td colspan="12" class="text-center py-5 text-muted fw-bold"><i class="bi bi-calendar-x me-2 text-warning fs-4"></i>ไม่พบข้อมูลสถิติการเช็คชื่อในเดือนนี้</td></tr>');
+                        $('#monthlyStatsTableFooter').html('');
+                        $('#monthlyRoomTitleName').text(`ห้อง ${room}`);
+                        return;
+                    }
+                    let html = '';
+                    let t = { tm: 0, tf: 0, tr: 0, pm: 0, pf: 0, pr: 0, am: 0, af: 0, ar: 0, count: 0 };
+                    
+                    data.report.forEach(r => {
+                        const dS = thDate(r.date);
+                        const tr = (parseInt(r.total_m) || 0) + (parseInt(r.total_f) || 0); 
+                        const pr = (parseInt(r.present_m) || 0) + (parseInt(r.present_f) || 0); 
+                        const ar = (parseInt(r.absent_m) || 0) + (parseInt(r.absent_f) || 0);
+                        const per = tr > 0 ? ((pr / tr) * 100).toFixed(0) : '-';
+                        
+                        html += `
+                            <tr onclick="viewDailyIndividual('${r.date}')" style="cursor: pointer;">
+                                <td class="fw-bold text-navy">${dS}</td>
+                                <td>${r.total_m}</td><td>${r.total_f}</td><td class="bg-navy-light fw-bold">${tr}</td>
+                                <td>${r.present_m || '-'}</td><td>${r.present_f || '-'}</td><td class="bg-green-light fw-bold">${pr || '-'}</td>
+                                <td class="text-muted">${r.absent_m || '-'}</td><td class="text-muted">${r.absent_f || '-'}</td><td class="bg-red-light fw-bold">${ar || '-'}</td>
+                                <td class="fw-black text-primary">${per === '-' ? '-' : per + '%'}</td>
+                                <td>${r.is_complete ? '<span class="status-badge badge-done">ครบถ้วน</span>' : '<span class="status-badge badge-not">ไม่ครบ</span>'}</td>
+                            </tr>
+                        `;
+                        if (r.checked_count > 0) {
+                            t.tm += parseInt(r.total_m) || 0; t.tf += parseInt(r.total_f) || 0; t.tr += tr; 
+                            t.pm += parseInt(r.present_m) || 0; t.pf += parseInt(r.present_f) || 0; t.pr += pr; 
+                            t.am += parseInt(r.absent_m) || 0; t.af += parseInt(r.absent_f) || 0; t.ar += ar; t.count++;
+                        }
+                    });
+                    $('#monthlyStatsTableBody').html(html);
+                    $('#monthlyRoomTitleName').text(`ห้อง ${room}`);
+
+                    if (t.count > 0) {
+                        const avg = (k) => (t[k] / t.count).toFixed(0);
+                        const avgP = t.tr > 0 ? ((t.pr / t.tr) * 100).toFixed(0) : 0;
+                        $('#monthlyStatsTableFooter').html(`
+                            <tr class="table-light">
+                                <td class="bg-light fw-bold">ค่าเฉลี่ยรายวัน</td>
+                                <td>${avg('tm')}</td><td>${avg('tf')}</td><td class="bg-navy-light">${avg('tr')}</td>
+                                <td>${avg('pm')}</td><td>${avg('pf')}</td><td class="bg-green-light">${avg('pr')}</td>
+                                <td>${avg('am')}</td><td>${avg('af')}</td><td class="bg-red-light">${avg('ar')}</td>
+                                <td class="text-primary">${avgP}%</td><td></td>
+                            </tr>
+                        `);
+                    } else {
+                        $('#monthlyStatsTableFooter').html('');
+                    }
+                } else {
+                    $('#monthlyStatsTableBody').html(`<tr><td colspan="12" class="text-center text-danger py-5">${data.error || 'เกิดข้อผิดพลาด'}</td></tr>`);
+                    $('#monthlyStatsTableFooter').html('');
+                }
+            } catch (err) { 
+                $('#monthlyStatsTableBody').html('<tr><td colspan="12" class="text-center text-danger py-5">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>'); 
+                $('#monthlyStatsTableFooter').html('');
+            }
+        }
+
+        function viewDailyIndividual(dateStr) {
+            $('#startDate').val(dateStr);
+            $('#endDate').val(dateStr);
+            const tab = bootstrap.Tab.getOrCreateInstance(document.getElementById('tab-individual-tab'));
+            tab.show();
+            loadDetailedData();
+        }
+
         function exportDetailedToExcel() { alert('กำลังเตรียมข้อมูลสำหรับการส่งออก Excel...'); }
+        function exportMonthlyToExcel() { alert('กำลังเตรียมข้อมูลสถิติรายเดือนสำหรับการส่งออก Excel...'); }
 
         async function viewHistory(studentId) {
             const student = allStudents.find(s => s.id == studentId);

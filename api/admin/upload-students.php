@@ -24,45 +24,136 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 // คอลัมน์ที่ไม่อยู่ในไฟล์ Excel = ข้ามไป (ไม่ error)
 // ============================================================
 $mapping = [
-    // ── Required: รหัสและชื่อ ──
     "IDS (รหัสนักเรียน)" => "student_id",
     "รหัสนักเรียน"     => "student_id",
     "เลขที่"           => "number_in_class",
+    "ห้อง"             => "class_name",
+    "ระดับชั้น"         => "grade_level",
+    "คณะ"             => "house",
+    "รูปถ่าย"          => "photo",
     "คำนำหน้าชื่อ"     => "prefix",
     "ชื่อ"             => "first_name_th",
     "นามสกุล"          => "last_name_th",
-
-    // ── Optional: ชื่อภาษาอังกฤษ ──
+    "ชื่อจริง"         => "full_name_th",
     "NAME"             => "first_name_en",
     "SURENAME"         => "last_name_en",
     "SURNAME"          => "last_name_en",
     "ชื่อเล่น"         => "nickname",
-    "ชื่อจริง"         => "full_name_th",
-
-    // ── Optional: ห้อง / ระดับชั้น / คณะ ──
-    "ห้อง"             => "class_name",   // เลขห้อง เช่น 101, 506 (ตรง rooms.classroom_code)
-    "ระดับชั้น"         => "grade_level",   // เช่น มัธยมศึกษาปีที่ 1
-    "คณะ"             => "house",          // ขุนสรรค์/ขุนศรี/เจ้ายี่/ธรรมจักร
-    "แผนการเรียน"       => "faculty",        // วิทย์-คณิต / ศิลป์-ภาษา ฯลฯ
-    "รูปถ่าย"          => "photo",
-    "รูป"             => "photo",
-
-    // ── Optional: ข้อมูลส่วนตัว ──
+    "ที่อยู่อีเมล"     => "email",
     "อีเมล"            => "email",
+    "เพศกำเนิด"       => "birth_sex",
+    "เพศวิถี"         => "gender",
     "เพศ"              => "gender",
     "เลขบัตรประชาชน"   => "id_card",
+    "เชื้อชาติ"         => "ethnicity",
+    "สัญชาติ"         => "nationality",
+    "ศาสนา"           => "religion",
     "วันเดือนปีเกิด"    => "birth_date",
+    "เป็นบุตรคนที่"    => "child_order",
     "เบอร์โทรศัพท์"    => "phone",
-    "ไลน์ไอดี"         => "line_id",
+    "IDLine"           => "line_id",
     "Facebook"        => "facebook",
-
-    // ── Optional: ข้อมูลสุขภาพ ──
+    "ที่อยู่ปัจจุบันเป็น" => "address_status",
+    "บ้านเลขที่"       => "reg_house_no",
+    "ซอย"             => "reg_soi",
+    "ถนน"             => "reg_road",
+    "หมู่"             => "reg_moo",
+    "ชื่อหมู่บ้าน"      => "reg_village",
+    "แขวง/ตำบล"       => "reg_subdistrict",
+    "เขต/อำเภอ"       => "reg_district",
+    "จังหวัด"          => "reg_province",
+    "รหัสไปรษณีย์"     => "reg_zipcode",
+    "บ้านเลขที่ปัจจุบัน" => "curr_house_no",
+    "ซอยปัจจุบัน"      => "curr_soi",
+    "ถนนปัจจุบัน"      => "curr_road",
+    "หมู่ปัจจุบัน"      => "curr_moo",
+    "ชื่อหมู่บ้านปัจจุบัน" => "curr_village",
+    "แขวง/ตำบลปัจจุบัน" => "curr_subdistrict",
+    "เขต/อำเภอปัจจุบัน" => "curr_district",
+    "จังหวัดปัจจุบัน"    => "curr_province",
+    "รหัสไปรษณีย์ปัจจุบัน" => "curr_zipcode",
+    "พิกัดที่อยู่ปัจจุบัน" => "location_coords",
+    "จุดสังเกต"         => "location_landmark",
+    "ผู้ใหญ่บ้าน"      => "village_headman",
+    "กำนัน"           => "subdistrict_headman",
+    "ประเภทบ้าน"       => "house_type",
+    "ลักษณะบ้านที่อยู่" => "house_style",
+    "สภาพตัวบ้าน"      => "house_condition",
+    "ความสะอาด"       => "house_cleanliness",
+    "ไฟฟ้า"           => "has_electricity",
+    "น้ำ"             => "has_water",
+    "ห้องน้ำ"          => "has_toilet",
+    "ระยะห่างจากโรงเรียน" => "dist_to_school",
+    "ใช้เวลาเดินทาง"    => "travel_time",
+    "เดินทางโดย"       => "travel_method",
+    "คำนำหน้าบิดา"     => "f_prefix",
+    "ชื่อบิดา"         => "f_first_name",
+    "สกุลบิดา"         => "f_last_name",
+    "อายุบิดา"         => "f_age",
+    "เบอร์โทรศัพท์บิดา" => "f_phone",
+    "วุฒิการศึกษาบิดา" => "f_education",
+    "อาชีพบิดา"       => "f_job",
+    "สถานที่ทำงานบิดา" => "f_workplace",
+    "สถานะทางครอบครัวบิดา" => "f_family_status",
+    "เบิกค่าเล่าเรียนบิดา" => "f_welfare",
+    "รายได้ต่อเดือนบิดา" => "f_income",
+    "คำนำหน้ามารดา"     => "m_prefix",
+    "ชื่อมารดา"         => "m_first_name",
+    "สกุลมารดา"         => "m_last_name",
+    "อายุมารดา"         => "m_age",
+    "เบอร์โทรศัพท์มารดา" => "m_phone",
+    "วุฒิการศึกษามารดา" => "m_education",
+    "อาชีพมารดา"       => "m_job",
+    "สถานที่ทำงานมารดา" => "m_workplace",
+    "สถานะทางครอบครัวมารดา" => "m_family_status",
+    "เบิกค่าเล่าเรียนมารดา" => "m_welfare",
+    "รายได้ต่อเดือนมารดา" => "m_income",
+    "สถานภาพครอบครัว" => "family_status",
+    "ความสัมพันธ์"     => "guardian_relation",
+    "คำนำหน้าผู้ปกครอง" => "g_prefix",
+    "ชื่อผู้ปกครอง"     => "g_first_name",
+    "สกุลผู้ปกครอง"     => "g_last_name",
+    "อายุผู้ปกครอง"     => "g_age",
+    "เบอร์โทรศัพท์ผู้ปกครอง" => "g_phone",
+    "วุฒิการศึกษาผู้ปกครอง" => "g_education",
+    "อาชีพผู้ปกครอง"   => "g_job",
+    "สถานที่ทำงานผู้ปกครอง" => "g_workplace",
+    "รายได้ต่อเดือนผู้ปกครอง" => "g_income",
+    "สมาชิกครอบครัวทั้งหมด" => "total_family_members",
+    "เป็นชาย"          => "male_members",
+    "เป็นหญิง"          => "female_members",
+    "พี่น้องร่วมบิดามารดา" => "full_siblings",
+    "พี่น้องร่วมบิดามารดาเป็นชาย" => "full_siblings_male",
+    "พี่น้องร่วมบิดามารดาเป็นหญิง" => "full_siblings_female",
+    "พี่น้องต่างบิดามารดา" => "half_siblings",
+    "พี่น้องต่างบิดามารดาเป็นชาย" => "half_siblings_male",
+    "พี่น้องต่างบิดามารดาเป็นหญิง" => "half_siblings_female",
+    "ความสัมพันธ์ของสมาชิก" => "family_relationship",
+    "ความสัมพันธ์กับบิดา" => "rel_father",
+    "ความสัมพันธ์กับมารดา" => "rel_mother",
+    "ความสัมพันธ์กับพี่ชายน้องชาย" => "rel_brothers",
+    "ความสัมพันธ์กับพี่สาวน้องสาว" => "rel_sisters",
+    "ความสัมพันธ์ปู่ย่าตายาย" => "rel_grandparents",
+    "ความสัมพันธ์กับญาติ" => "rel_relatives",
+    "เวลาอยู่ร่วมกัน"    => "time_spent_together",
+    "ได้เงินจาก"       => "allowance_source",
+    "ได้เงินวันละ"     => "allowance_per_day",
+    "ภาระรับผิดชอบ"     => "responsibilities",
+    "นักเรียนอยู่กับใครเมื่อผู้ปกครองไม่ว่าง" => "caregiver_when_away",
+    "ทำงานพิเศษ"       => "part_time_job",
+    "รายได้"           => "part_time_income",
     "น้ำหนัก"          => "weight",
     "ส่วนสูง"          => "height",
     "กรุ๊ปเลือด"       => "blood_group",
-    "โรคประจำตัว"      => "congenital_disease",
     "แพ้อาหาร"         => "food_allergies",
     "แพ้ยา"            => "drug_allergies",
+    "โรคประจำตัว"      => "congenital_disease",
+    "ฉีดวัคซีนโควิด"    => "covid_vaccine",
+    "เข้าถึงอินเทอร์เน็ต" => "internet_access",
+    "ใช้โซเชียลมีเดีย"   => "social_media_usage",
+    "ความสามารถพิเศษ"   => "talents",
+    "ความสนใจ"         => "interests",
+    "งานอดิเรก"       => "hobbies",
 ];
 
 // Normalize mapping keys
@@ -228,6 +319,8 @@ try {
         // ── Validate required fields ──
         $stdId       = $col(['IDS(รหัสนักเรียน)', 'รหัสนักเรียน']);
         $firstNameTh = $col(['ชื่อ', 'ชื่อจริง']);
+        $idCardVal   = $col(['เลขบัตรประชาชน']);
+        $phoneVal    = $col(['เบอร์โทรศัพท์']);
 
         if (!$stdId) {
             $skipCount++;
@@ -238,6 +331,26 @@ try {
             $skipCount++;
             $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): ไม่มีชื่อ";
             continue;
+        }
+
+        // ── ตรวจสอบเลขบัตรประชาชน (13 หลัก) ──
+        if ($idCardVal) {
+            $cleanIdCard = preg_replace('/\D/', '', $idCardVal);
+            if (strlen($cleanIdCard) !== 13) {
+                $skipCount++;
+                $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): เลขบัตรประชาชนไม่ครบ 13 หลัก ($idCardVal)";
+                continue;
+            }
+        }
+
+        // ── ตรวจสอบเบอร์โทรศัพท์ (10 หลัก ขึ้นต้นด้วย 0) ──
+        if ($phoneVal) {
+            $cleanPhone = preg_replace('/\D/', '', $phoneVal);
+            if (strlen($cleanPhone) < 10 || substr($cleanPhone, 0, 1) !== '0') {
+                $skipCount++;
+                $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): เบอร์โทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 ($phoneVal)";
+                continue;
+            }
         }
 
         // ── Lookup existing record ──

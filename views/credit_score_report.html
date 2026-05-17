@@ -41,12 +41,27 @@
                     </div>
 
                     <!-- Scope Banner & Filters -->
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
                         <div id="statsScopeBanner" class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" id="scopeLabel">กำลังโหลด...</span>
                         </div>
-                        <div id="statsFilterWrap" class="d-flex gap-3 align-items-center">
-                            <div style="min-width: 200px;">
+                        <div id="statsFilterWrap" class="d-flex flex-wrap gap-2 align-items-center">
+                            <!-- ปีการศึกษา / ภาคเรียน -->
+                            <div style="min-width: 145px;">
+                                <select class="form-select border-0 bg-light rounded-3" id="filterYear">
+                                    <option value="2569">ปีการศึกษา 2569</option>
+                                    <option value="2568">ปีการศึกษา 2568</option>
+                                    <option value="2567">ปีการศึกษา 2567</option>
+                                </select>
+                            </div>
+                            <div style="min-width: 120px;">
+                                <select class="form-select border-0 bg-light rounded-3" id="filterSemester">
+                                    <option value="1">ภาคเรียนที่ 1</option>
+                                    <option value="2">ภาคเรียนที่ 2</option>
+                                </select>
+                            </div>
+                            <!-- ระดับชั้น / ห้อง -->
+                            <div style="min-width: 140px;">
                                 <select class="form-select border-0 bg-light rounded-3" id="filterGrade">
                                     <option value="">-- ทุกระดับชั้น --</option>
                                     <option value="มัธยมศึกษาปีที่ 1">ม.1</option>
@@ -57,7 +72,7 @@
                                     <option value="มัธยมศึกษาปีที่ 6">ม.6</option>
                                 </select>
                             </div>
-                            <div style="min-width: 150px;">
+                            <div style="min-width: 120px;">
                                 <select class="form-select border-0 bg-light rounded-3" id="filterRoom">
                                     <option value="">-- ทุกห้อง --</option>
                                 </select>
@@ -165,7 +180,7 @@
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                                     2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                                         CNPAPP<sup>©</sup>
                                     </a>
                                     ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
@@ -209,16 +224,32 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await checkAuth(['admin', 'teacher']);
             if (user) {
+                // ตั้งค่า default ปีการศึกษา/ภาคเรียน จาก fetchSettings
+                try {
+                    const s = await fetch('../api/settings.php').then(r => r.json());
+                    if (s.current_academic_year) {
+                        const yEl = document.getElementById('filterYear');
+                        // สร้าง option สำหรับปีนี้ถ้ายังไม่มี
+                        if (!yEl.querySelector(`option[value="${s.current_academic_year}"]`)) {
+                            const opt = new Option(`ปีการศึกษา ${s.current_academic_year}`, s.current_academic_year);
+                            yEl.prepend(opt);
+                        }
+                        yEl.value = s.current_academic_year;
+                    }
+                    if (s.current_semester) document.getElementById('filterSemester').value = s.current_semester;
+                } catch(e) { /* ใช้ default */ }
                 loadStatsDashboard();
                 setupFilters();
             }
         });
 
         async function loadStatsDashboard() {
-            const grade = document.getElementById('filterGrade')?.value || '';
-            const room  = document.getElementById('filterRoom')?.value  || '';
+            const grade    = document.getElementById('filterGrade')?.value    || '';
+            const room     = document.getElementById('filterRoom')?.value     || '';
+            const year     = document.getElementById('filterYear')?.value     || '';
+            const semester = document.getElementById('filterSemester')?.value || '';
             try {
-                const response = await fetch(`../api/admin/credit_stats_dashboard.php?grade=${grade}&room=${room}`);
+                const response = await fetch(`../api/admin/credit_stats_dashboard.php?grade=${encodeURIComponent(grade)}&room=${encodeURIComponent(room)}&year=${year}&semester=${semester}`);
                 const data = await response.json();
                 if (!data.success) return;
 
@@ -226,22 +257,23 @@
                 const filterWrap = document.getElementById('statsFilterWrap');
                 const scopeLabel = document.getElementById('scopeLabel');
 
+                const yearLabel = `ปี ${scope.academic_year} ภาค ${scope.semester}`;
                 if (scope.role === 'teacher') {
                     if (filterWrap) filterWrap.style.display = 'none';
                     scopeLabel.className = 'badge bg-success rounded-pill px-3 py-2 fs-6';
-                    scopeLabel.innerHTML = `<i class="bi bi-house-door-fill me-1"></i> ห้อง ${scope.room} (ห้องของฉัน)`;
+                    scopeLabel.innerHTML = `<i class="bi bi-house-door-fill me-1"></i> ห้อง ${scope.room} | ${yearLabel}`;
                 } else {
                     if (filterWrap) filterWrap.style.display = 'flex';
                     if (scope.room) {
                         scopeLabel.className = 'badge bg-info text-dark rounded-pill px-3 py-2 fs-6';
-                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> กำลังดู: ห้อง ${scope.room}`;
+                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> ห้อง ${scope.room} | ${yearLabel}`;
                     } else if (scope.grade) {
                         const gradeNum = scope.grade.replace('มัธยมศึกษาปีที่ ', '');
                         scopeLabel.className = 'badge bg-info text-dark rounded-pill px-3 py-2 fs-6';
-                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> กำลังดู: ม.${gradeNum}`;
+                        scopeLabel.innerHTML = `<i class="bi bi-funnel-fill me-1"></i> ม.${gradeNum} | ${yearLabel}`;
                     } else {
                         scopeLabel.className = 'badge bg-secondary rounded-pill px-3 py-2 fs-6';
-                        scopeLabel.innerHTML = `<i class="bi bi-globe me-1"></i> ภาพรวมทั้งโรงเรียน`;
+                        scopeLabel.innerHTML = `<i class="bi bi-globe me-1"></i> ทั้งโรงเรียน | ${yearLabel}`;
                     }
                 }
 
@@ -253,7 +285,7 @@
                 if (withDeductions.length > 0) {
                     document.getElementById('topAtRiskHighlight').style.display = 'block';
                     document.getElementById('topRiskName').innerText = `${withDeductions[0].first_name_th} ${withDeductions[0].last_name_th}`;
-                    document.getElementById('topRiskRoom').innerText = `ม.${withDeductions[0].room} | รหัส ${withDeductions[0].student_id}`;
+                    document.getElementById('topRiskRoom').innerText = `ห้อง ${withDeductions[0].class_name} | รหัส ${withDeductions[0].student_id}`;
                     document.getElementById('topRiskScore').innerText = withDeductions[0].remaining_score;
                 } else {
                     document.getElementById('topAtRiskHighlight').style.display = 'none';
@@ -303,18 +335,20 @@
                 let badgeClass = 'bg-success';
                 if (score < 50) badgeClass = 'bg-danger';
                 else if (score < 80) badgeClass = 'bg-warning text-dark';
+                const roomDisplay = s.class_name || s.room || '-';
+                const gradeShort  = (s.grade_level || '').replace('มัธยมศึกษาปีที่ ', 'ม.');
                 return `
                 <tr>
                     <td class="fw-bold text-muted small">${s.student_id}</td>
                     <td class="text-center">${s.number || '-'}</td>
                     <td>
-                        <div class="fw-bold text-primary cursor-pointer" onclick="showStudentHistory(${idx})">
+                        <div class="fw-bold text-primary cursor-pointer" onclick="showStudentHistory(${idx})" style="cursor:pointer;">
                             ${s.first_name_th} ${s.last_name_th}
                             <i class="bi bi-info-circle small ms-1 opacity-50"></i>
                         </div>
-                        <div class="small text-muted">ม.${s.room}</div>
+                        <div class="small text-muted">${gradeShort} ห้อง ${roomDisplay}</div>
                     </td>
-                    <td class="text-center"><span class="badge bg-light text-dark">${s.room}</span></td>
+                    <td class="text-center"><span class="badge bg-light text-dark">${roomDisplay}</span></td>
                     <td class="text-center text-success fw-bold">+${s.plus_points}</td>
                     <td class="text-center text-danger fw-bold">-${s.minus_points}</td>
                     <td class="text-center"><span class="badge rounded-pill ${badgeClass} px-3 py-2" style="font-size: 0.9rem;">${score}</span></td>
@@ -372,18 +406,20 @@
 
         function clearStatsFilters() {
             document.getElementById('filterGrade').value = '';
-            document.getElementById('filterRoom').value = '';
+            document.getElementById('filterRoom').innerHTML = '<option value="">-- ทุกห้อง --</option>';
             loadStatsDashboard();
         }
 
         function setupFilters() {
+            document.getElementById('filterYear').addEventListener('change', () => loadStatsDashboard());
+            document.getElementById('filterSemester').addEventListener('change', () => loadStatsDashboard());
             document.getElementById('filterGrade').addEventListener('change', async (e) => {
                 const grade = e.target.value;
                 const roomSelect = document.getElementById('filterRoom');
                 roomSelect.innerHTML = '<option value="">-- กำลังโหลด --</option>';
                 if (!grade) { roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>'; loadStatsDashboard(); return; }
                 try {
-                    const response = await fetch(`../api/admin/get_rooms.php?grade=${grade}`);
+                    const response = await fetch(`../api/admin/get_rooms.php?grade=${encodeURIComponent(grade)}`);
                     const data = await response.json();
                     roomSelect.innerHTML = '<option value="">-- ทุกห้อง --</option>' + data.map(r => `<option value="${r.room}">${r.room}</option>`).join('');
                     loadStatsDashboard();

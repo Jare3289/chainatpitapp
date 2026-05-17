@@ -11,22 +11,34 @@ if (!isset($_SESSION['user_id'])) {
 
 $student_id = $_GET['student_id'] ?? '';
 $subject_code = $_GET['subject_code'] ?? '';
+$type = $_GET['type'] ?? '';
 
-if (!$student_id || !$subject_code) {
+if (!$student_id || (!$subject_code && $type !== 'daily')) {
     echo json_encode(['success' => false, 'error' => 'Missing parameters']);
     exit;
 }
 
 try {
-    // Fetch history for this student and subject
-    $stmt = $pdo->prepare("
-        SELECT date, status, remark, period 
-        FROM attendance 
-        WHERE student_id = ? AND subject_code = ? 
-        ORDER BY date DESC, period DESC
-    ");
-    $stmt->execute([$student_id, $subject_code]);
-    $history = $stmt->fetchAll();
+    if ($type === 'daily') {
+        // Fetch daily attendance history
+        $stmt = $pdo->prepare("
+            SELECT date, status, remark, NULL as period 
+            FROM attendance 
+            WHERE student_id = ? AND type = 'daily' 
+            ORDER BY date DESC
+        ");
+        $stmt->execute([$student_id]);
+    } else {
+        // Fetch lesson/subject history
+        $stmt = $pdo->prepare("
+            SELECT date, status, remark, period 
+            FROM attendance 
+            WHERE student_id = ? AND subject_code = ? 
+            ORDER BY date DESC, period DESC
+        ");
+        $stmt->execute([$student_id, $subject_code]);
+    }
+    $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         'success' => true,

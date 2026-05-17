@@ -147,41 +147,6 @@
                                     </button>
                                 </div>
                             </div>
-
-                            <!-- Homeroom Session Block -->
-                            <hr class="my-4">
-                            <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
-                                <i class="bi bi-pencil-square text-warning"></i> บันทึกโฮมรูมวันนี้
-                            </h6>
-                            <div class="row g-3">
-                                <div class="col-lg-3">
-                                    <label class="text-muted small fw-bold mb-2 d-block">ลักษณะโฮมรูม</label>
-                                    <div class="btn-group w-100" role="group">
-                                        <input type="radio" class="btn-check" name="hrType" id="hrShort" value="short" checked onchange="onHomeroomTypeChange()">
-                                        <label class="btn btn-outline-primary fw-bold" for="hrShort">โฮมรูมสั้น</label>
-                                        <input type="radio" class="btn-check" name="hrType" id="hrLong" value="long" onchange="onHomeroomTypeChange()">
-                                        <label class="btn btn-outline-primary fw-bold" for="hrLong">โฮมรูมยาว</label>
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-7" id="hrActivityWrap">
-                                    <label class="text-muted small fw-bold mb-2 d-block">กิจกรรม (โฮมรูมสั้น)</label>
-                                    <input type="text" id="hrActivity" class="form-control" list="hrActivityList" placeholder="เช่น เคารพธงชาติ, ประชุมประจำห้อง, สวดมนต์">
-                                    <datalist id="hrActivityList"></datalist>
-                                    <small class="text-muted">เริ่มพิมพ์ — จะมี autocomplete จากกิจกรรมที่เคยใส่ก่อนหน้า</small>
-                                </div>
-                                <div class="col-lg-7 d-none" id="hrNotesWrap">
-                                    <label class="text-muted small fw-bold mb-2 d-block">รายละเอียดโฮมรูม (โฮมรูมยาว)</label>
-                                    <textarea id="hrNotes" class="form-control" rows="3" placeholder="พิมพ์อธิบายกิจกรรมที่ทำในคาบโฮมรูม..."></textarea>
-                                </div>
-
-                                <div class="col-lg-2 d-flex align-items-end">
-                                    <button class="btn btn-success w-100 rounded-pill fw-bold shadow-sm" onclick="saveHomeroom()">
-                                        <i class="bi bi-cloud-check me-1"></i> บันทึก
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="hrStatus" class="small text-muted mt-2"></div>
                         </div>
                     </div>
 
@@ -254,6 +219,60 @@
                     </div>
 
 
+                    <!-- Homeroom Session Card -->
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-pencil-square text-warning"></i> บันทึกโฮมรูมวันนี้
+                            </h6>
+                            <div class="row g-3">
+                                <!-- LEFT COL FOR INPUTS -->
+                                <div class="col-lg-8">
+                                    <div class="row g-3">
+                                        <div class="col-lg-4">
+                                            <label class="text-muted small fw-bold mb-2 d-block">ลักษณะโฮมรูม</label>
+                                            <div class="btn-group w-100" role="group">
+                                                <input type="radio" class="btn-check" name="hrType" id="hrShort" value="short" checked onchange="onHomeroomTypeChange()">
+                                                <label class="btn btn-outline-primary fw-bold" for="hrShort">โฮมรูมสั้น</label>
+                                                <input type="radio" class="btn-check" name="hrType" id="hrLong" value="long" onchange="onHomeroomTypeChange()">
+                                                <label class="btn btn-outline-primary fw-bold" for="hrLong">โฮมรูมยาว</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-lg-8" id="hrActivityWrap">
+                                            <label class="text-muted small fw-bold mb-2 d-block">กิจกรรม (โฮมรูมสั้น)</label>
+                                            <select id="hrActivity" class="form-select dropdown-style">
+                                                <option value="เคารพธงชาติ">เคารพธงชาติ</option>
+                                                <option value="ตรวจระเบียบ">ตรวจระเบียบ</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-8 d-none" id="hrNotesWrap">
+                                            <label class="text-muted small fw-bold mb-2 d-block">รายละเอียดโฮมรูม (โฮมรูมยาว)</label>
+                                            <textarea id="hrNotes" class="form-control" rows="3" placeholder="พิมพ์อธิบายกิจกรรมที่ทำในคาบโฮมรูม..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div id="hrStatus" class="small text-muted mt-3"></div>
+                                </div>
+
+                                <!-- RIGHT COL FOR STATS PREVIEW -->
+                                <div class="col-lg-4">
+                                    <div class="p-3 rounded-4 border h-100 d-flex flex-column justify-content-between" style="background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);">
+                                        <div>
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <span class="fw-bold text-navy small"><i class="bi bi-clipboard-data text-success me-1"></i> สถิติวันนี้</span>
+                                                <span class="badge bg-success-subtle text-success fw-bold" style="font-size: 0.65rem;">อัปเดตเรียลไทม์</span>
+                                            </div>
+                                            <div class="bg-white p-3 rounded-3 border mb-3 text-dark fw-semibold" style="white-space: pre-wrap; font-size: 0.85rem; min-height: 80px; line-height: 1.5;" id="lineReportPreview">...</div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-success w-100 rounded-pill fw-bold" onclick="copyLineReport(this)">
+                                            <i class="bi bi-clipboard2-check-fill me-1"></i> คัดลอกรายงานสรุป
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Action Button -->
                     <div class="text-center mt-4 mb-5">
                         <button class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow" onclick="saveAttendance()" style="min-width: 250px; font-size: 1.1rem;">
@@ -272,7 +291,7 @@
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                                     2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                                         CNPAPP<sup>©</sup>
                                     </a>
                                     ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
@@ -352,6 +371,9 @@
             const type = document.querySelector('input[name="hrType"]:checked')?.value || 'short';
             document.getElementById('hrActivityWrap').classList.toggle('d-none', type !== 'short');
             document.getElementById('hrNotesWrap').classList.toggle('d-none', type !== 'long');
+            if (typeof updateLineReportPreview === 'function') {
+                updateLineReportPreview();
+            }
         }
 
         async function loadHomeroom() {
@@ -363,21 +385,21 @@
                 const data = await res.json();
                 if (!data.success) return;
 
-                // Populate autocomplete
-                const list = document.getElementById('hrActivityList');
-                list.innerHTML = (data.activities || []).map(a => `<option value="${a}">`).join('');
-
                 // Populate form from existing session (if any)
                 const s = data.session;
                 const status = document.getElementById('hrStatus');
                 if (s) {
-                    document.querySelector(`input[name="hrType"][value="${s.session_type}"]`).checked = true;
-                    document.getElementById('hrActivity').value = s.activity || '';
+                    if (document.querySelector(`input[name="hrType"][value="${s.session_type}"]`)) {
+                        document.querySelector(`input[name="hrType"][value="${s.session_type}"]`).checked = true;
+                    }
+                    document.getElementById('hrActivity').value = s.activity || 'เคารพธงชาติ';
                     document.getElementById('hrNotes').value    = s.notes    || '';
                     status.innerHTML = `<i class="bi bi-info-circle me-1"></i> มีบันทึกอยู่แล้ว (อัปเดต ${new Date(s.updated_at).toLocaleString('th-TH')})`;
                 } else {
-                    document.querySelector('input[name="hrType"][value="short"]').checked = true;
-                    document.getElementById('hrActivity').value = '';
+                    if (document.querySelector('input[name="hrType"][value="short"]')) {
+                        document.querySelector('input[name="hrType"][value="short"]').checked = true;
+                    }
+                    document.getElementById('hrActivity').value = 'เคารพธงชาติ';
                     document.getElementById('hrNotes').value    = '';
                     status.innerHTML = '';
                 }
@@ -424,10 +446,22 @@
         (function hookHomeroom() {
             const c = document.getElementById('classSelect');
             const d = document.getElementById('dateSelect');
+            const act = document.getElementById('hrActivity');
+            const nts = document.getElementById('hrNotes');
+            
             if (c) c.addEventListener('change', loadHomeroom);
             if (d) d.addEventListener('change', loadHomeroom);
+            if (act) act.addEventListener('change', () => { if (typeof updateLineReportPreview === 'function') updateLineReportPreview(); });
+            if (nts) {
+                nts.addEventListener('input', () => { if (typeof updateLineReportPreview === 'function') updateLineReportPreview(); });
+                nts.addEventListener('change', () => { if (typeof updateLineReportPreview === 'function') updateLineReportPreview(); });
+            }
+            
             // initial load (after classes are populated)
-            setTimeout(loadHomeroom, 1500);
+            setTimeout(() => {
+                loadHomeroom();
+                if (typeof updateLineReportPreview === 'function') updateLineReportPreview();
+            }, 1500);
         })();
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -609,12 +643,83 @@
             $('#count_absent').text(counts.absent);
             $('#count_leave').text(counts.leave);
             $('#count_late').text(counts.late);
+
+            updateLineReportPreview();
+        }
+
+        function updateLineReportPreview() {
+            let cntPresent = 0;
+            let cntAbsent = 0;
+            let cntSick = 0;
+            let cntLeave = 0;
+            let cntLate = 0;
+            
+            studentData.forEach(s => {
+                if (s.status === 'มา') cntPresent++;
+                else if (s.status === 'ขาด') cntAbsent++;
+                else if (s.status === 'ป่วย') cntSick++;
+                else if (s.status === 'ลา' || s.status === 'ลากิจ') cntLeave++;
+                else if (s.status === 'สาย') cntLate++;
+            });
+            
+            const มาเรียน = cntPresent + cntLate;
+            const ไม่มาเรียน = cntAbsent + cntSick + cntLeave;
+            
+            const hrType = document.querySelector('input[name="hrType"]:checked')?.value || 'short';
+            let hrInfo = '';
+            if (hrType === 'short') {
+                const activity = document.getElementById('hrActivity').value;
+                hrInfo = `\nกิจกรรมโฮมรูมสั้น: ${activity}`;
+            } else {
+                const notes = document.getElementById('hrNotes').value.trim();
+                hrInfo = `\nบันทึกโฮมรูมยาว: ${notes || 'ไม่มีบันทึกรายละเอียด'}`;
+            }
+            
+            const reportText = `วันนี้มา ${มาเรียน} คน ไม่มา ${ไม่มาเรียน} คน\nขาด ${cntAbsent} คน ลาป่วย ${cntSick} คน ลากิจ ${cntLeave} คน${hrInfo}`;
+            
+            const preview = document.getElementById('lineReportPreview');
+            if (preview) {
+                preview.textContent = reportText;
+            }
+        }
+
+        function copyLineReport(btn) {
+            const preview = document.getElementById('lineReportPreview');
+            if (!preview) return;
+            const text = preview.innerText || preview.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> คัดลอกแล้ว!';
+                btn.className = 'btn btn-sm btn-success w-100 rounded-pill fw-bold shadow-sm';
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.className = 'btn btn-sm btn-outline-success w-100 rounded-pill fw-bold';
+                }, 2000);
+                
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'คัดลอกรายงานสรุปแล้ว',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }).catch(err => {
+                Swal.fire('ผิดพลาด', 'ไม่สามารถคัดลอกได้อัตโนมัติ กรุณาเลือกครอบข้อความแล้วคัดลอกเองนะคะ', 'error');
+            });
         }
 
         async function saveAttendance() {
             const className = document.getElementById('classSelect').value;
             const date = document.getElementById('dateSelect').value;
             const records = studentData.filter(s => s.status).map(s => ({ student_id: s.id, status: s.status, remark: s.remark }));
+
+            if (!className || !date) {
+                Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกห้องและวันที่ก่อน', 'warning');
+                return;
+            }
 
             if (records.length === 0) return Swal.fire('แจ้งเตือน', 'กรุณาเช็คชื่อนักเรียนอย่างน้อย 1 คน', 'warning');
 
@@ -630,7 +735,37 @@
                 if (!confirm.isConfirmed) return;
             }
 
+            // Gather Homeroom Data
+            const hrType      = document.querySelector('input[name="hrType"]:checked')?.value || 'short';
+            const hrActivity  = hrType === 'short' ? document.getElementById('hrActivity').value.trim() : '';
+            const hrNotes     = hrType === 'long' ? document.getElementById('hrNotes').value.trim() : '';
+
+            if (hrType === 'short' && !hrActivity) {
+                Swal.fire('กรอกกิจกรรม', 'โฮมรูมสั้นต้องระบุชื่อกิจกรรม', 'warning');
+                return;
+            }
+
             try {
+                Swal.fire({
+                    title: 'กำลังบันทึกข้อมูล...',
+                    html: 'ระบบกำลังบันทึกกิจกรรมโฮมรูมและข้อมูลการเช็คชื่อ...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                // 1. Save Homeroom Session
+                const hrRes = await fetch('../api/teacher/homeroom.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, class_name: className, session_type: hrType, activity: hrActivity, notes: hrNotes }),
+                });
+                const hrResult = await hrRes.json();
+                if (!hrResult.success) {
+                    Swal.fire('ผิดพลาด', hrResult.error || 'ไม่สามารถบันทึกกิจกรรมโฮมรูมได้', 'error');
+                    return;
+                }
+
+                // 2. Save Attendance Records
                 const res = await fetch('../api/teacher/attendance.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -645,12 +780,12 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    await Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+                    await Swal.fire('สำเร็จ', 'บันทึกกิจกรรมโฮมรูมและข้อมูลการเช็คชื่อเรียบร้อยแล้ว', 'success');
                     window.location.href = 'teacher_dashboard.html';
                 } else {
-                    Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกได้', 'error');
+                    Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกข้อมูลเช็คชื่อได้', 'error');
                 }
-            } catch (e) { Swal.fire('Error', 'เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error'); }
+            } catch (e) { Swal.fire('Error', 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'error'); }
         }
 
         function resetAll() { studentData.forEach(s => { s.status = null; s.remark = ''; }); renderStudents(); updateSummary(); }

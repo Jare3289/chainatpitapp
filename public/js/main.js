@@ -131,10 +131,10 @@
 })();
 
 /* ── Single nav-link item ── */
-function _navItem(href, icon, label, isActive) {
+function _navItem(href, icon, label, isActive, extraHtml = '') {
     return `<li class="nav-item">
         <a href="${href}" class="nav-link ${isActive ? 'active' : ''}">
-            <i class="nav-icon ${icon}"></i><p>${label}</p>
+            <i class="nav-icon ${icon}"></i><p>${label}${extraHtml}</p>
         </a>
     </li>`;
 }
@@ -303,6 +303,7 @@ function renderSidebar(role, user, settings = {}) {
 
     if (role === 'admin' || role === 'teacher') {
         html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
+        html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
         const attendanceItems = [
             { href: 'attendance_daily.html', icon: 'bi bi-calendar-check', label: 'เช็คชื่อรายวัน', active: a('attendance_daily.html') },
             { href: 'attendance_subject.html', icon: 'bi bi-qr-code-scan', label: 'เช็คชื่อรายวิชา', active: a('attendance_subject.html') }
@@ -374,6 +375,7 @@ function renderSidebar(role, user, settings = {}) {
 
     if (role === 'student') {
         html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
+        html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
         html += _navItem('student_attendance_history.html', 'bi bi-calendar-check', 'ประวัติการมาเรียน', a('student_attendance_history.html'));
         html += _navItem('student_credit_history.html', 'bi bi-star', 'คะแนนความประพฤติ', a('student_credit_history.html'));
         html += _navItem('student_public_service.html', 'bi bi-heart-fill text-danger', 'สาธารณประโยชน์', a('student_public_service.html'));
@@ -755,7 +757,7 @@ function renderFooter(settings = {}) {
                 <div class="d-flex flex-column">
                     <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                         2026 
-                        <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                        <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                             CNPAPP<sup>©</sup>
                         </a>
                         ระบบสารสนเทศนักเรียน${schName}
@@ -804,22 +806,33 @@ async function fetchNotifications() {
         if (json.success) {
             renderNotifications(json.data);
             updateNotiBadge(json.unread_count);
+            updateSidebarActionDots(json.data); // Inject glowing indicators
         }
     } catch (e) { console.error("Error fetching notifications", e); }
 }
 
 function updateNotiBadge(count) {
     const badge = document.getElementById('noti-unread-badge');
-    if (!badge) return;
-    if (count > 0) {
-        badge.textContent = count > 9 ? '9+' : count;
-        badge.classList.remove('d-none');
-        if (count > lastUnreadCount) {
-            // Play sound or wiggle? Let's just update for now
+    if (badge) {
+        if (count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.classList.remove('d-none');
+        } else {
+            badge.classList.add('d-none');
         }
-    } else {
-        badge.classList.add('d-none');
     }
+
+    // Update sidebar badge too!
+    const sidebarBadge = document.getElementById('sidebar-noti-badge');
+    if (sidebarBadge) {
+        if (count > 0) {
+            sidebarBadge.textContent = count > 9 ? '9+' : count;
+            sidebarBadge.style.display = 'inline-block';
+        } else {
+            sidebarBadge.style.display = 'none';
+        }
+    }
+    
     lastUnreadCount = count;
 }
 
@@ -885,6 +898,216 @@ function filterNotifications(type) {
     const items = document.querySelectorAll('.noti-item');
     if (type === 'unread') {
         items.forEach(it => it.style.display = it.classList.contains('unread') ? 'flex' : 'none');
+    } else {
+        items.forEach(it => it.style.display = 'flex');
+    }
+}
+
+/* ── Dynamic Action Indicator Dots for Sidebar ── */
+function updateSidebarActionDots(items) {
+    // Reset all sidebar action dots
+    document.querySelectorAll('.sidebar-action-dot').forEach(el => el.remove());
+
+    if (!items || items.length === 0) return;
+
+    const hasPsPending = items.some(n => n.id === 'alert_ps_pending');
+    const hasDailyNotChecked = items.some(n => n.id === 'alert_not_checked');
+    const hasMyPsPending = items.some(n => n.id === 'alert_my_ps_pending');
+    const hasTodayAttendance = items.some(n => n.id === 'alert_today_attendance');
+
+    const dotHtml = `<span class="sidebar-action-dot bg-danger ms-2" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4); animation: pulse-dot 1.5s infinite;"></span>`;
+    
+    // Custom keyframe animation for the pulse effect if not exists
+    if (!document.getElementById('sidebar-dot-style')) {
+        const style = document.createElement('style');
+        style.id = 'sidebar-dot-style';
+        style.innerHTML = `
+            @keyframes pulse-dot {
+                0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+                70% { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 1. Pending Public Service Approvals (Teacher/Admin)
+    if (hasPsPending) {
+        const psGroupLink = Array.from(document.querySelectorAll('#mainSidebar .nav-link')).find(el => el.textContent.includes('สาธารณประโยชน์'));
+        if (psGroupLink && !psGroupLink.querySelector('.sidebar-action-dot')) {
+            const pTag = psGroupLink.querySelector('p');
+            if (pTag) pTag.insertAdjacentHTML('beforeend', dotHtml);
+        }
+        const approveSubLink = Array.from(document.querySelectorAll('#mainSidebar .submenu-container .nav-link')).find(el => el.textContent.includes('รอรับรอง'));
+        if (approveSubLink && !approveSubLink.querySelector('.sidebar-action-dot')) {
+            const pTag = approveSubLink.querySelector('p');
+            if (pTag) pTag.insertAdjacentHTML('beforeend', dotHtml);
+        }
+    }
+
+    // 2. Attendance Not Checked Today (Teacher)
+    if (hasDailyNotChecked) {
+        const attGroupLink = Array.from(document.querySelectorAll('#mainSidebar .nav-link')).find(el => el.textContent.includes('เช็คชื่อ'));
+        if (attGroupLink && !attGroupLink.querySelector('.sidebar-action-dot')) {
+            const pTag = attGroupLink.querySelector('p');
+            if (pTag) pTag.insertAdjacentHTML('beforeend', dotHtml);
+        }
+        const dailySubLink = Array.from(document.querySelectorAll('#mainSidebar .submenu-container .nav-link')).find(el => el.textContent.includes('เช็คชื่อรายวัน'));
+        if (dailySubLink && !dailySubLink.querySelector('.sidebar-action-dot')) {
+            const pTag = dailySubLink.querySelector('p');
+            if (pTag) pTag.insertAdjacentHTML('beforeend', dotHtml);
+        }
+    }
+
+    // 3. My Pending Public Service Request (Student)
+    if (hasMyPsPending) {
+        const studentPsLink = Array.from(document.querySelectorAll('#mainSidebar .nav-link')).find(el => el.textContent.includes('สาธารณประโยชน์'));
+        if (studentPsLink && !studentPsLink.querySelector('.sidebar-action-dot')) {
+            const pTag = studentPsLink.querySelector('p');
+            if (pTag) pTag.insertAdjacentHTML('beforeend', dotHtml);
+        }
+    }
+
+    // 4. Today's Attendance Alert (Student)
+    if (hasTodayAttendance) {
+        const studentAttLink = Array.from(document.querySelectorAll('#mainSidebar .nav-link')).find(el => el.textContent.includes('ประวัติการมาเรียน'));
+        if (studentAttLink && !studentAttLink.querySelector('.sidebar-action-dot')) {
+            const pTag = studentAttLink.querySelector('p');
+            if (pTag) pTag.insertAdjacentHTML('beforeend', dotHtml);
+        }
+    }
+}
+
+/* ── Mobile-Responsive Notifications Modal ── */
+function showNotificationsModal() {
+    let modal = document.getElementById('notiModal');
+    if (!modal) {
+        const modalHtml = `
+        <div class="modal fade" id="notiModal" tabindex="-1" aria-labelledby="notiModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: #f8fafc;">
+                    <div class="modal-header border-bottom-0 pb-0 bg-white rounded-top-4 pt-3 px-4">
+                        <h5 class="modal-title fw-black text-navy d-flex align-items-center" id="notiModalLabel">
+                            <i class="bi bi-bell-fill text-primary me-2"></i> การแจ้งเตือน
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-2 px-4 pb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3 bg-white p-2 rounded-pill shadow-sm">
+                            <button class="noti-btn-filter btn btn-primary btn-sm rounded-pill px-3 active" id="noti-modal-filter-all" onclick="filterModalNotifications('all')">ทั้งหมด</button>
+                            <button class="noti-btn-filter btn btn-outline-primary btn-sm rounded-pill px-3" id="noti-modal-filter-unread" onclick="filterModalNotifications('unread')">ยังไม่ได้อ่าน</button>
+                            <button class="btn btn-link btn-sm text-decoration-none ms-auto p-0 px-2 fw-bold text-primary" onclick="markAllAsReadModal()">อ่านทั้งหมด</button>
+                        </div>
+                        <div id="noti-modal-list-container" class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto; padding: 2px;">
+                            กำลังโหลด...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modal = document.getElementById('notiModal');
+    }
+    
+    // Fetch and render
+    fetchModalNotifications();
+    
+    // Show using bootstrap
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+async function fetchModalNotifications() {
+    try {
+        const res = await fetch('../api/notifications.php');
+        const json = await res.json();
+        if (json.success) {
+            renderModalNotifications(json.data);
+            updateNotiBadge(json.unread_count);
+        }
+    } catch (e) { console.error(e); }
+}
+
+function renderModalNotifications(items) {
+    const container = document.getElementById('noti-modal-list-container');
+    if (!container) return;
+    if (!items || items.length === 0) {
+        container.innerHTML = '<div class="text-center py-5 text-muted bg-white rounded-4 shadow-sm"><i class="bi bi-bell-slash fs-2 mb-2 d-block opacity-50"></i>ไม่มีการแจ้งเตือน</div>';
+        return;
+    }
+
+    let html = '';
+    items.forEach(n => {
+        const isUnread = n.is_read == 0 || n.is_read === '0';
+        const isAlert = typeof n.id === 'string' && n.id.startsWith('alert_');
+        const color = n.color || (isAlert ? '#e11d48' : '#0d6efd');
+
+        html += `
+            <a href="${n.link || '#'}" class="d-flex align-items-center p-3 rounded-4 text-decoration-none border-0 mb-2 text-dark bg-white shadow-sm" style="transition: all 0.2s; border-left: 4px solid ${isUnread ? color : '#e2e8f0'} !important;" onclick="markAsReadModal('${n.id}', '${n.link || '#'}')">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: ${color}15; color: ${color}; flex-shrink: 0;">
+                    <i class="${n.icon || 'bi bi-bell'} fs-5"></i>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-bold text-navy text-truncate" style="font-size: 0.9rem;">${n.title}</div>
+                    <div class="text-muted text-truncate-2 small mt-1" style="font-size: 0.8rem; line-height: 1.3;">${n.message}</div>
+                    <div class="x-small text-muted mt-2 d-flex align-items-center" style="font-size: 0.72rem;">
+                        <i class="bi bi-clock me-1"></i> ${n.time_ago}
+                    </div>
+                </div>
+                ${isUnread ? '<div class="rounded-circle bg-danger ms-2" style="width: 8px; height: 8px; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);"></div>' : ''}
+            </a>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+async function markAsReadModal(id, link) {
+    if (typeof id === 'string' && id.startsWith('alert_')) {
+        window.location.href = link;
+        return;
+    }
+    try {
+        await fetch('../api/notifications.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'mark_read', id: id })
+        });
+        fetchModalNotifications();
+        fetchNotifications();
+        if (link !== '#') {
+            window.location.href = link;
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function markAllAsReadModal() {
+    try {
+        await fetch('../api/notifications.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'mark_read' })
+        });
+        fetchModalNotifications();
+        fetchNotifications();
+    } catch (e) { console.error(e); }
+}
+
+function filterModalNotifications(type) {
+    document.querySelectorAll('#notiModal .noti-btn-filter').forEach(b => b.classList.remove('active', 'btn-primary'));
+    document.querySelectorAll('#notiModal .noti-btn-filter').forEach(b => b.classList.add('btn-outline-primary'));
+    
+    const btn = document.getElementById(`noti-modal-filter-${type}`);
+    if (btn) {
+        btn.classList.add('active', 'btn-primary');
+        btn.classList.remove('btn-outline-primary');
+    }
+
+    const items = document.querySelectorAll('#noti-modal-list-container > a');
+    if (type === 'unread') {
+        items.forEach(it => {
+            const hasUnreadDot = it.querySelector('.bg-danger');
+            it.style.display = hasUnreadDot ? 'flex' : 'none';
+        });
     } else {
         items.forEach(it => it.style.display = 'flex');
     }

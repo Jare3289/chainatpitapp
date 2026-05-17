@@ -19,10 +19,11 @@
         .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
         
         .activity-item { 
-            background: white; border-radius: 20px; padding: 22px; border: 1px solid rgba(0,0,0,0.03); 
-            margin-bottom: 16px; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: white; border-radius: 18px; padding: 15px; border: 1px solid rgba(0,0,0,0.05); 
+            margin-bottom: 12px; transition: all 0.2s ease; cursor: pointer;
         }
-        .activity-item:hover { transform: scale(1.01); box-shadow: 0 12px 30px rgba(30, 58, 138, 0.08); border-color: #3b82f6; }
+        .activity-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30, 58, 138, 0.08); border-color: #3b82f6; }
+        .activity-item:active { transform: scale(0.98); }
         
         .status-pill { font-weight: 700; font-size: 0.7rem; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-approved { background: #dcfce7; color: #15803d; border: 1px solid #bcf1cf; }
@@ -67,9 +68,14 @@
                                 </ol>
                             </nav>
                         </div>
-                        <button class="btn btn-premium btn-premium-primary" onclick="showRequestModal()">
-                            <i class="bi bi-plus-circle-fill me-2"></i> บันทึกกิจกรรมใหม่
-                        </button>
+                        <div class="d-flex gap-2">
+                            <a href="student_public_service_print.html" class="btn btn-premium btn-light border fw-bold text-navy shadow-sm" style="background: #ffffff;">
+                                <i class="bi bi-printer-fill me-2"></i> พิมพ์รายงาน
+                            </a>
+                            <button class="btn btn-premium btn-premium-primary" onclick="showRequestModal()">
+                                <i class="bi bi-plus-circle-fill me-2"></i> บันทึกกิจกรรมใหม่
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -120,6 +126,24 @@
             </div>
             <footer id="footer-container"></footer>
         </main>
+    </div>
+
+    <!-- DETAIL MODAL -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-black text-navy mb-0">รายละเอียดกิจกรรม</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="detailBody">
+                    <!-- Dynamic Content -->
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill w-100 fw-bold" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- REFINED REQUEST MODAL -->
@@ -260,39 +284,76 @@
             list.innerHTML = records.map(r => {
                 const s = r.status;
                 const statusCls = s === 'approved' ? 'status-approved' : (s === 'rejected' ? 'status-rejected' : 'status-pending');
-                const statusTxt = s === 'approved' ? '✅ รับรองแล้ว' : (s === 'rejected' ? '❌ ไม่ผ่าน' : '⏳ รอรับรอง');
-                const teacherName = (r.approver_name || r.certifier_name || '').trim() || '-';
-                const teacherLabel = s === 'approved'
-                    ? `รับรองโดย`
-                    : (s === 'rejected' ? `ปฏิเสธโดย` : `รอ คุณครูรับรอง`);
-                const teacherColor = s === 'approved' ? '#15803d' : (s === 'rejected' ? '#b91c1c' : '#a16207');
+                const statusTxt = s === 'approved' ? 'อนุมัติแล้ว' : (s === 'rejected' ? 'ไม่ผ่าน' : 'รอรับรอง');
 
                 return `
-                    <div class="activity-item shadow-sm">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
-                                    <span class="status-pill ${statusCls}">${statusTxt}</span>
-                                    <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
-                                </div>
-                                <h5 class="fw-bold text-navy mb-1">${r.activity_name}</h5>
-                                <div class="small text-muted mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> ${r.location}</div>
-                                ${r.impact_benefit ? `
-                                <div class="small text-secondary bg-light p-2 rounded-3 border-start border-primary border-4 mt-2">
-                                    "${r.impact_benefit}"
-                                </div>` : ''}
+                    <div class="activity-item shadow-sm" onclick="showDetail(${r.id})">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="status-pill ${statusCls} py-1 px-2" style="font-size: 0.6rem;">${statusTxt}</span>
+                            <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
+                        </div>
+                        <div class="row align-items-center g-2">
+                            <div class="col-9">
+                                <h6 class="fw-bold text-navy mb-1 text-truncate">${r.activity_name}</h6>
+                                <div class="small text-muted text-truncate"><i class="bi bi-geo-alt-fill text-primary"></i> ${r.location}</div>
                             </div>
-                            <div class="col-md-4 text-md-end mt-3 mt-md-0 pt-3 pt-md-0 border-top border-md-0">
-                                <div class="small text-muted mb-1">${teacherLabel}</div>
-                                <div class="fw-bold" style="color:${teacherColor};"><i class="bi bi-person-badge me-1"></i>${teacherName}</div>
-                                ${s === 'pending' ? `<div class="x-small text-muted mt-2"><i class="bi bi-hourglass-split me-1"></i>คำขอถูกส่งไปแล้ว รอคุณครูตรวจสอบ</div>` : ''}
-                                ${s === 'approved' ? `<div class="x-small text-success mt-2"><i class="bi bi-patch-check-fill me-1"></i>นับเข้าสถิติแล้ว</div>` : ''}
-                                ${s === 'rejected' ? `<div class="x-small text-danger mt-2"><i class="bi bi-info-circle me-1"></i>ลองส่งคำขอใหม่อีกครั้ง</div>` : ''}
+                            <div class="col-3 text-end">
+                                <div class="badge bg-light text-navy rounded-pill border">${r.duration || 1} ครั้ง</div>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        function showDetail(id) {
+            const r = allRecords.find(x => x.id == id);
+            if (!r) return;
+
+            const s = r.status;
+            const statusCls = s === 'approved' ? 'status-approved' : (s === 'rejected' ? 'status-rejected' : 'status-pending');
+            const statusTxt = s === 'approved' ? '✅ รับรองแล้ว' : (s === 'rejected' ? '❌ ไม่ผ่าน' : '⏳ รอการรับรอง');
+            const teacherName = (r.approver_name || r.certifier_name || '').trim() || '-';
+
+            document.getElementById('detailBody').innerHTML = `
+                <div class="text-center mb-4">
+                    <span class="status-pill ${statusCls} d-inline-block mb-2">${statusTxt}</span>
+                    <h5 class="fw-black text-navy">${r.activity_name}</h5>
+                    <div class="small text-muted">${r.activity_date_th}</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded-4">
+                            <div class="small text-muted fw-bold mb-1">สถานที่</div>
+                            <div class="text-navy fw-bold">${r.location || '-'}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded-4">
+                            <div class="small text-muted fw-bold mb-1">จำนวนครั้ง</div>
+                            <div class="text-navy fw-bold">${r.duration || 1} ครั้ง</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded-4">
+                            <div class="small text-muted fw-bold mb-1">ผลที่เกิดขึ้น / ความประทับใจ</div>
+                            <div class="text-navy" style="font-style: italic;">"${r.impact_benefit || 'ไม่มีข้อมูล'}"</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 border rounded-4 d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                                <i class="bi bi-person-badge text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-bold">คุณครูผู้รับรอง</div>
+                                <div class="text-navy fw-bold">${teacherName}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
         }
 
         function filterActivities(status, btn) {

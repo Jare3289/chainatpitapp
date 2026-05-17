@@ -55,7 +55,7 @@ function initImportModal({ type, apiUrl, templateUrl, templateBaseUrl, onSuccess
                                 <p class="fw-bold small text-secondary mb-2"><i class="bi bi-download me-1"></i>ดาวน์โหลด Template — เลือกเวอร์ชัน:</p>
                                 <div class="row g-2">
                                     <div class="col-6">
-                                        <a id="import-template-minimal" href="#" target="_blank"
+                                        <a id="import-template-minimal" href="#" download
                                            class="d-block text-decoration-none border border-2 border-primary rounded-3 p-3 text-center position-relative"
                                            style="transition:.2s;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background=''">
                                             <div class="fs-2 mb-1">📋</div>
@@ -65,7 +65,7 @@ function initImportModal({ type, apiUrl, templateUrl, templateBaseUrl, onSuccess
                                         </a>
                                     </div>
                                     <div class="col-6">
-                                        <a id="import-template-full" href="#" target="_blank"
+                                        <a id="import-template-full" href="#" download
                                            class="d-block text-decoration-none border border-2 border-success rounded-3 p-3 text-center position-relative"
                                            style="transition:.2s;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
                                             <div class="fs-2 mb-1">📊</div>
@@ -91,7 +91,7 @@ function initImportModal({ type, apiUrl, templateUrl, templateBaseUrl, onSuccess
 
                             <div class="d-flex gap-2 justify-content-end mt-4">
                                 <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                                <button class="btn btn-primary rounded-pill px-5 fw-bold" onclick="importRunCheck()">
+                                <button class="btn btn-primary rounded-pill px-5 fw-bold" id="import-submit-btn" onclick="importRunCheck()">
                                     <i class="bi bi-search me-2"></i>ตรวจสอบข้อมูล
                                 </button>
                             </div>
@@ -164,6 +164,25 @@ function initImportModal({ type, apiUrl, templateUrl, templateBaseUrl, onSuccess
     }
 
     document.getElementById('import-file-input').value = '';
+
+    // Handle dynamic direct-run / no dry-run option for behavior credit scores
+    const submitBtn = document.getElementById('import-submit-btn');
+    if (isCredit) {
+        submitBtn.innerHTML = '<i class="bi bi-cloud-arrow-up me-2"></i>นำเข้าข้อมูลทันที';
+        submitBtn.className = 'btn btn-success rounded-pill px-5 fw-bold';
+        submitBtn.onclick = function() {
+            const fileInput = document.getElementById('import-file-input');
+            if (!fileInput.files[0]) {
+                Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไฟล์ก่อน', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
+                return;
+            }
+            importConfirm();
+        };
+    } else {
+        submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>ตรวจสอบข้อมูล';
+        submitBtn.className = 'btn btn-primary rounded-pill px-5 fw-bold';
+        submitBtn.onclick = importRunCheck;
+    }
 
     window.__importApiUrl = apiUrl;
     window.__importCallback = onSuccess;
@@ -255,7 +274,9 @@ async function importConfirm() {
     try {
         const res = await fetch(window.__importApiUrl, { method: 'POST', body: fd });
         const data = await res.json();
-        bootstrap.Modal.getInstance('#cnp-import-modal').hide();
+        const modalEl = document.getElementById('cnp-import-modal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
         if (data.success) {
             let errorDetails = '';
             if (data.errors && data.errors.length > 0) {

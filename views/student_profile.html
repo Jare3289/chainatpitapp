@@ -8,6 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../public/css/style.css">
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
         :root { --house-color: #0f172a; }
         body { font-family: 'Google Sans', sans-serif; background: #f1f5f9; color: #1e293b; overflow-x: hidden; }
@@ -63,12 +66,19 @@
             border: none !important; padding-left: 0 !important; font-size: 0.92rem; box-shadow: none !important;
         }
         #profileForm.view-mode [for="photoInput"] { display: none !important; }
+        #profileForm.view-mode .check-in-btn { display: none !important; }
 
         /* Completion bar */
         .completion-wrap { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 18px 20px; margin-bottom: 18px; }
 
         /* House card */
         .house-card { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 16px 20px; margin-bottom: 18px; }
+
+        /* House Picker */
+        .house-option { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid white; outline: 2px solid #e2e8f0; transition: transform 0.2s, outline 0.2s; }
+        .house-option:hover { transform: scale(1.2); }
+        .house-option.selected { outline: 2px solid #0f172a; transform: scale(1.15); }
+        #profileForm.view-mode .house-option { pointer-events: none; }
     </style>
 </head>
 <body>
@@ -166,7 +176,16 @@
                                     <div class="col-md-3"><label class="form-label">ระดับชั้น</label><input type="text" name="grade_level" class="form-control" disabled></div>
                                     <div class="col-md-3"><label class="form-label">ห้องเรียน</label><input type="text" name="class_name" class="form-control" disabled></div>
                                     <div class="col-md-3"><label class="form-label">เลขที่</label><input type="text" name="number_in_class" class="form-control"></div>
-                                    <div class="col-md-6"><label class="form-label">คณะ</label><input type="text" name="house" class="form-control" disabled></div>
+                                     <div class="col-md-6">
+                                         <label class="form-label">คณะ</label>
+                                         <div class="d-flex gap-2 align-items-center pt-1" id="housePicker">
+                                             <div class="house-option" data-value="ขุนสรรค์" onclick="selectHouse(this)" title="ขุนสรรค์" style="background:#db2777;"></div>
+                                             <div class="house-option" data-value="ขุนศรี"   onclick="selectHouse(this)" title="ขุนศรี"   style="background:#dc2626;"></div>
+                                             <div class="house-option" data-value="เจ้ายี่"  onclick="selectHouse(this)" title="เจ้ายี่"  style="background:#16a34a;"></div>
+                                             <div class="house-option" data-value="ธรรมจักร" onclick="selectHouse(this)" title="ธรรมจักร" style="background:#ca8a04;"></div>
+                                             <span id="houseLabel" class="small fw-bold text-muted ms-1">-</span>
+                                         </div>
+                                     </div>
                                 </div>
                             </div>
 
@@ -261,7 +280,27 @@
                                     <div class="col-md-4"><label class="form-label">อำเภอ/เขต</label><select name="curr_district" class="form-select district-select" data-target-subdistrict="curr_subdistrict"><option value="">เลือกอำเภอ</option></select></div>
                                     <div class="col-md-4"><label class="form-label">ตำบล/แขวง</label><select name="curr_subdistrict" class="form-select subdistrict-select" data-zipcode="curr_zipcode"><option value="">เลือกตำบล</option></select></div>
                                     <div class="col-md-3"><label class="form-label">รหัสไปรษณีย์</label><input type="text" name="curr_zipcode" class="form-control" readonly></div>
-                                    <div class="col-md-9"><label class="form-label">พิกัด Lat, Long</label><input type="text" name="location_coords" class="form-control" placeholder="เช่น 15.1234, 100.1234"></div>
+                                    <div class="col-md-12">
+                                         <div class="card border shadow-sm p-3 bg-light rounded-3">
+                                             <div class="d-flex justify-content-between align-items-center mb-2">
+                                                 <span class="small fw-bold text-navy"><i class="bi bi-geo-alt-fill text-danger me-1"></i>พิกัด(บันทึกขณะอยู่ที่บ้าน):</span>
+                                                 <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold check-in-btn" onclick="getCurrentCoordinates(this)">
+                                                     <i class="bi bi-geo-alt me-1"></i>กดปุ่มเช็คอิน
+                                                 </button>
+                                             </div>
+                                             <div class="row g-2 align-items-center">
+                                                 <div class="col-md-4">
+                                                     <input type="text" name="location_coords" id="student_location_coords" class="form-control fw-bold bg-white text-navy" placeholder="เช่น 15.089259, 100.044303" oninput="updateLocationMapAndDistance(this)" onchange="updateLocationMapAndDistance(this)">
+                                                 </div>
+                                                 <div class="col-md-8 text-end">
+                                                     <span class="badge bg-navy text-white p-2 rounded-3 small" id="dist_label_badge">ระยะทางคำนวณอัตโนมัติ: - กม.</span>
+                                                 </div>
+                                             </div>
+                                             <div class="mt-3 overflow-hidden rounded-3 border" style="height: 250px; position: relative;">
+                                                 <div id="student_map" style="width: 100%; height: 100%; z-index: 1;"></div>
+                                             </div>
+                                         </div>
+                                     </div>
                                     <div class="col-md-6"><label class="form-label">จุดสังเกต</label><input type="text" name="location_landmark" class="form-control"></div>
                                     <div class="col-md-3"><label class="form-label">ผู้ใหญ่บ้าน</label><input type="text" name="village_headman" class="form-control"></div>
                                     <div class="col-md-3"><label class="form-label">กำนัน</label><input type="text" name="subdistrict_headman" class="form-control"></div>
@@ -305,7 +344,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4"><label class="form-label">ระยะทางจากโรงเรียน (กม.)</label><input type="number" step="0.1" name="dist_to_school" class="form-control"></div>
-                                    <div class="col-md-4"><label class="form-label">ใช้เวลาเดินทาง (นาที)</label><input type="number" name="travel_time" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ใช้เวลาอยู่กับครอบครัวต่อวัน (นาที)</label><input type="number" name="travel_time" class="form-control"></div>
                                     <div class="col-md-4"><label class="form-label">เดินทางโดย</label><select name="travel_method" class="form-select"></select></div>
                                 </div>
                             </div>
@@ -635,6 +674,10 @@
             }
 
             calcBMI();
+            
+            // Initialize Leaflet Map with loaded coordinates
+            initStudentMap(data.location_coords || '');
+
             checkCompletion();
             toggleEditMode(false);
         } catch (e) {
@@ -725,7 +768,149 @@
         document.getElementById('editBtn').style.display   = editing ? 'none' : 'inline-block';
     }
 
+    let studentMap = null;
+    let studentMarker = null;
+
+    function initStudentMap(coordsStr = '') {
+        const defaultLat = 15.1878;
+        const defaultLng = 100.1245;
+        let lat = defaultLat;
+        let lng = defaultLng;
+        
+        if (coordsStr && coordsStr.includes(',')) {
+            const parts = coordsStr.split(',');
+            const pLat = parseFloat(parts[0]);
+            const pLng = parseFloat(parts[1]);
+            if (!isNaN(pLat) && !isNaN(pLng)) {
+                lat = pLat;
+                lng = pLng;
+            }
+        }
+        
+        setTimeout(() => {
+            const mapContainer = document.getElementById('student_map');
+            if (!mapContainer) return;
+            
+            if (studentMap) {
+                try {
+                    studentMap.off();
+                    studentMap.remove();
+                } catch(err) {
+                    console.warn('Map cleanup error:', err);
+                }
+                studentMap = null;
+            }
+            
+            studentMap = L.map('student_map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(studentMap);
+            
+            studentMarker = L.marker([lat, lng]).addTo(studentMap);
+            
+            if (coordsStr) {
+                calculateAndUpdateDistance(lat, lng);
+            }
+        }, 300);
+    }
+
+    function getCurrentCoordinates(btn) {
+        if (!navigator.geolocation) {
+            Swal.fire('ข้อผิดพลาด', 'เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด Geolocation', 'warning');
+            return;
+        }
+        
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> กำลังดึงพิกัด...';
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const coordsVal = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                const coordsInput = document.getElementById('student_location_coords') || document.querySelector('[name="location_coords"]');
+                if (coordsInput) {
+                    coordsInput.value = coordsVal;
+                    updateLocationMapAndDistance(coordsInput);
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เช็คอินสำเร็จ',
+                    text: `บันทึกพิกัดแล้ว: ${coordsVal}`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            (error) => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                let errMsg = 'ไม่สามารถดึงพิกัดได้';
+                if (error.code === error.PERMISSION_DENIED) {
+                    errMsg = 'โปรดอนุญาตสิทธิ์การเข้าถึงพิกัดตำแหน่ง (Location Access)';
+                }
+                Swal.fire('ผิดพลาด', errMsg, 'error');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    function updateLocationMapAndDistance(input) {
+        const val = input.value.trim();
+        if (!val || !val.includes(',')) return;
+        
+        const parts = val.split(',');
+        const lat = parseFloat(parts[0]);
+        const lng = parseFloat(parts[1]);
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        if (studentMap) {
+            studentMap.setView([lat, lng], 15);
+            if (studentMarker) {
+                studentMarker.setLatLng([lat, lng]);
+            } else {
+                studentMarker = L.marker([lat, lng]).addTo(studentMap);
+            }
+        }
+        
+        calculateAndUpdateDistance(lat, lng);
+    }
+
+    function calculateAndUpdateDistance(lat, lng) {
+        const schoolLat = 15.1878;
+        const schoolLng = 100.1245;
+        
+        const R = 6371; // km
+        const dLat = (schoolLat - lat) * Math.PI / 180;
+        const dLon = (schoolLng - lng) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat * Math.PI / 180) * Math.cos(schoolLat * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dist = R * c;
+        
+        const distInput = document.querySelector('[name="dist_to_school"]');
+        if (distInput) {
+            distInput.value = dist.toFixed(2);
+        }
+        
+        const badge = document.getElementById('dist_label_badge');
+        if (badge) {
+            badge.innerText = `ระยะทางคำนวณอัตโนมัติ: ${dist.toFixed(2)} กม.`;
+        }
+    }
+
     // ──── House ────
+    function selectHouse(el) {
+        if (!isEditing) return;
+        setHouseValue(el.dataset.value);
+    }
+
     function setHouseValue(val) {
         if (!val) return;
         const colors = { 'ขุนสรรค์': '#db2777', 'ขุนศรี': '#dc2626', 'เจ้ายี่': '#16a34a', 'ธรรมจักร': '#ca8a04' };
@@ -735,9 +920,15 @@
         document.getElementById('houseIndicator').style.background = color;
         document.getElementById('displayHouse').innerText = val;
         document.getElementById('houseInput').value = val;
-        // Sync the form field [name="house"]
-        const houseInput = document.querySelector('input[name="house"]');
-        if (houseInput) houseInput.value = val;
+        
+        const label = document.getElementById('houseLabel');
+        if (label) label.innerText = val;
+
+        // Highlight selected bubble
+        document.querySelectorAll('.house-option').forEach(o => {
+            if (o.dataset.value === val) o.classList.add('selected');
+            else o.classList.remove('selected');
+        });
     }
 
     // ──── Address Sync ────
@@ -761,15 +952,20 @@
         document.querySelectorAll('.bmi-calc').forEach(el => el.addEventListener('input', calcBMI));
     }
     function calcBMI() {
-        const w = parseFloat(document.querySelector('[name="weight"]').value);
-        const h = parseFloat(document.querySelector('[name="height"]').value) / 100;
+        const wInput = document.querySelector('[name="weight"]');
+        const hInput = document.querySelector('[name="height"]');
+        if (!wInput || !hInput) return;
+        const w = parseFloat(wInput.value);
+        const h = parseFloat(hInput.value) / 100;
         const el = document.getElementById('displayBMI');
-        if (w > 0 && h > 0) {
-            const bmi = (w / (h * h)).toFixed(2);
-            el.value = bmi;
-            el.className = `form-control fw-bold text-center ${bmi < 18.5 ? 'text-warning' : bmi < 25 ? 'text-success' : 'text-danger'}`;
-        } else {
-            el.value = '';
+        if (el) {
+            if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
+                const bmi = (w / (h * h)).toFixed(2);
+                el.value = bmi;
+                el.className = `form-control fw-bold text-center ${bmi < 18.5 ? 'text-warning' : bmi < 25 ? 'text-success' : 'text-danger'}`;
+            } else {
+                el.value = '';
+            }
         }
     }
 

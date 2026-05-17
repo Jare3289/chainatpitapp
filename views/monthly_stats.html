@@ -143,7 +143,7 @@
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                                     2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                                         CNPAPP<sup>©</sup>
                                     </a>
                                     ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
@@ -305,8 +305,7 @@
                     let t = { tm: 0, tf: 0, tr: 0, pm: 0, pf: 0, pr: 0, am: 0, af: 0, ar: 0, count: 0 };
                     
                     data.report.forEach(r => {
-                        const d = new Date(r.date);
-                        const dS = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()+543}`;
+                        const dS = thDate(r.date);
                         const tr = (parseInt(r.total_m) || 0) + (parseInt(r.total_f) || 0); 
                         const pr = (parseInt(r.present_m) || 0) + (parseInt(r.present_f) || 0); 
                         const ar = (parseInt(r.absent_m) || 0) + (parseInt(r.absent_f) || 0);

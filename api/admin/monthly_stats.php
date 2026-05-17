@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 require_once '../../config.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'teacher'])) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -115,6 +115,10 @@ try {
     for ($day = 1; $day <= $daysInMonth; $day++) {
         $dateStr = sprintf("%04d-%02d-%02d", $year, $month, $day);
         $dayRows = $groupedAtt[$dateStr] ?? [];
+
+        if (empty($dayRows)) {
+            continue;
+        }
 
         $dayStats = [
             'present_m' => 0, 'present_f' => 0,

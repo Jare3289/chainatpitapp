@@ -77,32 +77,51 @@
                         </div>
                     </div>
 
-                    <!-- STATS -->
+                    <!-- STATS SUMMARY -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <div class="stat-card shadow-sm border-0">
+                        <div class="col-md-3">
+                            <div class="stat-card shadow-sm border-0 h-100">
                                 <div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
-                                <div class="small text-muted fw-bold mb-1">รอการตรวจสอบ</div>
-                                <h3 class="fw-black text-navy mb-0" id="stat-pending">0</h3>
+                                <div class="small text-muted fw-bold mb-1">รอตรวจสอบ</div>
+                                <h3 class="fw-black text-navy mb-0 letter-spacing-n1" id="stat-pending">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="stat-card shadow-sm border-0">
-                                <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-check-circle-fill"></i></div>
+                        <div class="col-md-3">
+                            <div class="stat-card shadow-sm border-0 h-100">
+                                <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-patch-check-fill"></i></div>
                                 <div class="small text-muted fw-bold mb-1">อนุมัติแล้ว (ครั้ง)</div>
-                                <h3 class="fw-black text-navy mb-0" id="stat-approved">0</h3>
-                                <div class="progress mt-2" style="height: 4px;">
-                                    <div id="stat-progress-bar" class="progress-bar bg-success" style="width: 0%"></div>
-                                </div>
-                                <div class="text-muted" style="font-size: 0.6rem; margin-top: 5px;">เป้าหมาย 20 ครั้ง/เทอม</div>
+                                <h3 class="fw-black text-navy mb-0 letter-spacing-n1" id="stat-approved">0</h3>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="stat-card shadow-sm border-0">
+                        <div class="col-md-3">
+                            <div class="stat-card shadow-sm border-0 h-100">
                                 <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-people-fill"></i></div>
-                                <div class="small text-muted fw-bold mb-1">นักเรียนที่บันทึกข้อมูล</div>
-                                <h3 class="fw-black text-navy mb-0" id="stat-students">0</h3>
+                                <div class="small text-muted fw-bold mb-1">นักเรียนที่ร่วม</div>
+                                <h3 class="fw-black text-navy mb-0 letter-spacing-n1" id="stat-students">0</h3>
                             </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card shadow-sm border-0 h-100">
+                                <div class="stat-icon bg-info-subtle text-info"><i class="bi bi-trophy-fill"></i></div>
+                                <div class="small text-muted fw-bold mb-1">ผ่านเกณฑ์ (20 ครั้ง)</div>
+                                <h3 class="fw-black text-navy mb-0 letter-spacing-n1" id="stat-passed">0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SCHOOL OVERALL PROGRESS -->
+                    <div class="bg-white rounded-5 p-4 shadow-sm mb-4 border border-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-black text-navy mb-1"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>ความคืบหน้าภาพรวมทั้งโรงเรียน</h6>
+                                <div class="small text-muted">เป้าหมายสะสมเฉลี่ยคนละ 20 ครั้งต่อภาคเรียน</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-black text-primary fs-4" id="stat-progress-text">0%</div>
+                            </div>
+                        </div>
+                        <div class="progress rounded-pill shadow-sm" style="height: 16px; background: #f1f5f9;">
+                            <div id="stat-progress-bar" class="progress-bar bg-primary progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -257,9 +276,12 @@
             document.getElementById('stat-pending').innerText = stats.pending_count || 0;
             document.getElementById('stat-approved').innerText = stats.approved_count || 0;
             document.getElementById('stat-students').innerText = stats.total_students || 0;
+            document.getElementById('stat-passed').innerText = stats.passed_count || 0;
             
             if (stats.avg_progress !== undefined) {
-                document.getElementById('stat-progress-bar').style.width = stats.avg_progress + '%';
+                const percent = stats.avg_progress + '%';
+                document.getElementById('stat-progress-bar').style.width = percent;
+                document.getElementById('stat-progress-text').innerText = percent;
             }
         }
 
