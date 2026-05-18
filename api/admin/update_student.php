@@ -68,6 +68,11 @@ $validCols = [];
 foreach ($pdo->query("SHOW COLUMNS FROM students")->fetchAll(PDO::FETCH_COLUMN) as $col) {
     $validCols[$col] = true;
 }
+
+$validUserCols = [];
+foreach ($pdo->query("SHOW COLUMNS FROM users")->fetchAll(PDO::FETCH_COLUMN) as $col) {
+    $validUserCols[$col] = true;
+}
 if (isset($input['room']) && !isset($input['class_name'])) {
     $input['class_name'] = $input['room'];
 }
@@ -130,12 +135,12 @@ try {
         if ($currStudent['user_id']) {
             $userFields = [];
             $userVals   = [];
-            
-            if (isset($input['student_id'])) {
+
+            if (isset($input['student_id']) && isset($validUserCols['username'])) {
                 $userFields[] = "username = ?";
                 $userVals[]   = trim($input['student_id']);
             }
-            if (isset($input['email'])) {
+            if (isset($input['email']) && isset($validUserCols['email'])) {
                 $userFields[] = "email = ?";
                 $userVals[]   = trim($input['email']);
             }

@@ -843,7 +843,7 @@
     function initSignaturePad() {
         canvas = document.getElementById('signaturePad');
         signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgba(255, 255, 255, 0)',
+            backgroundColor: 'rgb(255, 255, 255)',   // opaque white → PNG has visible strokes
             penColor: '#1e293b',
             minWidth: 1.5,
             maxWidth: 4.5
@@ -851,13 +851,17 @@
 
         // Event listener to save to hidden input and update preview
         signaturePad.addEventListener("endStroke", () => {
-            const dataUrl = signaturePad.toDataURL();
+            const dataUrl = signatureToDataURL();
             document.getElementById('signatureData').value = dataUrl;
             updateSignaturePreview(dataUrl);
         });
 
-        // Make it responsive
-        window.addEventListener("resize", resizeCanvas);
+        // Make it responsive (debounced to avoid rapid-fire clears)
+        let _resizeTimer;
+        window.addEventListener("resize", () => {
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(resizeCanvas, 150);
+        });
         // Initial resize
         resizeCanvas();
 
@@ -865,17 +869,26 @@
         signaturePad.off();
     }
 
+    /**
+     * Export signature as PNG.
+     * backgroundColor ถูก set เป็น 'rgb(255,255,255)' แล้ว → ได้ PNG พื้นขาวเสมอ
+     * column เป็น MEDIUMTEXT (16 MB) รับได้ทุกขนาด ไม่ต้องบีบอัด
+     */
+    function signatureToDataURL() {
+        return signaturePad.toDataURL('image/png');
+    }
+
     function resizeCanvas() {
         if (!canvas || !signaturePad) return;
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const ratio = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2); // cap at 2× for size
         const currentData = document.getElementById('signatureData').value;
-        
-        canvas.width = canvas.offsetWidth * ratio;
+
+        canvas.width  = canvas.offsetWidth  * ratio;
         canvas.height = canvas.offsetHeight * ratio;
-        const ctx = canvas.getContext("2d");
+        const ctx = canvas.getContext('2d');
         ctx.scale(ratio, ratio);
-        
-        signaturePad.clear();
+
+        signaturePad.clear();   // fills with white (backgroundColor: 'rgb(255,255,255)')
         if (currentData) {
             signaturePad.fromDataURL(currentData);
         }
@@ -884,11 +897,25 @@
     function updateSignaturePreview(dataUrl) {
         const preview = document.getElementById('signaturePreview');
         const placeholder = document.getElementById('noSignaturePlaceholder');
-        if (dataUrl) {
+
+        // ลายเซ็นจริงต้องเป็น data URL และมีขนาดสมเหตุสมผล (> 1 KB หลัง base64)
+        // ค่าที่ถูกตัดเหลือ 255 ตัวอักษร (VARCHAR เก่า) จะถูกมองว่าว่างเปล่า
+        const isValid = dataUrl &&
+                        typeof dataUrl === 'string' &&
+                        dataUrl.startsWith('data:image/') &&
+                        dataUrl.length > 1000;
+
+        if (isValid) {
+            preview.onerror = () => {
+                // ถ้าภาพโหลดไม่ได้ ให้แสดง placeholder แทน
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            };
             preview.src = dataUrl;
             preview.style.display = 'block';
             placeholder.style.display = 'none';
         } else {
+            preview.onerror = null;
             preview.src = '';
             preview.style.display = 'none';
             placeholder.style.display = 'block';
@@ -908,7 +935,7 @@
         if (data && data.length > 0) {
             data.pop();
             signaturePad.fromData(data);
-            const dataUrl = signaturePad.isEmpty() ? '' : signaturePad.toDataURL();
+            const dataUrl = signaturePad.isEmpty() ? '' : signatureToDataURL();
             document.getElementById('signatureData').value = dataUrl;
             updateSignaturePreview(dataUrl);
         }
