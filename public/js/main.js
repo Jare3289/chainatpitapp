@@ -771,7 +771,7 @@ function renderFooter(settings = {}) {
             <div class="col-md-7 text-md-end">
                 <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
                     ${schAffiliation}<br>
-                    ${schAddress}
+                    งานพิธีการและประชาสัมพันธ์การศึกษา : ผู้พัฒนา ${schEmail}
                 </div>
                 
                 <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
