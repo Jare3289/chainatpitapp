@@ -1,0 +1,498 @@
+<!-- 
+คำแนะนำสำหรับผู้ดูแลระบบ:
+คุณครูและแอดมินสามารถเข้ามาแก้ไขไฟล์เทมเพลตรายงานฉบับนี้โดยตรง เพื่อเพิ่ม/ปรับเปลี่ยนตราสัญลักษณ์ 
+ขนาดขอบกระดาษ ระยะเย็บเล่ม ฟอนต์ และช่องลายเซ็นผู้อำนวยการ/หัวหน้างานได้ที่ไฟล์:
+views/daily_attendance_print.html
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบรายงานการมาเรียนประจำวัน | CNP APP</title>
+    <!-- Google Fonts: Sarabun -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            background-color: #ffffff;
+            color: #000000; /* Pure black text */
+            margin: 0;
+            padding: 0;
+            font-size: 16pt; /* Content 16pt */
+            line-height: 1.15;
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        /* A4 Page Formatting */
+        .print-page {
+            background-color: #ffffff;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 10mm auto;
+            padding: 10mm; /* Exactly 1cm margin on all sides */
+            position: relative;
+        }
+        
+        /* Printing styles override */
+        @media print {
+            body {
+                background-color: #ffffff;
+                color: #000000;
+            }
+            .print-page {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0; /* Let @page handle 1cm margins */
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        @page {
+            size: A4 portrait;
+            margin: 10mm; /* Exactly 1cm margins on all sides */
+        }
+        
+        /* Floating Print Bar (No-Print) */
+        .no-print-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-print {
+            background-color: #000000; /* Pure black print button */
+            color: #ffffff;
+            border: 1px solid #000000;
+            padding: 8px 24px;
+            font-weight: normal;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        /* Report Layout Styles */
+        .header-section {
+            text-align: center;
+            margin-bottom: 10px; 
+            line-height: 1.1; /* Tight line height */
+        }
+        .school-logo {
+            height: 100px; /* Larger logo */
+            margin-bottom: 4px;
+            object-fit: contain;
+        }
+        .school-name {
+            font-size: 16pt; /* Exactly 16pt */
+            font-weight: normal;
+            color: #000000;
+            margin: 0;
+            line-height: 1.1;
+        }
+        .report-title {
+            font-size: 18pt; /* Exactly 18pt */
+            font-weight: normal;
+            color: #000000;
+            margin: 2px 0;
+            line-height: 1.1;
+        }
+        .report-date {
+            font-size: 16pt; /* Exactly 16pt */
+            font-weight: normal;
+            color: #000000;
+            margin-top: 2px;
+            line-height: 1.1;
+        }
+        .date-highlight {
+            color: #000000;
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        /* Table Styles */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px; 
+            font-size: 16pt; /* Content 16pt */
+            color: #000000;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #000000;
+            padding: 2px 1px; /* Tighter padding */
+            text-align: center;
+            font-size: 16pt; /* 16pt content */
+            color: #000000;
+            font-weight: normal;
+            font-style: normal;
+        }
+        .stats-table th {
+            background-color: transparent !important; /* Pure transparent - no blue color */
+            font-weight: normal; /* No emphasis */
+        }
+        .stats-table tr:nth-child(even) {
+            background-color: transparent; /* No stripe backgrounds */
+        }
+        .stats-table .text-left {
+            text-align: left;
+            padding-left: 6px;
+        }
+        .stats-table .total-row {
+            font-weight: normal;
+            background-color: transparent !important;
+        }
+        
+        /* Footer Panels */
+        .footer-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 10px;
+            page-break-inside: avoid;
+            font-size: 16pt;
+            color: #000000;
+        }
+        .unreported-box {
+            width: 65%;
+            font-size: 16pt;
+            color: #000000;
+        }
+        .unreported-title {
+            font-weight: normal;
+            text-decoration: underline;
+            margin-bottom: 2px;
+        }
+        .unreported-item {
+            margin: 1px 0;
+            line-height: 1.15;
+            color: #000000;
+            font-weight: normal;
+            font-style: normal;
+        }
+        .print-time {
+            font-size: 16pt;
+            color: #000000;
+            margin-top: 6px;
+        }
+        
+        .qr-box {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .qr-image {
+            width: 80px; 
+            height: 80px;
+            border: 1px solid #000000;
+            padding: 2px;
+            background-color: #ffffff;
+            margin-bottom: 2px;
+        }
+        .qr-caption {
+            font-size: 14pt;
+            color: #000000;
+            font-weight: normal;
+        }
+        
+        /* Signature Blocks */
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5em;
+            padding: 0 15px;
+            page-break-inside: avoid;
+            font-size: 16pt;
+            color: #000000;
+        }
+        .signature-block {
+            text-align: center;
+            width: 45%;
+        }
+        .signature-line {
+            margin-bottom: 4px;
+            font-weight: normal;
+            font-size: 16pt;
+        }
+        .signature-title {
+            font-size: 16pt;
+            line-height: 1.25;
+            font-weight: normal;
+        }
+        
+        /* Loader Overlay */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #000000;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Print Bar -->
+    <div class="no-print-bar no-print">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="admin_dashboard.html" style="color: #495057; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                <i class="bi bi-arrow-left"></i> กลับสู่แดชบอร์ด
+            </a>
+        </div>
+        <button class="btn-print" onclick="window.print()">
+            <i class="bi bi-printer-fill"></i> สั่งพิมพ์ / บันทึกเป็น PDF
+        </button>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <h4 style="margin: 0; font-weight: bold; color: #495057;">กำลังประมวลผลข้อมูลรายงานสรุปสถิติ...</h4>
+    </div>
+
+    <!-- Printable Page -->
+    <div class="print-page">
+        <!-- Logo and Header -->
+        <div class="header-section">
+            <img src="../public/img/logo.png" class="school-logo" id="schoolLogo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';">
+            <div class="report-title">แบบรายงานการมาเรียนประจำวัน</div>
+            <div class="school-name">โรงเรียนชัยนาทพิทยาคม อำเภอเมือง จังหวัดชัยนาท</div>
+            <div class="school-name">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท</div>
+            <div class="report-date">วันที่ : <span class="date-highlight" id="lblReportDate">-</span></div>
+        </div>
+
+        <!-- Main Stats Table -->
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">ห้องเรียน</th>
+                    <th style="width: 11%;">ขาด</th>
+                    <th style="width: 11%;">ป่วย</th>
+                    <th style="width: 11%;">ลากิจ</th>
+                    <th style="width: 14%;">จำนวนนักเรียน</th>
+                    <th style="width: 12%;">มาเรียน</th>
+                    <th style="width: 12%;">ไม่มาเรียน</th>
+                    <th style="width: 14%;">ร้อยละไม่มา</th>
+                </tr>
+            </thead>
+            <tbody id="statsTableBody">
+                <!-- Filled dynamically -->
+            </tbody>
+            <tfoot>
+                <tr class="total-row" id="totalRow">
+                    <td>รวม</td>
+                    <td id="totAbsent">-</td>
+                    <td id="totSick">-</td>
+                    <td id="totLeave">-</td>
+                    <td id="totTotal">-</td>
+                    <td id="totPresent">-</td>
+                    <td id="totNotPresent">-</td>
+                    <td id="totPercent">-</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Footer Grid: Unreported list & QR Code -->
+        <div class="footer-grid">
+            <div class="unreported-box">
+                <div class="unreported-title">สรุปห้องที่ยังไม่รายงาน:</div>
+                <div id="unreportedList">
+                    <!-- Filled dynamically -->
+                </div>
+                <div class="print-time">พิมพ์รายงานเมื่อ: <span id="lblPrintTime">-</span></div>
+            </div>
+            
+            <div class="qr-box">
+                <canvas id="qrCanvas" class="qr-image" width="80" height="80"></canvas>
+                <div class="qr-caption">แสกนเพื่อดูรายการมาเรียนวันนี้</div>
+            </div>
+        </div>
+
+        <!-- Signature Section -->
+        <div class="signatures-section">
+            <div class="signature-block">
+                <div class="signature-line">(......................................................)</div>
+                <div class="signature-title">
+                    นายวิษณุ ประสิทธิกสิกร<br>
+                    หัวหน้ากิจกรรมพัฒนาผู้เรียน<br>
+                    งานกิจกรรม
+                </div>
+            </div>
+            <div class="signature-block">
+                <div class="signature-line">(......................................................)</div>
+                <div class="signature-title">
+                    นายชูชาติ พารีสอน<br>
+                    ผู้อำนวยการสถานศึกษา
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Retrieve date parameter from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateVal = urlParams.get('date') || new Date().toISOString().split('T')[0];
+            
+            loadDailyStats(dateVal);
+        });
+
+        async function loadDailyStats(date) {
+            try {
+                const res = await fetch(`../api/admin/daily_attendance_stats.php?date=${date}`);
+                const data = await res.json();
+                
+                if (!data.success) {
+                    alert('ไม่สามารถโหลดข้อมูลสถิติได้: ' + (data.error || 'ข้อผิดพลาดระบบ'));
+                    $('#loader').hide();
+                    return;
+                }
+                
+                // Set Header details
+                $('#lblReportDate').text(data.thai_date);
+                $('#lblPrintTime').text(data.print_time);
+                
+                // Generate QR using qrious (canvas-based, works offline/no external API)
+                const verificationUrl = window.location.origin + `/cnpapp/views/today_overview.html?date=${date}&tab=room`;
+                new QRious({
+                    element: document.getElementById('qrCanvas'),
+                    value: verificationUrl,
+                    size: 80,
+                    background: '#ffffff',
+                    foreground: '#000000',
+                });
+                
+                // Populate Table Body
+                const tbody = $('#statsTableBody');
+                tbody.empty();
+                
+                if (data.rooms && data.rooms.length > 0) {
+                    data.rooms.forEach(r => {
+                        const pctStr = r.percent_not_present > 0 ? r.percent_not_present.toFixed(2) + '%' : '0.00%';
+                        
+                        const tr = `
+                            <tr>
+                                <td>${r.room}</td>
+                                <td>${r.absent}</td>
+                                <td>${r.sick}</td>
+                                <td>${r.leave}</td>
+                                <td>${r.total_students}</td>
+                                <td>${r.present}</td>
+                                <td>${r.not_present}</td>
+                                <td>${pctStr}</td>
+                            </tr>
+                        `;
+                        tbody.append(tr);
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="8" class="text-center py-4 text-muted">ไม่มีข้อมูลระดับชั้นในระบบ</td></tr>');
+                }
+                
+                // Populate Totals
+                if (data.totals) {
+                    const t = data.totals;
+                    $('#totAbsent').text(t.absent);
+                    $('#totSick').text(t.sick);
+                    $('#totLeave').text(t.leave);
+                    $('#totTotal').text(t.total_students);
+                    $('#totPresent').text(t.present);
+                    $('#totNotPresent').text(t.not_present);
+                    
+                    const pctTotalStr = t.percent_not_present > 0 ? t.percent_not_present.toFixed(2) + '%' : '0.00%';
+                    $('#totPercent').text(pctTotalStr);
+                }
+                
+                // Populate Unreported
+                const unrepDiv = $('#unreportedList');
+                unrepDiv.empty();
+                
+                let hasUnreported = false;
+                if (data.unreported) {
+                    const grades = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+                    grades.forEach(g => {
+                        const list = data.unreported[g] || [];
+                        if (list.length > 0) {
+                            hasUnreported = true;
+                            // Deduplicate by room — show 1 entry per room (any one teacher)
+                            const seen = {};
+                            const deduped = list.filter(item => {
+                                if (seen[item.room]) return false;
+                                seen[item.room] = true;
+                                return true;
+                            });
+                            const itemsText = deduped.map(item => {
+                                const advName = item.advisor ? ` ครู${item.advisor}` : '';
+                                return `${item.room}${advName}`;
+                            }).join(' , ');
+                            unrepDiv.append(`
+                                <div class="unreported-item">${g} ${itemsText}</div>
+                            `);
+                        }
+                    });
+                }
+                
+                if (!hasUnreported) {
+                    unrepDiv.append('<div class="unreported-item">รายงานครบทุกห้องเรียนเรียบร้อย</div>');
+                }
+                
+                // Hide Loader
+                $('#loader').fadeOut(300);
+                
+                // Auto trigger print after rendering completes
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
+                
+            } catch (e) {
+                console.error('loadDailyStats failed', e);
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                $('#loader').hide();
+            }
+        }
+    </script>
+</body>
+</html>

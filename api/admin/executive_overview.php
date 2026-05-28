@@ -13,26 +13,23 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 $date = $_GET['date'] ?? date('Y-m-d');
 
 try {
-    // 1. Overall Completion KPI
-    $totalRooms = (int)$pdo->query("
-        SELECT COUNT(DISTINCT class_name) FROM students
-        WHERE class_name IS NOT NULL AND class_name <> ''
-    ")->fetchColumn();
+    // 1. Overall Completion KPI (using the official rooms table)
+    $totalRooms = (int)$pdo->query("SELECT COUNT(*) FROM rooms")->fetchColumn();
 
     $checkedRoomsStmt = $pdo->prepare("
         SELECT COUNT(DISTINCT class_name) FROM attendance
-        WHERE date = ? AND type = 'daily'
+        WHERE date = ? AND type = 'daily' AND class_name IN (SELECT classroom_code FROM rooms)
     ");
     $checkedRoomsStmt->execute([$date]);
     $checkedCount = (int)$checkedRoomsStmt->fetchColumn();
 
-    // 2. Student Distribution
+    // 2. Student Distribution (including 'ลากิจ')
     $stmt = $pdo->prepare("
         SELECT
             SUM(CASE WHEN status = 'มา' THEN 1 ELSE 0 END) AS present,
             SUM(CASE WHEN status = 'ขาด' THEN 1 ELSE 0 END) AS absent,
             SUM(CASE WHEN status = 'สาย' THEN 1 ELSE 0 END) AS late,
-            SUM(CASE WHEN status IN ('ลา', 'ป่วย') THEN 1 ELSE 0 END) AS leave_count
+            SUM(CASE WHEN status IN ('ลา', 'ป่วย', 'ลากิจ') THEN 1 ELSE 0 END) AS leave_count
         FROM attendance
         WHERE date = ? AND type = 'daily'
     ");
@@ -45,7 +42,7 @@ try {
                SUM(CASE WHEN a.status = 'มา' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(a.id), 0) AS attendance_rate
         FROM attendance a
         JOIN students s ON a.student_id = s.id
-        WHERE a.date = ? AND a.type = 'daily'
+        WHERE a.date = ? AND a.type = 'daily' AND s.is_active = 1
         GROUP BY s.grade_level
         ORDER BY s.grade_level ASC
     ");
@@ -64,21 +61,21 @@ try {
     $badRoomsStmt->execute([$date]);
     $criticalRooms = $badRoomsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // 5. Room Gender Summary
+    // 5. Room Gender Summary (using rooms table for 100% data coverage)
     $roomGenderStmt = $pdo->prepare("
-        SELECT s.class_name AS room,
-            SUM(CASE WHEN s.gender = 'ชาย' THEN 1 ELSE 0 END) AS total_m,
-            SUM(CASE WHEN s.gender = 'หญิง' THEN 1 ELSE 0 END) AS total_f,
-            SUM(CASE WHEN a.status = 'มา' AND s.gender = 'ชาย' THEN 1 ELSE 0 END) AS present_m,
-            SUM(CASE WHEN a.status = 'มา' AND s.gender = 'หญิง' THEN 1 ELSE 0 END) AS present_f,
-            SUM(CASE WHEN a.status IN ('ขาด','สาย','ลา','ป่วย') AND s.gender = 'ชาย' THEN 1 ELSE 0 END) AS absent_m,
-            SUM(CASE WHEN a.status IN ('ขาด','สาย','ลา','ป่วย') AND s.gender = 'หญิง' THEN 1 ELSE 0 END) AS absent_f,
-            COUNT(a.id) AS checked_count
-        FROM students s
+        SELECT r.classroom_code AS room,
+            SUM(CASE WHEN s.prefix IN ('เด็กชาย','นาย','ด.ช.','ด.ช','master','Master','Mr.','Mr') AND s.is_active = 1 THEN 1 ELSE 0 END) AS total_m,
+            SUM(CASE WHEN s.prefix IN ('เด็กหญิง','นางสาว','นาง','ด.ญ.','ด.ญ','น.ส.','น.ส','miss','Miss','Mrs.','Mrs','Ms.','Ms') AND s.is_active = 1 THEN 1 ELSE 0 END) AS total_f,
+            SUM(CASE WHEN a.status = 'มา' AND s.prefix IN ('เด็กชาย','นาย','ด.ช.','ด.ช','master','Master','Mr.','Mr') AND s.is_active = 1 THEN 1 ELSE 0 END) AS present_m,
+            SUM(CASE WHEN a.status = 'มา' AND s.prefix IN ('เด็กหญิง','นางสาว','นาง','ด.ญ.','ด.ญ','น.ส.','น.ส','miss','Miss','Mrs.','Mrs','Ms.','Ms') AND s.is_active = 1 THEN 1 ELSE 0 END) AS present_f,
+            SUM(CASE WHEN a.status IN ('ขาด','สาย','ลา','ป่วย','ลากิจ') AND s.prefix IN ('เด็กชาย','นาย','ด.ช.','ด.ช','master','Master','Mr.','Mr') AND s.is_active = 1 THEN 1 ELSE 0 END) AS absent_m,
+            SUM(CASE WHEN a.status IN ('ขาด','สาย','ลา','ป่วย','ลากิจ') AND s.prefix IN ('เด็กหญิง','นางสาว','นาง','ด.ญ.','ด.ญ','น.ส.','น.ส','miss','Miss','Mrs.','Mrs','Ms.','Ms') AND s.is_active = 1 THEN 1 ELSE 0 END) AS absent_f,
+            COUNT(CASE WHEN s.is_active = 1 THEN a.id ELSE NULL END) AS checked_count
+        FROM rooms r
+        LEFT JOIN students s ON r.classroom_code = s.class_name
         LEFT JOIN attendance a ON s.id = a.student_id AND a.date = ? AND a.type = 'daily'
-        WHERE s.class_name IS NOT NULL AND s.class_name <> ''
-        GROUP BY s.class_name
-        ORDER BY CAST(s.class_name AS UNSIGNED) ASC, s.class_name ASC
+        GROUP BY r.classroom_code
+        ORDER BY CAST(r.classroom_code AS UNSIGNED) ASC, r.classroom_code ASC
     ");
     $roomGenderStmt->execute([$date]);
     $roomGenderStats = $roomGenderStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -100,7 +97,7 @@ try {
                COUNT(a.id) AS total_absent
         FROM students s
         JOIN attendance a ON s.id = a.student_id
-        WHERE a.status = 'ขาด' AND a.type = 'daily'
+        WHERE a.status = 'ขาด' AND a.type = 'daily' AND s.is_active = 1
         GROUP BY s.id
         HAVING total_absent >= 5
         ORDER BY total_absent DESC, s.class_name ASC
@@ -110,22 +107,18 @@ try {
     $atRisk = $atRiskStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 8. Unreported rooms: rooms with students but no attendance today
-    //    Includes grade_level + advisor first name only
+    //    Correlated subqueries avoid JOIN duplicates when multiple teachers share advisory_room_id
     $unreportedStmt = $pdo->prepare("
-        SELECT s.class_name AS room,
-               MAX(s.grade_level) AS grade_level,
-               COUNT(s.id) AS total_students,
-               MAX(t.first_name_th) AS advisor_name
-        FROM students s
-        LEFT JOIN rooms r ON r.classroom_code = s.class_name
-        LEFT JOIN teachers t ON t.advisory_room_id = r.id
-        WHERE s.class_name IS NOT NULL AND s.class_name <> ''
-          AND s.class_name NOT IN (
-              SELECT DISTINCT class_name FROM attendance
-              WHERE date = ? AND type = 'daily' AND class_name IS NOT NULL
-          )
-        GROUP BY s.class_name
-        ORDER BY MAX(s.grade_level) ASC, CAST(s.class_name AS UNSIGNED) ASC, s.class_name ASC
+        SELECT r.classroom_code AS room,
+               r.grade_level,
+               (SELECT COUNT(*) FROM students s WHERE s.class_name = r.classroom_code AND s.is_active = 1 AND (s.enrollment_status IS NULL OR s.enrollment_status = 'กำลังศึกษา')) AS total_students,
+               (SELECT first_name_th FROM teachers WHERE advisory_room_id = r.id ORDER BY id LIMIT 1) AS advisor_name
+        FROM rooms r
+        WHERE r.classroom_code NOT IN (
+            SELECT DISTINCT class_name FROM attendance
+            WHERE date = ? AND type = 'daily' AND class_name IS NOT NULL
+        )
+        ORDER BY r.grade_level ASC, CAST(r.classroom_code AS UNSIGNED) ASC, r.classroom_code ASC
     ");
     $unreportedStmt->execute([$date]);
     $unreportedRooms = $unreportedStmt->fetchAll(PDO::FETCH_ASSOC);

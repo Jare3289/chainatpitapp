@@ -96,15 +96,39 @@
                         </div>
                     </div>
 
-                    <!-- HISTORY LIST -->
-                    <div class="d-flex align-items-center justify-content-between mb-3 px-2">
-                        <h5 class="fw-bold text-navy mb-0"><i class="bi bi-clock-history me-2"></i> กิจกรรมล่าสุด</h5>
-                        <span class="badge bg-light text-muted rounded-pill px-3 py-2 border" id="historyCount">0 รายการ</span>
+                    <!-- WARNING ALERT -->
+                    <div id="riskWarning" class="alert alert-danger border-0 shadow-sm rounded-4 mb-4 d-none">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">แจ้งเตือน: เสี่ยงต่อการไม่ผ่านเกณฑ์</h6>
+                                <p class="mb-0 small">คะแนนความประพฤติของคุณต่ำกว่า 70 คะแนน ซึ่งอาจส่งผลให้ไม่ได้รับการพิจารณาออกใบรับรองความประพฤติ โปรดติดต่อครูที่ปรึกษา</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div id="historyList">
-                        <div class="text-center py-5">
-                            <div class="spinner-border text-primary" role="status"></div>
+                    <!-- HISTORY TABS -->
+                    <ul class="nav nav-pills mb-3 gap-2" id="historyTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill fw-bold px-4" id="all-tab" data-bs-toggle="pill" data-bs-target="#all-history" type="button" role="tab">ทั้งหมด</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill fw-bold px-4 text-danger" id="neg-tab" data-bs-toggle="pill" data-bs-target="#neg-history" type="button" role="tab">ประวัติการตัดคะแนน</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill fw-bold px-4 text-success" id="pos-tab" data-bs-toggle="pill" data-bs-target="#pos-history" type="button" role="tab">ประวัติการเติมคะแนน</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="historyTabContent">
+                        <div class="tab-pane fade show active" id="all-history" role="tabpanel">
+                            <div id="historyListAll"><div class="text-center py-5"><div class="spinner-border text-primary"></div></div></div>
+                        </div>
+                        <div class="tab-pane fade" id="neg-history" role="tabpanel">
+                            <div id="historyListNeg"></div>
+                        </div>
+                        <div class="tab-pane fade" id="pos-history" role="tabpanel">
+                            <div id="historyListPos"></div>
                         </div>
                     </div>
 
@@ -131,32 +155,54 @@
                 const data = await res.json();
                 if(data.success) {
                     const history = data.data;
-                    let total = 100;
+                    
+                    // We must calculate chronological to cap score correctly
+                    // assuming API returns NEWEST first (ORDER BY created_at DESC)
+                    const chronological = [...history].reverse();
+                    let currentTotal = 100;
                     let bonus = 0;
                     let penalty = 0;
                     
-                    history.forEach(item => {
+                    chronological.forEach(item => {
                         const pts = parseInt(item.points);
-                        total += pts;
-                        if(pts > 0) bonus += pts;
-                        else penalty += Math.abs(pts);
+                        if (pts > 0) {
+                            bonus += pts;
+                            currentTotal += pts;
+                            if (currentTotal > 100) currentTotal = 100; // Cap at 100
+                        } else {
+                            penalty += Math.abs(pts);
+                            currentTotal += pts; // Deduct
+                        }
                     });
                     
-                    document.getElementById('totalPointsDisplay').innerText = total;
-                    document.getElementById('scoreLabel').innerText = total;
+                    document.getElementById('totalPointsDisplay').innerText = currentTotal;
+                    document.getElementById('scoreLabel').innerText = currentTotal;
                     document.getElementById('bonusDisplay').innerText = '+' + bonus + ' เติม';
                     document.getElementById('penaltyDisplay').innerText = '-' + penalty + ' ตัด';
-                    document.getElementById('historyCount').innerText = history.length + ' รายการ';
                     
-                    renderScoreChart(total);
+                    // Show warning if score < 70
+                    const warningEl = document.getElementById('riskWarning');
+                    if (currentTotal < 70) {
+                        warningEl.classList.remove('d-none');
+                    } else {
+                        warningEl.classList.add('d-none');
+                    }
+                    
+                    renderScoreChart(currentTotal);
 
-                    const list = document.getElementById('historyList');
+                    const listAll = document.getElementById('historyListAll');
+                    const listNeg = document.getElementById('historyListNeg');
+                    const listPos = document.getElementById('historyListPos');
+                    
                     if(history.length === 0) {
-                        list.innerHTML = '<div class="text-center py-5 text-muted bg-white rounded-5 shadow-sm border"><i class="bi bi-award display-4 d-block mb-3 opacity-25"></i> ยังไม่มีประวัติการปรับปรุงคะแนน</div>';
+                        const emptyHtml = '<div class="text-center py-5 text-muted bg-white rounded-5 shadow-sm border"><i class="bi bi-award display-4 d-block mb-3 opacity-25"></i> ยังไม่มีประวัติการปรับปรุงคะแนน</div>';
+                        listAll.innerHTML = emptyHtml;
+                        listNeg.innerHTML = emptyHtml;
+                        listPos.innerHTML = emptyHtml;
                         return;
                     }
 
-                    list.innerHTML = history.map(item => {
+                    const renderItem = (item) => {
                         const date = thDate(item.created_at);
                         const pts = parseInt(item.points);
                         const isPositive = pts >= 0;
@@ -182,7 +228,15 @@
                                 <div class="point-val ${pointClass}">${isPositive ? '+' : ''}${pts}</div>
                             </div>
                         `;
-                    }).join('');
+                    };
+
+                    listAll.innerHTML = history.map(renderItem).join('');
+                    
+                    const negItems = history.filter(item => parseInt(item.points) < 0);
+                    listNeg.innerHTML = negItems.length > 0 ? negItems.map(renderItem).join('') : '<div class="text-center py-5 text-muted bg-white rounded-5 shadow-sm border">ไม่มีประวัติการตัดคะแนน</div>';
+                    
+                    const posItems = history.filter(item => parseInt(item.points) > 0);
+                    listPos.innerHTML = posItems.length > 0 ? posItems.map(renderItem).join('') : '<div class="text-center py-5 text-muted bg-white rounded-5 shadow-sm border">ไม่มีประวัติการเติมคะแนน</div>';
                 }
             } catch (err) { console.error(err); }
         }

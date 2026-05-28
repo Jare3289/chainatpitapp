@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 set_time_limit(0);
 ini_set('memory_limit', '512M');
 
-$file = $_FILES['file'] ?? null;
+$file = $_FILES['excelFile'] ?? $_FILES['file'] ?? null;
 if (!$file) {
     echo json_encode(['success' => false, 'error' => 'ไม่พบไฟล์ที่อัปโหลด']);
     exit;
@@ -106,23 +106,26 @@ if (empty($rows)) {
     exit;
 }
 
+$dryRun = isset($_POST['dry_run']) && $_POST['dry_run'] === '1';
+
 // ── Process Data ──
 try {
     $pdo->beginTransaction();
     
     // Preparation
-    $stmtCheck = $pdo->prepare("SELECT id FROM classrooms WHERE classroom_code = ?");
-    $stmtUpdate = $pdo->prepare("UPDATE classrooms SET 
+    $stmtCheck = $pdo->prepare("SELECT id, grade_level, building, floor, room_no, program FROM rooms WHERE classroom_code = ?");
+    $stmtUpdate = $pdo->prepare("UPDATE rooms SET 
         grade_level = ?, class_level = ?, classroom_no = ?, 
         building = ?, floor = ?, room_no = ?, 
         location_code = ?, house = ?, program = ? 
         WHERE classroom_code = ?");
-    $stmtInsert = $pdo->prepare("INSERT INTO classrooms 
+    $stmtInsert = $pdo->prepare("INSERT INTO rooms 
         (classroom_code, grade_level, class_level, classroom_no, building, floor, room_no, location_code, house, program) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $successCount = 0;
     $updateCount = 0;
+    $duplicates = [];
 
     foreach ($rows as $row) {
         $code = trim($row['รหัสห้อง (Code)'] ?? '');
@@ -139,26 +142,52 @@ try {
         $prog  = trim($row['แผนการเรียน'] ?? '');
 
         $stmtCheck->execute([$code]);
-        $existing = $stmtCheck->fetch();
+        $existing = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
-            $stmtUpdate->execute([$grade, $level, $no, $build, $floor, $rm_no, $loc, $house, $prog, $code]);
+            $isDiff = ($existing['building'] != $build || $existing['floor'] != $floor || $existing['room_no'] != $rm_no || $existing['grade_level'] != $grade || $existing['program'] != $prog);
+            $duplicates[] = [
+                'teacher_id' => $code,
+                'old_name' => "ตึก " . ($existing['building'] ?: '-') . " ชั้น " . ($existing['floor'] ?: '-') . " ห้อง " . ($existing['room_no'] ?: '-'),
+                'new_name' => "ตึก " . ($build ?: '-') . " ชั้น " . ($floor ?: '-') . " ห้อง " . ($rm_no ?: '-'),
+                'old_class' => $existing['grade_level'] . " (" . ($existing['program'] ?: '-') . ")",
+                'new_class' => $grade . " (" . ($prog ?: '-') . ")",
+                'is_different' => $isDiff
+            ];
+            
+            if (!$dryRun) {
+                $stmtUpdate->execute([$grade, $level, $no, $build, $floor, $rm_no, $loc, $house, $prog, $code]);
+            }
             $updateCount++;
         } else {
-            $stmtInsert->execute([$code, $grade, $level, $no, $build, $floor, $rm_no, $loc, $house, $prog]);
+            if (!$dryRun) {
+                $stmtInsert->execute([$code, $grade, $level, $no, $build, $floor, $rm_no, $loc, $house, $prog]);
+            }
             $successCount++;
         }
     }
 
-    $pdo->commit();
-    echo json_encode([
-        'success' => true, 
-        'imported' => $successCount, 
-        'updated' => $updateCount,
-        'message' => "นำเข้าสำเร็จ $successCount รายการ, อัปเดต $updateCount รายการ"
-    ]);
+    if ($dryRun) {
+        $pdo->rollBack();
+        echo json_encode([
+            'success' => true,
+            'inserted' => $successCount,
+            'updated' => $updateCount,
+            'duplicates' => $duplicates,
+            'message' => "ตรวจสอบข้อมูลแล้ว: เพิ่มใหม่ $successCount รายการ, อัปเดต $updateCount รายการ"
+        ]);
+    } else {
+        $pdo->commit();
+        echo json_encode([
+            'success' => true, 
+            'inserted' => $successCount, 
+            'updated' => $updateCount,
+            'duplicate_count' => $updateCount,
+            'message' => "นำเข้าสำเร็จ $successCount รายการ, อัปเดต $updateCount รายการ"
+        ]);
+    }
 
 } catch (Exception $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) $pdo->rollBack();
     echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
 }

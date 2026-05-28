@@ -63,9 +63,14 @@
                                 </ol>
                             </nav>
                         </div>
-                        <div class="d-flex align-items-center gap-2 bg-white rounded-pill shadow-sm px-3 py-2 border">
-                            <i class="bi bi-calendar3 text-primary"></i>
-                            <input type="date" id="overviewDate" class="form-control form-control-sm border-0 shadow-none bg-transparent fw-bold" style="width: 130px;" onchange="loadExecutiveStats()">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-danger rounded-pill fw-bold shadow-sm d-flex align-items-center gap-2 px-3 py-2" onclick="printDailyPDF()">
+                                <i class="bi bi-file-earmark-pdf-fill"></i> พิมพ์รายงาน PDF วันนี้
+                            </button>
+                            <div class="d-flex align-items-center gap-2 bg-white rounded-pill shadow-sm px-3 py-2 border">
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                <input type="date" id="overviewDate" class="form-control form-control-sm border-0 shadow-none bg-transparent fw-bold" style="width: 130px;" onchange="loadExecutiveStats()">
+                            </div>
                         </div>
                     </div>
 
@@ -254,7 +259,7 @@
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                                     2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                                         CNPAPP<sup>©</sup>
                                     </a>
                                     ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
@@ -267,7 +272,7 @@
                         <div class="col-md-7 text-md-end">
                             <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
                                 สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
-                                cnpapp@chainatpit.ac.th
+                                งานพิธีการและประชาสัมพันธ์การศึกษา : ผู้พัฒนา cnpapp@chainatpit.ac.th
                             </div>
                             <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
                                 <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
@@ -295,10 +300,33 @@
         let statusChart = null;
         let timelineChart = null;
 
+        function printDailyPDF() {
+            const date = document.getElementById('overviewDate').value;
+            window.open(`daily_attendance_print.html?date=${date}`, '_blank');
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await checkAuth('admin');
             if (user) {
-                document.getElementById('overviewDate').valueAsDate = new Date();
+                const urlParams = new URLSearchParams(window.location.search);
+                const dateParam = urlParams.get('date');
+                const tabParam = urlParams.get('tab');
+                
+                const dateInput = document.getElementById('overviewDate');
+                if (dateParam) {
+                    dateInput.value = dateParam;
+                } else {
+                    dateInput.valueAsDate = new Date();
+                }
+                
+                if (tabParam === 'room') {
+                    const triggerEl = document.querySelector('#room-tab');
+                    if (triggerEl) {
+                        const tabTrigger = new bootstrap.Tab(triggerEl);
+                        tabTrigger.show();
+                    }
+                }
+                
                 loadExecutiveStats();
             }
         });
@@ -323,14 +351,21 @@
             const badge = document.getElementById('unreportedCountBadge');
             const cont  = document.getElementById('unreportedRoomsList');
             if (!cont) return;
-            badge.textContent = list.length;
-            if (list.length === 0) {
+            // Deduplicate by room — keep first entry (any one teacher)
+            const seenRooms = {};
+            const deduped = list.filter(r => {
+                if (seenRooms[r.room]) return false;
+                seenRooms[r.room] = true;
+                return true;
+            });
+            badge.textContent = deduped.length;
+            if (deduped.length === 0) {
                 cont.innerHTML = '<div class="text-success fw-bold w-100"><i class="bi bi-check-circle-fill me-2"></i>ทุกห้องรายงานครบแล้ว</div>';
                 return;
             }
             // Group by grade_level
             const byGrade = {};
-            list.forEach(r => {
+            deduped.forEach(r => {
                 const g = r.grade_level || 'ไม่ระบุชั้น';
                 if (!byGrade[g]) byGrade[g] = [];
                 byGrade[g].push(r);
@@ -339,9 +374,9 @@
             cont.innerHTML = gradeKeys.map(grade => {
                 const rooms = byGrade[grade];
                 const items = rooms.map(r => {
-                    const adv = r.advisor_name ? `<span class="text-muted ms-1">· ${r.advisor_name}</span>` : '';
+                    const adv = r.advisor_name ? ` ครู${r.advisor_name}` : '';
                     return `<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2 fw-bold">
-                                ห้อง ${r.room} <span class="text-muted ms-1">(${r.total_students} คน)</span>${adv}
+                                ${r.room}${adv}
                             </span>`;
                 }).join('');
                 return `

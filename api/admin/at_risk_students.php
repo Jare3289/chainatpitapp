@@ -21,6 +21,7 @@ try {
             FROM students s
             JOIN attendance a ON s.id = a.student_id
             WHERE a.type = 'daily' AND a.date LIKE ?
+            AND (s.enrollment_status IS NULL OR s.enrollment_status = 'กำลังศึกษา')
             GROUP BY s.id
             HAVING absent_count >= 3 OR late_count >= 5
             ORDER BY absent_count DESC, late_count DESC";

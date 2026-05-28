@@ -22,11 +22,19 @@ function getAdvisoryRoom($pdo, $userId) {
                                FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id
                                WHERE t.user_id = ? LIMIT 1");
         $stmt->execute([$userId]);
-        return $stmt->fetchColumn() ?: null;
+        $room = $stmt->fetchColumn();
+        
+        if (!$room && isset($_SESSION['username'])) {
+            $stmt = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS room
+                                   FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id
+                                   WHERE t.teacher_id = ? OR t.email = ? LIMIT 1");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $room = $stmt->fetchColumn();
+        }
+        
+        return $room ?: null;
     } catch (Exception $e) {
-        $stmt = $pdo->prepare("SELECT classroom FROM teachers WHERE user_id = ? LIMIT 1");
-        $stmt->execute([$userId]);
-        return $stmt->fetchColumn() ?: null;
+        return null;
     }
 }
 
@@ -98,11 +106,14 @@ try {
         }
         $vars = cnp_classroom_code_variants($advisoryRoom);
         $ph   = implode(',', array_fill(0, count($vars), '?'));
+        
+        // Robust query: check both class_name and grade_level for variants
         $stmt = $pdo->prepare("SELECT s.*, u.username FROM students s
                                LEFT JOIN users u ON s.user_id = u.id
-                               WHERE s.class_name IN ($ph)
+                               WHERE (s.class_name IN ($ph) OR s.grade_level IN ($ph))
+                               AND (s.enrollment_status IS NULL OR s.enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา'))
                                ORDER BY CAST(s.number_in_class AS UNSIGNED) ASC, s.student_id ASC");
-        $stmt->execute($vars);
+        $stmt->execute(array_merge($vars, $vars));
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($students as &$row) {
             if (!isset($row['room']) || $row['room'] === null) $row['room'] = $row['class_name'];
@@ -118,11 +129,13 @@ try {
         $stmt = $pdo->prepare("SELECT s.*, u.username FROM students s
                                LEFT JOIN users u ON s.user_id = u.id
                                WHERE s.class_name = ?
+                               AND (s.enrollment_status IS NULL OR s.enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา'))
                                ORDER BY CAST(s.number_in_class AS UNSIGNED) ASC, s.student_id ASC");
         $stmt->execute([$classroom]);
     } else {
         $stmt = $pdo->query("SELECT s.*, u.username FROM students s
                              LEFT JOIN users u ON s.user_id = u.id
+                             WHERE (s.enrollment_status IS NULL OR s.enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา'))
                              ORDER BY s.grade_level, s.class_name, CAST(s.number_in_class AS UNSIGNED) ASC, s.student_id ASC");
     }
 

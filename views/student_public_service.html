@@ -19,10 +19,11 @@
         .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
         
         .activity-item { 
-            background: white; border-radius: 20px; padding: 22px; border: 1px solid rgba(0,0,0,0.03); 
-            margin-bottom: 16px; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: white; border-radius: 18px; padding: 15px; border: 1px solid rgba(0,0,0,0.05); 
+            margin-bottom: 12px; transition: all 0.2s ease; cursor: pointer;
         }
-        .activity-item:hover { transform: scale(1.01); box-shadow: 0 12px 30px rgba(30, 58, 138, 0.08); border-color: #3b82f6; }
+        .activity-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30, 58, 138, 0.08); border-color: #3b82f6; }
+        .activity-item:active { transform: scale(0.98); }
         
         .status-pill { font-weight: 700; font-size: 0.7rem; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-approved { background: #dcfce7; color: #15803d; border: 1px solid #bcf1cf; }
@@ -43,9 +44,60 @@
 
         .btn-premium { border-radius: 18px; padding: 14px 28px; font-weight: 700; transition: 0.3s; }
         .btn-premium-primary { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; border: none; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
-        .btn-premium-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(37, 99, 235, 0.3); }
+        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(37, 99, 235, 0.3); }
+        
+        /* Cool CRUD Buttons */
+        .btn-icon { width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-icon:hover { transform: translateY(-2px); }
+        .btn-light-primary { background: #eff6ff; color: #3b82f6; }
+        .btn-light-primary:hover { background: #3b82f6; color: white; box-shadow: 0 4px 12px rgba(59,130,246,0.3) !important; }
+        .btn-light-primary:hover i { color: white !important; }
+        .btn-light-danger { background: #fef2f2; color: #ef4444; }
+        .btn-light-danger:hover { background: #ef4444; color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3) !important; }
+        .btn-light-danger:hover i { color: white !important; }
+        .btn-light-info { background: #f0fdfa; color: #0d9488; }
+        .btn-light-info:hover { background: #0d9488; color: white; box-shadow: 0 4px 12px rgba(13,148,136,0.3) !important; }
+        .btn-light-info:hover i { color: white !important; }
         
         .fw-black { font-weight: 900; }
+        
+        /* Responsive Mobile Table */
+        @media (max-width: 768px) {
+            .mobile-table thead { display: none; }
+            .mobile-table tbody { display: block; border: none; }
+            .mobile-table tr { 
+                display: block; 
+                margin-bottom: 16px; 
+                border: 1px solid rgba(0,0,0,0.05); 
+                border-radius: 16px; 
+                padding: 12px 16px; 
+                background: #fff;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            }
+            .mobile-table td { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                padding: 8px 0 !important; 
+                border: none !important;
+                border-bottom: 1px dashed #e2e8f0 !important; 
+                text-align: right !important; 
+            }
+            .mobile-table td:last-child { 
+                border-bottom: none !important; 
+                justify-content: flex-end; 
+                gap: 8px; 
+                margin-top: 10px; 
+                padding-bottom: 0 !important; 
+            }
+            .mobile-table td::before { 
+                content: attr(data-label); 
+                font-weight: 700; 
+                color: #64748b; 
+                font-size: 0.85rem; 
+                text-align: left; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -67,9 +119,14 @@
                                 </ol>
                             </nav>
                         </div>
-                        <button class="btn btn-premium btn-premium-primary" onclick="showRequestModal()">
-                            <i class="bi bi-plus-circle-fill me-2"></i> บันทึกกิจกรรมใหม่
-                        </button>
+                        <div class="d-flex gap-2">
+                            <a href="student_public_service_print.html" class="btn btn-premium btn-light border fw-bold text-navy shadow-sm" style="background: #ffffff;">
+                                <i class="bi bi-printer-fill me-2"></i> พิมพ์รายงาน
+                            </a>
+                            <button class="btn btn-premium btn-premium-primary" onclick="showRequestModal()">
+                                <i class="bi bi-plus-circle-fill me-2"></i> บันทึกกิจกรรมใหม่
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -122,6 +179,24 @@
         </main>
     </div>
 
+    <!-- DETAIL MODAL -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-black text-navy mb-0">รายละเอียดกิจกรรม</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="detailBody">
+                    <!-- Dynamic Content -->
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill w-100 fw-bold" data-bs-dismiss="modal">ปิดหน้าต่าง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- REFINED REQUEST MODAL -->
     <div class="modal fade" id="requestModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -136,6 +211,7 @@
                 <div class="modal-body p-4 bg-white">
                     <form id="requestForm" class="row g-4">
                         <div class="col-md-7">
+                            <input type="hidden" name="id" id="req-id">
                             <div class="mb-3">
                                 <label class="form-label-premium"><i class="bi bi-bookmark-star-fill text-primary"></i> ชื่อกิจกรรมสาธารณประโยชน์</label>
                                 <input type="text" name="activity_name" class="form-control-premium w-100" placeholder="เช่น ช่วยเก็บขยะบริเวณโรงอาหาร" required>
@@ -257,42 +333,172 @@
                 </div>`;
                 return;
             }
-            list.innerHTML = records.map(r => {
+            
+            let html = `
+            <div class="table-responsive bg-white rounded-4 shadow-sm border mb-4" style="border: none !important; background: transparent !important; box-shadow: none !important;">
+                <table class="table table-hover align-middle mb-0 mobile-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">วันที่</th>
+                            <th>กิจกรรม</th>
+                            <th>สถานที่</th>
+                            <th>ผลที่ได้รับ</th>
+                            <th>จำนวน</th>
+                            <th>ผู้รับรอง</th>
+                            <th>สถานะ</th>
+                            <th class="text-end pe-4">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            html += records.map(r => {
                 const s = r.status;
                 const statusCls = s === 'approved' ? 'status-approved' : (s === 'rejected' ? 'status-rejected' : 'status-pending');
-                const statusTxt = s === 'approved' ? '✅ รับรองแล้ว' : (s === 'rejected' ? '❌ ไม่ผ่าน' : '⏳ รอรับรอง');
-                const teacherName = (r.approver_name || r.certifier_name || '').trim() || '-';
-                const teacherLabel = s === 'approved'
-                    ? `รับรองโดย`
-                    : (s === 'rejected' ? `ปฏิเสธโดย` : `รอ คุณครูรับรอง`);
-                const teacherColor = s === 'approved' ? '#15803d' : (s === 'rejected' ? '#b91c1c' : '#a16207');
+                const statusTxt = s === 'approved' ? 'อนุมัติแล้ว' : (s === 'rejected' ? 'ไม่ผ่าน' : 'รอรับรอง');
+                const editBtn = s === 'pending' ? `
+                    <button class="btn btn-icon btn-light-primary rounded-circle border-0 shadow-sm mx-1" onclick="editActivity(${r.id}, event)" title="แก้ไข">
+                        <i class="bi bi-pencil-square text-primary"></i>
+                    </button>
+                    <button class="btn btn-icon btn-light-danger rounded-circle border-0 shadow-sm mx-1" onclick="deleteActivity(${r.id}, event)" title="ลบ">
+                        <i class="bi bi-trash-fill text-danger"></i>
+                    </button>
+                ` : '';
 
                 return `
-                    <div class="activity-item shadow-sm">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
-                                    <span class="status-pill ${statusCls}">${statusTxt}</span>
-                                    <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
+                        <tr style="cursor: pointer;" onclick="showDetail(${r.id})">
+                            <td data-label="วันที่" class="text-muted small ps-md-4"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</td>
+                            <td data-label="กิจกรรม" class="fw-bold text-navy">${r.activity_name}</td>
+                            <td data-label="สถานที่" class="small text-muted"><i class="bi bi-geo-alt-fill text-primary"></i> ${r.location}</td>
+                            <td data-label="ผลที่ได้รับ" class="small text-muted text-truncate" style="max-width: 150px;">${r.impact_benefit || '-'}</td>
+                            <td data-label="จำนวน"><span class="badge bg-light text-navy rounded-pill border">${parseFloat(r.duration) || 1} ครั้ง</span></td>
+                            <td data-label="ผู้รับรอง"><span class="small text-muted"><i class="bi bi-person-badge text-info me-1"></i>${r.certifier_name || '-'}</span></td>
+                            <td data-label="สถานะ"><span class="status-pill ${statusCls} py-1 px-2" style="font-size: 0.6rem;">${statusTxt}</span></td>
+                            <td data-label="" class="text-end pe-md-4" onclick="event.stopPropagation()">
+                                <div class="d-inline-flex">
+                                    ${editBtn}
+                                    <button class="btn btn-icon btn-light-info rounded-circle border-0 shadow-sm mx-1" onclick="showDetail(${r.id})" title="ดูรายละเอียด">
+                                        <i class="bi bi-search text-info"></i>
+                                    </button>
                                 </div>
-                                <h5 class="fw-bold text-navy mb-1">${r.activity_name}</h5>
-                                <div class="small text-muted mb-2"><i class="bi bi-geo-alt-fill text-primary"></i> ${r.location}</div>
-                                ${r.impact_benefit ? `
-                                <div class="small text-secondary bg-light p-2 rounded-3 border-start border-primary border-4 mt-2">
-                                    "${r.impact_benefit}"
-                                </div>` : ''}
+                            </td>
+                        </tr>
+                `;
+            }).join('');
+            
+            html += `
+                    </tbody>
+                </table>
+            </div>`;
+            list.innerHTML = html;
+        }
+
+        function editActivity(id, event) {
+            if(event) event.stopPropagation();
+            const r = allRecords.find(x => x.id == id);
+            if (!r) return;
+            
+            const form = document.getElementById('requestForm');
+            form.reset();
+            document.getElementById('req-id').value = r.id;
+            form.activity_name.value = r.activity_name;
+            form.location.value = r.location;
+            form.activity_date.value = r.activity_date;
+            form.impact_benefit.value = r.impact_benefit || '';
+            
+            if (r.approver_id && teacherChoices) {
+                teacherChoices.setChoiceByValue(r.approver_id.toString());
+            } else if (r.certifier_id && teacherChoices) {
+                teacherChoices.setChoiceByValue(r.certifier_id.toString());
+            }
+            
+            document.getElementById('submitBtn').innerHTML = '<i class="bi bi-save-fill me-2"></i> บันทึกการแก้ไข';
+            new bootstrap.Modal(document.getElementById('requestModal')).show();
+        }
+
+        async function deleteActivity(id, event) {
+            if(event) event.stopPropagation();
+            
+            const result = await Swal.fire({
+                title: 'ยืนยันการลบ',
+                text: "คุณต้องการลบรายการนี้ใช่หรือไม่? (ไม่สามารถกู้คืนได้)",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-trash-fill me-1"></i> ใช่, ลบเลย',
+                cancelButtonText: 'ยกเลิก',
+                customClass: { popup: 'rounded-4' }
+            });
+            
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch('../api/public_service.php?id=' + id, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: id })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        Swal.fire({ icon: 'success', title: 'ลบสำเร็จ!', timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
+                        loadMyActivities();
+                    } else {
+                        Swal.fire('ผิดพลาด', data.error || 'ไม่สามารถลบได้', 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+                }
+            }
+        }
+
+        function showDetail(id) {
+            const r = allRecords.find(x => x.id == id);
+            if (!r) return;
+
+            const s = r.status;
+            const statusCls = s === 'approved' ? 'status-approved' : (s === 'rejected' ? 'status-rejected' : 'status-pending');
+            const statusTxt = s === 'approved' ? '✅ รับรองแล้ว' : (s === 'rejected' ? '❌ ไม่ผ่าน' : '⏳ รอการรับรอง');
+            const teacherName = (r.approver_name || r.certifier_name || '').trim() || '-';
+
+            document.getElementById('detailBody').innerHTML = `
+                <div class="text-center mb-4">
+                    <span class="status-pill ${statusCls} d-inline-block mb-2">${statusTxt}</span>
+                    <h5 class="fw-black text-navy">${r.activity_name}</h5>
+                    <div class="small text-muted">${r.activity_date_th}</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded-4">
+                            <div class="small text-muted fw-bold mb-1">สถานที่</div>
+                            <div class="text-navy fw-bold">${r.location || '-'}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 bg-light rounded-4">
+                            <div class="small text-muted fw-bold mb-1">จำนวนครั้ง</div>
+                            <div class="text-navy fw-bold">${parseFloat(r.duration) || 1} ครั้ง</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded-4">
+                            <div class="small text-muted fw-bold mb-1">ผลที่เกิดขึ้น / ความประทับใจ</div>
+                            <div class="text-navy" style="font-style: italic;">"${r.impact_benefit || 'ไม่มีข้อมูล'}"</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 border rounded-4 d-flex align-items-center gap-3">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                                <i class="bi bi-person-badge text-primary"></i>
                             </div>
-                            <div class="col-md-4 text-md-end mt-3 mt-md-0 pt-3 pt-md-0 border-top border-md-0">
-                                <div class="small text-muted mb-1">${teacherLabel}</div>
-                                <div class="fw-bold" style="color:${teacherColor};"><i class="bi bi-person-badge me-1"></i>${teacherName}</div>
-                                ${s === 'pending' ? `<div class="x-small text-muted mt-2"><i class="bi bi-hourglass-split me-1"></i>คำขอถูกส่งไปแล้ว รอคุณครูตรวจสอบ</div>` : ''}
-                                ${s === 'approved' ? `<div class="x-small text-success mt-2"><i class="bi bi-patch-check-fill me-1"></i>นับเข้าสถิติแล้ว</div>` : ''}
-                                ${s === 'rejected' ? `<div class="x-small text-danger mt-2"><i class="bi bi-info-circle me-1"></i>ลองส่งคำขอใหม่อีกครั้ง</div>` : ''}
+                            <div>
+                                <div class="small text-muted fw-bold">คุณครูผู้รับรอง</div>
+                                <div class="text-navy fw-bold">${teacherName}</div>
                             </div>
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
         }
 
         function filterActivities(status, btn) {
@@ -304,13 +510,17 @@
 
         function showRequestModal() {
             document.getElementById('requestForm').reset();
+            document.getElementById('req-id').value = '';
             document.getElementById('req-date').valueAsDate = new Date();
+            document.getElementById('submitBtn').innerHTML = '<i class="bi bi-send-fill me-2"></i> บันทึกข้อมูลและส่งขอการรับรอง';
+            if (teacherChoices) teacherChoices.removeActiveItems();
             new bootstrap.Modal(document.getElementById('requestModal')).show();
         }
 
         async function handleSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> กำลังบันทึก...';
 
@@ -321,15 +531,19 @@
             const select = document.getElementById('teacher-select');
             data.certifier_name = select.options[select.selectedIndex]?.text || '';
             
+            const isEdit = !!data.id;
+            if (isEdit) data.full_edit = true;
+            const method = isEdit ? 'PUT' : 'POST';
+            
             try {
                 const res = await fetch('../api/public_service.php', {
-                    method: 'POST',
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 const resData = await res.json();
                 if (resData.success) {
-                    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'ข้อมูลของคุณถูกส่งให้คุณครูตรวจสอบแล้ว', timer: 2000, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
+                    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: isEdit ? 'แก้ไขข้อมูลเรียบร้อยแล้ว' : 'ข้อมูลของคุณถูกส่งให้คุณครูตรวจสอบแล้ว', timer: 2000, showConfirmButton: false, customClass: { popup: 'rounded-4' } });
                     bootstrap.Modal.getInstance(document.getElementById('requestModal')).hide();
                     loadMyActivities();
                 } else {
@@ -339,7 +553,7 @@
                 Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); 
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-send-fill me-2"></i> บันทึกข้อมูลและส่งขอการรับรอง';
+                btn.innerHTML = originalText;
             }
         }
     </script>

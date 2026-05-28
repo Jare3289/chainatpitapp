@@ -44,25 +44,30 @@ function cnp_slide_session(): void {
     if (time() - $lastSlide < 3600) return; // throttle to 1/hour
 
     $_SESSION['_last_slide'] = time();
-    $cp = session_get_cookie_params();
+    $cp     = session_get_cookie_params();
     $expire = time() + 30 * 24 * 3600;
+    $isHttps = (
+        (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    );
 
     // Slide both PHPSESSID and the cnp_remember marker
+    // Use explicit '/' so the cookie covers all paths regardless of server config
     setcookie(session_name(), session_id(), [
         'expires'  => $expire,
-        'path'     => $cp['path'],
+        'path'     => '/',
         'domain'   => $cp['domain'],
-        'secure'   => $cp['secure'],
-        'httponly' => $cp['httponly'],
-        'samesite' => $cp['samesite'] ?: 'Lax',
+        'secure'   => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
     ]);
     setcookie('cnp_remember', '1', [
         'expires'  => $expire,
-        'path'     => $cp['path'],
+        'path'     => '/',
         'domain'   => $cp['domain'],
-        'secure'   => $cp['secure'],
+        'secure'   => $isHttps,
         'httponly' => true,
-        'samesite' => $cp['samesite'] ?: 'Lax',
+        'samesite' => 'Lax',
     ]);
 }
 
@@ -96,6 +101,9 @@ function cnp_verify_origin(): void {
     }
     $host = strtolower($_SERVER['HTTP_HOST'] ?? '');
     if ($host === '') return;
+
+    // Strip port from HTTP_HOST if present (e.g. localhost:8000 -> localhost)
+    $host = preg_replace('/:\d+$/', '', $host);
 
     $source = $_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? '';
     if ($source === '') return; // some clients (mobile apps) won't send these
@@ -246,9 +254,32 @@ function cnp_auth_token_check(PDO $pdo): ?int {
     $_SESSION['remember'] = true;
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-    // Rotate: delete old token, issue new one
-    $pdo->prepare("DELETE FROM auth_tokens WHERE id = ?")->execute([$row['id']]);
+    // Rotate: issue new token first, then revoke old one
+    // (ถ้า issue ล้มเหลว token เดิมยังใช้งานได้ — ไม่สูญเสีย session)
     cnp_auth_token_issue($pdo, (int)$user['id']);
+    $pdo->prepare("DELETE FROM auth_tokens WHERE id = ?")->execute([$row['id']]);
+
+    // Refresh cnp_remember marker so config.php keeps setting 30-day PHPSESSID lifetime
+    // (หากคุกกี้นี้หมดอายุก่อน cnp_auth ระบบจะ auto-login ได้แต่ session อาจหมดเร็ว)
+    $isHttps = (
+        (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
+        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    );
+    setcookie('cnp_remember', '1', [
+        'expires'  => time() + 30 * 24 * 3600,
+        'path'     => '/',
+        'secure'   => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    // Refresh the PHPSESSID cookie too so it doesn't expire before the next slide
+    setcookie(session_name(), session_id(), [
+        'expires'  => time() + 30 * 24 * 3600,
+        'path'     => '/',
+        'secure'   => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
 
     return (int)$user['id'];
 }

@@ -1,0 +1,451 @@
+<!-- 
+views/student_public_service_print.html
+-->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกสาธารณประโยชน์ | CNP APP</title>
+    <!-- TH Sarabun PSK — hosted locally for correct PDF font embedding -->
+    <link rel="stylesheet" href="../public/css/fonts.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            background-color: #ffffff;
+            color: #000000; /* Pure black text */
+            margin: 0;
+            padding: 0;
+            font-size: 16pt; /* Content 16pt */
+            line-height: 1.15;
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        /* A4 Page Formatting */
+        .print-page {
+            background-color: #ffffff;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 10mm auto;
+            padding: 10mm; /* Exactly 1cm margin on all sides */
+            position: relative;
+        }
+        
+        /* Printing styles override */
+        @media print {
+            body {
+                background-color: #ffffff;
+                color: #000000;
+            }
+            .print-page {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0; /* Let @page handle 1cm margins */
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        @page {
+            size: A4 portrait;
+            margin: 10mm; /* Default 1cm margin on all sides for subsequent pages */
+        }
+        
+        @page :first {
+            margin-top: 15mm; /* Exactly 1.5cm top margin on the first page */
+            margin-bottom: 10mm;
+            margin-left: 10mm;
+            margin-right: 10mm;
+        }
+        
+        /* Floating Print Bar (No-Print) */
+        .no-print-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-print {
+            background-color: #000000; /* Pure black print button */
+            color: #ffffff;
+            border: 1px solid #000000;
+            padding: 8px 24px;
+            font-weight: normal;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .btn-back {
+            color: #000000;
+            text-decoration: none;
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 16px;
+        }
+        
+        /* Header section (Left Aligned) */
+        .header-container {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .school-logo {
+            height: 100px; /* Big school logo */
+            object-fit: contain;
+            margin-bottom: 10px;
+            display: block;
+            margin-left: 0;
+        }
+        .vol-en-title {
+            font-size: 20pt; /* Exactly 20pt */
+            font-weight: bold; /* Bolded as requested */
+            color: #000000;
+            letter-spacing: 0.5px;
+            margin: 0;
+            line-height: 1.05;
+        }
+        .vol-th-title {
+            font-size: 20pt; /* Exactly 20pt */
+            font-weight: bold; /* Bolded as requested */
+            color: #000000;
+            margin: 1px 0 10px 0;
+            line-height: 1.05;
+        }
+        
+        /* Student Details Block (Left Aligned) */
+        .student-details {
+            font-size: 14pt; /* Size 14pt as requested */
+            line-height: 1.15; /* Compact line-height */
+            margin-bottom: 10px;
+            color: #000000;
+            text-align: left;
+        }
+        .details-row {
+            margin-bottom: 2px; /* Very tight spacing */
+            line-height: 1.15;
+        }
+        
+        /* Table Styles */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px; 
+            font-size: 16pt; /* Content 16pt */
+            color: #000000;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #000000;
+            padding: 6px 8px; 
+            font-size: 16pt; /* 16pt content */
+            color: #000000;
+            font-weight: normal;
+            font-style: normal;
+        }
+        .stats-table th {
+            text-align: center;
+            background-color: #f2f2f2 !important; /* Beautiful light gray header background */
+        }
+        .stats-table td {
+            vertical-align: middle; /* Center vertically for neat output */
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-left {
+            text-align: left;
+        }
+        
+        /* Declaration text: indented, justified, and 12pt */
+        .declaration-text {
+            font-size: 12pt; /* Exactly 12pt as requested */
+            line-height: 1.35;
+            text-align: justify; /* Justified (จัดกระจาย) */
+            text-justify: inter-word;
+            text-indent: 1.5cm; /* Indented (ย่อหน้า) */
+            margin-top: 20px;
+            margin-bottom: 25px;
+            color: #000000;
+        }
+        
+        /* Advisors Signature Grid */
+        .signature-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 5rem; /* Exactly 5 rows of text space from concluding paragraph */
+            page-break-inside: avoid;
+        }
+        .signature-block {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 3.5rem; /* Exactly 3 rows of text space between Advisor 1 and Advisor 2 */
+        }
+        .sig-item {
+            text-align: center;
+            font-size: 16pt; /* Keep exactly at 16pt */
+            page-break-inside: avoid;
+        }
+        
+        /* Loader overlay */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #000000;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Print Bar -->
+    <div class="no-print-bar no-print">
+        <div>
+            <a href="javascript:history.back()" class="btn-back">
+                <i class="bi bi-arrow-left"></i> กลับหน้าก่อนหน้า
+            </a>
+        </div>
+        <button class="btn-print" onclick="window.print()">
+            <i class="bi bi-printer-fill"></i> สั่งพิมพ์ / บันทึกเป็น PDF
+        </button>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <h4 style="margin: 0; font-weight: normal; color: #000000;">กำลังดึงข้อมูลและเตรียมบันทึกสาธารณประโยชน์...</h4>
+    </div>
+
+    <!-- Printable Page -->
+    <div class="print-page">
+        <!-- Reorganized Borderless Header Container matching the mockup -->
+        <div style="display: flex; margin-bottom: 15px; color: #000000;">
+            <!-- Left Side: Logo & School Info (55% width) -->
+            <div style="width: 55%; display: flex; gap: 15px; align-items: center; padding: 12px 15px 12px 0;">
+                <!-- School Logo -->
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <img src="../public/img/logo.png" class="school-logo" id="schoolLogo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';" style="height: 100px; object-fit: contain; margin: 0; display: block;">
+                </div>
+                <!-- Titles and School Name -->
+                <div style="display: flex; flex-direction: column; justify-content: center;">
+                    <div style="font-size: 20pt; font-weight: bold; line-height: 1.05; margin: 0;">VOLUNTEERISM RECORD</div>
+                    <div style="font-size: 20pt; font-weight: bold; line-height: 1.05; margin: 1px 0 3px 0;">บันทึกสาธารณประโยชน์</div>
+                    <div style="font-size: 14pt; line-height: 1.15; font-weight: normal; margin: 0;">โรงเรียนชัยนาทพิทยาคม</div>
+                </div>
+            </div>
+            
+            <!-- Right Side: Student details (55% width, NO vertical border) -->
+            <div style="width: 55%; display: flex; flex-direction: column; justify-content: center; padding: 12px 0 12px 15px; font-size: 14pt; line-height: 1.25;">
+                <div style="margin-bottom: 2px;">
+                    ผู้บันทึก : <span id="lblFullNameTh" style="font-weight: normal;">-</span>
+                </div>
+                <div style="margin-bottom: 2px;">
+                    รหัสนักเรียน : <span id="lblStudentId">-</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    เลขที่ : <span id="lblNumberInClass">-</span>
+                </div>
+                <div>
+                    ห้อง: <span id="lblClassName">-</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    ระดับชั้น : <span id="lblGradeLevel">-</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+                    คณะ : <span id="lblHouse">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semester and Academic Year subtitle (ชิดซ้ายหัวตาราง) -->
+        <div style="font-size: 14pt; text-align: left; margin-top: 15px; margin-bottom: 6px; color: #000000; font-weight: normal;">
+            ภาคเรียนที่ <span id="lblSemester">-</span> ปีการศึกษา <span id="lblAcademicYear">-</span>
+        </div>
+
+        <!-- Main Records Table -->
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">ที่</th>
+                    <th style="width: 18%;">วันที่</th>
+                    <th style="width: 54%;">รายการบันทึกสาธารณประโยชน์</th>
+                    <th style="width: 20%;">ผู้รับรอง</th>
+                </tr>
+            </thead>
+            <tbody id="recordsTableBody">
+                <!-- Filled dynamically -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="text-align: right; padding-right: 15px;">รวมทั้งสิ้น</td>
+                    <td colspan="2" style="text-align: left; padding-left: 15px;">
+                        <span id="totalActivitiesCount">-</span> ครั้ง
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Curriculum Declaration text (Indented, Justified & 12pt) -->
+        <div class="declaration-text">
+            การปฏิบัติกิจกรรมสาธารณประโยชน์ตามบันทึกข้อความข้างต้น สำเร็จลุล่วงไปด้วยดีตามวัตถุประสงค์ของหลักสูตร โดยข้าพเจ้าได้ตระหนักถึงบทบาทหน้าที่ของเยาวชนในการมีส่วนร่วมรับผิดชอบต่อชุมชนและสังคม กิจกรรมต่างๆ ได้ส่งเสริมให้ข้าพเจ้ามีระเบียบวินัย มีความอดทน และเกิดทักษะการแก้ไขปัญหาเฉพาะหน้า ซึ่งผลลัพธ์จากความมุ่งมั่นในครั้งนี้ไม่เพียงแต่ก่อให้เกิดประโยชน์ต่อส่วนรวม แต่ยังเป็นรากฐานสำคัญในการพัฒนาคุณธรรม จริยธรรม และคุณลักษณะอันพึงประสงค์ของตัวข้าพเจ้าให้พร้อมเติบโตเป็นพลเมืองที่มีคุณภาพ
+        </div>
+
+        <!-- Advisors Signatures Aligned Right -->
+        <div class="signature-container">
+            <div class="signature-block" id="advisorsContainer">
+                <!-- Advisor Signatures generated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentId = urlParams.get('student_id') || '';
+            const year = urlParams.get('year') || '';
+            const semester = urlParams.get('semester') || '';
+
+            // Fetch print data
+            $.ajax({
+                url: `../api/student_public_service_print.php`,
+                type: 'GET',
+                data: {
+                    student_id: studentId,
+                    year: year,
+                    semester: semester
+                },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.success) {
+                        // Populate Student Details
+                        const s = data.student;
+                        $('#lblStudentId').text(s.student_id || '-');
+                        $('#lblNumberInClass').text(s.number_in_class || '-');
+                        $('#lblClassName').text(s.class_name || '-');
+                        $('#lblGradeLevel').text(s.grade_level || '-');
+                        $('#lblHouse').text(s.house || '-');
+                        
+                        const fullNameTh = (s.prefix || '') + s.first_name_th + ' ' + s.last_name_th;
+                        $('#lblFullNameTh').text(fullNameTh);
+                        
+                        const fullNameEn = (s.first_name_en || '') + ' ' + (s.last_name_en || '');
+                        $('#lblFullNameEn').text(fullNameEn.trim() || '-');
+
+                        $('#lblSemester').text(data.semester);
+                        $('#lblAcademicYear').text(data.academic_year);
+
+                        // Populate Records Table
+                        const tbody = $('#recordsTableBody');
+                        tbody.empty();
+
+                        let totalTimes = 0;
+
+                        if (data.records && data.records.length > 0) {
+                            totalTimes = data.records.length;
+                            
+                            data.records.forEach((r, idx) => {
+                                const rowHtml = `
+                                    <tr>
+                                        <td class="text-center">${idx + 1}</td>
+                                        <td class="text-center" style="line-height: 1.15; padding: 4px; font-size: 16pt;">
+                                            <div>${r.activity_day_th}</div>
+                                            <div style="font-size: 14pt;">${r.activity_month_th}</div>
+                                            <div>${r.activity_year_th}</div>
+                                        </td>
+                                        <td class="text-left">
+                                            <div style="line-height: 1.2;">
+                                                <div><strong>กิจกรรมที่ปฏิบัติ :</strong> ${r.activity_name || '-'}</div>
+                                                <div><strong>สถานที่ :</strong> ${r.location || '-'}</div>
+                                                <div style="margin-top: 2px;"><strong>ผลที่เกิดกับผู้ปฏิบัติ/สังคมและสาธารณประโยชน์ :</strong> ${r.impact_benefit || '-'}</div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center" style="font-size: 16pt;">
+                                            ${r.approver_name || r.certifier_name || '-'}
+                                        </td>
+                                    </tr>
+                                `;
+                                tbody.append(rowHtml);
+                            });
+                        } else {
+                            tbody.append('<tr><td colspan="4" class="text-center py-5">ไม่มีประวัติกิจกรรมสาธารณประโยชน์ที่ได้รับการอนุมัติในภาคเรียนนี้</td></tr>');
+                        }
+
+                        $('#totalActivitiesCount').text(totalTimes);
+
+                        // Populate Advisor Signatures
+                        const sigContainer = $('#advisorsContainer');
+                        sigContainer.empty();
+
+                        if (data.advisors && data.advisors.length > 0) {
+                            data.advisors.forEach(adv => {
+                                sigContainer.append(`
+                                    <div class="sig-item">
+                                        <div style="margin-bottom: 4px;">................................................</div>
+                                        <div style="font-size: 16pt; margin-bottom: 2px;">(${adv})</div>
+                                        <div style="font-size: 16pt;">ครูที่ปรึกษา</div>
+                                    </div>
+                                `);
+                            });
+                        } else {
+                            // Fallback signature line
+                            sigContainer.append(`
+                                <div class="sig-item">
+                                    <div style="margin-bottom: 4px;">................................................</div>
+                                    <div style="font-size: 16pt; margin-bottom: 2px;">(................................................)</div>
+                                    <div style="font-size: 16pt;">ครูที่ปรึกษา</div>
+                                </div>
+                            `);
+                        }
+
+                        // Hide Loader
+                        $('#loader').fadeOut(300);
+                    } else {
+                        alert(data.error || 'ไม่สามารถโหลดข้อมูลรายงานได้');
+                        window.history.back();
+                    }
+                },
+                error: function(xhr) {
+                    alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                    window.history.back();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

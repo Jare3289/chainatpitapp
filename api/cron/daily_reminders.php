@@ -35,6 +35,26 @@ $todayThai = date('j') . ' ' . ['','ม.ค.','ก.พ.','มี.ค.','เม.�
 
 echo "=== Daily reminders — {$today} ===\n";
 
+// Check if today is a weekend (6 = Saturday, 7 = Sunday) or recorded in the academic_days table as a holiday
+$dayOfWeek = (int)date('N');
+$isWeekend = ($dayOfWeek === 6 || $dayOfWeek === 7);
+
+try {
+    $stmtHoliday = $pdo->prepare("SELECT COUNT(*) FROM academic_days WHERE date_val = ? AND day_type = 'วันหยุด'");
+    $stmtHoliday->execute([$today]);
+    $isHoliday = ((int)$stmtHoliday->fetchColumn() > 0);
+} catch (Throwable $e) {
+    $isHoliday = false;
+    echo "ERR checking holidays: " . $e->getMessage() . "\n";
+}
+
+if ($isWeekend || $isHoliday) {
+    $reason = $isWeekend ? "weekend" : "public holiday";
+    echo "Skipping daily reminders: today is a {$reason}.\n";
+    echo "=== Done ===\n";
+    exit;
+}
+
 // ---------- 1. Advisory teachers: เช็คชื่อโฮมรูม ----------
 try {
     $stmt = $pdo->query("

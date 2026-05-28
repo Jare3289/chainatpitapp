@@ -21,12 +21,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 
     try {
         if ($id) {
-            $stmt = $pdo->prepare("SELECT t.*, u.username FROM teachers t JOIN users u ON t.user_id = u.id WHERE t.id = ?");
+            $stmt = $pdo->prepare("SELECT t.*, u.username, u.role FROM teachers t LEFT JOIN users u ON t.user_id = u.id WHERE t.id = ? AND (u.role != 'admin' OR u.role IS NULL)");
             $stmt->execute([$id]);
             $teacher = $stmt->fetch(PDO::FETCH_ASSOC);
             echo json_encode(['success' => true, 'data' => $teacher]);
         } else {
-            $sql = "SELECT t.*, u.username FROM teachers t JOIN users u ON t.user_id = u.id";
+            $sql = "SELECT t.*, u.username, u.role FROM teachers t LEFT JOIN users u ON t.user_id = u.id WHERE (u.role != 'admin' OR u.role IS NULL)";
             $where = [];
             $params = [];
 
@@ -40,7 +40,7 @@ $method = $_SERVER['REQUEST_METHOD'];
             }
 
             if ($where) {
-                $sql .= " WHERE " . implode(" AND ", $where);
+                $sql .= " AND (" . implode(" AND ", $where) . ")";
             }
 
             $sql .= " ORDER BY t.id DESC";

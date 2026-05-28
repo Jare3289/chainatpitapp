@@ -78,12 +78,13 @@ try {
         if ($hasDeptCol) {
             $stmt = $pdo->query("
                 SELECT d.*,
-                       COUNT(DISTINCT t.id) AS member_count,
+                       COUNT(DISTINCT CASE WHEN u.id IS NULL THEN t.id END) AS member_count,
                        COUNT(DISTINCT s.id) AS sub_count,
-                       (SELECT photo FROM teachers WHERE CONCAT(COALESCE(prefix,''), COALESCE(first_name_th,''), ' ', COALESCE(last_name_th,'')) = d.head_name LIMIT 1) AS head_photo,
-                       (SELECT GROUP_CONCAT(photo) FROM (SELECT photo, department FROM teachers WHERE photo IS NOT NULL) as t2 WHERE t2.department = d.name_th LIMIT 100) as member_photos
+                       (SELECT t3.photo FROM teachers t3 LEFT JOIN users u3 ON t3.user_id = u3.id WHERE CONCAT(COALESCE(t3.prefix,''), COALESCE(t3.first_name_th,''), ' ', COALESCE(t3.last_name_th,'')) = d.head_name AND (u3.role != 'admin' OR u3.role IS NULL) LIMIT 1) AS head_photo,
+                       (SELECT GROUP_CONCAT(photo) FROM (SELECT t2.photo, t2.department FROM teachers t2 LEFT JOIN users u2 ON t2.user_id = u2.id WHERE t2.photo IS NOT NULL AND (u2.role != 'admin' OR u2.role IS NULL)) as t2 WHERE t2.department = d.name_th LIMIT 100) as member_photos
                 FROM departments d
                 LEFT JOIN teachers t ON t.department = d.name_th
+                LEFT JOIN users u ON t.user_id = u.id AND u.role = 'admin'
                 LEFT JOIN sub_departments s ON s.department_id = d.id
                 GROUP BY d.id
                 ORDER BY d.name_th ASC

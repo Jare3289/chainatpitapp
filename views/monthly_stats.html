@@ -9,9 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/fonts.css">
     <link rel="stylesheet" href="../public/css/style.css">
     <style>
         body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
+        @media print { body, * { font-family: 'TH Sarabun PSK', 'Sarabun', sans-serif !important; } }
         .kpi-mini-card { background: white; border-radius: 20px; padding: 20px; border: 1px solid rgba(0, 0, 0, 0.03); box-shadow: 0 4px 15px rgba(0,0,0,0.02); height: 100%; }
         .table-premium th { background: #f8fafc; padding: 15px 20px; font-weight: 700; color: #475569; border-bottom: 2px solid #eef2f6; white-space: nowrap; text-align: center; }
         .table-premium td { padding: 15px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; text-align: center; }
@@ -30,8 +32,11 @@
         .badge-not { background: #fff1f2; color: #e11d48; }
         
         @media print {
-            .sidebar, #header-container, .breadcrumb, .btn, #globalFooter { display: none !important; }
-            .main-panel { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .sidebar, #mainSidebar, #header-container, .breadcrumb, #globalFooter,
+            .no-print, .nav-pills, #statsTabBar { display: none !important; }
+            .main-panel, .app-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .content-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+            thead { display: table-header-group; }
         }
     </style>
 </head>
@@ -47,45 +52,98 @@
             <div class="app-content page-content flex-grow-1 py-4">
                 <div class="container-fluid">
                     
-                    <!-- 1. OVERVIEW VIEW -->
+                    <!-- 1. OVERVIEW VIEW (Monthly + Weekly tabs) -->
                     <div id="overviewContent" style="display: none;">
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <!-- Shared header with tabs + filters -->
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
                             <div>
-                                <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">สถิติการมาเรียนรายเดือน</h4>
+                                <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;" id="overviewMainTitle">สถิติการมาเรียนรายเดือน</h4>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0 small opacity-75">
                                         <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
-                                        <li class="breadcrumb-item active">สถิติรายเดือน</li>
+                                        <li class="breadcrumb-item active" id="overviewBreadcrumb">สถิติรายเดือน</li>
                                     </ol>
                                 </nav>
                             </div>
-                            <!-- Filters in Content Area -->
-                            <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm p-1 border">
-                                <select id="monthSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold shadow-none" style="width: 130px;" onchange="loadOverview()"></select>
-                                <select id="yearSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold shadow-none" style="width: 100px;" onchange="loadOverview()"></select>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <!-- Tab Pills -->
+                                <ul class="nav nav-pills gap-1 bg-white rounded-4 p-1 shadow-sm border no-print">
+                                    <li class="nav-item">
+                                        <button class="nav-link active fw-bold py-1 px-3" id="tabMonthly" onclick="switchStatsTab('monthly')">
+                                            <i class="bi bi-calendar3 me-1"></i>รายเดือน
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link fw-bold py-1 px-3" id="tabWeekly" onclick="switchStatsTab('weekly')">
+                                            <i class="bi bi-calendar-week me-1"></i>รายสัปดาห์
+                                        </button>
+                                    </li>
+                                </ul>
+                                <!-- Month / Year selects (shared between tabs) -->
+                                <div class="d-flex align-items-center gap-2 bg-white rounded-4 shadow-sm p-1 border">
+                                    <select id="monthSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold shadow-none" style="width: 130px;" onchange="onMonthYearChange()"></select>
+                                    <select id="yearSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold shadow-none" style="width: 100px;" onchange="onMonthYearChange()"></select>
+                                </div>
+                                <!-- PDF button -->
+                                <button class="btn btn-dark rounded-pill px-3 fw-bold no-print" onclick="window.print()">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                                </button>
                             </div>
                         </div>
 
-                        <div class="row g-4 mb-4" id="statsRow">
-                            <!-- Monthly KPIs populated by JS -->
+                        <!-- ── Monthly tab content ── -->
+                        <div id="monthlySection">
+                            <div class="row g-4 mb-4" id="statsRow"></div>
+                            <div class="content-card p-0 overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table-premium">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-start ps-4">ห้องเรียน</th>
+                                                <th>จำนวนนักเรียน</th>
+                                                <th>มาเรียน (%)</th>
+                                                <th>ขาดเรียน (%)</th>
+                                                <th>มาสาย (%)</th>
+                                                <th>ลากิจ (%)</th>
+                                                <th>ลาป่วย (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="overviewTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="content-card p-0 overflow-hidden">
-                            <div class="table-responsive">
-                                <table class="table-premium">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-start ps-4">ห้องเรียน</th>
-                                            <th>จำนวนนักเรียน</th>
-                                            <th>มาเรียน (%)</th>
-                                             <th>ขาดเรียน (%)</th>
-                                             <th>มาสาย (%)</th>
-                                             <th>ลากิจ (%)</th>
-                                             <th>ลาป่วย (%)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="overviewTableBody"></tbody>
-                                </table>
+                        <!-- ── Weekly tab content ── -->
+                        <div id="weeklySection" style="display:none;">
+                            <!-- Week navigator -->
+                            <div class="d-flex align-items-center gap-3 mb-4 flex-wrap no-print">
+                                <button class="btn btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:38px;height:38px;" onclick="shiftWeek(-7)"><i class="bi bi-chevron-left"></i></button>
+                                <div class="bg-white rounded-4 px-4 py-2 shadow-sm border text-center">
+                                    <div class="fw-bold text-navy" id="weekRangeLabel">สัปดาห์ที่ —</div>
+                                    <div class="small text-muted" id="weekDatesLabel">—</div>
+                                </div>
+                                <button class="btn btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center" style="width:38px;height:38px;" onclick="shiftWeek(7)"><i class="bi bi-chevron-right"></i></button>
+                                <button class="btn btn-outline-primary rounded-pill px-3 fw-bold" onclick="goToCurrentWeek()"><i class="bi bi-calendar-check me-1"></i>สัปดาห์นี้</button>
+                            </div>
+                            <!-- Weekly KPIs -->
+                            <div class="row g-3 mb-4" id="weeklyKPIs"></div>
+                            <!-- Weekly table -->
+                            <div class="content-card p-0 overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table-premium">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-start ps-4">ห้องเรียน</th>
+                                                <th>มาเรียน (ครั้ง)</th>
+                                                <th>ขาดเรียน (ครั้ง)</th>
+                                                <th>% มาเรียน</th>
+                                                <th>วันที่เช็ค</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="weeklyTableBody"></tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -102,9 +160,14 @@
                                     <div class="small text-muted opacity-75" id="detailedSubTitle">สรุปสถิติรายวันประจำเดือน</div>
                                 </div>
                             </div>
-                            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
-                                <i class="bi bi-printer-fill me-2"></i> พิมพ์รายงาน
-                            </button>
+                            <div class="d-flex gap-2 no-print">
+                                <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
+                                    <i class="bi bi-printer-fill me-2"></i>พิมพ์
+                                </button>
+                                <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
+                                    <i class="bi bi-file-earmark-pdf me-2"></i>PDF
+                                </button>
+                            </div>
                         </div>
 
                         <div class="content-card p-0 overflow-hidden">
@@ -143,7 +206,7 @@
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                                     2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                                         CNPAPP<sup>©</sup>
                                     </a>
                                     ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
@@ -156,7 +219,7 @@
                         <div class="col-md-7 text-md-end">
                             <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
                                 สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
-                                cnpapp@chainatpit.ac.th
+                                งานพิธีการและประชาสัมพันธ์การศึกษา : ผู้พัฒนา cnpapp@chainatpit.ac.th
                             </div>
                             <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
                                 <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
@@ -182,32 +245,183 @@
     <script src="../public/js/main.js"></script>
     <script>
         const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-        
+        const dayNames   = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+        let currentWeekStart = null; // ISO date string for current week's Monday
+        let activeTab = 'monthly';
+
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await checkAuth('admin');
             if (user) {
                 initFilters();
                 const urlParams = new URLSearchParams(window.location.search);
                 const room = urlParams.get('room');
-                if (room) { showDetailedReport(room); } 
-                else { $('#overviewContent').show(); loadOverview(); }
+                if (room) {
+                    showDetailedReport(room);
+                } else {
+                    $('#overviewContent').show();
+                    goToCurrentWeek(false); // init week tracker without loading
+                    const tab = urlParams.get('tab') || 'monthly';
+                    switchStatsTab(tab, false);
+                    if (tab === 'monthly') loadOverview();
+                    else loadWeeklySummary();
+                }
             }
         });
 
         function initFilters() {
             const now = new Date();
             const ms = document.getElementById('monthSelect');
-            if(ms) {
+            if (ms) {
                 ms.innerHTML = '';
                 monthNames.forEach((m, i) => ms.add(new Option(m, (i+1).toString().padStart(2, '0'))));
                 ms.value = (now.getMonth() + 1).toString().padStart(2, '0');
             }
-
             const ys = document.getElementById('yearSelect');
-            if(ys) {
+            if (ys) {
                 ys.innerHTML = '';
                 const curBE = now.getFullYear() + 543;
-                for (let i = 0; i < 5; i++) ys.add(new Option(curBE-i, curBE-i-543));
+                for (let i = 0; i < 5; i++) ys.add(new Option(curBE - i, curBE - i - 543));
+            }
+        }
+
+        function onMonthYearChange() {
+            if (activeTab === 'monthly') loadOverview();
+            else loadWeeklySummary();
+        }
+
+        // ── Tab switching ───────────────────────────────────────────────────────
+        function switchStatsTab(tab, doLoad = true) {
+            activeTab = tab;
+            const isMonthly = tab === 'monthly';
+            document.getElementById('monthlySection').style.display = isMonthly ? '' : 'none';
+            document.getElementById('weeklySection').style.display  = isMonthly ? 'none' : '';
+            document.getElementById('tabMonthly').classList.toggle('active', isMonthly);
+            document.getElementById('tabWeekly').classList.toggle('active', !isMonthly);
+            document.getElementById('overviewMainTitle').textContent   = isMonthly ? 'สถิติการมาเรียนรายเดือน' : 'สถิติการมาเรียนรายสัปดาห์';
+            document.getElementById('overviewBreadcrumb').textContent  = isMonthly ? 'สถิติรายเดือน' : 'สถิติรายสัปดาห์';
+            if (doLoad) { isMonthly ? loadOverview() : loadWeeklySummary(); }
+        }
+
+        // ── Week navigation ─────────────────────────────────────────────────────
+        function getMondayOf(date) {
+            const d = new Date(date);
+            const day = d.getDay(); // 0=Sun
+            const diff = day === 0 ? -6 : 1 - day;
+            d.setDate(d.getDate() + diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+        function goToCurrentWeek(doLoad = true) {
+            currentWeekStart = getMondayOf(new Date());
+            updateWeekLabel();
+            if (doLoad) loadWeeklySummary();
+        }
+        function shiftWeek(days) {
+            if (!currentWeekStart) currentWeekStart = getMondayOf(new Date());
+            currentWeekStart = new Date(currentWeekStart);
+            currentWeekStart.setDate(currentWeekStart.getDate() + days);
+            // Sync month/year selects to match the week
+            const m = (currentWeekStart.getMonth() + 1).toString().padStart(2, '0');
+            const y = currentWeekStart.getFullYear();
+            document.getElementById('monthSelect').value = m;
+            document.getElementById('yearSelect').value  = y;
+            updateWeekLabel();
+            loadWeeklySummary();
+        }
+        function updateWeekLabel() {
+            if (!currentWeekStart) return;
+            const sun = new Date(currentWeekStart); sun.setDate(sun.getDate() + 6);
+            const thDate = d => `${d.getDate()} ${monthNames[d.getMonth()]}`;
+            const wkNum  = getWeekOfMonth(currentWeekStart);
+            document.getElementById('weekRangeLabel').textContent = `สัปดาห์ที่ ${wkNum} ของเดือน${monthNames[currentWeekStart.getMonth()]}`;
+            document.getElementById('weekDatesLabel').textContent  = `${dayNames[currentWeekStart.getDay()]} ${thDate(currentWeekStart)}  –  ${dayNames[sun.getDay()]} ${thDate(sun)}  ${currentWeekStart.getFullYear() + 543}`;
+        }
+        function getWeekOfMonth(d) {
+            const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+            return Math.ceil((d.getDate() + firstDay.getDay()) / 7);
+        }
+
+        // ── Weekly Summary ──────────────────────────────────────────────────────
+        async function loadWeeklySummary() {
+            if (!currentWeekStart) { goToCurrentWeek(); return; }
+            updateWeekLabel();
+            const month = $('#monthSelect').val();
+            const year  = $('#yearSelect').val();
+            const weekEnd = new Date(currentWeekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+
+            $('#weeklyTableBody').html('<tr><td colspan="5" class="text-center py-5"><div class="spinner-border text-primary opacity-25"></div></td></tr>');
+            $('#weeklyKPIs').html('');
+
+            try {
+                // Step 1: get room list from monthly overview
+                const ovRes  = await fetch(`../api/admin/monthly_stats.php?month=${month}&year=${year}`);
+                const ovData = await ovRes.json();
+                if (!ovData.success || !ovData.report || !ovData.report.length) {
+                    $('#weeklyTableBody').html('<tr><td colspan="5" class="text-center py-5 text-muted">ไม่มีข้อมูลสำหรับเดือนนี้</td></tr>');
+                    return;
+                }
+                const rooms = ovData.report.map(r => r.room);
+
+                // Step 2: fetch per-room daily data in parallel
+                const detailedArr = await Promise.all(rooms.map(room =>
+                    fetch(`../api/admin/monthly_stats.php?room=${room}&month=${month}&year=${year}`)
+                        .then(r => r.json())
+                        .then(d => ({ room, days: d.success ? d.report : [] }))
+                        .catch(() => ({ room, days: [] }))
+                ));
+
+                // Step 3: aggregate for the selected week
+                let html = '';
+                let tot = { present: 0, absent: 0, total: 0, rooms: 0, daysChecked: 0 };
+                const weekDaySet = new Set();
+
+                detailedArr.forEach(({ room, days }) => {
+                    const weekDays = days.filter(d => {
+                        const dt = new Date(d.date + 'T00:00:00');
+                        return dt >= currentWeekStart && dt <= weekEnd && d.checked_count > 0;
+                    });
+                    weekDays.forEach(d => weekDaySet.add(d.date));
+
+                    const present = weekDays.reduce((s, d) => s + (parseInt(d.present_m) || 0) + (parseInt(d.present_f) || 0), 0);
+                    const absent  = weekDays.reduce((s, d) => s + (parseInt(d.absent_m)  || 0) + (parseInt(d.absent_f)  || 0), 0);
+                    const total   = present + absent;
+                    const pct     = total > 0 ? ((present / total) * 100).toFixed(1) : '-';
+
+                    tot.present += present; tot.absent += absent; tot.total += total; tot.rooms++;
+
+                    html += `<tr>
+                        <td class="ps-4 text-start fw-bold text-navy">ห้อง ${room}</td>
+                        <td class="text-success fw-bold">${present}</td>
+                        <td class="text-danger">${absent}</td>
+                        <td class="${pct !== '-' && pct >= 80 ? 'text-success' : 'text-danger'} fw-bold">${pct !== '-' ? pct + '%' : '-'}</td>
+                        <td class="text-muted small">${weekDays.length} วัน</td>
+                    </tr>`;
+                });
+
+                $('#weeklyTableBody').html(html || '<tr><td colspan="5" class="text-center py-5 text-muted">ไม่มีข้อมูลสัปดาห์นี้</td></tr>');
+
+                const avgPct = tot.total > 0 ? ((tot.present / tot.total) * 100).toFixed(1) : '0';
+                $('#weeklyKPIs').html(`
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-success">
+                        <div class="small fw-bold text-muted mb-1">มาเรียนรวม</div>
+                        <h3 class="fw-black text-success mb-0">${tot.present.toLocaleString()} ครั้ง</h3>
+                    </div></div>
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-danger">
+                        <div class="small fw-bold text-muted mb-1">ขาดเรียนรวม</div>
+                        <h3 class="fw-black text-danger mb-0">${tot.absent.toLocaleString()} ครั้ง</h3>
+                    </div></div>
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-primary">
+                        <div class="small fw-bold text-muted mb-1">ร้อยละมาเรียนเฉลี่ย</div>
+                        <h3 class="fw-black text-primary mb-0">${avgPct}%</h3>
+                    </div></div>
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-navy">
+                        <div class="small fw-bold text-muted mb-1">วันที่มีการเช็คชื่อ</div>
+                        <h3 class="fw-black text-navy mb-0">${weekDaySet.size} วัน</h3>
+                    </div></div>
+                `);
+            } catch (e) {
+                console.error(e);
+                $('#weeklyTableBody').html('<tr><td colspan="5" class="text-center py-5 text-danger">โหลดข้อมูลไม่สำเร็จ</td></tr>');
             }
         }
 
@@ -284,7 +498,7 @@
 
         function navigateToRoom(room) {
             const m = $('#monthSelect').val(); const y = $('#yearSelect').val();
-            window.location.href = `monthly_stats.html?room=${room}&month=${m}&year=${y}`;
+            window.location.href = `monthly_stats.html?room=${encodeURIComponent(room)}&month=${m}&year=${y}&from=${activeTab}`;
         }
 
         async function showDetailedReport(room) {
@@ -305,8 +519,7 @@
                     let t = { tm: 0, tf: 0, tr: 0, pm: 0, pf: 0, pr: 0, am: 0, af: 0, ar: 0, count: 0 };
                     
                     data.report.forEach(r => {
-                        const d = new Date(r.date);
-                        const dS = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()+543}`;
+                        const dS = thDate(r.date);
                         const tr = (parseInt(r.total_m) || 0) + (parseInt(r.total_f) || 0); 
                         const pr = (parseInt(r.present_m) || 0) + (parseInt(r.present_f) || 0); 
                         const ar = (parseInt(r.absent_m) || 0) + (parseInt(r.absent_f) || 0);
@@ -346,7 +559,13 @@
             } catch (e) { $('#detailedTableBody').html('<tr><td colspan="12" class="text-center py-5 text-danger">เกิดข้อผิดพลาด</td></tr>'); }
         }
 
-        function backToOverview() { window.location.href = 'monthly_stats.html'; }
+        function backToOverview() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const from = urlParams.get('from') || 'monthly';
+            const m    = urlParams.get('month') || '';
+            const y    = urlParams.get('year')  || '';
+            window.location.href = `monthly_stats.html?tab=${from}${m ? '&month=' + m : ''}${y ? '&year=' + y : ''}`;
+        }
     </script>
 </body>
 </html>

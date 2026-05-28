@@ -20,17 +20,7 @@ if (empty($room)) {
     exit;
 }
 
-// Security: If teacher, verify it's their room
-if ($role === 'teacher') {
-    $stmtVerify = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
-    $stmtVerify->execute([$user_id]);
-    $assigned_room = $stmtVerify->fetchColumn();
-    
-    if ($assigned_room !== $room) {
-        echo json_encode(['success' => false, 'error' => 'Forbidden: You can only view your own room report']);
-        exit;
-    }
-}
+// Authorized for both admin and teacher roles
 
 try {
     // 1. Get all students in this room
@@ -49,14 +39,13 @@ try {
         $attendanceMap[$record['student_id']][$record['date']] = $record['status'];
     }
 
-    // 4. Generate list of dates in range
-    $dates = [];
-    $current = strtotime($startDate);
-    $last = strtotime($endDate);
-    while ($current <= $last) {
-        $dates[] = date('Y-m-d', $current);
-        $current = strtotime('+1 day', $current);
+    // 4. Generate list of dates in range that actually have data
+    $datesMap = [];
+    foreach ($attendanceRecords as $record) {
+        $datesMap[$record['date']] = true;
     }
+    $dates = array_keys($datesMap);
+    sort($dates);
 
     echo json_encode([
         'success' => true,

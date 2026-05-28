@@ -132,11 +132,25 @@ while ($t = $stmt->fetch(PDO::FETCH_ASSOC)) {
     $teacherMap[trim($t['first_name_th'] . ' ' . $t['last_name_th'])] = $t['id'];
 }
 
+$dryRun = ($_POST['dry_run'] ?? '0') === '1';
 $successCount = 0;
+$duplicateCount = 0;
+$skipCount = 0;
 $errors = [];
+$willUpdate = [];
+
+// Cache existing transactions to detect duplicates
+$existingTx = [];
+$stmt = $pdo->query("SELECT student_id, item_id, points, occurrence_date, recorded_by, remark, semester, academic_year FROM point_transactions");
+while ($tx = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $key = $tx['student_id'] . '_' . $tx['item_id'] . '_' . (int)$tx['points'] . '_' . $tx['occurrence_date'] . '_' . $tx['recorded_by'] . '_' . ($tx['semester'] ?? '') . '_' . ($tx['academic_year'] ?? '');
+    $existingTx[$key] = $tx;
+}
 
 try {
-    $pdo->beginTransaction();
+    if (!$dryRun) {
+        $pdo->beginTransaction();
+    }
     
     $sql = "INSERT INTO point_transactions (student_id, item_id, points, remark, recorded_by, occurrence_date, semester, academic_year, created_at) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
@@ -149,14 +163,23 @@ try {
         $points = (int)($row['คะแนน'] ?? 0);
         $remark = trim($row['หมายเหตุ'] ?? '');
         $dateRaw = trim($row['วันที่ (ค.ศ. เช่น 2024-05-13)'] ?? $row['วันที่'] ?? '');
+        $yearRaw  = trim($row['ปีการศึกษา (เช่น 2568)'] ?? $row['ปีการศึกษา'] ?? '');
+        $semRaw   = trim($row['ภาคเรียน (1 หรือ 2)'] ?? $row['ภาคเรียน'] ?? '');
         $teacherName = trim($row['ครูผู้บันทึก'] ?? '');
+        // ปีการศึกษาและภาคเรียน: ใช้จาก CSV ถ้าระบุไว้ ไม่งั้นใช้ค่าปัจจุบันจากระบบ
+        $finalYear     = ($yearRaw !== '' && is_numeric($yearRaw)) ? (string)(int)$yearRaw : $settings['academic_year'];
+        $finalSemester = ($semRaw  !== '' && in_array((int)$semRaw, [1, 2])) ? (string)(int)$semRaw : $settings['semester'];
 
-        if (!$studentCode && !$itemName) continue;
+        if (!$studentCode && !$itemName) {
+            $skipCount++;
+            continue;
+        }
 
         // 1. Validate Student
         $studentInternalId = $studentMap[$studentCode] ?? null;
         if (!$studentInternalId) {
             $errors[] = "แถวที่ " . ($idx + 2) . ": ไม่พบรหัสนักเรียน '$studentCode'";
+            $skipCount++;
             continue;
         }
 
@@ -164,6 +187,7 @@ try {
         $itemId = $itemMap[$itemName] ?? null;
         if (!$itemId) {
             $errors[] = "แถวที่ " . ($idx + 2) . ": ไม่พบรายการพฤติกรรม '$itemName'";
+            $skipCount++;
             continue;
         }
 
@@ -194,33 +218,73 @@ try {
             $finalRecordedBy = $teacherMap[$teacherName];
         }
 
-        $stmt->execute([
-            $studentInternalId,
-            $itemId,
-            $finalPoints,
-            $remark,
-            $finalRecordedBy,
-            $finalDate,
-            $settings['semester'],
-            $settings['academic_year']
-        ]);
-        $successCount++;
+        // Check for duplicate transaction (key includes year+semester to allow same record in different terms)
+        $txKey = $studentInternalId . '_' . $itemId . '_' . $finalPoints . '_' . $finalDate . '_' . $finalRecordedBy . '_' . $finalSemester . '_' . $finalYear;
+        if (isset($existingTx[$txKey])) {
+            $duplicateCount++;
+            if ($dryRun) {
+                $willUpdate[] = [
+                    'student_id'   => $studentCode,
+                    'old_name'     => 'บันทึกความประพฤติเดิม',
+                    'new_name'     => $itemName . ' (' . ($finalPoints > 0 ? '+' : '') . $finalPoints . ' คะแนน)',
+                    'old_class'    => $existingTx[$txKey]['remark'] ?: '-',
+                    'new_class'    => $remark ?: '-',
+                    'is_different' => ($existingTx[$txKey]['remark'] !== $remark)
+                ];
+            }
+            continue;
+        }
+
+        if ($dryRun) {
+            $successCount++;
+        } else {
+            $stmt->execute([
+                $studentInternalId,
+                $itemId,
+                $finalPoints,
+                $remark,
+                $finalRecordedBy,
+                $finalDate,
+                $finalSemester,
+                $finalYear
+            ]);
+            $successCount++;
+        }
     }
 
-    if ($successCount > 0) {
-        $pdo->commit();
+    if ($dryRun) {
         echo json_encode([
-            'success' => true, 
-            'imported' => $successCount, 
-            'errors' => $errors,
-            'message' => "นำเข้าสำเร็จ $successCount รายการ" . (count($errors) > 0 ? " (พบข้อผิดพลาด " . count($errors) . " รายการ)" : "")
-        ]);
+            'success' => true,
+            'inserted' => $successCount,
+            'updated' => $duplicateCount,
+            'imported' => $successCount + $duplicateCount,
+            'skipped' => $skipCount,
+            'duplicates' => $willUpdate,
+            'duplicate_count' => $duplicateCount,
+            'skip_reasons' => array_slice($errors, 0, 20),
+            'message' => "ตรวจสอบแล้ว: ข้อมูลใหม่ $successCount รายการ, ซ้ำ $duplicateCount รายการ"
+        ], JSON_UNESCAPED_UNICODE);
     } else {
-        $pdo->rollBack();
-        echo json_encode(['success' => false, 'error' => 'ไม่มีข้อมูลที่สามารถนำเข้าได้', 'details' => $errors]);
+        if ($successCount > 0) {
+            $pdo->commit();
+            echo json_encode([
+                'success' => true, 
+                'imported' => $successCount, 
+                'duplicate_count' => $duplicateCount,
+                'errors' => $errors,
+                'message' => "นำเข้าสำเร็จ $successCount รายการ (ข้ามรายการซ้ำ $duplicateCount รายการ)"
+            ], JSON_UNESCAPED_UNICODE);
+        } else {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            echo json_encode([
+                'success' => false, 
+                'error' => 'ไม่มีข้อมูลใหม่ที่สามารถนำเข้าได้', 
+                'details' => $errors
+            ], JSON_UNESCAPED_UNICODE);
+        }
     }
 
 } catch (Exception $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
+    if (!$dryRun && $pdo->inTransaction()) $pdo->rollBack();
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

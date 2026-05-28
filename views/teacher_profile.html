@@ -80,6 +80,8 @@
         #profileForm.view-mode table tbody td:last-child { display: none; }
         #profileForm.view-mode .sig-action-btn { display: none !important; }
         #profileForm.view-mode .change-photo-btn { display: none !important; }
+        /* ซ่อน "-ไม่มีวิทยฐานะ-" ในโหมดดู — แสดงเฉพาะเวลาแก้ไข */
+        #profileForm.view-mode label[for="standing_none"] { display: none !important; }
 
         /* Signature */
         #signaturePad { background: white; border: 2px dashed #cbd5e1; border-radius: 16px; touch-action: none; max-width: 100%; }
@@ -89,6 +91,47 @@
 
         /* Incomplete alert */
         #completionAlert { border-radius: 16px; }
+
+        /* ─── Premium Responsive Adjustments ─── */
+        @media (max-width: 991.98px) {
+            .profile-avatar-wrapper { bottom: -35px; }
+            .profile-avatar { width: 100px; height: 100px; }
+            .id-badge-body { padding: 45px 15px 20px; }
+        }
+
+        @media (max-width: 768px) {
+            .btn-group-modern {
+                display: flex !important;
+                width: 100% !important;
+                flex-wrap: wrap !important;
+                gap: 4px !important;
+            }
+            .btn-group-modern .btn {
+                flex: 1 1 auto !important;
+                text-align: center !important;
+                padding: 8px 10px !important;
+                font-size: 0.78rem !important;
+            }
+            #profileForm.view-mode .btn-group-modern {
+                display: block !important;
+            }
+            #profileForm.view-mode .btn-check:checked + .btn-outline-primary {
+                display: inline-block !important;
+                padding-left: 0 !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .card-modern { padding: 1.25rem !important; }
+            .id-badge-name-th { font-size: 1.15rem; }
+            .id-badge-pos { font-size: 0.8rem; }
+            
+            /* Signature Pad button controls wrapping */
+            .sig-action-btn {
+                width: 100%;
+                margin-top: 4px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -202,20 +245,18 @@
                             <div class="card-modern p-4">
                                 <div class="section-title"><span class="icon-box"><i class="bi bi-fingerprint"></i></span>ข้อมูลระบุตัวตน</div>
                                 <div class="row g-3">
-                                    <div class="col-md-4"><label class="form-label">เลขประจำตัวประชาชน</label><input type="text" name="id_card" class="form-control" maxlength="13"></div>
-                                    <div class="col-md-4"><label class="form-label">วันเกิด</label><input type="date" name="birth_date" id="birthDateInput" class="form-control"></div>
-                                    <div class="col-md-4"><label class="form-label">วันเกิด (ไทย)</label><div id="fullThaiDate" class="form-control" style="background:#f8fafc;font-weight:600;">-</div></div>
+                                    <div class="col-md-6"><label class="form-label">เลขประจำตัวประชาชน</label><input type="text" name="id_card" class="form-control" maxlength="13"></div>
+                                    <div class="col-md-6"><label class="form-label">วันเกิด</label><input type="date" name="birth_date" id="birthDateInput" class="form-control"></div>
                                     <div class="col-md-4"><label class="form-label">เชื้อชาติ</label><input type="text" name="ethnicity" class="form-control" placeholder="ไทย"></div>
                                     <div class="col-md-4"><label class="form-label">สัญชาติ</label><input type="text" name="nationality" class="form-control" placeholder="ไทย"></div>
                                     <div class="col-md-4">
                                         <label class="form-label">ศาสนา</label>
-                                        <select name="religion" class="form-select">
-                                            <option value="">ระบุ</option>
-                                            <option value="พุทธ">พุทธ</option>
-                                            <option value="คริสต์">คริสต์</option>
-                                            <option value="อิสลาม">อิสลาม</option>
-                                            <option value="อื่นๆ">อื่นๆ</option>
-                                        </select>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="religion" id="rel_buddhist" value="พุทธ"><label class="btn btn-outline-primary" for="rel_buddhist">พุทธ</label>
+                                            <input type="radio" class="btn-check" name="religion" id="rel_christian" value="คริสต์"><label class="btn btn-outline-primary" for="rel_christian">คริสต์</label>
+                                            <input type="radio" class="btn-check" name="religion" id="rel_islamic" value="อิสลาม"><label class="btn btn-outline-primary" for="rel_islamic">อิสลาม</label>
+                                            <input type="radio" class="btn-check" name="religion" id="rel_other" value="อื่นๆ"><label class="btn btn-outline-primary" for="rel_other">อื่นๆ</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -243,7 +284,16 @@
                                             <option value="พนักงานราชการ">พนักงานราชการ</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6"><label class="form-label">วิทยฐานะ</label><select name="academic_standing" class="form-select standing-select"></select></div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">วิทยฐานะ</label>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_none" value="-ไม่มีวิทยฐานะ-"><label class="btn btn-outline-primary" for="standing_none">-ไม่มีวิทยฐานะ-</label>
+                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_ck" value="ชำนาญการ"><label class="btn btn-outline-primary" for="standing_ck">ชำนาญการ</label>
+                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_ckp" value="ชำนาญการพิเศษ"><label class="btn btn-outline-primary" for="standing_ckp">ชำนาญการพิเศษ</label>
+                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_cx" value="เชี่ยวชาญ"><label class="btn btn-outline-primary" for="standing_cx">เชี่ยวชาญ</label>
+                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_cxp" value="เชี่ยวชาญพิเศษ"><label class="btn btn-outline-primary" for="standing_cxp">เชี่ยวชาญพิเศษ</label>
+                                        </div>
+                                    </div>
                                     <div class="col-md-6"><label class="form-label">กลุ่มสาระการเรียนรู้</label><select name="department" class="form-select department-select"></select></div>
                                     <div class="col-md-6">
                                         <label class="form-label">คณะ</label>
@@ -288,37 +338,35 @@
                                 </div>
                             </div>
 
-                            <div class="card-modern p-4">
-                                <div class="section-title"><span class="icon-box"><i class="bi bi-list-check"></i></span>ภาระงานและบทบาท</div>
-                                <div class="table-responsive rounded-3 border overflow-hidden">
-                                    <table class="table table-hover align-middle mb-0" id="adminJobsTable">
-                                        <thead class="bg-light border-bottom text-muted small">
-                                            <tr>
-                                                <th class="ps-3 py-3">กลุ่มบริหาร</th>
-                                                <th>บทบาท</th>
-                                                <th>งานที่รับผิดชอบ</th>
-                                                <th class="text-center pe-3"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="adminJobsBody"></tbody>
-                                        <tfoot>
-                                            <tr><td colspan="4" class="p-2">
-                                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-bold py-2" onclick="addAdminJobRow()">
-                                                    <i class="bi bi-plus-lg me-1"></i> เพิ่มภาระงาน
-                                                </button>
-                                            </td></tr>
-                                        </tfoot>
-                                    </table>
-                                    <input type="hidden" name="admin_position" id="adminPositionJson">
-                                </div>
-                            </div>
 
                             <div class="card-modern p-4">
-                                <div class="section-title"><span class="icon-box"><i class="bi bi-pen-fill"></i></span>ลายเซ็นดิจิทัล</div>
-                                <canvas id="signaturePad" width="600" height="180" class="d-block w-100 shadow-sm"></canvas>
-                                <div class="mt-2 d-flex gap-2">
-                                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 sig-action-btn" onclick="undoSignature()"><i class="bi bi-arrow-counterclockwise me-1"></i>ย้อนกลับ</button>
-                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-pill px-3 sig-action-btn" onclick="clearSignature()"><i class="bi bi-trash me-1"></i>ล้าง</button>
+                                <div class="section-title mb-3"><span class="icon-box"><i class="bi bi-pen-fill"></i></span>ลายเซ็นดิจิทัล</div>
+                                
+                                <div class="row g-4">
+                                    <!-- Left Side: Drawing Area (Spacious & Easy to write) -->
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="d-flex flex-column h-100">
+                                            <label class="form-label d-flex justify-content-between align-items-center mb-2">
+                                                <span class="fw-bold"><i class="bi bi-pencil-fill me-1"></i>พื้นที่ลงลายมือชื่อ (เขียนลายเซ็นที่นี่)</span>
+                                                <div class="sig-action-btn d-flex align-items-center" style="gap: 6px;">
+                                                    <button type="button" class="btn btn-light border rounded-pill fw-bold text-secondary d-inline-flex align-items-center" style="font-size: 0.72rem; padding: 3px 10px; line-height: 1.2;" onclick="undoSignature()"><i class="bi bi-arrow-counterclockwise me-1" style="font-size: 0.75rem;"></i>ย้อนกลับ</button>
+                                                    <button type="button" class="btn btn-light border text-danger rounded-pill fw-bold d-inline-flex align-items-center" style="font-size: 0.72rem; padding: 3px 10px; line-height: 1.2;" onclick="clearSignature()"><i class="bi bi-trash me-1" style="font-size: 0.75rem;"></i>ล้าง</button>
+                                                </div>
+                                            </label>
+                                            <canvas id="signaturePad" style="background: white; border: 2px dashed rgb(203, 213, 225); border-radius: 16px; touch-action: none; width: 100%; aspect-ratio: 4 / 3; display: block; flex-grow: 1; user-select: none;" width="800" height="600"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Right Side: Current active signature preview -->
+                                    <div class="col-lg-6 col-md-12">
+                                        <div class="d-flex flex-column h-100">
+                                            <label class="form-label mb-2 fw-bold"><i class="bi bi-eye-fill me-1"></i>ลายเซ็นปัจจุบันที่ใช้งาน</label>
+                                            <div style="width: 100%; aspect-ratio: 4 / 3; border: 2px dashed #cbd5e1; border-radius: 16px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 10px; flex-grow: 1;">
+                                                <img id="signaturePreview" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;" alt="ลายเซ็นปัจจุบัน">
+                                                <div id="noSignaturePlaceholder" class="text-muted small text-center" style="display: block;"><i class="bi bi-pencil-square d-block fs-3 mb-1"></i>ยังไม่มีลายเซ็นในระบบ</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <input type="hidden" name="signature" id="signatureData">
                             </div>
@@ -392,15 +440,27 @@
                                     <div class="col-md-3"><label class="form-label">BMI</label><input type="text" id="bmiOutput" class="form-control fw-bold text-center" readonly></div>
                                     <div class="col-md-3">
                                         <label class="form-label">กรุ๊ปเลือด</label>
-                                        <select name="blood_group" class="form-select">
-                                            <option value="">ระบุ</option>
-                                            <option value="A">A</option><option value="B">B</option>
-                                            <option value="AB">AB</option><option value="O">O</option>
-                                        </select>
+                                        <div class="btn-group-modern">
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_a" value="A"><label class="btn btn-outline-primary" for="bg_a">A</label>
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_b" value="B"><label class="btn btn-outline-primary" for="bg_b">B</label>
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_ab" value="AB"><label class="btn btn-outline-primary" for="bg_ab">AB</label>
+                                            <input type="radio" class="btn-check" name="blood_group" id="bg_o" value="O"><label class="btn btn-outline-primary" for="bg_o">O</label>
+                                        </div>
                                     </div>
                                     <div class="col-md-6"><label class="form-label">โรคประจำตัว</label><input type="text" name="congenital_disease" class="form-control"></div>
                                     <div class="col-md-6"><label class="form-label">ประวัติแพ้ยา/อาหาร</label><input type="text" name="drug_allergies" class="form-control"></div>
-                                    <div class="col-md-6"><label class="form-label">วัคซีนโควิด</label><input type="text" name="covid_vaccine" class="form-control"></div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">วัคซีนโควิด</label>
+                                        <select name="covid_vaccine" class="form-select">
+                                            <option value="">เลือกการฉีดวัคซีน</option>
+                                            <option value="ยังไม่ได้ฉีด">ยังไม่ได้ฉีด</option>
+                                            <option value="1 เข็ม">1 เข็ม</option>
+                                            <option value="2 เข็ม">2 เข็ม</option>
+                                            <option value="3 เข็ม">3 เข็ม</option>
+                                            <option value="4 เข็ม">4 เข็ม</option>
+                                            <option value="มากกว่า 5 เข็ม">มากกว่า 5 เข็ม</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -419,6 +479,19 @@
                                 </div>
                             </div>
 
+                            <!-- ── Bottom Save Bar (แสดงเฉพาะตอนแก้ไข) ── -->
+                            <div id="bottomSaveBar" style="display:none;" class="mt-2">
+                                <div class="card-modern p-3 d-flex gap-2 justify-content-end align-items-center">
+                                    <span class="text-muted small me-auto"><i class="bi bi-info-circle me-1"></i>ตรวจสอบข้อมูลก่อนกดบันทึก</span>
+                                    <button type="button" class="btn btn-light border rounded-pill px-4 py-2 fw-bold" onclick="toggleEditMode(false)">
+                                        <i class="bi bi-x-lg me-1"></i>ยกเลิก
+                                    </button>
+                                    <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                                        <i class="bi bi-save2-fill me-2"></i>บันทึกข้อมูล
+                                    </button>
+                                </div>
+                            </div>
+
                         </div><!-- /col-lg-9 -->
                     </div><!-- /row -->
                 </form>
@@ -433,13 +506,15 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="../public/js/main.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
 <script>
     // ──── State ────
     let currentPhotoFile = null;
     let isEditing = false;
-    let canvas, ctx, isDrawing = false, lastPos = {}, strokes = [];
+    let canvas, signaturePad;
     let addressProvinces = [];
+    let calculateRetirementAndService = null;
 
     // ──── Boot ────
     document.addEventListener('DOMContentLoaded', async () => {
@@ -472,7 +547,10 @@
             // Badge
             document.getElementById('displayNameTH').innerText = `${data.prefix || ''}${data.first_name_th || ''} ${data.last_name_th || ''}`.trim() || 'ไม่มีชื่อ';
             document.getElementById('displayNameEN').innerText = `${data.first_name_en || ''} ${data.last_name_en || ''}`.trim().toUpperCase() || 'NAME SURNAME';
-            document.getElementById('displayPositionInfo').innerText = [data.position, data.academic_standing].filter(Boolean).join(' • ') || 'ครู';
+            // กรองค่า "-ไม่มีวิทยฐานะ-" (ค่าที่เริ่มต้นด้วย "-") ออกจาก badge
+            const posArr = [data.position, data.academic_standing]
+                .filter(v => v && !String(v).startsWith('-'));
+            document.getElementById('displayPositionInfo').innerText = posArr.join(' • ') || (data.position || 'ครู');
             if (data.photo) document.getElementById('displayAvatar').src = '../' + data.photo;
 
             try {
@@ -525,14 +603,16 @@
             }
 
             if (data.signature) {
-                document.getElementById('signatureData').value = data.signature;
-                const img = new Image();
-                img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                img.src = data.signature;
-            }
-
-            populateAdminJobsTable(data.admin_position);
+                                document.getElementById('signatureData').value = data.signature;
+                                signaturePad.fromDataURL(data.signature);
+                                updateSignaturePreview(data.signature);
+                            } else {
+                                updateSignaturePreview('');
+                            }
             populateEducationTable(data.education_history);
+            if (typeof calculateRetirementAndService === 'function') {
+                calculateRetirementAndService();
+            }
             calcBMI();
             checkCompletion(data);
             toggleEditMode(false);
@@ -548,11 +628,9 @@
         const rooms = ['-ไม่ระบุ-', ...Array.from({length:6}, (_,i)=>i+1).flatMap(g =>
             Array.from({length:12}, (_,r) => `${g}${String(r+1).padStart(2,'0')}`)
         )];
-        const standings   = ['-ไม่มีวิทยฐานะ-','ชำนาญการ','ชำนาญการพิเศษ','เชี่ยวชาญ','เชี่ยวชาญพิเศษ'];
         const departments = ['ภาษาไทย','คณิตศาสตร์','วิทยาศาสตร์และเทคโนโลยี','สังคมศึกษา ศาสนา และวัฒนธรรม','ศิลปะ','การงานอาชีพ','ภาษาต่างประเทศ','สุขศึกษาและพลศึกษา'];
         const fill = (sel, arr) => { sel.innerHTML = ''; arr.forEach(v => sel.add(new Option(v, v))); };
         fill(document.querySelector('.room-select'), rooms);
-        fill(document.querySelector('.standing-select'), standings);
         fill(document.querySelector('.department-select'), departments);
     }
 
@@ -610,9 +688,18 @@
             else el.disabled = !editing;
         });
 
-        document.getElementById('saveBtn').style.display   = editing ? 'inline-block' : 'none';
-        document.getElementById('cancelBtn').style.display = editing ? 'inline-block' : 'none';
-        document.getElementById('editBtn').style.display   = editing ? 'none' : 'inline-block';
+        document.getElementById('saveBtn').style.display      = editing ? 'inline-block' : 'none';
+        document.getElementById('cancelBtn').style.display    = editing ? 'inline-block' : 'none';
+        document.getElementById('editBtn').style.display      = editing ? 'none' : 'inline-block';
+        document.getElementById('bottomSaveBar').style.display = editing ? 'block' : 'none';
+
+        if (signaturePad) {
+            if (editing) {
+                signaturePad.on();
+            } else {
+                signaturePad.off();
+            }
+        }
     }
 
     // ──── House ────
@@ -648,32 +735,55 @@
         const aInp = document.getElementById('appointmentDateInput');
         const calc = () => {
             const bVal = bInp.value, aVal = aInp.value, today = new Date();
+            
+            // 1. Calculate Retirement Year
             if (bVal) {
                 const bd = new Date(bVal);
-                document.getElementById('fullThaiDate').innerText = thDate(bd);
                 let ry = bd.getFullYear() + 60;
-                if (bd.getMonth() > 9 || (bd.getMonth() === 9 && bd.getDate() > 1)) ry++;
-                document.getElementById('retirementYearOutput').value = ry + 543;
-                if (aVal) {
-                    const ad = new Date(aVal);
-                    let y = today.getFullYear() - ad.getFullYear();
-                    let m = today.getMonth() - ad.getMonth();
-                    let d = today.getDate() - ad.getDate();
-                    if (d < 0) { m--; d += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
-                    if (m < 0) { y--; m += 12; }
-                    document.getElementById('serviceYearsOutput').value = `${y} ปี ${m} เดือน ${d} วัน`;
-                } else {
-                    document.getElementById('serviceYearsOutput').value = '-';
+                // Thai government retirement is September 30 (month index 9, day 30).
+                // If born on Oct 1 (month index 9, day 1) or later, retire the following year.
+                if (bd.getMonth() > 9 || (bd.getMonth() === 9 && bd.getDate() > 1)) {
+                    ry++;
                 }
+                document.getElementById('retirementYearOutput').value = ry + 543;
+            } else {
+                document.getElementById('retirementYearOutput').value = '';
+            }
+            
+            // 2. Calculate Service Years
+            if (aVal) {
+                const ad = new Date(aVal);
+                let y = today.getFullYear() - ad.getFullYear();
+                let m = today.getMonth() - ad.getMonth();
+                let d = today.getDate() - ad.getDate();
+                if (d < 0) { 
+                    m--; 
+                    d += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); 
+                }
+                if (m < 0) { 
+                    y--; 
+                    m += 12; 
+                }
+                if (y < 0) {
+                    document.getElementById('serviceYearsOutput').value = 'ยังไม่ถึงวันบรรจุ';
+                } else {
+                    let parts = [];
+                    if (y > 0) parts.push(`${y} ปี`);
+                    if (m > 0) parts.push(`${m} เดือน`);
+                    if (d > 0) parts.push(`${d} วัน`);
+                    document.getElementById('serviceYearsOutput').value = parts.length > 0 ? parts.join(' ') : '0 วัน';
+                }
+            } else {
+                document.getElementById('serviceYearsOutput').value = '-';
             }
         };
         bInp.addEventListener('change', calc);
+        bInp.addEventListener('input', calc);
         aInp.addEventListener('change', calc);
-    }
-
-    function thDate(d) {
-        const m = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-        return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear() + 543}`;
+        aInp.addEventListener('input', calc);
+        
+        calculateRetirementAndService = calc;
+        calc();
     }
 
     // ──── BMI ────
@@ -729,51 +839,106 @@
         document.getElementById('educationBody').appendChild(tr);
     }
 
-    function populateAdminJobsTable(json) {
-        document.getElementById('adminJobsBody').innerHTML = '';
-        let rows = [];
-        try { rows = JSON.parse(json || '[]'); } catch(e) {}
-        if (rows.length) rows.forEach(r => addAdminJobRow(r)); else addAdminJobRow();
-    }
-
-    function addAdminJobRow(data = {}) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="ps-3"><input type="text" class="form-control border-0 bg-transparent job-group" value="${data.group||''}" placeholder="กลุ่มงาน..."></td>
-            <td><input type="text" class="form-control border-0 bg-transparent job-role" value="${data.role||''}" placeholder="บทบาท..."></td>
-            <td><input type="text" class="form-control border-0 bg-transparent job-work" value="${data.work||''}" placeholder="งานที่รับผิดชอบ..."></td>
-            <td class="text-center pe-3"><button type="button" class="btn btn-link text-danger p-0" onclick="this.closest('tr').remove()"><i class="bi bi-trash"></i></button></td>`;
-        document.getElementById('adminJobsBody').appendChild(tr);
-    }
-
     // ──── Signature Pad ────
     function initSignaturePad() {
         canvas = document.getElementById('signaturePad');
-        ctx = canvas.getContext('2d');
-        ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#1e293b';
+        signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)',   // opaque white → PNG has visible strokes
+            penColor: '#1e293b',
+            minWidth: 1.5,
+            maxWidth: 4.5
+        });
 
-        const getPos = e => {
-            const r = canvas.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: (cx - r.left) * (canvas.width / r.width), y: (cy - r.top) * (canvas.height / r.height) };
-        };
-        const start = e => { if (!isEditing) return; isDrawing = true; lastPos = getPos(e); ctx.beginPath(); ctx.moveTo(lastPos.x, lastPos.y); strokes.push([lastPos]); };
-        const draw  = e => { if (!isDrawing || !isEditing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); lastPos = p; strokes[strokes.length-1].push(p); };
-        const end   = () => { if (isDrawing) { isDrawing = false; document.getElementById('signatureData').value = canvas.toDataURL(); } };
+        // Event listener to save to hidden input and update preview
+        signaturePad.addEventListener("endStroke", () => {
+            const dataUrl = signatureToDataURL();
+            document.getElementById('signatureData').value = dataUrl;
+            updateSignaturePreview(dataUrl);
+        });
 
-        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', end); canvas.addEventListener('mouseleave', end);
-        canvas.addEventListener('touchstart', e => { e.preventDefault(); start(e); }, {passive:false});
-        canvas.addEventListener('touchmove',  e => { e.preventDefault(); draw(e);  }, {passive:false});
-        canvas.addEventListener('touchend', end);
+        // Make it responsive (debounced to avoid rapid-fire clears)
+        let _resizeTimer;
+        window.addEventListener("resize", () => {
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(resizeCanvas, 150);
+        });
+        // Initial resize
+        resizeCanvas();
+
+        // Initially disabled since we start in view-mode
+        signaturePad.off();
     }
 
-    function clearSignature() { ctx.clearRect(0,0,canvas.width,canvas.height); strokes=[]; document.getElementById('signatureData').value=''; }
+    /**
+     * Export signature as PNG.
+     * backgroundColor ถูก set เป็น 'rgb(255,255,255)' แล้ว → ได้ PNG พื้นขาวเสมอ
+     * column เป็น MEDIUMTEXT (16 MB) รับได้ทุกขนาด ไม่ต้องบีบอัด
+     */
+    function signatureToDataURL() {
+        return signaturePad.toDataURL('image/png');
+    }
+
+    function resizeCanvas() {
+        if (!canvas || !signaturePad) return;
+        const ratio = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2); // cap at 2× for size
+        const currentData = document.getElementById('signatureData').value;
+
+        canvas.width  = canvas.offsetWidth  * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(ratio, ratio);
+
+        signaturePad.clear();   // fills with white (backgroundColor: 'rgb(255,255,255)')
+        if (currentData) {
+            signaturePad.fromDataURL(currentData);
+        }
+    }
+
+    function updateSignaturePreview(dataUrl) {
+        const preview = document.getElementById('signaturePreview');
+        const placeholder = document.getElementById('noSignaturePlaceholder');
+
+        // ลายเซ็นจริงต้องเป็น data URL และมีขนาดสมเหตุสมผล (> 1 KB หลัง base64)
+        // ค่าที่ถูกตัดเหลือ 255 ตัวอักษร (VARCHAR เก่า) จะถูกมองว่าว่างเปล่า
+        const isValid = dataUrl &&
+                        typeof dataUrl === 'string' &&
+                        dataUrl.startsWith('data:image/') &&
+                        dataUrl.length > 1000;
+
+        if (isValid) {
+            preview.onerror = () => {
+                // ถ้าภาพโหลดไม่ได้ ให้แสดง placeholder แทน
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            };
+            preview.src = dataUrl;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else {
+            preview.onerror = null;
+            preview.src = '';
+            preview.style.display = 'none';
+            placeholder.style.display = 'block';
+        }
+    }
+
+    function clearSignature() {
+        if (!signaturePad) return;
+        signaturePad.clear();
+        document.getElementById('signatureData').value = '';
+        updateSignaturePreview('');
+    }
+
     function undoSignature() {
-        strokes.pop();
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        strokes.forEach(s => { ctx.beginPath(); s.forEach((p,i) => i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y)); ctx.stroke(); });
-        document.getElementById('signatureData').value = strokes.length ? canvas.toDataURL() : '';
+        if (!signaturePad) return;
+        const data = signaturePad.toData();
+        if (data && data.length > 0) {
+            data.pop();
+            signaturePad.fromData(data);
+            const dataUrl = signaturePad.isEmpty() ? '' : signatureToDataURL();
+            document.getElementById('signatureData').value = dataUrl;
+            updateSignaturePreview(dataUrl);
+        }
     }
 
     // ──── Photo ────
@@ -789,13 +954,7 @@
     async function saveProfile(e) {
         e.preventDefault();
 
-        // Collect table data before FormData
-        const adminJobs = Array.from(document.querySelectorAll('#adminJobsBody tr')).map(tr => ({
-            group: tr.querySelector('.job-group')?.value || '',
-            role:  tr.querySelector('.job-role')?.value  || '',
-            work:  tr.querySelector('.job-work')?.value  || ''
-        })).filter(j => j.group || j.work);
-        document.getElementById('adminPositionJson').value = JSON.stringify(adminJobs);
+
 
         const edus = Array.from(document.querySelectorAll('#educationBody tr')).map(tr => ({
             degree:      tr.querySelector('.edu-degree')?.value      || '',

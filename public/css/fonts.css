@@ -1,0 +1,73 @@
+/* TH Sarabun PSK — Official Thai government font from NECTEC/SIPA
+   Files hosted locally in /public/fonts/ for reliable PDF embedding.
+   This stylesheet must be included in ALL print/PDF views to guarantee
+   correct Thai vowel positioning without depending on the user's OS fonts.
+
+   Font stack: TH Sarabun PSK (primary) → Sarabun Google Fonts (fallback) → sans-serif
+*/
+
+/* ── TH Sarabun PSK (Primary — authentic NECTEC font) ── */
+@font-face {
+    font-family: 'TH Sarabun PSK';
+    src: url('../fonts/THSarabun.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TH Sarabun PSK';
+    src: url('../fonts/THSarabun-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TH Sarabun PSK';
+    src: url('../fonts/THSarabun-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TH Sarabun PSK';
+    src: url('../fonts/THSarabun-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* ── Sarabun (Fallback — Google Fonts version, broader weight range) ── */
+@font-face {
+    font-family: 'Sarabun';
+    src: url('../fonts/Sarabun-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sarabun';
+    src: url('../fonts/Sarabun-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sarabun';
+    src: url('../fonts/Sarabun-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Sarabun';
+    src: url('../fonts/Sarabun-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}

@@ -11,9 +11,34 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 }
 
 try {
+    // 0. Academic year/semester from system_settings & Last login
+    $academic_year = '2569';
+    $semester = '1';
+    try {
+        $stmtSettings = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('current_academic_year', 'current_semester')");
+        if ($stmtSettings) {
+            $settingsArr = [];
+            while ($row = $stmtSettings->fetch(PDO::FETCH_ASSOC)) {
+                $settingsArr[$row['setting_key']] = $row['setting_value'];
+            }
+            if (isset($settingsArr['current_academic_year'])) {
+                $academic_year = $settingsArr['current_academic_year'];
+            }
+            if (isset($settingsArr['current_semester'])) {
+                $semester = $settingsArr['current_semester'];
+            }
+        }
+    } catch (Exception $e) {}
+
+    $login_time_formatted = '';
+    $refTime = isset($_SESSION['login_time']) ? $_SESSION['login_time'] : time();
+    $login_time_formatted = date('j ', $refTime) . 
+        ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][(int)date('n', $refTime)] . 
+        ' ' . (date('Y', $refTime) + 543) . ' เวลา ' . date('H:i', $refTime) . ' น.';
+
     // 1. Basic stats
     $totalStudents = (int)$pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
-    $totalTeachers = (int)$pdo->query("SELECT COUNT(*) FROM teachers")->fetchColumn();
+    $totalTeachers = (int)$pdo->query("SELECT COUNT(*) FROM teachers t LEFT JOIN users u ON t.user_id = u.id WHERE u.role != 'admin' OR u.role IS NULL")->fetchColumn();
     $totalClasses  = (int)$pdo->query("SELECT COUNT(*) FROM rooms")->fetchColumn();
     $totalSubjects = (int)$pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
     $studentTeacherRatio = $totalTeachers > 0 ? round($totalStudents / $totalTeachers, 1) : 0;
@@ -104,6 +129,9 @@ try {
         'attendance'     => $attStats,
         'active_date'    => $activeDate,
         'is_today'       => $hasToday > 0,
+        'academic_year'  => $academic_year,
+        'semester'       => $semester,
+        'last_login'     => $login_time_formatted,
         'analytics' => [
             'total_checked'  => $totalChecked,
             'present_gender' => $presentGender,

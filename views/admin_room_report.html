@@ -190,7 +190,7 @@
                             <div class="d-flex flex-column">
                                 <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
                                     2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
+                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">
                                         CNPAPP<sup>©</sup>
                                     </a>
                                     ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
@@ -203,7 +203,7 @@
                         <div class="col-md-7 text-md-end">
                             <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
                                 สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
-                                cnpapp@chainatpit.ac.th
+                                งานพิธีการและประชาสัมพันธ์การศึกษา : ผู้พัฒนา cnpapp@chainatpit.ac.th
                             </div>
                             <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
                                 <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
@@ -337,6 +337,12 @@
                 const res = await fetch(`../api/admin/detailed-room-report.php?room=${room}&start_date=${start}&end_date=${end}`);
                 const data = await res.json();
                 if (data.success) {
+                    if (!data.dates || data.dates.length === 0) {
+                        $('#detailedHeaderRow2').find('th:not(.bg-sum-p, .bg-sum-a, .bg-sum-l, .bg-sum-s)').remove();
+                        $('#dateHeaderParent').attr('colspan', 1);
+                        $('#detailedTableBody').html('<tr><td colspan="6" class="text-center py-5 text-muted fw-bold"><i class="bi bi-calendar-x me-2 text-warning fs-4"></i>ไม่พบข้อมูลการเช็คชื่อในช่วงเวลาที่เลือก</td></tr>');
+                        return;
+                    }
                     const dateHeaders = data.dates.map(d => {
                         const dO = new Date(d);
                         return `<th class="date-cell bg-white text-navy border-light">${dO.getDate().toString().padStart(2, '0')}/${(dO.getMonth()+1).toString().padStart(2, '0')}</th>`;
@@ -352,7 +358,7 @@
                         let rowHtml = `<tr><td class="sticky-col-1 fw-bold text-muted">${s.number_in_class || (idx+1)}</td><td class="sticky-col-2 fw-bold text-dark">${s.prefix || ''}${s.first_name_th} ${s.last_name_th}</td>`;
                         
                         data.dates.forEach(d => {
-                            const st = data.attendance[s.student_id] ? data.attendance[s.student_id][d] : null;
+                            const st = data.attendance[s.id] ? data.attendance[s.id][d] : null;
                             let ic = '-', cl = 'text-muted opacity-25';
                             if (st === 'มา') { ic = '<i class="bi bi-check-lg"></i>'; cl = 'mark-present'; sum.p++; }
                             else if (st === 'ขาด') { ic = 'ข'; cl = 'mark-absent'; sum.a++; }

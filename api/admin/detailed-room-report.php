@@ -20,7 +20,7 @@ if (empty($room)) {
 
 try {
     // 1. Get all students in this room
-    $stmtStudents = $pdo->prepare("SELECT id, student_id, first_name_th, last_name_th, prefix, number_in_class FROM students WHERE class_name = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
+    $stmtStudents = $pdo->prepare("SELECT id, student_id, first_name_th, last_name_th, prefix, number_in_class FROM students WHERE class_name = ? AND (enrollment_status IS NULL OR enrollment_status = 'กำลังศึกษา') ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
     $stmtStudents->execute([$room]);
     $students = $stmtStudents->fetchAll(PDO::FETCH_ASSOC);
 
@@ -35,14 +35,13 @@ try {
         $attendanceMap[$record['student_id']][$record['date']] = $record['status'];
     }
 
-    // 4. Generate list of dates in range
-    $dates = [];
-    $current = strtotime($startDate);
-    $last = strtotime($endDate);
-    while ($current <= $last) {
-        $dates[] = date('Y-m-d', $current);
-        $current = strtotime('+1 day', $current);
+    // 4. Generate list of dates in range that actually have data
+    $datesMap = [];
+    foreach ($attendanceRecords as $record) {
+        $datesMap[$record['date']] = true;
     }
+    $dates = array_keys($datesMap);
+    sort($dates);
 
     echo json_encode([
         'success' => true,

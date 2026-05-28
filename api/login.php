@@ -93,22 +93,26 @@ try {
     if ($remember) {
         $cp = session_get_cookie_params();
         $longExpire = time() + 30 * 24 * 3600;
+        $isHttps = (
+            (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off')
+            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+        );
 
         setcookie(session_name(), session_id(), [
             'expires'  => $longExpire,
-            'path'     => $cp['path'],
+            'path'     => '/',
             'domain'   => $cp['domain'],
-            'secure'   => $cp['secure'],
-            'httponly' => $cp['httponly'],
-            'samesite' => $cp['samesite'] ?: 'Lax',
+            'secure'   => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
         ]);
         setcookie('cnp_remember', '1', [
             'expires'  => $longExpire,
-            'path'     => $cp['path'],
+            'path'     => '/',
             'domain'   => $cp['domain'],
-            'secure'   => $cp['secure'],
+            'secure'   => $isHttps,
             'httponly' => true,
-            'samesite' => $cp['samesite'] ?: 'Lax',
+            'samesite' => 'Lax',
         ]);
         // Issue persistent auth token (90 days) — works even if PHPSESSID is purged
         try { cnp_auth_token_issue($pdo, (int)$user['id']); } catch (Exception $e) { error_log('[login] token issue: '.$e->getMessage()); }

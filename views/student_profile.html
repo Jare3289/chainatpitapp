@@ -8,6 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../public/css/style.css">
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
         :root { --house-color: #0f172a; }
         body { font-family: 'Google Sans', sans-serif; background: #f1f5f9; color: #1e293b; overflow-x: hidden; }
@@ -63,20 +66,49 @@
             border: none !important; padding-left: 0 !important; font-size: 0.92rem; box-shadow: none !important;
         }
         #profileForm.view-mode [for="photoInput"] { display: none !important; }
+        #profileForm.view-mode .check-in-btn { display: none !important; }
+
+        /* Relationship Rating Scale */
+        .rel-scale-wrap { overflow-x: auto; }
+        .rel-scale-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; }
+        .rel-scale-table thead th { text-align: center; font-size: 0.78rem; font-weight: 700; color: #64748b; padding: 6px 4px 10px; border-bottom: 2px solid #e2e8f0; }
+        .rel-scale-table thead th:first-child { text-align: left; min-width: 130px; }
+        .rel-row-label { font-size: 0.85rem; font-weight: 700; color: #1e293b; padding: 8px 14px 8px 10px; white-space: nowrap; }
+        .rel-scale-table tbody tr:nth-child(odd) td { background: #f8fafc; }
+        .rel-scale-table tbody tr:nth-child(odd) .rel-row-label { border-radius: 8px 0 0 8px; }
+        .rel-scale-table tbody tr:nth-child(odd) td:last-child { border-radius: 0 8px 8px 0; }
+        .rel-radio-cell { display: block; text-align: center; cursor: pointer; padding: 8px 6px; }
+        .rel-radio-cell input[type="radio"] { display: none; }
+        .rel-dot { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid #cbd5e1; background: white; display: inline-block; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
+        .rel-radio-cell input:checked + .rel-dot { background: var(--house-color); border-color: var(--house-color); transform: scale(1.2); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+        .rel-radio-cell:hover .rel-dot { border-color: var(--house-color); transform: scale(1.08); }
+        #profileForm.view-mode .rel-radio-cell { cursor: default; pointer-events: none; }
+        #profileForm.view-mode .rel-dot { opacity: 0.12; }
+        #profileForm.view-mode .rel-radio-cell input:checked + .rel-dot { opacity: 1; }
+
+        /* Bottom Save Bar */
+        .bottom-save-bar { position: sticky; bottom: 0; z-index: 100; background: white; border-top: 2px solid #e2e8f0; padding: 14px 24px; margin-top: 20px; border-radius: 0 0 20px 20px; box-shadow: 0 -6px 24px rgba(0,0,0,0.08); }
 
         /* Completion bar */
         .completion-wrap { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 18px 20px; margin-bottom: 18px; }
 
         /* House card */
         .house-card { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 16px 20px; margin-bottom: 18px; }
+
+        /* House Picker */
+        .house-option { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid white; outline: 2px solid #e2e8f0; transition: transform 0.2s, outline 0.2s; }
+        .house-option:hover { transform: scale(1.2); }
+        .house-option.selected { outline: 2px solid #0f172a; transform: scale(1.15); }
+        #profileForm.view-mode .house-option { pointer-events: none; }
     </style>
 </head>
 <body>
 <div class="wrapper">
     <div class="sidebar" id="mainSidebar"></div>
 
-    <main class="app-main main-panel d-flex flex-column min-vh-100" id="main">
-        <div class="app-content page-content py-4">
+    <main class="main-panel d-flex flex-column min-vh-100" id="main">
+        <div id="header-container"></div>
+        <div class="app-content page-content flex-grow-1 py-4">
             <div class="container-fluid">
 
                 <form id="profileForm" onsubmit="saveProfile(event)" class="view-mode">
@@ -166,7 +198,16 @@
                                     <div class="col-md-3"><label class="form-label">ระดับชั้น</label><input type="text" name="grade_level" class="form-control" disabled></div>
                                     <div class="col-md-3"><label class="form-label">ห้องเรียน</label><input type="text" name="class_name" class="form-control" disabled></div>
                                     <div class="col-md-3"><label class="form-label">เลขที่</label><input type="text" name="number_in_class" class="form-control"></div>
-                                    <div class="col-md-6"><label class="form-label">คณะ</label><input type="text" name="house" class="form-control" disabled></div>
+                                     <div class="col-md-6">
+                                         <label class="form-label">คณะ</label>
+                                         <div class="d-flex gap-2 align-items-center pt-1" id="housePicker">
+                                             <div class="house-option" data-value="ขุนสรรค์" onclick="selectHouse(this)" title="ขุนสรรค์" style="background:#db2777;"></div>
+                                             <div class="house-option" data-value="ขุนศรี"   onclick="selectHouse(this)" title="ขุนศรี"   style="background:#dc2626;"></div>
+                                             <div class="house-option" data-value="เจ้ายี่"  onclick="selectHouse(this)" title="เจ้ายี่"  style="background:#16a34a;"></div>
+                                             <div class="house-option" data-value="ธรรมจักร" onclick="selectHouse(this)" title="ธรรมจักร" style="background:#ca8a04;"></div>
+                                             <span id="houseLabel" class="small fw-bold text-muted ms-1">-</span>
+                                         </div>
+                                     </div>
                                 </div>
                             </div>
 
@@ -178,8 +219,8 @@
                                     <div class="col-md-5"><label class="form-label">นามสกุล (ภาษาไทย)</label><input type="text" name="last_name_th" class="form-control" required></div>
                                     <div class="col-md-6"><label class="form-label">FIRST NAME (EN)</label><input type="text" name="first_name_en" class="form-control" oninput="this.value=this.value.toUpperCase()"></div>
                                     <div class="col-md-6"><label class="form-label">LAST NAME (EN)</label><input type="text" name="last_name_en" class="form-control" oninput="this.value=this.value.toUpperCase()"></div>
-                                    <div class="col-md-3"><label class="form-label">ชื่อเล่น</label><input type="text" name="nickname" class="form-control"></div>
-                                    <div class="col-md-9"><label class="form-label">ชื่อจริง (กรณีเปลี่ยนชื่อ)</label><input type="text" name="full_name_th" class="form-control" placeholder="ระบุชื่อจริงเต็ม ถ้ามีการเปลี่ยน"></div>
+                                    <div class="col-md-3"><label class="form-label">ชื่อเล่น</label><input type="text" name="nickname" class="form-control" oninput="this.value=this.value.replace(/[^฀-๿\s]/g,'')"></div>
+                                    <div class="col-md-9"><label class="form-label">ชื่อจริง (กรณีเปลี่ยนชื่อ) <small class="fw-normal text-muted">— เว้นว่างถ้าชื่อยังเหมือนเดิม</small></label><input type="text" name="full_name_th" class="form-control" placeholder="ระบุชื่อเต็มที่ถูกต้อง เฉพาะกรณีเปลี่ยนชื่อ/นามสกุลแล้ว"></div>
                                 </div>
                             </div>
 
@@ -261,7 +302,27 @@
                                     <div class="col-md-4"><label class="form-label">อำเภอ/เขต</label><select name="curr_district" class="form-select district-select" data-target-subdistrict="curr_subdistrict"><option value="">เลือกอำเภอ</option></select></div>
                                     <div class="col-md-4"><label class="form-label">ตำบล/แขวง</label><select name="curr_subdistrict" class="form-select subdistrict-select" data-zipcode="curr_zipcode"><option value="">เลือกตำบล</option></select></div>
                                     <div class="col-md-3"><label class="form-label">รหัสไปรษณีย์</label><input type="text" name="curr_zipcode" class="form-control" readonly></div>
-                                    <div class="col-md-9"><label class="form-label">พิกัด Lat, Long</label><input type="text" name="location_coords" class="form-control" placeholder="เช่น 15.1234, 100.1234"></div>
+                                    <div class="col-md-12">
+                                         <div class="card border shadow-sm p-3 bg-light rounded-3">
+                                             <div class="d-flex justify-content-between align-items-center mb-2">
+                                                 <span class="small fw-bold text-navy"><i class="bi bi-geo-alt-fill text-danger me-1"></i>พิกัด(บันทึกขณะอยู่ที่บ้าน):</span>
+                                                 <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold check-in-btn" onclick="getCurrentCoordinates(this)">
+                                                     <i class="bi bi-geo-alt me-1"></i>กดปุ่มเช็คอิน
+                                                 </button>
+                                             </div>
+                                             <div class="row g-2 align-items-center">
+                                                 <div class="col-md-4">
+                                                     <input type="text" name="location_coords" id="student_location_coords" class="form-control fw-bold bg-white text-navy" placeholder="เช่น 15.089259, 100.044303" oninput="updateLocationMapAndDistance(this)" onchange="updateLocationMapAndDistance(this)">
+                                                 </div>
+                                                 <div class="col-md-8 text-end">
+                                                     <span class="badge bg-navy text-white p-2 rounded-3 small" id="dist_label_badge">ระยะทางคำนวณอัตโนมัติ: - กม.</span>
+                                                 </div>
+                                             </div>
+                                             <div class="mt-3 overflow-hidden rounded-3 border" style="height: 250px; position: relative;">
+                                                 <div id="student_map" style="width: 100%; height: 100%; z-index: 1;"></div>
+                                             </div>
+                                         </div>
+                                     </div>
                                     <div class="col-md-6"><label class="form-label">จุดสังเกต</label><input type="text" name="location_landmark" class="form-control"></div>
                                     <div class="col-md-3"><label class="form-label">ผู้ใหญ่บ้าน</label><input type="text" name="village_headman" class="form-control"></div>
                                     <div class="col-md-3"><label class="form-label">กำนัน</label><input type="text" name="subdistrict_headman" class="form-control"></div>
@@ -305,7 +366,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4"><label class="form-label">ระยะทางจากโรงเรียน (กม.)</label><input type="number" step="0.1" name="dist_to_school" class="form-control"></div>
-                                    <div class="col-md-4"><label class="form-label">ใช้เวลาเดินทาง (นาที)</label><input type="number" name="travel_time" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">ใช้เวลาอยู่กับครอบครัวต่อวัน (นาที)</label><input type="number" name="travel_time" class="form-control"></div>
                                     <div class="col-md-4"><label class="form-label">เดินทางโดย</label><select name="travel_method" class="form-select"></select></div>
                                 </div>
                             </div>
@@ -414,12 +475,64 @@
                                 <div class="section-title"><span class="icon-box"><i class="bi bi-chat-heart-fill"></i></span>ความสัมพันธ์ & วิถีชีวิต</div>
                                 <div class="row g-3">
                                     <div class="col-md-6"><label class="form-label">ความสัมพันธ์ของสมาชิก</label><select name="family_relationship" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับบิดา</label><select name="rel_father" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับมารดา</label><select name="rel_mother" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับพี่/น้องชาย</label><select name="rel_brothers" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับพี่/น้องสาว</label><select name="rel_sisters" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับปู่ย่าตายาย</label><select name="rel_grandparents" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับญาติพี่น้อง</label><select name="rel_relatives" class="form-select"></select></div>
+                                    <div class="col-12">
+                                        <label class="form-label mb-2">ความสัมพันธ์กับสมาชิกในครอบครัว</label>
+                                        <div class="rel-scale-wrap">
+                                            <table class="rel-scale-table">
+                                                <thead><tr><th></th><th>สนิทสนม</th><th>เฉย ๆ</th><th>ห่างเหิน</th><th>ขัดแย้ง</th><th>ไม่มี</th></tr></thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับบิดา</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับมารดา</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับพี่/น้องชาย</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับพี่/น้องสาว</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับปู่ย่าตายาย</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับญาติพี่น้อง</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                     <div class="col-md-4"><label class="form-label">เวลาอยู่ร่วมกัน (ชม./วัน)</label><input type="number" step="0.5" name="time_spent_together" class="form-control"></div>
                                     <div class="col-md-4">
                                         <label class="form-label">ได้รับเงินจาก</label>
@@ -449,7 +562,13 @@
                                 <div class="row g-3">
                                     <div class="col-md-3"><label class="form-label">น้ำหนัก (กก.)</label><input type="number" step="0.1" name="weight" class="form-control bmi-calc"></div>
                                     <div class="col-md-3"><label class="form-label">ส่วนสูง (ซม.)</label><input type="number" step="0.1" name="height" class="form-control bmi-calc"></div>
-                                    <div class="col-md-3"><label class="form-label">BMI</label><input type="text" id="displayBMI" class="form-control fw-bold text-center" readonly></div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">BMI <small class="text-muted fw-normal">(คำนวณอัตโนมัติ)</small></label>
+                                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                                            <input type="text" id="displayBMI" class="form-control fw-bold text-center" readonly style="max-width:90px;">
+                                            <span id="bmiLabel" class="fw-bold fs-6"></span>
+                                        </div>
+                                    </div>
                                     <div class="col-md-3">
                                         <label class="form-label">กรุ๊ปเลือด</label>
                                         <div class="btn-group-modern">
@@ -485,10 +604,22 @@
 
                         </div><!-- /col-lg-9 -->
                     </div><!-- /row -->
+
+                    <!-- Bottom Save Bar -->
+                    <div id="bottomSaveBar" class="bottom-save-bar" style="display:none;">
+                        <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                            <span class="text-muted small me-auto"><i class="bi bi-pencil-square me-1"></i>โหมดแก้ไข — กดบันทึกเพื่อยืนยันการเปลี่ยนแปลง</span>
+                            <button type="button" class="btn btn-light border rounded-pill px-4 fw-bold" onclick="toggleEditMode(false)">ยกเลิก</button>
+                            <button type="submit" form="profileForm" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                <i class="bi bi-save2-fill me-2"></i>บันทึกข้อมูล
+                            </button>
+                        </div>
+                    </div>
                 </form>
 
             </div>
         </div>
+        <footer id="footer-container" class="mt-auto"></footer>
     </main>
 </div>
 
@@ -526,7 +657,6 @@
     // ──── Boot ────
     document.addEventListener('DOMContentLoaded', async () => {
         const user = await checkAuth('student');
-        console.log('[student/profile] auth user:', user);
         if (user) {
             populateStaticSelects();
             await setupAddressDropdowns();
@@ -553,12 +683,6 @@
             'g_education':        EDUCATIONS,
             'family_status':      FAMILY_STATUSES_OVERALL,
             'family_relationship':FAMILY_RELATIONSHIPS_MEMBER,
-            'rel_father':         RELATION_LEVELS,
-            'rel_mother':         RELATION_LEVELS,
-            'rel_brothers':       RELATION_LEVELS,
-            'rel_sisters':        RELATION_LEVELS,
-            'rel_grandparents':   RELATION_LEVELS,
-            'rel_relatives':      RELATION_LEVELS,
             'house_type':         HOUSE_TYPES,
             'house_style':        HOUSE_STYLES,
             'house_condition':    HOUSE_CONDITIONS,
@@ -580,14 +704,11 @@
         try {
             const res = await fetch('../api/student/profile.php');
             const result = await res.json();
-            console.log('[student/profile] API response:', result);
             if (!result.success) {
-                console.warn('[student/profile] failed:', result.error);
                 Swal.fire('ไม่พบข้อมูล', result.error || 'ไม่พบข้อมูลนักเรียน', 'warning');
                 return;
             }
             const data = result.data;
-            console.log('[student/profile] data keys:', Object.keys(data));
             window.currentStudentData = data;
 
             // Badge
@@ -607,13 +728,15 @@
             } catch(qrErr) { console.warn('[QR student]', qrErr); }
 
             setHouseValue(data.house);
-            console.log('[debug] ค่าจริง:', { first_name_th: data.first_name_th, student_id: data.student_id, house: data.house, grade_level: data.grade_level });
 
             // Populate form fields
             const form = document.getElementById('profileForm');
+            const computedFullName = `${data.prefix || ''}${data.first_name_th || ''} ${data.last_name_th || ''}`.trim();
             for (const key in data) {
                 const val = data[key];
                 if (val === null || val === undefined) continue;
+                // full_name_th handled separately below
+                if (key === 'full_name_th') continue;
                 const inputs = form.querySelectorAll(`[name="${key}"]`);
                 if (!inputs.length) continue;
 
@@ -634,7 +757,25 @@
                 }
             }
 
+            // full_name_th: แสดงเฉพาะกรณีที่ต่างจากชื่อปัจจุบัน (ไม่ auto-fill ชื่อปัจจุบัน)
+            const fullNameInput = form.querySelector('[name="full_name_th"]');
+            if (fullNameInput) {
+                const stored = (data.full_name_th || '').trim();
+                fullNameInput.value = (stored && stored !== computedFullName) ? stored : '';
+            }
+
+            // Live badge update เมื่อแก้ไขชื่อ/คำนำหน้าในโหมดแก้ไข
+            ['prefix', 'first_name_th', 'last_name_th'].forEach(fld => {
+                const el = form.querySelector(`[name="${fld}"]`);
+                if (el) el.addEventListener('change', updateDisplayName);
+                if (el) el.addEventListener('input', updateDisplayName);
+            });
+
             calcBMI();
+
+            // Initialize Leaflet Map with loaded coordinates
+            initStudentMap(data.location_coords || '');
+
             checkCompletion();
             toggleEditMode(false);
         } catch (e) {
@@ -672,7 +813,8 @@
             addressCache.districts[pId] = await res.json();
         }
         sel.innerHTML = '<option value="">เลือกอำเภอ</option>';
-        addressCache.districts[pId].forEach(d => sel.add(new Option(d.name, d.name, d.name === distVal, d.name === distVal)));
+        addressCache.districts[pId].forEach(d => sel.add(new Option(d.name, d.name, false, false)));
+        if (distVal) sel.value = distVal;
         sel.onchange = async function() {
             const d = addressCache.districts[pId].find(x => x.name === this.value);
             const sSel = document.querySelector(`[name="${this.dataset.targetSubdistrict}"]`);
@@ -693,10 +835,11 @@
         }
         sel.innerHTML = '<option value="">เลือกตำบล</option>';
         addressCache.subdistricts[dId].forEach(s => {
-            const opt = new Option(s.name, s.name, s.name === subVal, s.name === subVal);
+            const opt = new Option(s.name, s.name, false, false);
             opt.dataset.zip = s.postcode;
             sel.add(opt);
         });
+        if (subVal) sel.value = subVal;
         sel.onchange = function() {
             const zipField = document.querySelector(`[name="${this.dataset.zipcode}"]`);
             const opt = this.options[this.selectedIndex];
@@ -705,6 +848,11 @@
         if (zipVal) {
             const zipField = document.querySelector(`[name="${sel.dataset.zipcode}"]`);
             if (zipField) zipField.value = zipVal;
+        } else if (subVal) {
+            // auto-fill zipcode from the selected subdistrict option
+            const selected = sel.options[sel.selectedIndex];
+            const zipField = document.querySelector(`[name="${sel.dataset.zipcode}"]`);
+            if (zipField && selected && selected.dataset.zip) zipField.value = selected.dataset.zip;
         }
     }
 
@@ -723,9 +871,153 @@
         document.getElementById('saveBtn').style.display   = editing ? 'inline-block' : 'none';
         document.getElementById('cancelBtn').style.display = editing ? 'inline-block' : 'none';
         document.getElementById('editBtn').style.display   = editing ? 'none' : 'inline-block';
+        const bottomBar = document.getElementById('bottomSaveBar');
+        if (bottomBar) bottomBar.style.display = editing ? 'block' : 'none';
+    }
+
+    let studentMap = null;
+    let studentMarker = null;
+
+    function initStudentMap(coordsStr = '') {
+        const defaultLat = 15.1878;
+        const defaultLng = 100.1245;
+        let lat = defaultLat;
+        let lng = defaultLng;
+        
+        if (coordsStr && coordsStr.includes(',')) {
+            const parts = coordsStr.split(',');
+            const pLat = parseFloat(parts[0]);
+            const pLng = parseFloat(parts[1]);
+            if (!isNaN(pLat) && !isNaN(pLng)) {
+                lat = pLat;
+                lng = pLng;
+            }
+        }
+        
+        setTimeout(() => {
+            const mapContainer = document.getElementById('student_map');
+            if (!mapContainer) return;
+            
+            if (studentMap) {
+                try {
+                    studentMap.off();
+                    studentMap.remove();
+                } catch(err) {
+                    console.warn('Map cleanup error:', err);
+                }
+                studentMap = null;
+            }
+            
+            studentMap = L.map('student_map').setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(studentMap);
+            
+            studentMarker = L.marker([lat, lng]).addTo(studentMap);
+            
+            if (coordsStr) {
+                calculateAndUpdateDistance(lat, lng);
+            }
+        }, 300);
+    }
+
+    function getCurrentCoordinates(btn) {
+        if (!navigator.geolocation) {
+            Swal.fire('ข้อผิดพลาด', 'เบราว์เซอร์ของคุณไม่รองรับการดึงพิกัด Geolocation', 'warning');
+            return;
+        }
+        
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> กำลังดึงพิกัด...';
+        
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const coordsVal = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                const coordsInput = document.getElementById('student_location_coords') || document.querySelector('[name="location_coords"]');
+                if (coordsInput) {
+                    coordsInput.value = coordsVal;
+                    updateLocationMapAndDistance(coordsInput);
+                }
+                
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เช็คอินสำเร็จ',
+                    text: `บันทึกพิกัดแล้ว: ${coordsVal}`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            },
+            (error) => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                let errMsg = 'ไม่สามารถดึงพิกัดได้';
+                if (error.code === error.PERMISSION_DENIED) {
+                    errMsg = 'โปรดอนุญาตสิทธิ์การเข้าถึงพิกัดตำแหน่ง (Location Access)';
+                }
+                Swal.fire('ผิดพลาด', errMsg, 'error');
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    function updateLocationMapAndDistance(input) {
+        const val = input.value.trim();
+        if (!val || !val.includes(',')) return;
+        
+        const parts = val.split(',');
+        const lat = parseFloat(parts[0]);
+        const lng = parseFloat(parts[1]);
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        if (studentMap) {
+            studentMap.setView([lat, lng], 15);
+            if (studentMarker) {
+                studentMarker.setLatLng([lat, lng]);
+            } else {
+                studentMarker = L.marker([lat, lng]).addTo(studentMap);
+            }
+        }
+        
+        calculateAndUpdateDistance(lat, lng);
+    }
+
+    function calculateAndUpdateDistance(lat, lng) {
+        const schoolLat = 15.1878;
+        const schoolLng = 100.1245;
+        
+        const R = 6371; // km
+        const dLat = (schoolLat - lat) * Math.PI / 180;
+        const dLon = (schoolLng - lng) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat * Math.PI / 180) * Math.cos(schoolLat * Math.PI / 180) * 
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const dist = R * c;
+        
+        const distInput = document.querySelector('[name="dist_to_school"]');
+        if (distInput) {
+            distInput.value = dist.toFixed(2);
+        }
+        
+        const badge = document.getElementById('dist_label_badge');
+        if (badge) {
+            badge.innerText = `ระยะทางคำนวณอัตโนมัติ: ${dist.toFixed(2)} กม.`;
+        }
     }
 
     // ──── House ────
+    function selectHouse(el) {
+        if (!isEditing) return;
+        setHouseValue(el.dataset.value);
+    }
+
     function setHouseValue(val) {
         if (!val) return;
         const colors = { 'ขุนสรรค์': '#db2777', 'ขุนศรี': '#dc2626', 'เจ้ายี่': '#16a34a', 'ธรรมจักร': '#ca8a04' };
@@ -735,9 +1027,15 @@
         document.getElementById('houseIndicator').style.background = color;
         document.getElementById('displayHouse').innerText = val;
         document.getElementById('houseInput').value = val;
-        // Sync the form field [name="house"]
-        const houseInput = document.querySelector('input[name="house"]');
-        if (houseInput) houseInput.value = val;
+        
+        const label = document.getElementById('houseLabel');
+        if (label) label.innerText = val;
+
+        // Highlight selected bubble
+        document.querySelectorAll('.house-option').forEach(o => {
+            if (o.dataset.value === val) o.classList.add('selected');
+            else o.classList.remove('selected');
+        });
     }
 
     // ──── Address Sync ────
@@ -756,20 +1054,46 @@
         }
     }
 
+    // ──── Badge live name update ────
+    function updateDisplayName() {
+        const form = document.getElementById('profileForm');
+        if (!form) return;
+        const prefix = (form.querySelector('[name="prefix"]')?.value || '').trim();
+        const first  = (form.querySelector('[name="first_name_th"]')?.value || '').trim();
+        const last   = (form.querySelector('[name="last_name_th"]')?.value || '').trim();
+        const badge  = document.getElementById('displayNameTH');
+        if (badge) badge.innerText = `${prefix}${first} ${last}`.trim() || 'ไม่มีชื่อ';
+    }
+
     // ──── BMI ────
     function setupBMICalc() {
         document.querySelectorAll('.bmi-calc').forEach(el => el.addEventListener('input', calcBMI));
     }
     function calcBMI() {
-        const w = parseFloat(document.querySelector('[name="weight"]').value);
-        const h = parseFloat(document.querySelector('[name="height"]').value) / 100;
-        const el = document.getElementById('displayBMI');
-        if (w > 0 && h > 0) {
-            const bmi = (w / (h * h)).toFixed(2);
-            el.value = bmi;
-            el.className = `form-control fw-bold text-center ${bmi < 18.5 ? 'text-warning' : bmi < 25 ? 'text-success' : 'text-danger'}`;
-        } else {
-            el.value = '';
+        const wInput = document.querySelector('[name="weight"]');
+        const hInput = document.querySelector('[name="height"]');
+        if (!wInput || !hInput) return;
+        const w = parseFloat(wInput.value);
+        const h = parseFloat(hInput.value) / 100;
+        const el    = document.getElementById('displayBMI');
+        const label = document.getElementById('bmiLabel');
+        if (el) {
+            if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
+                const bmi = (w / (h * h)).toFixed(2);
+                el.value = bmi;
+                let text, cls;
+                if      (bmi < 18.5) { text = '⚠️ ผอม';          cls = 'text-warning'; }
+                else if (bmi < 23.0) { text = '✅ ปกติ';          cls = 'text-success'; }
+                else if (bmi < 25.0) { text = '⚡ น้ำหนักเกิน';  cls = 'text-warning'; }
+                else if (bmi < 30.0) { text = '🔴 อ้วน';          cls = 'text-danger';  }
+                else                 { text = '🔴 อ้วนมาก';       cls = 'text-danger';  }
+                el.className = `form-control fw-bold text-center ${cls}`;
+                if (label) { label.textContent = text; label.className = `fw-bold fs-6 ${cls}`; }
+            } else {
+                el.value = '';
+                el.className = 'form-control fw-bold text-center';
+                if (label) { label.textContent = ''; label.className = 'fw-bold fs-6'; }
+            }
         }
     }
 

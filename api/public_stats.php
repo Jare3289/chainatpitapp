@@ -18,18 +18,19 @@ try {
     
     // 3. Gender breakdown of Present students
     $genderData = $pdo->prepare("
-        SELECT s.gender, COUNT(*) as count 
+        SELECT 
+            SUM(CASE WHEN s.prefix IN ('เด็กชาย','นาย','ด.ช.','ด.ช','master','Master','Mr.','Mr') THEN 1 ELSE 0 END) as male,
+            SUM(CASE WHEN s.prefix IN ('เด็กหญิง','นางสาว','นาง','ด.ญ.','ด.ญ','น.ส.','น.ส','miss','Miss','Mrs.','Mrs','Ms.','Ms') THEN 1 ELSE 0 END) as female
         FROM students s 
         JOIN attendance a ON s.id = a.student_id 
-        WHERE a.date = ? AND a.status = 'มา' 
-        GROUP BY s.gender
+        WHERE a.date = ? AND a.status = 'มา'
     ");
     $genderData->execute([$today]);
-    $presentGender = ['ชาย' => 0, 'หญิง' => 0];
-    foreach ($genderData->fetchAll() as $row) {
-        $gender = $row['gender'] == 'ชาย' ? 'ชาย' : 'หญิง';
-        $presentGender[$gender] += (int)$row['count'];
-    }
+    $g = $genderData->fetch(PDO::FETCH_ASSOC) ?: ['male' => 0, 'female' => 0];
+    $presentGender = [
+        'ชาย' => (int)$g['male'],
+        'หญิง' => (int)$g['female']
+    ];
 
     // 4. Room Attendance (Top 5 or selected)
     $roomData = $pdo->prepare("

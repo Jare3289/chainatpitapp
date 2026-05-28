@@ -5,7 +5,6 @@
     <title>ประวัติการให้คะแนน | CNP APP</title>
     <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -14,317 +13,552 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
     <style>
-        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; }
-        .recent-history-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-        .recent-history-table tr { background: #fcfdfe; transition: all 0.2s; }
-        .recent-history-table tr:hover { background: #f8fafc; transform: scale(1.005); }
-        .recent-history-table td { padding: 16px 20px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        .recent-history-table td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
-        .recent-history-table td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
-        .score-badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; }
-        .score-plus { background: #ecfdf5; color: #10b981; }
-        .score-minus { background: #fef2f2; color: #ef4444; }
-        .btn-edit-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #64748b; border: none; transition: 0.2s; }
-        .btn-edit-icon:hover { background: #e2e8f0; color: #1e3c72; }
-        .modal-premium { border-radius: 20px; border: none; }
-        .modal-premium .modal-header { border-bottom: 1px solid #f1f5f9; padding: 20px 25px; }
-        .modal-premium .modal-footer { border-top: 1px solid #f1f5f9; padding: 15px 25px; }
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background: #f0f4ff; }
+
+        /* ── Hero Banner ── */
+        .hero-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%);
+            border-radius: 24px;
+            padding: 32px 36px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .hero-banner::before {
+            content: '\F4C2';
+            font-family: 'Bootstrap-Icons';
+            position: absolute; right: -20px; top: -30px;
+            font-size: 12rem; opacity: 0.06; color: white;
+            transform: rotate(-10deg); line-height: 1;
+        }
+        .hero-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+        .hero-sub { opacity: 0.7; font-size: 0.9rem; }
+
+        /* ── Stat Chips ── */
+        .stat-chips { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+        .stat-chip {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 10px 18px;
+            backdrop-filter: blur(6px);
+            display: flex; align-items: center; gap: 10px;
+            min-width: 130px;
+        }
+        .stat-chip-icon { font-size: 1.3rem; }
+        .stat-chip-label { font-size: 0.72rem; opacity: 0.7; line-height: 1; margin-bottom: 2px; }
+        .stat-chip-val { font-size: 1.15rem; font-weight: 800; line-height: 1; }
+
+        /* ── Toolbar ── */
+        .toolbar-card {
+            background: white;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+        }
+        .search-wrap { position: relative; flex: 1; min-width: 200px; }
+        .search-wrap .bi { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1rem; }
+        .search-input {
+            width: 100%; border: 1.5px solid #e2e8f0; border-radius: 12px;
+            padding: 10px 14px 10px 38px; font-size: 0.9rem; outline: none;
+            transition: border-color .2s;
+        }
+        .search-input:focus { border-color: #3b82f6; }
+        .filter-select {
+            border: 1.5px solid #e2e8f0; border-radius: 12px;
+            padding: 10px 14px; font-size: 0.9rem; outline: none;
+            background: white; min-width: 140px; cursor: pointer;
+            transition: border-color .2s;
+        }
+        .filter-select:focus { border-color: #3b82f6; }
+        .btn-refresh {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: #f1f5f9; border: none; color: #64748b;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; cursor: pointer; transition: all .2s; flex-shrink: 0;
+        }
+        .btn-refresh:hover { background: #e2e8f0; color: #1e3a8a; transform: rotate(15deg); }
+
+        /* ── Table ── */
+        .data-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .data-card-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .data-card-title { font-size: 1rem; font-weight: 800; color: #0f172a; }
+        .record-count { font-size: 0.78rem; background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-weight: 700; }
+
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table thead th {
+            padding: 12px 16px; font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            color: #94a3b8; background: #f8fafc;
+            border-bottom: 1px solid #f1f5f9; white-space: nowrap;
+        }
+        .history-table tbody tr {
+            border-bottom: 1px solid #f8fafc;
+            transition: background .15s;
+        }
+        .history-table tbody tr:hover { background: #f8faff; }
+        .history-table tbody tr:last-child { border-bottom: none; }
+        .history-table td { padding: 14px 16px; vertical-align: middle; }
+
+        /* Date cell */
+        .cell-date-primary { font-size: 0.88rem; font-weight: 700; color: #1e293b; }
+        .cell-date-sub { font-size: 0.72rem; color: #94a3b8; margin-top: 2px; }
+
+        /* Student cell */
+        .student-avatar {
+            width: 38px; height: 38px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 0.85rem; color: white; flex-shrink: 0;
+        }
+        .student-name { font-weight: 700; font-size: 0.88rem; color: #1e293b; }
+        .student-meta { font-size: 0.72rem; color: #94a3b8; margin-top: 1px; }
+
+        /* Behavior cell */
+        .behavior-type {
+            display: inline-block; font-size: 0.68rem; font-weight: 700;
+            padding: 2px 8px; border-radius: 6px; margin-bottom: 3px;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .type-add { background: #dcfce7; color: #15803d; }
+        .type-cut { background: #fee2e2; color: #b91c1c; }
+        .behavior-reason { font-size: 0.85rem; font-weight: 600; color: #374151; }
+        .behavior-remark { font-size: 0.72rem; color: #9ca3af; margin-top: 2px; }
+
+        /* Teacher cell */
+        .teacher-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #f1f5f9; border-radius: 10px;
+            padding: 5px 10px; font-size: 0.78rem; font-weight: 600; color: #475569;
+        }
+        .teacher-dot { width: 7px; height: 7px; border-radius: 50%; background: #3b82f6; }
+
+        /* Score badge */
+        .score-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 14px; border-radius: 12px;
+            font-size: 1rem; font-weight: 800; white-space: nowrap;
+        }
+        .score-pos { background: linear-gradient(135deg,#dcfce7,#bbf7d0); color: #15803d; }
+        .score-neg { background: linear-gradient(135deg,#fee2e2,#fecaca); color: #b91c1c; }
+
+        /* Action buttons */
+        .act-btn {
+            width: 32px; height: 32px; border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            border: none; font-size: 0.78rem; cursor: pointer; transition: all .15s;
+        }
+        .act-edit { background: #eff6ff; color: #2563eb; }
+        .act-edit:hover { background: #dbeafe; color: #1d4ed8; transform: scale(1.1); }
+        .act-del { background: #fef2f2; color: #ef4444; }
+        .act-del:hover { background: #fee2e2; color: #b91c1c; transform: scale(1.1); }
+
+        /* Empty state */
+        .empty-state { padding: 60px 20px; text-align: center; color: #94a3b8; }
+        .empty-state-icon { font-size: 3.5rem; margin-bottom: 12px; opacity: .35; }
+        .empty-state-msg { font-size: 1rem; font-weight: 600; color: #64748b; }
+
+        /* Modal */
+        .modal-premium { border-radius: 20px !important; border: none !important; }
+        .modal-premium .modal-header { border-bottom: 1px solid #f1f5f9; padding: 22px 26px; }
+        .modal-premium .modal-footer { border-top: 1px solid #f1f5f9; padding: 16px 26px; }
+        .form-control-modern {
+            border: 1.5px solid #e2e8f0; border-radius: 12px;
+            padding: 11px 14px; font-size: 0.9rem; background: #f8fafc;
+            transition: all .2s; outline: none;
+        }
+        .form-control-modern:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,.08); }
+        .form-label-modern { font-size: 0.78rem; font-weight: 700; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+
+        @media (max-width: 768px) {
+            .hero-banner { padding: 22px 20px; }
+            .hero-title { font-size: 1.25rem; }
+            .stat-chips { gap: 8px; }
+            .stat-chip { min-width: 110px; padding: 8px 14px; }
+            .hide-mobile { display: none !important; }
+        }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="sidebar" id="mainSidebar"></div>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
+    <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+        <div id="header-container"></div>
 
-        <main class="main-panel d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main" tabindex="-1">
-            <div id="header-container"></div>
+        <div class="app-content page-content flex-grow-1 py-4">
+            <div class="container-fluid" style="max-width: 1280px;">
 
-            <div class="app-content page-content flex-grow-1 d-flex flex-column py-4">
-                <div class="container-fluid">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <!-- Hero Banner -->
+                <div class="hero-banner">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                         <div>
-                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">ประวัติการให้คะแนนความประพฤติ</h4>
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb mb-0 small opacity-75">
-                                    <li class="breadcrumb-item"><a href="teacher_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
-                                    <li class="breadcrumb-item">ตัดเติมแต้ม</li>
-                                    <li class="breadcrumb-item active">ประวัติส่วนตัว</li>
-                                </ol>
-                            </nav>
+                            <div class="hero-title"><i class="bi bi-journal-text me-2 opacity-75"></i>ประวัติการให้คะแนนความประพฤติ</div>
+                            <div class="hero-sub">บันทึกการเติม/ตัดคะแนนพฤติกรรมนักเรียนทั้งหมด</div>
                         </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold text-navy m-0">รายการที่บันทึกโดยฉัน</h5>
-                            <button class="btn btn-outline-primary btn-sm rounded-circle p-2 shadow-sm" style="width:36px; height:36px;" onclick="loadHistory()">
-                                <i class="bi bi-arrow-clockwise"></i>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-light btn-sm rounded-pill fw-bold px-3 shadow-sm" onclick="downloadTemplate()" style="font-size:.85rem;">
+                                <i class="bi bi-file-earmark-arrow-down me-1 text-success"></i>Template
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-pill fw-bold px-3 shadow-sm" onclick="openUploadModal()" style="font-size:.85rem;">
+                                <i class="bi bi-cloud-arrow-up me-1 text-success"></i>Import Excel
                             </button>
                         </div>
-                        <div class="table-responsive">
-                            <table class="recent-history-table">
-                                <thead>
-                                    <tr class="bg-transparent border-0">
-                                        <th class="ps-4 pb-3 text-muted small fw-bold">วันที่</th>
-                                        <th class="pb-3 text-muted small fw-bold">นักเรียน</th>
-                                        <th class="pb-3 text-muted small fw-bold">ประเภท/รายการ</th>
-                                        <th class="pb-3 text-muted small fw-bold">ผู้บันทึก</th>
-                                        <th class="pb-3 text-muted small fw-bold text-center">คะแนน</th>
-                                        <th class="pb-3 text-muted small fw-bold text-center">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="historyList">
-                                    <tr>
-                                        <td colspan="5" class="text-center py-5">กำลังโหลดข้อมูล...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    </div>
+                    <div class="stat-chips" id="statChips">
+                        <div class="stat-chip">
+                            <div class="stat-chip-icon">📋</div>
+                            <div><div class="stat-chip-label">รายการทั้งหมด</div><div class="stat-chip-val" id="chipTotal">—</div></div>
+                        </div>
+                        <div class="stat-chip">
+                            <div class="stat-chip-icon">✅</div>
+                            <div><div class="stat-chip-label">เติมคะแนน</div><div class="stat-chip-val" id="chipPlus">—</div></div>
+                        </div>
+                        <div class="stat-chip">
+                            <div class="stat-chip-icon">❌</div>
+                            <div><div class="stat-chip-label">ตัดคะแนน</div><div class="stat-chip-val" id="chipMinus">—</div></div>
+                        </div>
+                        <div class="stat-chip">
+                            <div class="stat-chip-icon">📅</div>
+                            <div><div class="stat-chip-label">วันนี้</div><div class="stat-chip-val" id="chipToday">—</div></div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Edit Modal -->
-            <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content modal-premium">
-                        <div class="modal-header">
-                            <h5 class="fw-bold text-navy m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>แก้ไขข้อมูลคะแนน</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <!-- Toolbar -->
+                <div class="toolbar-card">
+                    <div class="search-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchInput" class="search-input" placeholder="ค้นหานักเรียน, รายการ, ผู้บันทึก..." oninput="applyFilters()">
+                    </div>
+                    <select id="filterType" class="filter-select" onchange="applyFilters()">
+                        <option value="">ทุกประเภท</option>
+                        <option value="plus">เติมคะแนน</option>
+                        <option value="minus">ตัดคะแนน</option>
+                    </select>
+                    <select id="filterDate" class="filter-select" onchange="applyFilters()">
+                        <option value="">ทุกช่วงเวลา</option>
+                        <option value="today">วันนี้</option>
+                        <option value="week">สัปดาห์นี้</option>
+                        <option value="month">เดือนนี้</option>
+                    </select>
+                    <button class="btn-refresh" onclick="loadHistory()" title="รีเฟรช"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+
+                <!-- Data Card -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <span class="data-card-title"><i class="bi bi-list-ul me-2 text-primary"></i>รายการที่บันทึกโดยฉัน</span>
+                        <span class="record-count" id="visibleCount">0 รายการ</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">วันที่</th>
+                                    <th>นักเรียน</th>
+                                    <th class="hide-mobile">ประเภท / รายการ</th>
+                                    <th class="hide-mobile">ผู้บันทึก</th>
+                                    <th class="text-center">คะแนน</th>
+                                    <th class="text-center pe-4">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyList">
+                                <tr><td colspan="6" class="text-center py-5"><div class="spinner-border spinner-border-sm text-primary me-2"></div>กำลังโหลด...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 480px;">
+                <div class="modal-content modal-premium">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="fw-black text-navy m-0"><i class="bi bi-pencil-square me-2 text-primary"></i>แก้ไขบันทึกคะแนน</h5>
                         </div>
-                        <div class="modal-body p-4">
-                            <form id="editForm">
-                                <input type="hidden" id="editId">
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">นักเรียน</label>
-                                    <input type="text" id="editStudentName" class="form-control border-0 bg-light rounded-3" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">หมวดหมู่</label>
-                                    <select id="editType" class="form-select border-0 bg-light rounded-3">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form id="editForm">
+                            <input type="hidden" id="editId">
+                            <div class="mb-3">
+                                <div class="form-label-modern">นักเรียน</div>
+                                <input type="text" id="editStudentName" class="form-control form-control-modern w-100" readonly>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <div class="form-label-modern">หมวดหมู่</div>
+                                    <select id="editType" class="form-select form-control-modern" onchange="onEditTypeChange()">
                                         <option value="เติม">เติมคะแนน (+)</option>
                                         <option value="ตัด">ตัดคะแนน (-)</option>
                                     </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-muted">รายการพฤติกรรม</label>
-                                    <select id="editBehavior" class="form-select"></select>
+                                <div class="col-6">
+                                    <div class="form-label-modern">คะแนน</div>
+                                    <input type="number" id="editPoints" class="form-control form-control-modern" min="1" max="100">
                                 </div>
-                                <div class="row g-3 mb-3">
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold text-muted">วันที่</label>
-                                        <input type="date" id="editDate" class="form-control border-0 bg-light rounded-3">
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="form-label small fw-bold text-muted">คะแนน</label>
-                                        <input type="number" id="editPoints" class="form-control border-0 bg-light rounded-3">
-                                    </div>
-                                </div>
-                                <div class="mb-0">
-                                    <label class="form-label small fw-bold text-muted">หมายเหตุ</label>
-                                    <textarea id="editRemark" class="form-control border-0 bg-light rounded-3" rows="2"></textarea>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="saveEdit()">บันทึกการแก้ไข</button>
-                        </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-label-modern">รายการพฤติกรรม</div>
+                                <select id="editBehavior" class="form-select"></select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-label-modern">วันที่</div>
+                                <input type="date" id="editDate" class="form-control form-control-modern w-100">
+                            </div>
+                            <div class="mb-0">
+                                <div class="form-label-modern">หมายเหตุ</div>
+                                <textarea id="editRemark" class="form-control form-control-modern w-100" rows="2" placeholder="ระบุหมายเหตุ..."></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="saveEdit()">
+                            <i class="bi bi-check-circle-fill me-1"></i>บันทึกการแก้ไข
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Global Footer -->
-            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
-                <div class="container-fluid">
-                    <div class="row align-items-center">
-                        <div class="col-md-5 mb-3 mb-md-0">
-                            <div class="d-flex flex-column">
-                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
-                                    2026 
-                                    <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #6610f2;">
-                                        CNPAPP<sup>©</sup>
-                                    </a>
-                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
-                                </span>
-                                <span class="text-secondary" style="font-size: 0.8rem;">
-                                    แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-7 text-md-end">
-                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
-                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
-                                cnpapp@chainatpit.ac.th
-                            </div>
-                            <div class="d-inline-flex flex-wrap align-items-center gap-3 justify-content-center justify-content-md-end text-secondary mb-1" style="font-size: 0.75rem;">
-                                <span class="d-flex align-items-center text-nowrap" style="color: #3b82f6;">
-                                    <i class="bi bi-telephone-fill me-1"></i> 056-411654
-                                </span>
-                                <a href="mailto:cnp@chainatpit.ac.th" target="_blank" class="text-decoration-none d-flex align-items-center text-nowrap" style="color: #3b82f6;">
-                                    <i class="bi bi-envelope-fill me-1"></i> Email
-                                </a>
-                                <span class="text-muted opacity-50 d-none d-md-inline">|</span>
-                                <a href="https://cnp.clubth.com/privacy-policy" class="text-decoration-none text-secondary text-nowrap d-flex align-items-center">
-                                    <i class="bi bi-shield-check me-1"></i> นโยบายคุ้มครองข้อมูลส่วนบุคคล
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        </main>
-    </div>
+        <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+    </main>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../public/js/main.js"></script>
-    <script src="../public/js/importModal.js"></script>
-    <script>
-        let behaviorData = [];
-        let behaviorSelect = null;
-        let historyData = [];
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../public/js/main.js"></script>
+<script src="../public/js/importModal.js"></script>
+<script>
+    const AVATAR_COLORS = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#14b8a6','#f97316','#ef4444','#06b6d4'];
+    let behaviorData = [], behaviorSelect = null, historyData = [], filteredData = [], currentUser = null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const user = await checkAuth(['admin', 'teacher']);
-            if (user) {
-                initBehaviorSelect();
-                loadHistory();
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = await checkAuth(['admin', 'teacher']);
+        if (user) { currentUser = user; await initBehaviorSelect(); loadHistory(); }
+    });
+
+    async function initBehaviorSelect() {
+        try {
+            const res = await fetch('../api/teacher/get_behavior_items.php');
+            const data = await res.json();
+            if (data.success) {
+                behaviorData = data.data;
+                behaviorSelect = new TomSelect('#editBehavior', { create: false, placeholder: '— ค้นหาพฤติกรรม —' });
             }
+        } catch (err) { console.error(err); }
+    }
+
+    async function loadHistory() {
+        document.getElementById('historyList').innerHTML =
+            '<tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div>กำลังโหลดข้อมูล...</td></tr>';
+        try {
+            const type = (currentUser && currentUser.role === 'admin') ? 'all' : 'my';
+            const res  = await fetch(`../api/teacher/credit_recent.php?type=${type}`);
+            const data = await res.json();
+            if (!data.success) throw new Error('load failed');
+            historyData = data.items || [];
+            updateStats();
+            applyFilters();
+        } catch {
+            document.getElementById('historyList').innerHTML =
+                '<tr><td colspan="6" class="text-center py-5 text-danger"><i class="bi bi-wifi-off me-2"></i>โหลดข้อมูลไม่สำเร็จ</td></tr>';
+        }
+    }
+
+    function updateStats() {
+        const today = new Date().toISOString().split('T')[0];
+        let plus = 0, minus = 0, todayCount = 0;
+        historyData.forEach(it => {
+            if (+it.points > 0) plus++; else minus++;
+            if ((it.created_at || '').startsWith(today)) todayCount++;
+        });
+        document.getElementById('chipTotal').textContent  = historyData.length;
+        document.getElementById('chipPlus').textContent   = plus;
+        document.getElementById('chipMinus').textContent  = minus;
+        document.getElementById('chipToday').textContent  = todayCount;
+    }
+
+    function applyFilters() {
+        const q     = (document.getElementById('searchInput').value || '').toLowerCase();
+        const fType = document.getElementById('filterType').value;
+        const fDate = document.getElementById('filterDate').value;
+        const now   = new Date();
+
+        filteredData = historyData.filter(it => {
+            // text search
+            const haystack = `${it.student_name} ${it.student_id} ${it.room} ${it.reason} ${it.teacher_name}`.toLowerCase();
+            if (q && !haystack.includes(q)) return false;
+            // type
+            if (fType === 'plus'  && +it.points <= 0) return false;
+            if (fType === 'minus' && +it.points >= 0) return false;
+            // date
+            if (fDate) {
+                const d = new Date(it.created_at);
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                if (fDate === 'today') { const s = new Date(d.getFullYear(), d.getMonth(), d.getDate()); if (s.getTime() !== today.getTime()) return false; }
+                if (fDate === 'week')  { const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 6); if (d < weekAgo) return false; }
+                if (fDate === 'month') { if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return false; }
+            }
+            return true;
         });
 
-        async function initBehaviorSelect() {
-            try {
-                const res = await fetch('../api/teacher/get_behavior_items.php');
-                const data = await res.json();
-                if (data.success) {
-                    behaviorData = data.data;
-                    behaviorSelect = new TomSelect('#editBehavior', {
-                        create: false,
-                        placeholder: '-- ค้นหาพฤติกรรม --'
-                    });
-                }
-            } catch (err) { console.error(err); }
+        document.getElementById('visibleCount').textContent = filteredData.length + ' รายการ';
+        renderTable();
+    }
+
+    function avatarColor(name) {
+        let h = 0; for (let c of (name||'?')) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+        return AVATAR_COLORS[h % AVATAR_COLORS.length];
+    }
+
+    function renderTable() {
+        const list = document.getElementById('historyList');
+        if (filteredData.length === 0) {
+            list.innerHTML = `<tr><td colspan="6">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="bi bi-inbox"></i></div>
+                    <div class="empty-state-msg">ไม่พบรายการที่ตรงกับเงื่อนไข</div>
+                    <div class="small text-muted mt-1">ลองเปลี่ยนตัวกรองหรือล้างการค้นหา</div>
+                </div>
+            </td></tr>`;
+            return;
         }
 
-        async function loadHistory() {
-            const list = document.getElementById('historyList');
-            list.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> กำลังโหลดข้อมูล...</td></tr>';
-            
-            try {
-                const response = await fetch(`../api/teacher/credit_recent.php?type=my`);
-                const data = await response.json();
-                
-                if (!data.success || data.items.length === 0) {
-                    list.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">ยังไม่มีประวัติการบันทึก</td></tr>`;
-                    return;
-                }
-                
-                historyData = data.items;
-                list.innerHTML = data.items.map((item, idx) => {
-                    const dateTimeStr = thDate(item.created_at, true);
-                    const pts = parseInt(item.points);
-                    return `
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold">${dateTimeStr}</div>
-                            </td>
-                            <td>
-                                <div class="fw-bold">${item.student_name}</div>
-                                <div class="small text-muted">รหัส ${item.student_id} | ห้อง ${item.room}</div>
-                            </td>
-                            <td>
-                                <div class="fw-bold">${pts > 0 ? 'เติม' : 'ตัด'} : ${item.reason || 'ทั่วไป'}</div>
-                                <div class="small text-muted text-truncate" style="max-width: 250px;">${item.remark || ''}</div>
-                            </td>
-                            <td>
-                                <div class="small fw-bold text-navy">${item.teacher_name || 'ไม่ทราบชื่อ'}</div>
-                            </td>
-                            <td class="text-center">
-                                <span class="score-badge ${pts > 0 ? 'score-plus' : 'score-minus'}">
-                                    ${pts > 0 ? '+' : ''}${pts}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="d-flex justify-content-center">
-                                    <button class="btn-edit-icon" onclick="openEdit(${idx})" title="แก้ไข">
-                                        <i class="bi bi-pencil-fill" style="font-size: 0.8rem;"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error('Error loading history:', error);
-                list.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
-            }
-        }
+        list.innerHTML = filteredData.map((item, idx) => {
+            const pts   = parseInt(item.points);
+            const isPos = pts > 0;
+            const color = avatarColor(item.student_name);
+            const initials = (item.student_name||'?').trim().charAt(0).toUpperCase();
+            const dateStr = thDate ? thDate(item.created_at, false) : item.created_at.split(' ')[0];
+            const timeStr = (item.created_at||'').split(' ')[1]?.slice(0,5) || '';
+            const origIdx = historyData.indexOf(item);
 
-        function openEdit(idx) {
-            const item = historyData[idx];
-            document.getElementById('editId').value = item.id;
-            document.getElementById('editStudentName').value = `${item.student_name} (${item.student_id})`;
-            document.getElementById('editPoints').value = Math.abs(item.points);
-            document.getElementById('editRemark').value = item.remark || '';
-            document.getElementById('editDate').value = item.created_at.split(' ')[0];
-            document.getElementById('editType').value = item.points > 0 ? 'เติม' : 'ตัด';
-            
-            // Refresh behavior options based on type
-            const type = item.points > 0 ? 'เติม' : 'ตัด';
-            const filtered = behaviorData.filter(b => b.type === type);
-            behaviorSelect.clearOptions();
-            behaviorSelect.addOptions(filtered.map(b => ({ value: b.id, text: b.behavior })));
-            
-            // Try to find the item_id from reason if not explicitly in item (api check)
-            // But usually item should have item_id. If not, we can select by text or leave empty.
-            // Let's assume the API provides item_id. 
-            // Wait, does credit_recent provide item_id? Let's check the API.
-            // In my previous replace, I forgot to include item_id in SELECT. I should fix that too.
-            if (item.item_id) behaviorSelect.setValue(item.item_id);
-            
-            const modal = new bootstrap.Modal(document.getElementById('editModal'));
-            modal.show();
-        }
+            return `
+            <tr>
+                <td class="ps-4">
+                    <div class="cell-date-primary">${dateStr}</div>
+                    <div class="cell-date-sub">${timeStr}</div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="student-avatar" style="background:${color};">${initials}</div>
+                        <div>
+                            <div class="student-name">${item.student_name}</div>
+                            <div class="student-meta">รหัส ${item.student_id} · ห้อง ${item.room || '-'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="hide-mobile">
+                    <div>
+                        <span class="behavior-type ${isPos ? 'type-add' : 'type-cut'}">${isPos ? 'เติม' : 'ตัด'}</span>
+                        <div class="behavior-reason">${item.reason || 'ทั่วไป'}</div>
+                        ${item.remark ? `<div class="behavior-remark text-truncate" style="max-width:220px;">${item.remark}</div>` : ''}
+                    </div>
+                </td>
+                <td class="hide-mobile">
+                    <div class="teacher-chip">
+                        <div class="teacher-dot"></div>
+                        ${item.teacher_name || 'ไม่ทราบชื่อ'}
+                    </div>
+                </td>
+                <td class="text-center">
+                    <span class="score-pill ${isPos ? 'score-pos' : 'score-neg'}">
+                        ${isPos ? '＋' : '－'}${Math.abs(pts)}
+                    </span>
+                </td>
+                <td class="text-center pe-4">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="act-btn act-edit" onclick="openEdit(${origIdx})" title="แก้ไข"><i class="bi bi-pencil-fill"></i></button>
+                        <button class="act-btn act-del" onclick="deleteRecord(${item.id})" title="ลบ"><i class="bi bi-trash3-fill"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
 
-        async function saveEdit() {
-            const id = document.getElementById('editId').value;
-            const type = document.getElementById('editType').value;
-            const item_id = behaviorSelect.getValue();
-            const points = document.getElementById('editPoints').value;
-            const remark = document.getElementById('editRemark').value;
-            const date = document.getElementById('editDate').value;
+    function onEditTypeChange() {
+        const type = document.getElementById('editType').value;
+        const filtered = behaviorData.filter(b => b.type === type);
+        behaviorSelect.clearOptions();
+        behaviorSelect.addOptions(filtered.map(b => ({ value: b.id, text: b.behavior })));
+    }
 
-            if (!item_id) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรายการพฤติกรรม', 'warning');
+    function openEdit(idx) {
+        const item = historyData[idx];
+        document.getElementById('editId').value = item.id;
+        document.getElementById('editStudentName').value = `${item.student_name} (${item.student_id})`;
+        document.getElementById('editPoints').value = Math.abs(item.points);
+        document.getElementById('editRemark').value = item.remark || '';
+        document.getElementById('editDate').value = (item.created_at||'').split(' ')[0];
+        document.getElementById('editType').value = item.points > 0 ? 'เติม' : 'ตัด';
+        onEditTypeChange();
+        if (item.item_id) behaviorSelect.setValue(item.item_id);
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
 
-            try {
-                const response = await fetch('../api/teacher/credit.php', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, type, item_id, points, remark, date })
-                });
-                const res = await response.json();
-                if (res.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-                    Swal.fire({ icon: 'success', title: 'แก้ไขสำเร็จ', timer: 1500, showConfirmButton: false });
-                    loadHistory();
-                } else {
-                    Swal.fire('ผิดพลาด', res.error || 'บันทึกไม่สำเร็จ', 'error');
-                }
-            } catch (err) { Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาดในการส่งข้อมูล', 'error'); }
-        }
-
-        function downloadTemplate() {
-            window.location.href = '../api/admin/download-template.php?type=credit';
-        }
-
-        function openUploadModal() {
-            initImportModal({
-                type: 'credit',
-                apiUrl: '../api/admin/upload-credits.php',
-                templateBaseUrl: '../api/admin/download-template.php?type=credit',
-                onSuccess: loadHistory
+    async function saveEdit() {
+        const id      = document.getElementById('editId').value;
+        const type    = document.getElementById('editType').value;
+        const item_id = behaviorSelect.getValue();
+        const points  = document.getElementById('editPoints').value;
+        const remark  = document.getElementById('editRemark').value;
+        const date    = document.getElementById('editDate').value;
+        if (!item_id) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกรายการพฤติกรรม', 'warning');
+        try {
+            const res  = await fetch('../api/teacher/credit.php', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, type, item_id, points, remark, date })
             });
-        }
-    </script>
+            const data = await res.json();
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                Swal.fire({ icon: 'success', title: 'แก้ไขสำเร็จ', timer: 1500, showConfirmButton: false });
+                loadHistory();
+            } else { Swal.fire('ผิดพลาด', data.error || 'บันทึกไม่สำเร็จ', 'error'); }
+        } catch { Swal.fire('ผิดพลาด', 'เกิดข้อผิดพลาด', 'error'); }
+    }
+
+    async function deleteRecord(id) {
+        const cf = await Swal.fire({
+            title: 'ลบบันทึกนี้?',
+            text: 'รายการจะถูกลบถาวรและส่งผลต่อคะแนนของนักเรียน',
+            icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#ef4444', confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก',
+            customClass: { popup: 'rounded-4' }
+        });
+        if (!cf.isConfirmed) return;
+        try {
+            const res  = await fetch(`../api/teacher/credit.php?id=${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1200, showConfirmButton: false, toast: true, position: 'top-end' });
+                loadHistory();
+            } else { Swal.fire('ผิดพลาด', data.error || 'ไม่สามารถลบได้', 'error'); }
+        } catch { Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+    }
+
+    function downloadTemplate() { window.location.href = '../api/admin/download-template.php?type=credit'; }
+    function openUploadModal() {
+        initImportModal({ type: 'credit', apiUrl: '../api/admin/upload-credits.php',
+            templateBaseUrl: '../api/admin/download-template.php?type=credit', onSuccess: loadHistory });
+    }
+</script>
 </body>
 </html>

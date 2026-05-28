@@ -38,16 +38,36 @@
 
                     <!-- Charts Row -->
                     <div class="row g-4 mb-4">
-                        <div class="col-lg-4">
-                            <div class="chart-container shadow-sm">
-                                <h6 class="fw-bold text-navy mb-3">ภาพรวมความสำเร็จ (นักเรียน)</h6>
-                                <canvas id="completionChart"></canvas>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="chart-container shadow-sm d-flex flex-column justify-content-between" style="min-height: 340px;">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-check-circle-fill text-success me-2"></i>ภาพรวมความสำเร็จ (นักเรียน)</h6>
+                                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                    <canvas id="completionChart"></canvas>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-lg-8">
-                            <div class="chart-container shadow-sm">
-                                <h6 class="fw-bold text-navy mb-3">สถิติการรับรองรายเดือน</h6>
-                                <canvas id="trendChart"></canvas>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="chart-container shadow-sm d-flex flex-column justify-content-between" style="min-height: 340px;">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-tags-fill text-warning me-2"></i>ประเภทกิจกรรมหลัก</h6>
+                                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                    <canvas id="categoriesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="chart-container shadow-sm d-flex flex-column justify-content-between" style="min-height: 340px;">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-compass-fill text-info me-2"></i>ความนิยมวันจัดกิจกรรม</h6>
+                                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                    <canvas id="dayOfWeekChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="chart-container shadow-sm d-flex flex-column justify-content-between" style="min-height: 340px;">
+                                <h6 class="fw-bold text-navy mb-3"><i class="bi bi-graph-up text-primary me-2"></i>การรับรองรายเดือน</h6>
+                                <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                                    <canvas id="trendChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -103,10 +123,30 @@
         let currentUser = null;
         let completionChart = null;
         let trendChart = null;
+        let categoriesChart = null;
+        let dayOfWeekChart = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             currentUser = await checkAuth(['teacher', 'admin']);
-            if (currentUser) loadData();
+            if (currentUser) {
+                try {
+                    const settings = await fetchSettings();
+                    if (settings.current_academic_year) {
+                        const yrSelect = document.getElementById('filter-year');
+                        if (![...yrSelect.options].some(o => o.value === settings.current_academic_year)) {
+                            const opt = document.createElement('option');
+                            opt.value = settings.current_academic_year;
+                            opt.textContent = `ปีการศึกษา ${settings.current_academic_year}`;
+                            yrSelect.appendChild(opt);
+                        }
+                        yrSelect.value = settings.current_academic_year;
+                    }
+                    if (settings.current_semester) {
+                        document.getElementById('filter-semester').value = settings.current_semester;
+                    }
+                } catch (e) {}
+                loadData();
+            }
         });
 
         function switchTab(tab) {
@@ -131,8 +171,16 @@
                 if (data.success) {
                     renderCharts(data.records);
                     if (currentTab === 'room') {
-                        renderRoomReport(data.records);
+                        if (data.records && data.records.length > 0 && data.records[0].class_name) {
+                            document.getElementById('room-subtitle').textContent = `สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์ ห้อง ${data.records[0].class_name}`;
+                        } else if (currentUser && currentUser.classroom) {
+                            document.getElementById('room-subtitle').textContent = `สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์ ห้อง ${currentUser.classroom}`;
+                        } else {
+                            document.getElementById('room-subtitle').textContent = 'สรุปสถิติและผลการดำเนินงานสาธารณประโยชน์ นักเรียนในที่ปรึกษา';
+                        }
+                        renderRoomReport(data.records, data.students);
                     } else {
+                        document.getElementById('room-subtitle').textContent = 'ประวัติการรับรองกิจกรรมสาธารณประโยชน์ที่ผ่านมาของคุณ';
                         renderMyHistory(data.records);
                     }
                 }
@@ -155,17 +203,91 @@
             completionChart = new Chart(document.getElementById('completionChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['สำเร็จ (20+)', 'อยู่ระหว่างดำเนินการ'],
+                    labels: ['สำเร็จ (20+)', 'กำลังสะสม'],
                     datasets: [{
                         data: [doneCount, pendingCount],
                         backgroundColor: ['#10b981', '#f59e0b'],
                         borderWidth: 0
                     }]
                 },
-                options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                options: { cutout: '65%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
             });
 
-            // 2. Trend Chart (Line)
+            // 2. Categories Chart (Pie)
+            const categories = {
+                'จิตอาสาพัฒนาห้องเรียน/โรงเรียน': 0,
+                'ช่วยงานครูอาจารย์': 0,
+                'อนุรักษ์สิ่งแวดล้อม': 0,
+                'บริการงานห้องสมุด': 0,
+                'บริการกิจกรรมโรงเรียน': 0,
+                'จิตอาสาทั่วไป': 0
+            };
+
+            records.filter(r => r.status === 'approved').forEach(r => {
+                const act = r.activity_name || '';
+                if (act.includes('สะอาด') || act.includes('กวาด') || act.includes('ถู') || act.includes('ขยะ') || act.includes('โต๊ะ') || act.includes('บอร์ด')) {
+                    categories['จิตอาสาพัฒนาห้องเรียน/โรงเรียน']++;
+                } else if (act.includes('ช่วย') || act.includes('ครู') || act.includes('อาจารย์') || act.includes('เอกสาร')) {
+                    categories['ช่วยงานครูอาจารย์']++;
+                } else if (act.includes('ปลูก') || act.includes('ต้นไม้') || act.includes('สวน') || act.includes('ธรรมชาติ') || act.includes('ขวด')) {
+                    categories['อนุรักษ์สิ่งแวดล้อม']++;
+                } else if (act.includes('สมุด') || act.includes('หนังสือ') || act.includes('บรรณารักษ์')) {
+                    categories['บริการงานห้องสมุด']++;
+                } else if (act.includes('กีฬา') || act.includes('แข่งขัน') || act.includes('งาน') || act.includes('สแตน') || act.includes('เชียร์')) {
+                    categories['บริการกิจกรรมโรงเรียน']++;
+                } else {
+                    categories['จิตอาสาทั่วไป']++;
+                }
+            });
+
+            const catLabels = Object.keys(categories);
+            const catData = Object.values(categories);
+
+            if (categoriesChart) categoriesChart.destroy();
+            categoriesChart = new Chart(document.getElementById('categoriesChart'), {
+                type: 'pie',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        data: catData,
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // 3. Day of Week Chart (Radar)
+            const days = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+            const dayStats = new Array(7).fill(0);
+            records.filter(r => r.status === 'approved').forEach(r => {
+                const d = new Date(r.activity_date).getDay();
+                dayStats[d]++;
+            });
+
+            if (dayOfWeekChart) dayOfWeekChart.destroy();
+            dayOfWeekChart = new Chart(document.getElementById('dayOfWeekChart'), {
+                type: 'radar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'กิจกรรม',
+                        data: dayStats,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: '#3b82f6',
+                        pointBackgroundColor: '#3b82f6',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { angleLines: { display: true }, suggestMin: 0, ticks: { stepSize: 1, display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 4. Trend Chart (Line)
             const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
             const monthlyStats = new Array(12).fill(0);
             records.filter(r => r.status === 'approved').forEach(r => {
@@ -188,13 +310,15 @@
                     }]
                 },
                 options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
                     scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        function renderRoomReport(records) {
+        function renderRoomReport(records, roomStudents = []) {
             const body = document.getElementById('table-body');
             const head = document.getElementById('table-head');
             head.innerHTML = `
@@ -202,13 +326,22 @@
                     <th class="ps-4">นักเรียน</th>
                     <th>จำนวนครั้งที่ทำ</th>
                     <th>ความคืบหน้า (เป้าหมาย 20)</th>
+                    <th class="text-center">พิมพ์รายงาน</th>
                     <th class="text-end pe-4">สถานะ</th>
                 </tr>
             `;
             const students = {};
+
+            if (roomStudents && roomStudents.length > 0) {
+                roomStudents.forEach(s => {
+                    const prefix = s.prefix || '';
+                    students[s.id] = { name: `${prefix}${s.first_name_th} ${s.last_name_th}`.trim(), code: s.student_code, count: 0 };
+                });
+            }
+
             records.forEach(r => {
                 if (!students[r.student_id]) {
-                    students[r.student_id] = { name: r.first_name_th + ' ' + r.last_name_th, code: r.student_code, count: 0 };
+                    students[r.student_id] = { name: `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim(), code: r.student_code, count: 0 };
                 }
                 if (r.status === 'approved') students[r.student_id].count++;
             });
@@ -232,13 +365,18 @@
                                 <small class="fw-bold text-muted">${percent.toFixed(0)}%</small>
                             </div>
                         </td>
+                        <td class="text-center">
+                            <a href="student_public_service_print.html?student_id=${s.code}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold text-navy shadow-sm">
+                                <i class="bi bi-printer-fill text-primary me-1"></i> พิมพ์
+                            </a>
+                        </td>
                         <td class="text-end pe-4">
                             ${percent >= 100 ? '<span class="badge bg-success-subtle text-success rounded-pill px-3">ครบกำหนด</span>' : '<span class="badge bg-warning-subtle text-warning rounded-pill px-3">ยังไม่ครบ</span>'}
                         </td>
                     </tr>
                 `;
             });
-            body.innerHTML = html || '<tr><td colspan="4" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียนในห้อง</td></tr>';
+            body.innerHTML = html || '<tr><td colspan="5" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียนในห้อง</td></tr>';
         }
 
         function renderMyHistory(records) {
@@ -264,7 +402,7 @@
                         </td>
                         <td><div class="fw-bold text-navy">${r.activity_name}</div></td>
                         <td class="small text-muted">${r.location}</td>
-                        <td class="text-end pe-4"><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${r.duration} ${r.duration_unit}</span></td>
+                        <td class="text-end pe-4"><span class="badge bg-navy-subtle text-navy rounded-pill px-3">${parseFloat(r.duration) || 1} ${r.duration_unit || 'ครั้ง'}</span></td>
                     </tr>
                 `;
             });
