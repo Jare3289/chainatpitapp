@@ -100,15 +100,16 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-start ps-4">ห้องเรียน</th>
-                                                <th>จำนวนนักเรียน</th>
-                                                <th>มาเรียน (%)</th>
-                                                <th>ขาดเรียน (%)</th>
-                                                <th>มาสาย (%)</th>
-                                                <th>ลากิจ (%)</th>
-                                                <th>ลาป่วย (%)</th>
+                                                <th>นักเรียน (คน)</th>
+                                                <th>มาเรียน (ครั้ง)</th>
+                                                <th>ขาดเรียน (ครั้ง)</th>
+                                                <th>มาสาย (ครั้ง)</th>
+                                                <th>ลา/ป่วย (ครั้ง)</th>
+                                                <th>% มาเรียน</th>
                                             </tr>
                                         </thead>
                                         <tbody id="overviewTableBody"></tbody>
+                                        <tfoot id="overviewTableFooter" class="fw-bold" style="background:#f8fafc; border-top: 2px solid #e2e8f0;"></tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -135,13 +136,14 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-start ps-4">ห้องเรียน</th>
+                                                <th>% มาเรียน</th>
                                                 <th>มาเรียน (ครั้ง)</th>
                                                 <th>ขาดเรียน (ครั้ง)</th>
-                                                <th>% มาเรียน</th>
                                                 <th>วันที่เช็ค</th>
                                             </tr>
                                         </thead>
                                         <tbody id="weeklyTableBody"></tbody>
+                                        <tfoot id="weeklyTableFooter" class="fw-bold" style="background:#f8fafc; border-top: 2px solid #e2e8f0;"></tfoot>
                                     </table>
                                 </div>
                             </div>
@@ -391,12 +393,21 @@
 
                     html += `<tr>
                         <td class="ps-4 text-start fw-bold text-navy">ห้อง ${room}</td>
-                        <td class="text-success fw-bold">${present}</td>
-                        <td class="text-danger">${absent}</td>
                         <td class="${pct !== '-' && pct >= 80 ? 'text-success' : 'text-danger'} fw-bold">${pct !== '-' ? pct + '%' : '-'}</td>
+                        <td class="text-success">${present}</td>
+                        <td class="text-danger">${absent}</td>
                         <td class="text-muted small">${weekDays.length} วัน</td>
                     </tr>`;
                 });
+
+                const totalPct = tot.total > 0 ? ((tot.present / tot.total) * 100).toFixed(1) : '-';
+                $('#weeklyTableFooter').html(`<tr style="background:#f0f9ff;">
+                    <td class="ps-4 text-start">รวมทั้งหมด</td>
+                    <td class="${totalPct !== '-' && totalPct >= 80 ? 'text-success' : 'text-danger'} fw-bold">${totalPct !== '-' ? totalPct + '%' : '-'}</td>
+                    <td class="text-success fw-bold">${tot.present.toLocaleString()}</td>
+                    <td class="text-danger fw-bold">${tot.absent.toLocaleString()}</td>
+                    <td class="text-muted">${weekDaySet.size} วัน</td>
+                </tr>`);
 
                 $('#weeklyTableBody').html(html || '<tr><td colspan="5" class="text-center py-5 text-muted">ไม่มีข้อมูลสัปดาห์นี้</td></tr>');
 
@@ -437,32 +448,45 @@
                     let html = '';
                     let sum = { stu: 0, p: 0, a: 0, l: 0, s: 0 };
                     data.report.forEach(r => {
-                        const tot = (parseInt(r.present) || 0) + (parseInt(r.absent) || 0) + (parseInt(r.late) || 0) + (parseInt(r.personal) || 0) + (parseInt(r.sick) || 0);
-                        const per_p = tot > 0 ? ((r.present / tot) * 100).toFixed(1) : 0;
-                        const per_a = tot > 0 ? ((r.absent / tot) * 100).toFixed(1) : 0;
-                        const per_s = tot > 0 ? ((r.late / tot) * 100).toFixed(1) : 0;
-                        const per_per = tot > 0 ? ((r.personal / tot) * 100).toFixed(1) : 0;
-                        const per_sic = tot > 0 ? ((r.sick / tot) * 100).toFixed(1) : 0;
+                        const present = parseInt(r.present) || 0;
+                        const absent  = parseInt(r.absent)  || 0;
+                        const late    = parseInt(r.late)    || 0;
+                        const leave   = (parseInt(r.personal) || 0) + (parseInt(r.sick) || 0);
+                        const tot     = present + absent + late + leave;
+                        const pct     = tot > 0 ? ((present / tot) * 100).toFixed(1) : '-';
 
-                        sum.stu += parseInt(r.total_students) || 0; 
-                        sum.p += parseInt(r.present) || 0; 
-                        sum.a += parseInt(r.absent) || 0; 
-                        sum.s += parseInt(r.late) || 0;
-                        sum.l += (parseInt(r.personal) || 0) + (parseInt(r.sick) || 0); 
+                        sum.stu += parseInt(r.total_students) || 0;
+                        sum.p   += present;
+                        sum.a   += absent;
+                        sum.s   += late;
+                        sum.l   += leave;
 
                         html += `
                             <tr onclick="navigateToRoom('${r.room}')" style="cursor: pointer;">
                                 <td class="ps-4 text-start fw-bold text-navy">ห้อง ${r.room}</td>
                                 <td>${r.total_students}</td>
-                                <td class="text-success fw-bold">${per_p}%</td>
-                                <td class="text-danger">${per_a}%</td>
-                                <td class="text-warning">${per_s}%</td>
-                                <td class="text-primary">${per_per}%</td>
-                                <td class="text-info">${per_sic}%</td>
+                                <td class="text-success fw-bold">${present.toLocaleString()}</td>
+                                <td class="text-danger">${absent.toLocaleString()}</td>
+                                <td class="text-warning">${late.toLocaleString()}</td>
+                                <td class="text-primary">${leave.toLocaleString()}</td>
+                                <td class="fw-bold ${pct !== '-' && pct >= 80 ? 'text-success' : 'text-danger'}">${pct !== '-' ? pct + '%' : '-'}</td>
                             </tr>
                         `;
                     });
                     $('#overviewTableBody').html(html);
+
+                    // Total footer row
+                    const sumTot = sum.p + sum.a + sum.s + sum.l;
+                    const sumPct = sumTot > 0 ? ((sum.p / sumTot) * 100).toFixed(1) : '-';
+                    $('#overviewTableFooter').html(`<tr style="background:#f0f9ff;">
+                        <td class="ps-4 text-start">รวมทั้งหมด</td>
+                        <td>${sum.stu.toLocaleString()}</td>
+                        <td class="text-success fw-bold">${sum.p.toLocaleString()}</td>
+                        <td class="text-danger fw-bold">${sum.a.toLocaleString()}</td>
+                        <td class="text-warning fw-bold">${sum.s.toLocaleString()}</td>
+                        <td class="text-primary fw-bold">${sum.l.toLocaleString()}</td>
+                        <td class="fw-bold ${sumPct !== '-' && sumPct >= 80 ? 'text-success' : 'text-danger'}">${sumPct !== '-' ? sumPct + '%' : '-'}</td>
+                    </tr>`);
                     
                     const totalChecks = sum.p + sum.a + sum.s + sum.l;
                     const avgPer = totalChecks > 0 ? ((sum.p / totalChecks) * 100).toFixed(1) : 0;

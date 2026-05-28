@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบรายงานสถิติรายวันห้องเรียน | CNP APP</title>
+    <link rel="stylesheet" href="../public/css/fonts.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            font-size: 16pt;
+            line-height: 1.15;
+        }
+        
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+        
+        .print-page {
+            background-color: #ffffff;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .no-print-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            thead { display: table-header-group; }
+            tfoot { display: table-row-group; }
+            .signatures-section { page-break-inside: avoid; }
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 10px; 
+            line-height: 1.1;
+        }
+        .school-logo {
+            height: 80px;
+            margin-bottom: 4px;
+            object-fit: contain;
+        }
+        .report-title { font-size: 18pt; margin: 2px 0; }
+        .school-name { font-size: 16pt; margin: 0; }
+        .report-date { font-size: 16pt; margin-top: 2px; }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px; 
+            font-size: 14pt;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #000000;
+            padding: 4px;
+            text-align: center;
+            font-size: 14pt;
+            vertical-align: middle;
+        }
+        
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding: 0 30px;
+            page-break-inside: avoid;
+            font-size: 16pt;
+            color: #000000;
+        }
+        .signature-block {
+            text-align: center;
+            width: 45%;
+        }
+        
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #000000; border-top: 4px solid transparent; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 12px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-bar no-print">
+        <button onclick="window.close()" style="background:transparent; border:none; font-size:16pt; cursor:pointer;">&times; ปิด</button>
+        <button onclick="window.print()" style="background:#000; color:#fff; border:none; padding:8px 24px; font-size:16pt; cursor:pointer;">พิมพ์ / บันทึก PDF</button>
+    </div>
+
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <h4>กำลังประมวลผลข้อมูล...</h4>
+    </div>
+
+    <div class="print-page">
+        <div class="header-section">
+            <img src="../public/img/logo.png" class="school-logo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';">
+            <div class="report-title"><b id="lblReportName">แบบรายงานสถิติรายวันห้องเรียน</b></div>
+            <div class="school-name">โรงเรียนชัยนาทพิทยาคม อำเภอเมือง จังหวัดชัยนาท</div>
+            <div class="school-name">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท</div>
+            <div class="report-date">ประจำเดือน <span id="lblReportDate">-</span></div>
+        </div>
+
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:120px;">วันที่</th>
+                    <th colspan="3">จำนวนนักเรียน</th>
+                    <th colspan="3">มาเรียน</th>
+                    <th colspan="3">ไม่มาเรียน</th>
+                    <th rowspan="2">ร้อยละมา</th>
+                    <th rowspan="2">เช็คชื่อ</th>
+                </tr>
+                <tr>
+                    <th>ช</th><th>ญ</th><th>รวม</th>
+                    <th>ช</th><th>ญ</th><th>รวม</th>
+                    <th>ช</th><th>ญ</th><th>รวม</th>
+                </tr>
+            </thead>
+            <tbody id="monthlyStatsTableBody">
+            </tbody>
+            <tfoot id="monthlyStatsTableFooter">
+            </tfoot>
+        </table>
+
+        <div class="signatures-section">
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายวิษณุ ประสิทธิกสิกร<br>
+                    หัวหน้ากิจกรรมพัฒนาผู้เรียน<br>
+                    งานกิจกรรม
+                </div>
+            </div>
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายชูชาติ พารีสอน<br>
+                    ผู้อำนวยการสถานศึกษา
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function thDate(dateStr) {
+            if(!dateStr) return '';
+            const d = new Date(dateStr);
+            const months = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()+543}`;
+        }
+
+        $(document).ready(async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const room = urlParams.get('room');
+            const month = urlParams.get('month');
+            const year = urlParams.get('year');
+            const mText = urlParams.get('mtext');
+            
+            if (!room || !month || !year) {
+                alert("ข้อมูลไม่ครบถ้วน");
+                $('#loader').hide();
+                return;
+            }
+
+            $('#lblReportName').text(`แบบรายงานสถิติรายวันห้องเรียน ห้อง ${room}`);
+            $('#lblReportDate').text(`${mText || month} ${year}`);
+
+            try {
+                const res = await fetch(`../api/admin/monthly_stats.php?room=${encodeURIComponent(room)}&month=${month}&year=${year}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (!data.report || data.report.length === 0) {
+                        $('#monthlyStatsTableBody').html('<tr><td colspan="12" style="text-align:center;">ไม่พบข้อมูลสถิติในเดือนนี้</td></tr>');
+                    } else {
+                        let html = '';
+                        let t = { tm: 0, tf: 0, tr: 0, pm: 0, pf: 0, pr: 0, am: 0, af: 0, ar: 0, count: 0 };
+                        
+                        data.report.forEach(r => {
+                            const dS = thDate(r.date);
+                            const tr = (parseInt(r.total_m) || 0) + (parseInt(r.total_f) || 0); 
+                            const pr = (parseInt(r.present_m) || 0) + (parseInt(r.present_f) || 0); 
+                            const ar = (parseInt(r.absent_m) || 0) + (parseInt(r.absent_f) || 0);
+                            const per = tr > 0 ? ((pr / tr) * 100).toFixed(0) : '-';
+                            
+                            html += `<tr>
+                                <td><b>${dS}</b></td>
+                                <td>${r.total_m}</td><td>${r.total_f}</td><td><b>${tr}</b></td>
+                                <td>${r.present_m || '-'}</td><td>${r.present_f || '-'}</td><td><b>${pr || '-'}</b></td>
+                                <td>${r.absent_m || '-'}</td><td>${r.absent_f || '-'}</td><td><b>${ar || '-'}</b></td>
+                                <td>${per === '-' ? '-' : per + '%'}</td>
+                                <td>${r.is_complete ? 'ครบถ้วน' : 'ไม่ครบ'}</td>
+                            </tr>`;
+                            
+                            if (r.checked_count > 0) {
+                                t.tm += parseInt(r.total_m) || 0; t.tf += parseInt(r.total_f) || 0; t.tr += tr; 
+                                t.pm += parseInt(r.present_m) || 0; t.pf += parseInt(r.present_f) || 0; t.pr += pr; 
+                                t.am += parseInt(r.absent_m) || 0; t.af += parseInt(r.absent_f) || 0; t.ar += ar; t.count++;
+                            }
+                        });
+                        $('#monthlyStatsTableBody').html(html);
+
+                        if (t.count > 0) {
+                            const avg = (k) => (t[k] / t.count).toFixed(0);
+                            const avgP = t.tr > 0 ? ((t.pr / t.tr) * 100).toFixed(0) : 0;
+                            $('#monthlyStatsTableFooter').html(`<tr>
+                                <td><b>ค่าเฉลี่ยรายวัน</b></td>
+                                <td>${avg('tm')}</td><td>${avg('tf')}</td><td><b>${avg('tr')}</b></td>
+                                <td>${avg('pm')}</td><td>${avg('pf')}</td><td><b>${avg('pr')}</b></td>
+                                <td>${avg('am')}</td><td>${avg('af')}</td><td><b>${avg('ar')}</b></td>
+                                <td><b>${avgP}%</b></td><td></td>
+                            </tr>`);
+                        }
+                    }
+                } else {
+                    $('#monthlyStatsTableBody').html(`<tr><td colspan="12">${data.error || 'เกิดข้อผิดพลาด'}</td></tr>`);
+                }
+            } catch (err) { 
+                $('#monthlyStatsTableBody').html('<tr><td colspan="12">เกิดข้อผิดพลาดในการเชื่อมต่อ</td></tr>'); 
+            }
+            
+            $('#loader').fadeOut(300);
+            setTimeout(() => window.print(), 800);
+        });
+    </script>
+</body>
+</html>

@@ -45,7 +45,6 @@ try {
 
     // 2. Determine "active date" — today if any data, else most recent date with data
     $today = date('Y-m-d');
-    $todayHas = (int)$pdo->prepare("SELECT COUNT(*) FROM attendance WHERE date = ? AND type='daily'");
     $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM attendance WHERE date = ? AND type='daily'");
     $stmtCheck->execute([$today]);
     $hasToday = (int)$stmtCheck->fetchColumn();

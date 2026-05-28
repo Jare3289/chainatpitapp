@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานนักเรียนกลุ่มเสี่ยง | CNP APP</title>
+    <link rel="stylesheet" href="../public/css/fonts.css">
+    <style>
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: 'TH Sarabun PSK','TH Sarabun New','Sarabun',sans-serif; background:#fff; color:#000; margin:0; padding:0; font-size:16pt; line-height:1.15; }
+        @page { size: A4 portrait; margin: 10mm; }
+        .print-page { background:#fff; width:100%; height:100%; }
+        .no-print-bar { background:#fff; border-bottom:1px solid #000; padding:10px 20px; position:sticky; top:0; z-index:1000; display:flex; justify-content:space-between; align-items:center; }
+        @media print { .no-print { display:none !important; } thead { display:table-header-group; } .signatures-section { page-break-inside:avoid; } }
+        .header-section { text-align:center; margin-bottom:12px; line-height:1.1; }
+        .school-logo { height:75px; margin-bottom:4px; object-fit:contain; }
+        .report-title { font-size:18pt; margin:2px 0; }
+        .school-name { font-size:15pt; margin:0; }
+        .report-date { font-size:15pt; margin-top:2px; }
+        .criteria-box { border:1px solid #000; padding:6px 12px; margin-bottom:12px; font-size:14pt; }
+        .stats-table { width:100%; border-collapse:collapse; margin-bottom:10px; font-size:13pt; }
+        .stats-table th, .stats-table td { border:1px solid #000; padding:4px 6px; text-align:center; font-size:13pt; vertical-align:middle; }
+        .stats-table th { background:#f0f0f0; font-weight:bold; }
+        .risk-high-print { font-weight:bold; }
+        .signatures-section { display:flex; justify-content:space-between; margin-top:40px; padding:0 30px; page-break-inside:avoid; font-size:15pt; }
+        .signature-block { text-align:center; width:45%; }
+        .loader-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:9999; }
+        .spinner { width:38px; height:38px; border:4px solid #000; border-top:4px solid transparent; border-radius:50%; animation:spin 1s linear infinite; margin-bottom:10px; }
+        @keyframes spin { 100% { transform:rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="no-print-bar no-print">
+        <button onclick="window.close()" style="background:transparent; border:none; font-size:15pt; cursor:pointer;">&times; ปิด</button>
+        <button onclick="window.print()" style="background:#000; color:#fff; border:none; padding:7px 22px; font-size:15pt; cursor:pointer;">พิมพ์ / บันทึก PDF</button>
+    </div>
+
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <div style="font-size:16pt;">กำลังประมวลผลข้อมูล...</div>
+    </div>
+
+    <div class="print-page">
+        <div class="header-section">
+            <img src="../public/img/logo.png" class="school-logo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';">
+            <div class="report-title"><b>รายงานนักเรียนกลุ่มเสี่ยง (Early Warning System)</b></div>
+            <div class="school-name">โรงเรียนชัยนาทพิทยาคม อำเภอเมือง จังหวัดชัยนาท</div>
+            <div class="school-name">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท</div>
+            <div class="report-date">ประจำเดือน <span id="lblReportDate">-</span></div>
+        </div>
+
+        <div class="criteria-box">
+            <b>เกณฑ์การคัดกรอง:</b> ขาดเรียนสะสม ≥ 3 วัน หรือ มาสายสะสม ≥ 5 วัน ภายในเดือนเดียว
+            &nbsp;&nbsp;|&nbsp;&nbsp; พบนักเรียนกลุ่มเสี่ยงทั้งหมด <b id="lblCount">0</b> ราย
+        </div>
+
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th style="width:30px;">ที่</th>
+                    <th>รหัสนักเรียน</th>
+                    <th style="text-align:left;">ชื่อ - นามสกุล</th>
+                    <th>ชั้น/ห้อง</th>
+                    <th>เบอร์โทร</th>
+                    <th>ขาด (วัน)</th>
+                    <th>สาย (วัน)</th>
+                    <th>ระดับความเสี่ยง</th>
+                    <th>สถานะ</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody"></tbody>
+        </table>
+
+        <div class="signatures-section">
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายวิษณุ ประสิทธิกสิกร<br>
+                    หัวหน้ากิจกรรมพัฒนาผู้เรียน<br>
+                    งานกิจกรรม
+                </div>
+            </div>
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายชูชาติ พารีสอน<br>
+                    ผู้อำนวยการสถานศึกษา
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const thaiMonths = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+        $(document).ready(async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const month = urlParams.get('month');
+            const year  = urlParams.get('year');
+            const mText = urlParams.get('mtext');
+
+            if (!month || !year) { alert('ข้อมูลไม่ครบถ้วน'); $('#loader').hide(); return; }
+
+            const mLabel = mText || thaiMonths[parseInt(month)-1];
+            $('#lblReportDate').text(`${mLabel} พ.ศ. ${parseInt(year)+543}`);
+
+            const monthStr = `${year}-${month}`;
+
+            try {
+                const [riskRes, flagRes] = await Promise.all([
+                    fetch(`../api/admin/at_risk_students.php?month=${month}&year=${year}`),
+                    fetch(`../api/admin/update_risk_status.php?month=${monthStr}`)
+                ]);
+                const riskData = await riskRes.json();
+                const flagData = await flagRes.json();
+
+                const flags = flagData.success ? flagData.flags : {};
+                const rows  = riskData.success ? riskData.data : [];
+
+                $('#lblCount').text(rows.length);
+
+                let html = '';
+                rows.forEach((s, idx) => {
+                    const flag = flags[s.id];
+                    const status = flag ? flag.status : 'ยังต้องติดตาม';
+                    const level  = s.absent_count >= 5 ? 'เสี่ยงสูง' : 'เฝ้าระวัง';
+                    const phone  = s.phone || s.g_phone || s.f_phone || s.m_phone || '-';
+
+                    html += `<tr>
+                        <td>${idx+1}</td>
+                        <td>${s.student_id}</td>
+                        <td style="text-align:left;">${s.prefix||''}${s.first_name_th} ${s.last_name_th}</td>
+                        <td>${s.class_name || '-'}</td>
+                        <td>${phone}</td>
+                        <td><b>${s.absent_count}</b></td>
+                        <td>${s.late_count}</td>
+                        <td class="${s.absent_count >= 5 ? 'risk-high-print' : ''}">${level}</td>
+                        <td>${status}</td>
+                    </tr>`;
+                });
+                $('#printTableBody').html(html || '<tr><td colspan="9" style="text-align:center; padding:16px;">ไม่พบข้อมูล</td></tr>');
+
+            } catch(e) {
+                $('#printTableBody').html('<tr><td colspan="9" style="text-align:center; color:red;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>');
+            }
+
+            $('#loader').fadeOut(300);
+            setTimeout(() => window.print(), 800);
+        });
+    </script>
+</body>
+</html>

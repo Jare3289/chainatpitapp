@@ -28,7 +28,7 @@ function getThaiDate($dateStr) {
 }
 
 try {
-    // Query statistics for each room on the date (joining teachers to get advisor name)
+    // Query statistics for each room on the date
     $statsSql = "
         SELECT 
             r.classroom_code,
@@ -37,11 +37,8 @@ try {
             SUM(CASE WHEN a.status = 'ขาด' THEN 1 ELSE 0 END) as absent_count,
             SUM(CASE WHEN a.status = 'ป่วย' THEN 1 ELSE 0 END) as sick_count,
             SUM(CASE WHEN a.status IN ('ลากิจ', 'ลา') THEN 1 ELSE 0 END) as leave_count,
-            SUM(CASE WHEN a.status IN ('มา', 'สาย') THEN 1 ELSE 0 END) as present_count,
-            COUNT(a.id) as reported_checks,
-            t.first_name_th as advisor_name
+            COUNT(a.id) as reported_checks
         FROM rooms r
-        LEFT JOIN teachers t ON t.advisory_room_id = r.id
         LEFT JOIN attendance a ON r.classroom_code = a.class_name AND a.date = ? AND a.type = 'daily'
         GROUP BY r.classroom_code
         ORDER BY CAST(r.classroom_code AS UNSIGNED) ASC, r.classroom_code ASC
@@ -62,9 +59,9 @@ try {
         $absent  = (int)$row['absent_count'];
         $sick    = (int)$row['sick_count'];
         $leave   = (int)$row['leave_count'];
-        $present = (int)$row['reported_checks'] > 0 ? (int)$row['present_count'] : 0;
-
+        
         $not_present = $absent + $sick + $leave;
+        $present = $total - $not_present;
         $pct = $total > 0 ? ($not_present / $total) * 100 : 0;
 
         $rooms[] = [

@@ -530,12 +530,22 @@
                 const json = await res.json();
                 const container = document.getElementById('dashboardNotifications');
                 if (json.success && json.data && json.data.length > 0) {
+                    // Apply localStorage read states to dynamic alerts
+                    const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+                    json.data.forEach(n => {
+                        if (typeof n.id === 'string' && n.id.startsWith('alert_')) {
+                            if (readAlerts.includes(n.id)) {
+                                n.is_read = 1;
+                            }
+                        }
+                    });
+
                     const items = json.data.slice(0, 3);
                     container.innerHTML = items.map(n => {
                         const isUnread = n.is_read == 0 || n.is_read === '0';
                         const color = n.color || '#0d6efd';
                         return `
-                        <div class="d-flex align-items-start p-3 border-bottom position-relative ${isUnread ? 'bg-light bg-opacity-50' : ''}">
+                        <div data-id="${n.id}" class="d-flex align-items-start p-3 border-bottom position-relative ${isUnread ? 'bg-light bg-opacity-50' : ''}">
                             <div class="stat-icon me-3 flex-shrink-0" style="width:36px; height:36px; font-size:1rem; background: ${color}15; color: ${color}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="${n.icon || 'bi bi-bell'}"></i>
                             </div>
@@ -563,11 +573,21 @@
                 const json = await res.json();
                 const container = document.getElementById('allNotificationsList');
                 if (json.success && json.data && json.data.length > 0) {
+                    // Apply localStorage read states to dynamic alerts
+                    const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+                    json.data.forEach(n => {
+                        if (typeof n.id === 'string' && n.id.startsWith('alert_')) {
+                            if (readAlerts.includes(n.id)) {
+                                n.is_read = 1;
+                            }
+                        }
+                    });
+
                     container.innerHTML = json.data.map(n => {
                         const isUnread = n.is_read == 0 || n.is_read === '0';
                         const color = n.color || '#0d6efd';
                         return `
-                        <div class="d-flex align-items-start p-3 border-bottom position-relative ${isUnread ? 'bg-light bg-opacity-50' : ''}" style="cursor: pointer;" onclick="markAsReadDashboard('${n.id}', '${n.link || '#'}')">
+                        <div data-id="${n.id}" class="d-flex align-items-start p-3 border-bottom position-relative ${isUnread ? 'bg-light bg-opacity-50' : ''}" style="cursor: pointer;" onclick="markAsReadDashboard('${n.id}', '${n.link || '#'}')">
                             <div class="stat-icon me-3 flex-shrink-0" style="width:40px; height:40px; font-size:1.2rem; background: ${color}15; color: ${color}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="${n.icon || 'bi bi-bell'}"></i>
                             </div>
@@ -590,7 +610,21 @@
 
         async function markAsReadDashboard(id, link) {
             if (typeof id === 'string' && id.startsWith('alert_')) {
-                if (link && link !== '#') window.location.href = link;
+                const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+                if (!readAlerts.includes(id)) readAlerts.push(id);
+                localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
+                loadDashboardNotifications();
+                if (typeof fetchNotifications === 'function') fetchNotifications();
+                
+                const modalEl = document.getElementById('notificationsModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                
+                if (link && link !== '#') {
+                    window.location.href = link;
+                } else {
+                    showAllNotifications();
+                }
                 return;
             }
             try {
@@ -616,6 +650,16 @@
 
         async function markAllAsReadDashboard() {
             try {
+                // Mark all dynamic alerts as read in localStorage
+                const alerts = Array.from(document.querySelectorAll('#allNotificationsList [data-id]')).map(el => el.getAttribute('data-id')).filter(id => id && id.startsWith('alert_'));
+                if (alerts.length > 0) {
+                    const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+                    alerts.forEach(id => {
+                        if (!readAlerts.includes(id)) readAlerts.push(id);
+                    });
+                    localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
+                }
+
                 await fetch('../api/notifications.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

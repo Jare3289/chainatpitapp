@@ -318,6 +318,7 @@ function renderSidebar(role, user, settings = {}) {
 
         if (role === 'teacher') {
             attendanceItems.push({ href: 'attendance_report.html', icon: 'bi bi-file-earmark-bar-graph text-primary', label: 'รายงานห้องตนเอง', active: a('attendance_report.html') });
+            attendanceItems.push({ href: 'advisory_period_report.html', icon: 'bi bi-grid-3x3-gap-fill text-warning', label: 'เข้าเรียนห้องเรา', active: a('advisory_period_report.html') });
         }
 
         if (role === 'admin') {
@@ -325,11 +326,12 @@ function renderSidebar(role, user, settings = {}) {
                 { href: 'today_overview.html', icon: 'bi bi-laptop text-info', label: 'ภาพรวมวันนี้', active: a('today_overview.html') },
                 { href: 'attendance_report.html', icon: 'bi bi-grid-3x3-gap-fill text-primary', label: 'รายงานรายห้อง', active: a('attendance_report.html') || a('admin_room_report.html') },
                 { href: 'monthly_stats.html', icon: 'bi bi-bar-chart-fill text-success', label: 'สถิติรายเดือน', active: a('monthly_stats.html') },
-                { href: 'at_risk_students.html', icon: 'bi bi-exclamation-triangle-fill text-danger', label: 'นักเรียนกลุ่มเสี่ยง', active: a('at_risk_students.html') }
+                { href: 'at_risk_students.html', icon: 'bi bi-exclamation-triangle-fill text-danger', label: 'นักเรียนกลุ่มเสี่ยง', active: a('at_risk_students.html') },
+                { href: 'admin_executive.html', icon: 'bi bi-bar-chart-line-fill text-primary', label: 'ภาพรวมผู้บริหาร', active: a('admin_executive.html') }
             );
         }
 
-        const isAttendanceActive = ['attendance_daily.html', 'attendance_subject.html', 'attendance_report.html', 'today_overview.html', 'admin_room_report.html', 'monthly_stats.html', 'at_risk_students.html'].some(x => a(x));
+        const isAttendanceActive = ['attendance_daily.html', 'attendance_subject.html', 'attendance_report.html', 'advisory_period_report.html', 'today_overview.html', 'admin_room_report.html', 'monthly_stats.html', 'at_risk_students.html', 'admin_executive.html'].some(x => a(x));
         html += _navGroup('bi bi-calendar-check-fill', 'เช็คชื่อ', attendanceItems, isAttendanceActive);
 
         const creditItems = [
@@ -454,6 +456,60 @@ async function checkAuth(expectedRole) {
         renderSidebar(data.user.role, data.user, sysSettings);
         renderHeader(data.user.role, data.user, sysSettings);
         renderFooter(sysSettings);
+
+        if (data.user.role === 'student' && !data.user.is_profile_complete) {
+            const currentPage = window.location.pathname.split('/').pop() || 'student_dashboard.html';
+            if (currentPage !== 'student_profile.html') {
+                if (typeof Swal === 'undefined') {
+                    await new Promise((resolve) => {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css';
+                        document.head.appendChild(link);
+
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+                        script.onload = () => resolve();
+                        document.body.appendChild(script);
+                    });
+                }
+                
+                await Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกประวัติส่วนตัวให้ครบถ้วน',
+                    text: 'กรุณาบันทึกแก้ไขข้อมูลโปรไฟล์ของท่านให้เรียบร้อยทุกช่องก่อน จึงจะสามารถเข้าดูอย่างอื่นได้',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    confirmButtonText: 'ไปหน้าแก้ไขโปรไฟล์'
+                });
+                window.location.href = 'student_profile.html';
+                return null;
+            } else {
+                if (!sessionStorage.getItem('cnp_profile_tip_shown')) {
+                    sessionStorage.setItem('cnp_profile_tip_shown', '1');
+                    if (typeof Swal === 'undefined') {
+                        await new Promise((resolve) => {
+                            const link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css';
+                            document.head.appendChild(link);
+
+                            const script = document.createElement('script');
+                            script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+                            script.onload = () => resolve();
+                            document.body.appendChild(script);
+                        });
+                    }
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'คำแนะนำการบันทึกข้อมูล',
+                        text: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น) จากนั้นกดปุ่ม "บันทึกข้อมูล" ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานส่วนอื่น ๆ ของระบบ',
+                        confirmButtonText: 'รับทราบ'
+                    });
+                }
+            }
+        }
+
         return data.user;
     } catch (err) {
         window.location.href = '../';
@@ -824,9 +880,76 @@ async function fetchNotifications() {
         const res = await fetch('../api/notifications.php');
         const json = await res.json();
         if (json.success) {
+            // Apply localStorage read states to dynamic alerts
+            const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+            let unreadCount = 0;
+            json.data.forEach(n => {
+                if (typeof n.id === 'string' && n.id.startsWith('alert_')) {
+                    if (readAlerts.includes(n.id)) {
+                        n.is_read = 1;
+                    }
+                }
+                if (n.is_read == 0 || n.is_read === '0') {
+                    unreadCount++;
+                }
+            });
+
             renderNotifications(json.data);
-            updateNotiBadge(json.unread_count);
+            updateNotiBadge(unreadCount);
             updateSidebarActionDots(json.data); // Inject glowing indicators
+
+            // Check if there is an unread urgent attendance reminder for teacher
+            if (window._cnpRole === 'teacher') {
+                const hasUrgentReminder = json.data.some(n => 
+                    (n.is_read == 0 || n.is_read === '0') && 
+                    n.title && n.title.includes('เตือนให้เช็คชื่อโฮมรูมประจำวัน')
+                );
+
+                if (hasUrgentReminder) {
+                    const currentPage = window.location.pathname.split('/').pop();
+                    const triggerAlert = () => {
+                        if (currentPage !== 'attendance_daily.html') {
+                            if (!window.__cnpUrgentReminderShowing) {
+                                window.__cnpUrgentReminderShowing = true;
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'คำสั่งด่วนที่สุด! ⚠️',
+                                    text: 'ผู้ดูแลระบบส่งคำเตือนด่วนถึงคุณ: กรุณาเช็คชื่อนักเรียนในที่ปรึกษาโดยด่วนที่สุด!',
+                                    allowOutsideClick: false,
+                                    allowEscapeKey: false,
+                                    confirmButtonText: 'ไปหน้าเช็คชื่อทันที',
+                                    confirmButtonColor: '#dc3545'
+                                }).then(() => {
+                                    window.__cnpUrgentReminderShowing = false;
+                                    window.location.href = 'attendance_daily.html';
+                                });
+                            }
+                        } else {
+                            if (!window.__cnpUrgentReminderShowing) {
+                                window.__cnpUrgentReminderShowing = true;
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'คำเตือนด่วนที่สุดจากแอดมิน! ⚠️',
+                                    text: 'กรุณาเช็คชื่อนักเรียนโฮมรูมประจำวันของท่านโดยด่วนที่สุด!',
+                                    confirmButtonText: 'ตกลง',
+                                    confirmButtonColor: '#ffc107'
+                                }).then(() => {
+                                    window.__cnpUrgentReminderShowing = false;
+                                });
+                            }
+                        }
+                    };
+
+                    if (window.Swal) {
+                        triggerAlert();
+                    } else {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+                        script.onload = triggerAlert;
+                        document.head.appendChild(script);
+                    }
+                }
+            }
         }
     } catch (e) { console.error("Error fetching notifications", e); }
 }
@@ -897,13 +1020,13 @@ function renderNotifications(items) {
         const color       = n.color || (isAlert ? '#e11d48' : '#0d6efd');
         const tag         = (n.link && n.link !== '#' && n.link !== '') ? 'a' : 'div';
         const href        = tag === 'a' ? `href="${n.link}"` : '';
-        const onclick     = tag === 'a' ? `onclick="markAsRead('${n.id}')"` : '';
+        const onclick     = `onclick="markAsRead('${n.id}')"`;
         const dismissBtn  = isSysUpdate
             ? `<button class="noti-dismiss" onclick="dismissSystemAlert('${n.id}', event)" title="ปิด">×</button>`
             : '';
 
         html += `
-            <${tag} ${href} class="noti-item${isSysUpdate ? ' system-update' : ''}${isUnread ? ' unread' : ''}" ${onclick}>
+            <${tag} ${href} data-id="${n.id}" class="noti-item${isSysUpdate ? ' system-update' : ''}${isUnread ? ' unread' : ''}" ${onclick}>
                 <div class="noti-icon" style="background: ${color}15; color: ${color};">
                     <i class="${n.icon || 'bi bi-bell'}"></i>
                 </div>
@@ -921,7 +1044,13 @@ function renderNotifications(items) {
 }
 
 async function markAsRead(id) {
-    if (typeof id === 'string' && id.startsWith('alert_')) return;
+    if (typeof id === 'string' && id.startsWith('alert_')) {
+        const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+        if (!readAlerts.includes(id)) readAlerts.push(id);
+        localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
+        fetchNotifications();
+        return;
+    }
     try {
         await fetch('../api/notifications.php', {
             method: 'POST',
@@ -934,6 +1063,16 @@ async function markAsRead(id) {
 
 async function markAllAsRead() {
     try {
+        // Mark all dynamic alerts as read in localStorage
+        const alerts = Array.from(document.querySelectorAll('#noti-list-container .noti-item')).map(el => el.getAttribute('data-id')).filter(id => id && id.startsWith('alert_'));
+        if (alerts.length > 0) {
+            const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+            alerts.forEach(id => {
+                if (!readAlerts.includes(id)) readAlerts.push(id);
+            });
+            localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
+        }
+
         await fetch('../api/notifications.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1142,8 +1281,21 @@ async function fetchModalNotifications() {
         const res = await fetch('../api/notifications.php');
         const json = await res.json();
         if (json.success) {
+            // Apply localStorage read states to dynamic alerts
+            const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+            json.data.forEach(n => {
+                if (typeof n.id === 'string' && n.id.startsWith('alert_')) {
+                    if (readAlerts.includes(n.id)) {
+                        n.is_read = 1;
+                    }
+                }
+            });
+
             renderModalNotifications(json.data);
-            updateNotiBadge(json.unread_count);
+            
+            // Count total unread to update the badge
+            const unreadCount = json.data.filter(n => n.is_read == 0 || n.is_read === '0').length;
+            updateNotiBadge(unreadCount);
         }
     } catch (e) { console.error(e); }
 }
@@ -1178,7 +1330,7 @@ function renderModalNotifications(items) {
         const isAlert = typeof n.id === 'string' && n.id.startsWith('alert_');
         const color = n.color || (isAlert ? '#e11d48' : '#2563eb');
         return `
-            <a href="${n.link || '#'}" class="nmi${isUnread ? ' unread' : ''}"
+            <a href="${n.link || '#'}" data-id="${n.id}" class="nmi${isUnread ? ' unread' : ''}"
                onclick="markAsReadModal('${n.id}','${n.link || '#'}')">
                 <div class="nmi-icon" style="background:${color}18;color:${color};">
                     <i class="${n.icon || 'bi bi-bell'}"></i>
@@ -1195,7 +1347,14 @@ function renderModalNotifications(items) {
 
 async function markAsReadModal(id, link) {
     if (typeof id === 'string' && id.startsWith('alert_')) {
-        window.location.href = link;
+        const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+        if (!readAlerts.includes(id)) readAlerts.push(id);
+        localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
+        fetchModalNotifications();
+        fetchNotifications();
+        if (link && link !== '#') {
+            window.location.href = link;
+        }
         return;
     }
     try {
@@ -1214,6 +1373,16 @@ async function markAsReadModal(id, link) {
 
 async function markAllAsReadModal() {
     try {
+        // Mark all dynamic alerts as read in localStorage
+        const alerts = Array.from(document.querySelectorAll('#noti-modal-list-container .nmi')).map(el => el.getAttribute('data-id')).filter(id => id && id.startsWith('alert_'));
+        if (alerts.length > 0) {
+            const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+            alerts.forEach(id => {
+                if (!readAlerts.includes(id)) readAlerts.push(id);
+            });
+            localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
+        }
+
         await fetch('../api/notifications.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบรายงานสรุปสถิติการมาเรียน | CNP APP</title>
+    <link rel="stylesheet" href="../public/css/fonts.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            font-size: 16pt;
+            line-height: 1.15;
+        }
+        
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+        
+        .print-page {
+            background-color: #ffffff;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .no-print-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            thead { display: table-header-group; }
+            tfoot { display: table-row-group; }
+            .signatures-section { page-break-inside: avoid; }
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 10px; 
+            line-height: 1.1;
+        }
+        .school-logo {
+            height: 80px;
+            margin-bottom: 4px;
+            object-fit: contain;
+        }
+        .report-title { font-size: 18pt; margin: 2px 0; }
+        .school-name { font-size: 16pt; margin: 0; }
+        .report-date { font-size: 16pt; margin-top: 2px; }
+        
+        .kpi-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        .kpi-box {
+            text-align: center;
+            flex: 1;
+        }
+        .kpi-box:not(:last-child) {
+            border-right: 1px solid #000;
+        }
+        .kpi-label { font-size: 14pt; }
+        .kpi-value { font-size: 18pt; font-weight: bold; }
+
+        .section-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 15px 0 5px 0;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px; 
+            font-size: 14pt;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #000000;
+            padding: 4px;
+            text-align: center;
+            font-size: 14pt;
+            vertical-align: middle;
+        }
+        
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding: 0 30px;
+            page-break-inside: avoid;
+            font-size: 16pt;
+            color: #000000;
+        }
+        .signature-block {
+            text-align: center;
+            width: 45%;
+        }
+        
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #000000; border-top: 4px solid transparent; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 12px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-bar no-print">
+        <button onclick="window.close()" style="background:transparent; border:none; font-size:16pt; cursor:pointer;">&times; ปิด</button>
+        <button onclick="window.print()" style="background:#000; color:#fff; border:none; padding:8px 24px; font-size:16pt; cursor:pointer;">พิมพ์ / บันทึก PDF</button>
+    </div>
+
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <h4>กำลังประมวลผลข้อมูล...</h4>
+    </div>
+
+    <div class="print-page">
+        <div class="header-section">
+            <img src="../public/img/logo.png" class="school-logo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';">
+            <div class="report-title"><b id="lblReportName">แบบรายงานสรุปสถิติการมาเรียน</b></div>
+            <div class="school-name">โรงเรียนชัยนาทพิทยาคม อำเภอเมือง จังหวัดชัยนาท</div>
+            <div class="school-name">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท</div>
+            <div class="report-date">ประจำเดือน <span id="lblReportDate">-</span></div>
+        </div>
+
+        <div class="kpi-section" id="summaryKPIs">
+            <!-- KPIs loaded via JS -->
+        </div>
+
+        <div class="section-title">สรุปรายสัปดาห์</div>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th style="width:15%">สัปดาห์</th>
+                    <th style="width:25%">ช่วงวันที่</th>
+                    <th style="width:15%">จำนวนวันเช็คชื่อ</th>
+                    <th style="width:15%">มาเรียนรวม</th>
+                    <th style="width:15%">ขาดเรียนรวม</th>
+                    <th style="width:15%">% มาเรียนเฉลี่ย</th>
+                </tr>
+            </thead>
+            <tbody id="weeklyBreakdownBody">
+            </tbody>
+        </table>
+
+        <div class="section-title">สรุปรายวัน</div>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th style="width:20%">วันที่</th>
+                    <th style="width:15%">นร.ทั้งหมด</th>
+                    <th style="width:15%">มาเรียน</th>
+                    <th style="width:15%">ขาดเรียน</th>
+                    <th style="width:15%">% มาเรียน</th>
+                    <th style="width:20%">การเช็คชื่อ</th>
+                </tr>
+            </thead>
+            <tbody id="summaryDailyBody">
+            </tbody>
+        </table>
+
+        <div class="signatures-section">
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายวิษณุ ประสิทธิกสิกร<br>
+                    หัวหน้ากิจกรรมพัฒนาผู้เรียน<br>
+                    งานกิจกรรม
+                </div>
+            </div>
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายชูชาติ พารีสอน<br>
+                    ผู้อำนวยการสถานศึกษา
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+        
+        function thDate(dateStr) {
+            if(!dateStr) return '';
+            const d = new Date(dateStr);
+            return `${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()+543}`;
+        }
+
+        $(document).ready(async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const room = urlParams.get('room');
+            const month = urlParams.get('month');
+            const year = urlParams.get('year');
+            const mText = urlParams.get('mtext');
+            
+            if (!room || !month || !year) {
+                alert("ข้อมูลไม่ครบถ้วน");
+                $('#loader').hide();
+                return;
+            }
+
+            $('#lblReportName').text(`แบบรายงานสรุปสถิติการมาเรียน ห้อง ${room}`);
+            $('#lblReportDate').text(`${mText || month} ${year}`);
+
+            try {
+                const res = await fetch(`../api/admin/monthly_stats.php?room=${encodeURIComponent(room)}&month=${month}&year=${year}`);
+                const data = await res.json();
+                
+                if (data.success && data.report && data.report.length > 0) {
+                    const checkedDays = data.report.filter(r => r.checked_count > 0);
+
+                    // KPIs
+                    const totalPresent = checkedDays.reduce((s, r) => s + (parseInt(r.present_m)||0) + (parseInt(r.present_f)||0), 0);
+                    const totalAbsent  = checkedDays.reduce((s, r) => s + (parseInt(r.absent_m)||0)  + (parseInt(r.absent_f)||0),  0);
+                    const totalRec     = totalPresent + totalAbsent;
+                    const avgPct       = totalRec > 0 ? ((totalPresent / totalRec) * 100).toFixed(1) : '0';
+                    const avgStudents  = checkedDays.length > 0 ? Math.round(checkedDays.reduce((s, r) => s + (parseInt(r.total_m)||0) + (parseInt(r.total_f)||0), 0) / checkedDays.length) : 0;
+
+                    $('#summaryKPIs').html(`
+                        <div class="kpi-box"><div class="kpi-label">นักเรียนเฉลี่ย</div><div class="kpi-value">${avgStudents} คน</div></div>
+                        <div class="kpi-box"><div class="kpi-label">มาเรียนรวม</div><div class="kpi-value">${totalPresent.toLocaleString()} ครั้ง</div></div>
+                        <div class="kpi-box"><div class="kpi-label">ขาดเรียนรวม</div><div class="kpi-value">${totalAbsent.toLocaleString()} ครั้ง</div></div>
+                        <div class="kpi-box"><div class="kpi-label">% มาเรียนเฉลี่ย</div><div class="kpi-value">${avgPct}%</div></div>
+                    `);
+
+                    // Daily table
+                    let dailyHtml = '';
+                    data.report.forEach(r => {
+                        const tr  = (parseInt(r.total_m)||0)   + (parseInt(r.total_f)||0);
+                        const pr  = (parseInt(r.present_m)||0) + (parseInt(r.present_f)||0);
+                        const ar  = (parseInt(r.absent_m)||0)  + (parseInt(r.absent_f)||0);
+                        const pct = tr > 0 ? ((pr / tr) * 100).toFixed(1) : '-';
+                        const checked = r.checked_count > 0;
+                        dailyHtml += `<tr>
+                            <td><b>${thDate(r.date)}</b></td>
+                            <td>${checked ? tr : '-'}</td>
+                            <td>${checked ? pr : '-'}</td>
+                            <td>${checked ? ar : '-'}</td>
+                            <td><b>${pct !== '-' ? pct + '%' : '-'}</b></td>
+                            <td>${r.is_complete ? 'ครบถ้วน' : (checked ? 'ไม่ครบ' : '—')}</td>
+                        </tr>`;
+                    });
+                    $('#summaryDailyBody').html(dailyHtml);
+
+                    // Weekly breakdown
+                    const weeks = {};
+                    checkedDays.forEach(r => {
+                        const dt  = new Date(r.date + 'T00:00:00');
+                        const mon = dt.getDay() === 0 ? -6 : 1 - dt.getDay();
+                        const wkStart = new Date(dt); wkStart.setDate(dt.getDate() + mon);
+                        const key = wkStart.toISOString().split('T')[0];
+                        if (!weeks[key]) weeks[key] = { start: wkStart, end: null, present: 0, absent: 0, days: 0 };
+                        const wkEnd = new Date(wkStart); wkEnd.setDate(wkStart.getDate() + 6);
+                        weeks[key].end = wkEnd;
+                        weeks[key].present += (parseInt(r.present_m)||0) + (parseInt(r.present_f)||0);
+                        weeks[key].absent  += (parseInt(r.absent_m)||0)  + (parseInt(r.absent_f)||0);
+                        weeks[key].days++;
+                    });
+                    const weekKeys = Object.keys(weeks).sort();
+                    let weekHtml = '';
+                    weekKeys.forEach((k, i) => {
+                        const w   = weeks[k];
+                        const tot = w.present + w.absent;
+                        const pct = tot > 0 ? ((w.present / tot) * 100).toFixed(1) : '-';
+                        const fmtDate = d => `${d.getDate()} ${monthNames[d.getMonth()]}`;
+                        weekHtml += `<tr>
+                            <td><b>สัปดาห์ที่ ${i+1}</b></td>
+                            <td>${fmtDate(w.start)} – ${fmtDate(w.end)}</td>
+                            <td>${w.days} วัน</td>
+                            <td>${w.present.toLocaleString()}</td>
+                            <td>${w.absent.toLocaleString()}</td>
+                            <td><b>${pct !== '-' ? pct + '%' : '-'}</b></td>
+                        </tr>`;
+                    });
+                    $('#weeklyBreakdownBody').html(weekHtml || '<tr><td colspan="6" style="text-align:center;">ไม่มีข้อมูล</td></tr>');
+
+                } else {
+                    $('#summaryDailyBody').html(`<tr><td colspan="6" style="text-align:center;">${data.error || 'ไม่พบข้อมูล'}</td></tr>`);
+                    $('#weeklyBreakdownBody').html(`<tr><td colspan="6" style="text-align:center;">ไม่พบข้อมูล</td></tr>`);
+                }
+            } catch (err) { 
+                $('#summaryDailyBody').html('<tr><td colspan="6" style="text-align:center;">เกิดข้อผิดพลาดในการเชื่อมต่อ</td></tr>'); 
+                $('#weeklyBreakdownBody').html('<tr><td colspan="6" style="text-align:center;">เกิดข้อผิดพลาดในการเชื่อมต่อ</td></tr>'); 
+            }
+            
+            $('#loader').fadeOut(300);
+            setTimeout(() => window.print(), 800);
+        });
+    </script>
+</body>
+</html>

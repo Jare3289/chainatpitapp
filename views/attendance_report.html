@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="../public/css/fonts.css">
     <style>
         body { font-family: 'Google Sans', sans-serif; background-color: #f8fafc; }
         .sidebar { z-index: 1050 !important; }
@@ -95,14 +96,45 @@
         .table-weekly td { padding: 10px 14px; border: 1px solid #f1f5f9; text-align: center; vertical-align: middle; }
         .table-weekly { border-collapse: collapse; width: 100%; border-radius: 12px; overflow: hidden; }
 
+        .kpi-mini-card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); height: 100%; transition: all 0.3s; }
+        .kpi-mini-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
+
         @media print {
             .sidebar, #mainSidebar, #header-container, #globalFooter,
             #reportTabs, .dropdown-style-wrap, .card.card-modern:has(.dropdown-style),
-            .btn, .modal { display: none !important; }
-            .main-panel, .app-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
-            .tab-pane { display: block !important; opacity: 1 !important; }
-            .card-modern { box-shadow: none !important; border: 1px solid #ddd !important; }
+            .btn, .modal, .btn-group, .breadcrumb { display: none !important; }
+            .main-panel, .app-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; }
+            .tab-pane { display: none !important; opacity: 1 !important; }
+            .tab-pane.active.show { display: block !important; }
+            
+            /* Remove all card styling for clean table print */
+            .card-modern { box-shadow: none !important; border: none !important; break-inside: avoid; background: transparent !important; }
+            .tab-pane .card-header { display: none !important; }
+            .tab-pane .card-body { padding: 0 !important; }
+            
+            /* Strict black borders for tables, as per example */
+            .table-detailed, .table-detailed th, .table-detailed td { border: 1px solid #000 !important; color: #000 !important; }
+            .table-detailed th { background-color: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .table-sticky-container { border: none !important; overflow: visible !important; }
+            .bg-primary, .bg-navy, .bg-sum-p, .bg-sum-a, .bg-sum-l, .bg-sum-s, .bg-navy-light, .bg-green-light, .bg-red-light { background: transparent !important; color: #000 !important; }
+            .sticky-col-1, .sticky-col-2 { position: static !important; }
+            
+            .table-monthly, .table-monthly th, .table-monthly td { border: 1px solid #000 !important; color: #000 !important; }
+            .table-weekly, .table-weekly th, .table-weekly td { border: 1px solid #000 !important; color: #000 !important; }
+            .text-success, .text-danger, .text-primary { color: #000 !important; }
+            .status-mark { color: #000 !important; }
+            .date-cell { border: 1px solid #000 !important; }
+
             thead { display: table-header-group; }
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: 'TH Sarabun PSK', sans-serif !important; font-size: 14pt; }
+            .kpi-mini-card { border: 1px solid #000 !important; }
+            
+            .no-print { display: none !important; }
+            .no-screen { display: block !important; }
+            h4.fw-black.text-navy { display: none !important; }
+        }
+        @media screen {
+            .no-screen { display: none !important; }
         }
     </style>
 </head>
@@ -114,7 +146,7 @@
             <div class="app-content page-content py-4 px-4 flex-grow-1">
                 <div class="container-fluid">
                     
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 no-print">
                         <div>
                             <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">รายงานเช็คชื่อรายห้อง</h4>
                             <nav aria-label="breadcrumb">
@@ -125,7 +157,7 @@
                             </nav>
                         </div>
                         <div class="d-flex flex-column flex-md-row gap-2">
-                            <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
+                            <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="printGlobal()">
                                 <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
                             </button>
                             <a href="advisory_stats.html" class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm">
@@ -200,7 +232,7 @@
                                         <table class="table-detailed" id="detailedTable">
                                             <thead>
                                                 <tr>
-                                                    <th rowspan="2" class="sticky-col-1">#</th>
+                                                    <th rowspan="2" class="sticky-col-1">ที่.</th>
                                                     <th rowspan="2" class="sticky-col-2">ชื่อ-นามสกุล</th>
                                                     <th id="dateHeaderParent" class="bg-primary text-white border-0">วันที่เช็คชื่อ</th>
                                                     <th colspan="4" class="bg-navy text-white border-0">สรุป (วัน)</th>
@@ -337,7 +369,7 @@
                             <div class="card card-modern overflow-hidden mb-4 bg-white">
                                 <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
                                     <h6 class="fw-bold text-navy mb-0"><i class="bi bi-calendar-week me-2 text-primary"></i>สรุปรายสัปดาห์ — <span id="summaryRoomLabel">-</span></h6>
-                                    <button class="btn btn-dark rounded-pill px-3 fw-bold shadow-sm" onclick="window.print()"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+                                    <button class="btn btn-dark rounded-pill px-3 fw-bold shadow-sm" onclick="printGlobal()"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
                                 </div>
                                 <div class="card-body p-4">
                                     <div class="table-responsive">
@@ -374,6 +406,8 @@
                                 </div>
                             </div>
                         </div>
+
+
                     </div>
 
                 </div>
@@ -428,6 +462,7 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../public/js/main.js"></script>
     <script>
         let allStudents = [];
@@ -868,6 +903,41 @@
                     }).join('') : '<tr><td colspan="3" class="text-center py-4 text-muted">ยังไม่มีประวัติ</td></tr>';
                 }
             } catch (err) { console.error('History failed', err); }
+        }
+
+        // ── Executive Tab ───────────────────────────────────────────────────────
+        let executiveChart = null;
+        let trendData = null;
+
+
+
+        // ── Print Functionality ───────────────────────────────────────────────────────
+        function printGlobal() {
+            const activeTab = document.querySelector('.tab-pane.active.show');
+            if (!activeTab) return;
+            const id = activeTab.id;
+            
+            if (id === 'tab-individual') {
+                const room = $('#detailedRoomSelect').val() || '';
+                const sd = $('#startDate').val();
+                const ed = $('#endDate').val();
+                if (!room || !sd || !ed) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกข้อมูลให้ครบถ้วนก่อนพิมพ์', 'warning');
+                window.open(`individual_print.html?room=${encodeURIComponent(room)}&start=${sd}&end=${ed}`, '_blank');
+            } else if (id === 'tab-monthly') {
+                const room = $('#monthlyRoomSelect').val() || '';
+                const m = $('#monthSelect').val();
+                const y = $('#yearSelect').val();
+                const mText = $('#monthSelect option:selected').text();
+                if (!room || !m || !y) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกข้อมูลให้ครบถ้วนก่อนพิมพ์', 'warning');
+                window.open(`monthly_print.html?room=${encodeURIComponent(room)}&month=${m}&year=${y}&mtext=${encodeURIComponent(mText)}`, '_blank');
+            } else if (id === 'tab-summary') {
+                const room = $('#summaryRoomSelect').val() || '';
+                const m = $('#summaryMonthSelect').val();
+                const y = $('#summaryYearSelect').val();
+                const mText = $('#summaryMonthSelect option:selected').text();
+                if (!room || !m || !y) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกข้อมูลให้ครบถ้วนก่อนพิมพ์', 'warning');
+                window.open(`summary_print.html?room=${encodeURIComponent(room)}&month=${m}&year=${y}&mtext=${encodeURIComponent(mText)}`, '_blank');
+            }
         }
     </script>
 </body>

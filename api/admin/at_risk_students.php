@@ -16,6 +16,7 @@ $monthStr = sprintf("%04d-%02d", $year, $month);
 
 try {
     $sql = "SELECT s.id, s.student_id, s.prefix, s.first_name_th, s.last_name_th, s.class_name,
+            s.phone, s.g_phone, s.f_phone, s.m_phone,
             COUNT(CASE WHEN a.status = 'ขาด' THEN 1 END) as absent_count,
             COUNT(CASE WHEN a.status = 'สาย' THEN 1 END) as late_count
             FROM students s

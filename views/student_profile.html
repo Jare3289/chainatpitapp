@@ -96,10 +96,8 @@
         .house-card { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 16px 20px; margin-bottom: 18px; }
 
         /* House Picker */
-        .house-option { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid white; outline: 2px solid #e2e8f0; transition: transform 0.2s, outline 0.2s; }
-        .house-option:hover { transform: scale(1.2); }
-        .house-option.selected { outline: 2px solid #0f172a; transform: scale(1.15); }
-        #profileForm.view-mode .house-option { pointer-events: none; }
+        .house-option { width: 30px; height: 30px; border-radius: 50%; cursor: default !important; border: 3px solid white; outline: 2px solid #e2e8f0; pointer-events: none !important; }
+        .house-option.selected { outline: 2px solid #0f172a; }
     </style>
 </head>
 <body>
@@ -662,8 +660,56 @@
             await setupAddressDropdowns();
             await fetchProfile();
             setupBMICalc();
+            setupGuardianAutoFill();
         }
     });
+
+    function setupGuardianAutoFill() {
+        const form = document.getElementById('profileForm');
+        if (!form) return;
+        
+        const relations = form.querySelectorAll('[name="guardian_relation"]');
+        relations.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (!isEditing) return;
+                
+                const val = this.value;
+                const f = (name) => form.querySelector(`[name="${name}"]`);
+                
+                if (val === 'บิดา') {
+                    f('g_prefix').value    = f('f_prefix').value;
+                    f('g_first_name').value= f('f_first_name').value;
+                    f('g_last_name').value = f('f_last_name').value;
+                    f('g_age').value       = f('f_age').value;
+                    f('g_phone').value     = f('f_phone').value;
+                    f('g_education').value = f('f_education').value;
+                    f('g_job').value       = f('f_job').value;
+                    f('g_workplace').value = f('f_workplace').value;
+                    f('g_income').value    = f('f_income').value;
+                } else if (val === 'มารดา') {
+                    f('g_prefix').value    = f('m_prefix').value;
+                    f('g_first_name').value= f('m_first_name').value;
+                    f('g_last_name').value = f('m_last_name').value;
+                    f('g_age').value       = f('m_age').value;
+                    f('g_phone').value     = f('m_phone').value;
+                    f('g_education').value = f('m_education').value;
+                    f('g_job').value       = f('m_job').value;
+                    f('g_workplace').value = f('m_workplace').value;
+                    f('g_income').value    = f('m_income').value;
+                } else {
+                    f('g_prefix').value    = 'นาย';
+                    f('g_first_name').value= '';
+                    f('g_last_name').value = '';
+                    f('g_age').value       = '';
+                    f('g_phone').value     = '';
+                    f('g_education').value = 'ประถมศึกษา';
+                    f('g_job').value       = '';
+                    f('g_workplace').value = '';
+                    f('g_income').value    = '';
+                }
+            });
+        });
+    }
 
     // Populate all non-address select elements from JS constants
     function populateStaticSelects() {
@@ -862,7 +908,7 @@
         const form = document.getElementById('profileForm');
         if (editing) form.classList.remove('view-mode'); else form.classList.add('view-mode');
 
-        const locked = ['student_id', 'grade_level', 'class_name'];
+        const locked = ['student_id', 'grade_level', 'class_name', 'dist_to_school'];
         form.querySelectorAll('input, select, textarea').forEach(el => {
             if (locked.includes(el.name)) el.disabled = true;
             else el.disabled = !editing;
@@ -1014,8 +1060,8 @@
 
     // ──── House ────
     function selectHouse(el) {
-        if (!isEditing) return;
-        setHouseValue(el.dataset.value);
+        // Completely disabled for student editing
+        return;
     }
 
     function setHouseValue(val) {
@@ -1100,13 +1146,35 @@
     // ──── Completion ────
     function checkCompletion() {
         const s = window.currentStudentData || {};
-        const essential = ['first_name_th','last_name_th','id_card','phone','reg_province','weight','f_first_name','m_first_name'];
-        const filled = essential.filter(k => s[k] && String(s[k]).trim() !== '' && s[k] !== '-').length;
-        const pct = Math.round((filled / essential.length) * 100);
+        const required_fields = [
+            'prefix', 'first_name_th', 'last_name_th', 'first_name_en', 'last_name_en', 'nickname',
+            'id_card', 'birth_date', 'birth_sex', 'gender', 'ethnicity', 'nationality', 'religion',
+            'child_order', 'phone', 'email', 'line_id', 'facebook', 'instagram',
+            'reg_house_no', 'reg_moo', 'reg_soi', 'reg_road', 'reg_village', 'reg_province', 'reg_district', 'reg_subdistrict', 'reg_zipcode',
+            'address_status', 'curr_house_no', 'curr_moo', 'curr_soi', 'curr_road', 'curr_village', 'curr_province', 'curr_district', 'curr_subdistrict', 'curr_zipcode',
+            'location_coords', 'location_landmark', 'village_headman', 'subdistrict_headman',
+            'house_type', 'house_style', 'house_condition', 'house_cleanliness', 'has_electricity', 'has_water', 'has_toilet',
+            'dist_to_school', 'travel_time', 'travel_method',
+            'f_prefix', 'f_first_name', 'f_last_name', 'f_age', 'f_phone', 'f_education', 'f_job', 'f_workplace', 'f_family_status', 'f_welfare', 'f_income',
+            'm_prefix', 'm_first_name', 'm_last_name', 'm_age', 'm_phone', 'm_education', 'm_job', 'm_workplace', 'm_family_status', 'm_welfare', 'm_income',
+            'family_status', 'guardian_relation', 'g_income',
+            'g_prefix', 'g_first_name', 'g_last_name', 'g_age', 'g_phone', 'g_education', 'g_job', 'g_workplace',
+            'total_family_members', 'male_members', 'female_members',
+            'full_siblings', 'full_siblings_male', 'full_siblings_female',
+            'half_siblings', 'half_siblings_male', 'half_siblings_female',
+            'family_relationship',
+            'rel_father', 'rel_mother', 'rel_brothers', 'rel_sisters', 'rel_grandparents', 'rel_relatives',
+            'time_spent_together', 'allowance_source', 'allowance_per_day', 'responsibilities', 'caregiver_when_away',
+            'part_time_job', 'part_time_income', 'weight', 'height', 'blood_group',
+            'food_allergies', 'drug_allergies', 'congenital_disease', 'covid_vaccine',
+            'internet_access', 'social_media_usage', 'talents', 'interests', 'hobbies'
+        ];
+        const filled = required_fields.filter(k => s[k] !== undefined && s[k] !== null && String(s[k]).trim() !== '').length;
+        const pct = Math.round((filled / required_fields.length) * 100);
         document.getElementById('completionProgress').style.width = pct + '%';
         document.getElementById('completionLabel').innerText = pct + '%';
         document.getElementById('completionStatus').innerHTML =
-            pct < 100 ? `<span class="text-danger">ขาดอีก ${essential.length - filled} รายการ</span>` :
+            pct < 100 ? `<span class="text-danger">ขาดอีก ${required_fields.length - filled} รายการ</span>` :
                         '<span class="text-success fw-bold">สมบูรณ์!</span>';
     }
 
@@ -1123,11 +1191,82 @@
     async function saveProfile(e) {
         e.preventDefault();
         const form = e.target;
+
+        // Clear previous invalid markings
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        form.querySelectorAll('.btn-group-modern').forEach(el => el.style.border = 'none');
+
+        const inputs = form.querySelectorAll('input, select, textarea');
+        let emptyCount = 0;
+        let firstEmptyEl = null;
+
+        const radioGroups = {};
+
+        for (const el of inputs) {
+            if (el.name === 'full_name_th' || el.id === 'photoInput' || el.name === 'house' || el.type === 'file' || el.type === 'hidden') {
+                continue;
+            }
+            if (['student_id', 'grade_level', 'class_name', 'dist_to_school'].includes(el.name)) {
+                continue;
+            }
+
+            if (el.type === 'radio') {
+                if (!radioGroups[el.name]) {
+                    radioGroups[el.name] = { checked: false, elements: [] };
+                }
+                radioGroups[el.name].elements.push(el);
+                if (el.checked) {
+                    radioGroups[el.name].checked = true;
+                }
+            } else {
+                if (el.value.trim() === '') {
+                    el.classList.add('is-invalid');
+                    emptyCount++;
+                    if (!firstEmptyEl) firstEmptyEl = el;
+                }
+            }
+        }
+
+        // Check radio groups
+        for (const name in radioGroups) {
+            if (!radioGroups[name].checked) {
+                const radioEl = radioGroups[name].elements[0];
+                const btnGroup = radioEl.closest('.btn-group-modern');
+                if (btnGroup) {
+                    btnGroup.style.border = '2px solid #dc3545';
+                    btnGroup.style.borderRadius = '12px';
+                    if (!firstEmptyEl) firstEmptyEl = btnGroup;
+                } else {
+                    if (!firstEmptyEl) firstEmptyEl = radioEl;
+                }
+                emptyCount++;
+            }
+        }
+
+        if (emptyCount > 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง',
+                text: 'ต้องระบุข้อมูลให้ครบถ้วนทุกจุด หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น (ยกเว้นช่องเปลี่ยนชื่อจริงที่สามารถเว้นว่างได้)',
+                confirmButtonText: 'ตกลง'
+            });
+            if (firstEmptyEl) {
+                firstEmptyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    if (typeof firstEmptyEl.focus === 'function') firstEmptyEl.focus();
+                }, 450);
+            }
+            return;
+        }
+
         const disabled = Array.from(form.querySelectorAll(':disabled'));
         disabled.forEach(el => el.disabled = false);
         const data = Object.fromEntries(new FormData(form).entries());
         disabled.forEach(el => el.disabled = true);
         if (currentPhotoBase64) data.photo_base64 = currentPhotoBase64;
+        
+        // Ensure house is deleted from submitted data
+        delete data.house;
 
         Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
         try {
