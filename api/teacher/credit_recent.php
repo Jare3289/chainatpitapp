@@ -39,21 +39,22 @@ try {
 
     $whereSql = implode(" AND ", $whereClauses);
 
-    $sql = "SELECT 
-                t.id, 
+    $sql = "SELECT
+                t.id,
                 t.item_id,
-                t.points, 
-                t.remark, 
+                t.points,
+                t.remark,
                 t.created_at,
+                t.recorded_by as recorded_by_id,
                 s.student_id,
                 s.first_name_th,
                 s.last_name_th,
                 s.class_name AS room,
                 i.item_name as reason,
-                u.username as teacher_name
+                CONCAT(COALESCE(tc.prefix,''), tc.first_name_th, ' ', tc.last_name_th) as teacher_name
             FROM point_transactions t
             JOIN students s ON t.student_id = s.id
-            JOIN users u ON t.recorded_by = u.id
+            LEFT JOIN teachers tc ON tc.user_id = t.recorded_by
             LEFT JOIN point_items i ON t.item_id = i.id
             WHERE $whereSql
             ORDER BY t.created_at DESC

@@ -10,8 +10,8 @@ views/daily_attendance_print.html
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แบบรายงานการมาเรียนประจำวัน | CNP APP</title>
-    <!-- Google Fonts: Sarabun -->
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    <!-- TH Sarabun PSK — hosted locally so font embeds correctly in PDF even without internet -->
+    <link rel="stylesheet" href="../public/css/fonts.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -59,6 +59,11 @@ views/daily_attendance_print.html
             .no-print {
                 display: none !important;
             }
+            /* thead repeats on every page; tfoot flows normally (only on last page) */
+            thead { display: table-header-group; }
+            tfoot { display: table-row-group; }
+            /* keep footer panel together on last page */
+            .footer-grid, .signatures-section { page-break-inside: avoid; }
         }
         
         @page {
@@ -166,6 +171,7 @@ views/daily_attendance_print.html
         .footer-grid {
             display: flex;
             justify-content: space-between;
+            align-items: flex-end;
             margin-top: 10px;
             page-break-inside: avoid;
             font-size: 16pt;
@@ -219,7 +225,7 @@ views/daily_attendance_print.html
         .signatures-section {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px; 
+            margin-top: 5em;
             padding: 0 15px;
             page-break-inside: avoid;
             font-size: 16pt;
@@ -343,7 +349,7 @@ views/daily_attendance_print.html
             </div>
             
             <div class="qr-box">
-                <img id="qrCodeImg" class="qr-image" src="" alt="คิวอาร์โค้ดสแกน">
+                <canvas id="qrCanvas" class="qr-image" width="80" height="80"></canvas>
                 <div class="qr-caption">แสกนเพื่อดูรายการมาเรียนวันนี้</div>
             </div>
         </div>
@@ -370,6 +376,7 @@ views/daily_attendance_print.html
 
     <!-- JQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script>
         $(document).ready(function() {
             // Retrieve date parameter from URL
@@ -394,10 +401,15 @@ views/daily_attendance_print.html
                 $('#lblReportDate').text(data.thai_date);
                 $('#lblPrintTime').text(data.print_time);
                 
-                // Generate QR Code URL dynamically using Google Charts QR API (linking directly to today's overview room summary tab)
+                // Generate QR using qrious (canvas-based, works offline/no external API)
                 const verificationUrl = window.location.origin + `/cnpapp/views/today_overview.html?date=${date}&tab=room`;
-                const qrUrl = `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(verificationUrl)}&choe=UTF-8`;
-                $('#qrCodeImg').attr('src', qrUrl);
+                new QRious({
+                    element: document.getElementById('qrCanvas'),
+                    value: verificationUrl,
+                    size: 80,
+                    background: '#ffffff',
+                    foreground: '#000000',
+                });
                 
                 // Populate Table Body
                 const tbody = $('#statsTableBody');
@@ -439,30 +451,39 @@ views/daily_attendance_print.html
                     $('#totPercent').text(pctTotalStr);
                 }
                 
-                // Populate Unreported
+                // Populate Unreported — ใช้ unreported_rooms (flat array) จาก API
                 const unrepDiv = $('#unreportedList');
                 unrepDiv.empty();
-                
-                let hasUnreported = false;
-                if (data.unreported) {
-                    const grades = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
-                    grades.forEach(g => {
-                        const list = data.unreported[g] || [];
-                        if (list.length > 0) {
-                            hasUnreported = true;
-                            const itemsText = list.map(item => {
-                                const advName = item.advisor ? ` ครู${item.advisor}` : '';
-                                return `${item.room}${advName}`;
-                            }).join(' , ');
-                            unrepDiv.append(`
-                                <div class="unreported-item">${g} ${itemsText}</div>
-                            `);
-                        }
-                    });
-                }
-                
-                if (!hasUnreported) {
+
+                const flatList = data.unreported_rooms || [];
+
+                // Deduplicate by room code (กรณี JOIN ดึงซ้ำ)
+                const seenRooms = {};
+                const deduped = flatList.filter(r => {
+                    if (seenRooms[r.room]) return false;
+                    seenRooms[r.room] = true;
+                    return true;
+                });
+
+                if (deduped.length === 0) {
                     unrepDiv.append('<div class="unreported-item">รายงานครบทุกห้องเรียนเรียบร้อย</div>');
+                } else {
+                    // Group โดยใช้ grade_level จาก DB ตรง ๆ ไม่ hardcode
+                    const byGrade = {};
+                    deduped.forEach(r => {
+                        const g = r.grade_level || 'ไม่ระบุชั้น';
+                        if (!byGrade[g]) byGrade[g] = [];
+                        byGrade[g].push(r);
+                    });
+                    // Sort grade keys (ม.1 → ม.6 ตามลำดับ)
+                    Object.keys(byGrade).sort().forEach(grade => {
+                        const roomsInGrade = byGrade[grade];
+                        const itemsText = roomsInGrade.map(r => {
+                            const adv = r.advisor_name ? ` ครู${r.advisor_name}` : '';
+                            return `${r.room}${adv}`;
+                        }).join(' , ');
+                        unrepDiv.append(`<div class="unreported-item">${grade}  ${itemsText}</div>`);
+                    });
                 }
                 
                 // Hide Loader

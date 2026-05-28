@@ -95,6 +95,20 @@
             50% { background-color: rgba(59, 130, 246, 0.2); }
             100% { background-color: rgba(59, 130, 246, 0.1); }
         }
+        .btn-primary-navy { background:#1e3a8a !important; border:none !important; color:#fff !important; }
+        .btn-primary-navy:hover { background:#1d4ed8 !important; color:#fff !important; }
+        .transition-all { transition: all 0.2s ease-in-out; }
+
+        /* ── Skeleton Shimmer Animation ── */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
@@ -115,6 +129,45 @@
                                 <p class="lead mb-0 opacity-75">จัดการและตรวจสอบตารางเรียน/สอนของท่าน</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- TEACHER / STUDENT VIEW TOGGLE (non-admin roles only) -->
+                <div id="roleViewToggleBar" class="d-none mb-3">
+                    <div class="bg-light p-1 rounded-3 d-inline-flex gap-1 border" style="box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);">
+                        <button id="role-tab-self" class="btn rounded-pill px-3 fw-bold small transition-all btn-primary-navy border-0" style="font-size:.82rem;" onclick="switchRoleViewMode('self')">
+                            <i class="bi bi-person-workspace me-1"></i> <span id="role-tab-self-label">ตารางสอนของฉัน</span>
+                        </button>
+                        <button id="role-tab-middle" class="btn rounded-pill px-3 fw-bold small text-secondary transition-all bg-transparent border-0" style="font-size:.82rem;" onclick="switchRoleViewMode('middle')">
+                            <i id="role-tab-middle-icon" class="bi bi-collection me-1"></i> <span id="role-tab-middle-label">...</span>
+                        </button>
+                        <button id="role-tab-other" class="btn rounded-pill px-3 fw-bold small text-secondary transition-all bg-transparent border-0" style="font-size:.82rem;" onclick="switchRoleViewMode('other')">
+                            <i class="bi bi-door-open-fill me-1"></i> <span id="role-tab-other-label">ตารางเรียนห้องที่ปรึกษา</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ADVISOR PICKER (Student only when > 1 advisor) -->
+                <div id="studentAdvisorPicker" class="d-none mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">เลือกดูตารางสอนของครูที่ปรึกษา</label>
+                        <div class="d-flex flex-wrap gap-2" id="studentAdvisorButtonsContainer"></div>
+                    </div>
+                </div>
+
+                <!-- SUBJECT TEACHERS PICKER (Student "middle" mode) -->
+                <div id="studentMyTeacherPicker" class="d-none mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">เลือกดูตารางสอนของครูผู้สอน</label>
+                        <div class="d-flex flex-wrap gap-2" id="studentMyTeacherButtonsContainer"></div>
+                    </div>
+                </div>
+
+                <!-- MY CLASSES PICKER (Teacher "middle" mode) -->
+                <div id="teacherMyClassesPicker" class="d-none mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">เลือกดูตารางเรียนของห้องที่ตนสอน</label>
+                        <div class="d-flex flex-wrap gap-2" id="teacherMyClassesButtonsContainer"></div>
                     </div>
                 </div>
 
@@ -151,75 +204,330 @@
                     </div>
                 </div>
 
-                <!-- DEPARTMENT QUICK FILTERS -->
-                <div class="mb-4 d-flex gap-2 overflow-x-auto pb-2 scroll-hide d-none" id="deptQuickFilters">
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap active-dept" onclick="setDepartmentFilter('')">ทั้งหมด</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('บริหาร')">บริหาร</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('วิทยาศาสตร์และเทคโนโลยี')">วิทยาศาสตร์ฯ</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('คณิตศาสตร์')">คณิตศาสตร์</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ภาษาไทย')">ภาษาไทย</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ภาษาต่างประเทศ')">ภาษาต่างประเทศ</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('สังคมศึกษา ศาสนา และวัฒนธรรม')">สังคมศึกษาฯ</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('สุขศึกษาและพลศึกษา')">สุขศึกษาฯ</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ศิลปะ')">ศิลปะ</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('การงานอาชีพ')">การงานอาชีพ</button>
-                    <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('กิจกรรมพัฒนาผู้เรียน')">กิจกรรมฯ</button>
-                </div>
-
                 <style>
                     .scroll-hide::-webkit-scrollbar { display: none; }
                     .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
                     .btn-white { background: white; color: #64748b; border: 1px solid #e2e8f0; }
                     .btn-white:hover { background: #f8fafc; color: #1e3a8a; }
                     .active-dept { background: #1e3a8a !important; color: white !important; border-color: #1e3a8a !important; }
+                    .active-teacher-btn,
+                    .active-classroom-btn,
+                    .active-class-grade-btn,
+                    .active-class-house-btn,
+                    .active-class-program-btn,
+                    .active-teacher-grade-btn,
+                    .active-teacher-house-btn {
+                        background: #1e3a8a !important;
+                        color: white !important;
+                        border-color: #1e3a8a !important;
+                        box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2) !important;
+                    }
                 </style>
 
                 <!-- FILTER BAR (Admins Only) -->
                 <div class="filter-bar d-none" id="filterBarContainer">
-                    <div class="row g-2 align-items-end">
-                        <div class="col-12 col-md-3">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">กลุ่มสาระ</label>
-                            <select id="filterDept" class="form-select">
-                                <option value="">— ทุกกลุ่มสาระ —</option>
-                                <option>บริหาร</option>
-                                <option>วิทยาศาสตร์และเทคโนโลยี</option>
-                                <option>คณิตศาสตร์</option>
-                                <option>ภาษาไทย</option>
-                                <option>ภาษาต่างประเทศ</option>
-                                <option>สังคมศึกษา ศาสนา และวัฒนธรรม</option>
-                                <option>สุขศึกษาและพลศึกษา</option>
-                                <option>ศิลปะ</option>
-                                <option>การงานอาชีพ</option>
-                                <option>กิจกรรมพัฒนาผู้เรียน</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-3">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ครูผู้สอน</label>
-                            <select id="filterTeacher" class="form-select">
-                                <option value="">— ครูทุกคน —</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-2">
-                            <label class="form-label fw-bold mb-1" style="font-size:.8rem;">ห้องเรียน</label>
-                            <select id="filterClassroom" class="form-select">
-                                <option value="">— ทุกห้อง —</option>
-                            </select>
-                        </div>
-                        <div class="col-12 col-md-4 d-flex gap-2">
-                            <button class="btn btn-primary rounded-3 fw-bold flex-fill shadow-sm" onclick="loadTimetable()">
-                                <i class="bi bi-search me-1"></i> ค้นหา
+                    <!-- Tab Switcher -->
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="bg-light p-1 rounded-3 d-inline-flex flex-wrap gap-1 border" style="box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);">
+                            <button id="tab-mode-class" class="btn rounded-pill px-3 py-1.5 fw-bold small transition-all btn-primary-navy border-0" style="font-size: .82rem;" onclick="switchTimetableMode('class')">
+                                <i class="bi bi-door-open-fill me-1"></i> ตารางเรียน
                             </button>
-                            <button class="btn btn-light rounded-3 border" onclick="clearFilters()">
-                                <i class="bi bi-arrow-clockwise"></i>
+                            <button id="tab-mode-teacher" class="btn rounded-pill px-3 py-1.5 fw-bold small text-secondary transition-all bg-transparent border-0" style="font-size: .82rem;" onclick="switchTimetableMode('teacher')">
+                                <i class="bi bi-person-workspace me-1"></i> ตารางสอน
                             </button>
+                            <button id="tab-mode-room" class="btn rounded-pill px-3 py-1.5 fw-bold small text-secondary transition-all bg-transparent border-0" style="font-size: .82rem;" onclick="switchTimetableMode('room')">
+                                <i class="bi bi-building me-1"></i> ตารางการใช้ห้อง
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- DEPARTMENT QUICK FILTERS (Teacher Mode only) -->
+                    <div class="mb-3 d-flex gap-2 overflow-x-auto pb-2 scroll-hide d-none justify-content-md-center" id="deptQuickFilters">
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap active-dept" onclick="setDepartmentFilter('')">ทั้งหมด</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('บริหาร')">บริหาร</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('วิทยาศาสตร์และเทคโนโลยี')">วิทยาศาสตร์ฯ</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('คณิตศาสตร์')">คณิตศาสตร์</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ภาษาไทย')">ภาษาไทย</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ภาษาต่างประเทศ')">ภาษาต่างประเทศ</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('สังคมศึกษาศาสนาและวัฒนธรรม')">สังคมศึกษาฯ</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('สุขศึกษาและพลศึกษา')">สุขศึกษาฯ</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('ศิลปะ')">ศิลปะ</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('การงานอาชีพ')">การงานอาชีพ</button>
+                        <button class="btn btn-white border rounded-pill px-3 fw-bold small text-nowrap" onclick="setDepartmentFilter('แนะแนว')">แนะแนว</button>
+                    </div>
+
+                    <div class="row g-2 align-items-center justify-content-center">
+                        <!-- Hidden controls to preserve compatibility -->
+                        <select id="filterDept" class="d-none">
+                            <option value="">— ทุกกลุ่มสาระ —</option>
+                            <option value="บริหาร">บริหาร</option>
+                            <option value="วิทยาศาสตร์และเทคโนโลยี">วิทยาศาสตร์และเทคโนโลยี</option>
+                            <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                            <option value="ภาษาไทย">ภาษาไทย</option>
+                            <option value="ภาษาต่างประเทศ">ภาษาต่างประเทศ</option>
+                            <option value="สังคมศึกษาศาสนาและวัฒนธรรม">สังคมศึกษา ศาสนา และวัฒนธรรม</option>
+                            <option value="สุขศึกษาและพลศึกษา">สุขศึกษาและพลศึกษา</option>
+                            <option value="ศิลปะ">ศิลปะ</option>
+                            <option value="การงานอาชีพ">การงานอาชีพ</option>
+                            <option value="แนะแนว">แนะแนว</option>
+                        </select>
+                        <input type="hidden" id="filterTeacher" value="">
+
+                        <!-- Classroom Filters (Class Mode only) -->
+                        <div class="col-12 filter-field-class mt-1">
+                            <div class="card p-3 rounded-4 bg-white border border-light shadow-sm">
+                                <!-- Filter Groups -->
+                                <div class="row g-2 mb-3">
+                                    <!-- 1. Grade level filter buttons -->
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">ระดับชั้น</label>
+                                        <div class="d-flex flex-wrap gap-1" id="classGradeFilterButtons">
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold active-class-grade-btn btn-primary-navy text-white" onclick="setClassGradeFilter('')">ทั้งหมด</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassGradeFilter('มัธยมศึกษาปีที่ 1')">ม.1</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassGradeFilter('มัธยมศึกษาปีที่ 2')">ม.2</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassGradeFilter('มัธยมศึกษาปีที่ 3')">ม.3</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassGradeFilter('มัธยมศึกษาปีที่ 4')">ม.4</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassGradeFilter('มัธยมศึกษาปีที่ 5')">ม.5</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassGradeFilter('มัธยมศึกษาปีที่ 6')">ม.6</button>
+                                        </div>
+                                    </div>
+                                    <!-- 2. House filter buttons -->
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">คณะสี</label>
+                                        <div class="d-flex flex-wrap gap-1" id="classHouseFilterButtons">
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold active-class-house-btn btn-primary-navy text-white" onclick="setClassHouseFilter('')">ทั้งหมด</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassHouseFilter('ขุนสรรค์')">ขุนสรรค์</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassHouseFilter('ขุนศรี')">ขุนศรี</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassHouseFilter('เจ้ายี่')">เจ้ายี่</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setClassHouseFilter('ธรรมจักร')">ธรรมจักร</button>
+                                        </div>
+                                    </div>
+                                    <!-- 3. Program filter buttons -->
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">แผนการเรียน</label>
+                                        <div class="d-flex flex-wrap gap-1" id="classProgramFilterButtons">
+                                            <!-- Dynamically populated program filters -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Classrooms display grid -->
+                                <div class="text-center mb-2 d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-light text-navy border px-3 py-1.5 fw-bold" style="font-size:0.75rem;">
+                                        <i class="bi bi-door-open-fill me-1"></i> ห้องเรียนที่ตรงตามตัวกรอง
+                                    </span>
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 border fw-bold" onclick="clearFilters()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i> ล้างการเลือก
+                                    </button>
+                                </div>
+                                <div id="classroomButtonsContainer" class="d-flex flex-wrap gap-2 justify-content-center p-3 rounded-4 bg-light border" style="max-height: 180px; overflow-y: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                                    <!-- Classroom buttons will be dynamically generated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="filterClassroom" value="101">
+
+                        <!-- ROOM LOCATION PICKER (Room Mode only) -->
+                        <div class="col-12 filter-field-room d-none mt-1">
+                            <div class="card p-3 rounded-4 bg-white border border-light shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-light text-navy border px-3 py-1.5 fw-bold" style="font-size:0.75rem;">
+                                        <i class="bi bi-building me-1"></i> เลือกห้องที่ต้องการดูตารางการใช้งาน
+                                    </span>
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 border fw-bold" onclick="clearFilters()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i> ล้างการเลือก
+                                    </button>
+                                </div>
+                                <div id="roomLocationButtonsContainer" class="d-flex flex-wrap gap-2 justify-content-start p-3 rounded-4 bg-light border" style="max-height: 200px; overflow-y: auto;">
+                                    <span class="text-muted small py-2">กำลังโหลดรายการห้อง...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="filterRoomLocation" value="">
+
+                        <!-- TEACHER BUTTONS CONTAINER (Teacher Mode only) -->
+                        <div class="col-12 filter-field-teacher d-none mt-1">
+                            <div class="card p-3 rounded-4 bg-white border border-light shadow-sm mb-3">
+                                <div class="row g-2">
+                                    <!-- 1. Teacher Advisory Grade filter buttons -->
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">ระดับชั้นครูที่ปรึกษา</label>
+                                        <div class="d-flex flex-wrap gap-1" id="teacherGradeFilterButtons">
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold active-teacher-grade-btn btn-primary-navy text-white" onclick="setTeacherGradeFilter('')">ทั้งหมด</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherGradeFilter('1')">ม.1</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherGradeFilter('2')">ม.2</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherGradeFilter('3')">ม.3</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherGradeFilter('4')">ม.4</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherGradeFilter('5')">ม.5</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherGradeFilter('6')">ม.6</button>
+                                        </div>
+                                    </div>
+                                    <!-- 2. Teacher House filter buttons -->
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label fw-bold text-muted mb-2 small d-block" style="font-size:0.75rem;">คณะสี</label>
+                                        <div class="d-flex flex-wrap gap-1" id="teacherHouseFilterButtons">
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold active-teacher-house-btn btn-primary-navy text-white" onclick="setTeacherHouseFilter('')">ทั้งหมด</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherHouseFilter('ขุนสรรค์')">ขุนสรรค์</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherHouseFilter('ขุนศรี')">ขุนศรี</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherHouseFilter('เจ้ายี่')">เจ้ายี่</button>
+                                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold" onclick="setTeacherHouseFilter('ธรรมจักร')">ธรรมจักร</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mb-2 d-flex justify-content-between align-items-center">
+                                <span class="badge bg-light text-navy border px-3 py-1.5 fw-bold" style="font-size:0.75rem;">
+                                    <i class="bi bi-people-fill me-1"></i> รายชื่อครูผู้สอนที่ตรงตามตัวกรอง
+                                </span>
+                                <button class="btn btn-light btn-sm rounded-pill px-3 border fw-bold" onclick="clearFilters()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> ล้างการเลือก
+                                </button>
+                            </div>
+                            <div id="teacherButtonsContainer" class="d-flex flex-wrap gap-2 justify-content-center p-3 rounded-4 bg-white border" style="max-height: 180px; overflow-y: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                                <span class="text-muted small py-2">กรุณาเลือกกลุ่มสาระหรือเงื่อนไขตัวกรองด้านบน</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- LOADING -->
-                <div id="loadingState" class="text-center py-5">
-                    <div class="spinner-border text-primary mb-3"></div>
-                    <p class="text-muted fw-bold">กำลังโหลดตารางสอน...</p>
+                <!-- LOADING SKELETON -->
+                <div id="loadingState" class="mb-4">
+                    <!-- Desktop Skeleton Grid (Hidden on Mobile) -->
+                    <div class="d-none d-md-block">
+                        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="skeleton" style="height: 24px; width: 220px; border-radius: 8px;"></div>
+                                <div class="d-flex gap-2">
+                                    <div class="skeleton" style="height: 32px; width: 100px; border-radius: 20px;"></div>
+                                    <div class="skeleton" style="height: 32px; width: 100px; border-radius: 20px;"></div>
+                                </div>
+                            </div>
+                            <div class="tt-wrap">
+                                <table class="tt-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 70px;"><div class="skeleton" style="height: 24px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                            <th><div class="skeleton" style="height: 36px; width: 100%; border-radius: 6px;"></div></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 5 Shimmering Rows -->
+                                        <tr>
+                                            <td><div class="skeleton" style="height: 32px; width: 100%; border-radius: 6px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                        </tr>
+                                        <tr>
+                                            <td><div class="skeleton" style="height: 32px; width: 100%; border-radius: 6px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                        </tr>
+                                        <tr>
+                                            <td><div class="skeleton" style="height: 32px; width: 100%; border-radius: 6px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                        </tr>
+                                        <tr>
+                                            <td><div class="skeleton" style="height: 32px; width: 100%; border-radius: 6px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                        </tr>
+                                        <tr>
+                                            <td><div class="skeleton" style="height: 32px; width: 100%; border-radius: 6px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                            <td><div class="skeleton" style="height: 75px; width: 100%; border-radius: 8px;"></div></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Skeleton List (Hidden on Desktop) -->
+                    <div class="d-md-none">
+                        <!-- Shimmering day tabs -->
+                        <div class="d-flex gap-2 overflow-x-auto pb-2 mb-3">
+                            <div class="skeleton" style="height: 32px; width: 80px; border-radius: 20px; flex-shrink:0;"></div>
+                            <div class="skeleton" style="height: 32px; width: 80px; border-radius: 20px; flex-shrink:0;"></div>
+                            <div class="skeleton" style="height: 32px; width: 80px; border-radius: 20px; flex-shrink:0;"></div>
+                            <div class="skeleton" style="height: 32px; width: 80px; border-radius: 20px; flex-shrink:0;"></div>
+                            <div class="skeleton" style="height: 32px; width: 80px; border-radius: 20px; flex-shrink:0;"></div>
+                        </div>
+                        <!-- Shimmering card items -->
+                        <div class="d-flex flex-column gap-2">
+                            <div class="card border-0 shadow-sm p-3 rounded-4" style="background:#fff;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="skeleton" style="height: 36px; width: 36px; border-radius: 10px;"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton mb-2" style="height: 16px; width: 60%;"></div>
+                                        <div class="skeleton" style="height: 12px; width: 40%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm p-3 rounded-4" style="background:#fff;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="skeleton" style="height: 36px; width: 36px; border-radius: 10px;"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton mb-2" style="height: 16px; width: 50%;"></div>
+                                        <div class="skeleton" style="height: 12px; width: 30%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card border-0 shadow-sm p-3 rounded-4" style="background:#fff;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="skeleton" style="height: 36px; width: 36px; border-radius: 10px;"></div>
+                                    <div class="flex-grow-1">
+                                        <div class="skeleton mb-2" style="height: 16px; width: 70%;"></div>
+                                        <div class="skeleton" style="height: 12px; width: 45%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- EMPTY STATE -->
@@ -267,6 +575,18 @@ function buildClassLabel(grade, cls) {
     return cls;
 }
 
+function formatTeacherName(first, full) {
+    if (first && first.trim()) {
+        return 'ครู' + first.trim();
+    }
+    if (full && full.trim()) {
+        const clean = full.replace(/^(นาย|นางสาว|นาง|ว่าที่ร้อยตรี|สิบโท|พระอาจารย์|ครู|ดร\.)/g, '').trim();
+        const firstName = clean.split(/\s+/)[0];
+        return 'ครู' + firstName;
+    }
+    return '';
+}
+
 const DAYS = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
 const PERIODS = 12; // 0–11
 const PERIOD_COLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7'];
@@ -285,8 +605,26 @@ let allData = [];
 let activeMobileDay = 1;
 let currentUserRole = '';
 let currentUser = null;
+let currentTimetableMode = 'class'; // 'class' or 'teacher'
+let roleViewMode = 'self'; // 'self' or 'other' (for teacher/student non-admin toggle)
+
+let allRoomsCached = [];
+let classSelectedGrade = '';
+let classSelectedHouse = '';
+let classSelectedProgram = '';
+
+let teacherSelectedGrade = '';
+let teacherSelectedHouse = '';
+let studentSelectedAdvisorId = null;
+let studentSelectedTeacherId = null;
+let teacherSelectedClassname = null;
+let studentMyTeachersList = null;
+let teacherMyClassesList = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Show skeleton loading immediately on page startup
+    showLoading(true);
+    
     const user = await checkAuth(['admin','teacher','student']);
     if (!user) return;
     currentUser = user;
@@ -295,16 +633,96 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Only Admin can see and use filters
     if (user.role === 'admin') {
         document.getElementById('filterBarContainer').classList.remove('d-none');
-        document.getElementById('deptQuickFilters').classList.remove('d-none');
-        populateClassroomFilter();
-        await loadTeacherOptions();
-        
-        // Default to 'บริหาร' (Executive) for admin to avoid heavy initial load
-        setDepartmentFilter('บริหาร');
+        document.getElementById('deptQuickFilters').classList.add('d-none'); // Hidden by default (shown only in teacher mode)
+
+        // Parallel fetch for modern, ultra-fast loading times
+        await Promise.all([
+            loadClassroomOptions(),
+            loadTeacherOptions()
+        ]);
+
+        // Default to class mode, room 101
+        switchTimetableMode('class');
+        document.getElementById('filterClassroom').value = '101';
+        filterClassrooms();
+
+        loadTimetable();
     } else {
+        // Teacher/Student: show role-specific view toggle
+        const toggleBar = document.getElementById('roleViewToggleBar');
+        const selfLabel  = document.getElementById('role-tab-self-label');
+        const otherLabel = document.getElementById('role-tab-other-label');
+        if (user.role === 'teacher') {
+            toggleBar.classList.remove('d-none');
+            selfLabel.textContent  = 'ตารางสอนของฉัน';
+            document.getElementById('role-tab-middle-label').textContent = 'ตารางเรียนที่สอนทุกห้อง';
+            document.getElementById('role-tab-middle-icon').className = 'bi bi-collection me-1';
+            otherLabel.textContent = 'ตารางเรียนห้องที่ปรึกษา';
+        } else if (user.role === 'student') {
+            toggleBar.classList.remove('d-none');
+            selfLabel.textContent  = 'ตารางเรียนของฉัน';
+            document.getElementById('role-tab-middle-label').textContent = 'ตารางสอนครูผู้สอน';
+            document.getElementById('role-tab-middle-icon').className = 'bi bi-people me-1';
+            otherLabel.textContent = 'ตารางสอนครูที่ปรึกษา';
+        }
         loadTimetable();
     }
 });
+
+function switchRoleViewMode(mode) {
+    roleViewMode = mode;
+    const ACTIVE = 'btn rounded-pill px-3 fw-bold small transition-all btn-primary-navy border-0';
+    const IDLE   = 'btn rounded-pill px-3 fw-bold small text-secondary transition-all bg-transparent border-0';
+    document.getElementById('role-tab-self').className   = mode === 'self'   ? ACTIVE : IDLE;
+    document.getElementById('role-tab-middle').className = mode === 'middle' ? ACTIVE : IDLE;
+    document.getElementById('role-tab-other').className  = mode === 'other'  ? ACTIVE : IDLE;
+    // Reset pickers + selection state
+    studentSelectedAdvisorId = null;
+    studentSelectedTeacherId = null;
+    teacherSelectedClassname = null;
+    studentMyTeachersList = null;
+    teacherMyClassesList  = null;
+    ['studentAdvisorPicker','studentMyTeacherPicker','teacherMyClassesPicker'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('d-none');
+    });
+    loadTimetable();
+}
+
+function switchTimetableMode(mode) {
+    currentTimetableMode = mode;
+
+    const ACTIVE = 'btn rounded-pill px-3 py-1.5 fw-bold small transition-all btn-primary-navy border-0';
+    const IDLE   = 'btn rounded-pill px-3 py-1.5 fw-bold small text-secondary transition-all bg-transparent border-0';
+
+    document.getElementById('tab-mode-class').className   = mode === 'class'   ? ACTIVE : IDLE;
+    document.getElementById('tab-mode-teacher').className = mode === 'teacher' ? ACTIVE : IDLE;
+    document.getElementById('tab-mode-room').className    = mode === 'room'    ? ACTIVE : IDLE;
+
+    // Show / hide filter blocks
+    document.querySelectorAll('.filter-field-class').forEach(el   => el.classList.toggle('d-none', mode !== 'class'));
+    document.querySelectorAll('.filter-field-teacher').forEach(el => el.classList.toggle('d-none', mode !== 'teacher'));
+    document.querySelectorAll('.filter-field-room').forEach(el    => el.classList.toggle('d-none', mode !== 'room'));
+    document.getElementById('deptQuickFilters').classList.toggle('d-none', mode !== 'teacher');
+
+    if (mode === 'class') {
+        if (document.getElementById('filterDept')) document.getElementById('filterDept').value = '';
+        if (document.getElementById('filterTeacher')) document.getElementById('filterTeacher').value = '';
+        filterTeachersByDept();
+    } else if (mode === 'teacher') {
+        if (document.getElementById('filterClassroom')) document.getElementById('filterClassroom').value = '';
+        if (document.getElementById('filterDept')) document.getElementById('filterDept').value = '';
+        document.querySelectorAll('#deptQuickFilters .btn').forEach(btn => {
+            btn.classList.toggle('active-dept', btn.getAttribute('onclick').includes(`''`));
+        });
+        filterTeachersByDept();
+    } else if (mode === 'room') {
+        if (document.getElementById('filterClassroom')) document.getElementById('filterClassroom').value = '';
+        if (document.getElementById('filterDept')) document.getElementById('filterDept').value = '';
+        if (document.getElementById('filterTeacher')) document.getElementById('filterTeacher').value = '';
+        loadRoomLocationOptions();
+    }
+}
 
 function setDepartmentFilter(dept) {
     const sel = document.getElementById('filterDept');
@@ -314,63 +732,343 @@ function setDepartmentFilter(dept) {
         document.querySelectorAll('#deptQuickFilters .btn').forEach(btn => {
             btn.classList.toggle('active-dept', btn.getAttribute('onclick').includes(`'${dept}'`));
         });
+        filterTeachersByDept();
         loadTimetable();
     }
 }
 
-function populateClassroomFilter() {
-    const sel = document.getElementById('filterClassroom');
-    if (!sel) return;
-    let html = '<option value="">— ทุกห้อง —</option>';
-    for (let g = 1; g <= 6; g++) {
-        for (let r = 1; r <= 15; r++) {
-            const val = `${g}${r.toString().padStart(2, '0')}`;
-            html += `<option value="${val}">ม.${val}</option>`;
+async function loadClassroomOptions() {
+    try {
+        const res = await fetch('../api/admin/rooms.php');
+        const data = await res.json();
+        if (data.success) {
+            allRoomsCached = data.data || [];
+            
+            // Build dynamic program buttons
+            populateProgramFilterButtons();
+            
+            // Render classrooms
+            filterClassrooms();
         }
+    } catch(e) {
+        console.warn('loadClassroomOptions:', e);
     }
-    sel.innerHTML = html;
 }
+
+function populateProgramFilterButtons() {
+    const container = document.getElementById('classProgramFilterButtons');
+    if (!container) return;
+    
+    // Get unique programs
+    const programs = [''];
+    allRoomsCached.forEach(r => {
+        if (r.program && r.program.trim() !== '') {
+            const trimmed = r.program.trim();
+            if (!programs.includes(trimmed)) programs.push(trimmed);
+        }
+    });
+    
+    container.innerHTML = '';
+    programs.forEach(prog => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const label = prog === '' ? 'ทั้งหมด' : prog;
+        const isActive = classSelectedProgram === prog;
+        btn.className = 'btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-bold text-nowrap' + (isActive ? ' active-class-program-btn btn-primary-navy text-white' : '');
+        btn.textContent = label;
+        btn.onclick = () => setClassProgramFilter(prog, btn);
+        container.appendChild(btn);
+    });
+}
+
+function setClassGradeFilter(grade) {
+    classSelectedGrade = grade;
+    document.querySelectorAll('#classGradeFilterButtons .btn').forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        btn.classList.toggle('active-class-grade-btn', onclickAttr.includes(`'${grade}'`));
+        btn.classList.toggle('btn-primary-navy', onclickAttr.includes(`'${grade}'`));
+        btn.classList.toggle('text-white', onclickAttr.includes(`'${grade}'`));
+    });
+    filterClassrooms();
+}
+
+function setClassHouseFilter(house) {
+    classSelectedHouse = house;
+    document.querySelectorAll('#classHouseFilterButtons .btn').forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        btn.classList.toggle('active-class-house-btn', onclickAttr.includes(`'${house}'`));
+        btn.classList.toggle('btn-primary-navy', onclickAttr.includes(`'${house}'`));
+        btn.classList.toggle('text-white', onclickAttr.includes(`'${house}'`));
+    });
+    filterClassrooms();
+}
+
+function setClassProgramFilter(program, btnElement) {
+    classSelectedProgram = program;
+    document.querySelectorAll('#classProgramFilterButtons .btn').forEach(btn => {
+        btn.classList.remove('active-class-program-btn', 'btn-primary-navy', 'text-white');
+    });
+    if (btnElement) {
+        btnElement.classList.add('active-class-program-btn', 'btn-primary-navy', 'text-white');
+    }
+    filterClassrooms();
+}
+
+function filterClassrooms() {
+    const container = document.getElementById('classroomButtonsContainer');
+    const filterClassroomInput = document.getElementById('filterClassroom');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    let filtered = allRoomsCached;
+    if (classSelectedGrade) {
+        filtered = filtered.filter(r => r.grade_level === classSelectedGrade);
+    }
+    if (classSelectedHouse) {
+        filtered = filtered.filter(r => r.house === classSelectedHouse);
+    }
+    if (classSelectedProgram) {
+        filtered = filtered.filter(r => r.program === classSelectedProgram);
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<span class="text-muted small py-2">ไม่พบห้องเรียนที่ตรงตามเงื่อนไขตัวกรอง</span>';
+        return;
+    }
+    
+    // Sort by classroom_code
+    filtered.sort((a, b) => a.classroom_code.localeCompare(b.classroom_code));
+    
+    const activeRoom = filterClassroomInput ? filterClassroomInput.value : '';
+    
+    filtered.forEach(r => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = activeRoom === r.classroom_code;
+        
+        btn.className = 'btn btn-outline-secondary rounded-pill px-3 py-1 fw-bold btn-sm text-nowrap transition-all' + (isSelected ? ' active-classroom-btn btn-primary-navy text-white' : '');
+        btn.textContent = r.classroom_code;
+        
+        btn.onclick = () => {
+            document.querySelectorAll('.active-classroom-btn').forEach(b => {
+                b.classList.remove('active-classroom-btn', 'btn-primary-navy', 'text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.add('active-classroom-btn', 'btn-primary-navy', 'text-white');
+            btn.classList.remove('btn-outline-secondary');
+            
+            if (filterClassroomInput) filterClassroomInput.value = r.classroom_code;
+            loadTimetable();
+        };
+        container.appendChild(btn);
+    });
+}
+
+let allTeachersCached = [];
 
 async function loadTeacherOptions(preselect = null) {
     try {
         const res = await fetch('../api/get_teachers_list.php');
         const data = await res.json();
-        const sel = document.getElementById('filterTeacher');
-        sel.innerHTML = '<option value="">— ครูทุกคน —</option>';
-        const teachers = data.teachers || data.data || [];
-        teachers.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id || t.user_id;
-            opt.textContent = (t.name || (t.prefix||'') + (t.first_name_th||'') + ' ' + (t.last_name_th||'')).trim();
-            sel.appendChild(opt);
-        });
-        if (preselect) sel.value = preselect;
+        allTeachersCached = data.teachers || data.data || [];
+        filterTeachersByDept(preselect);
     } catch(e) { console.warn('loadTeacherOptions:', e); }
+}
+
+function filterTeachersByDept(preselect = null) {
+    const deptSel = document.getElementById('filterDept');
+    const container = document.getElementById('teacherButtonsContainer');
+    const filterTeacherInput = document.getElementById('filterTeacher');
+    if (!container) return;
+    
+    const dept = deptSel ? deptSel.value : '';
+    container.innerHTML = '';
+    
+    let filtered = allTeachersCached;
+    if (dept) {
+        if (dept === 'บริหาร') {
+            filtered = allTeachersCached.filter(t => t.department === 'ผู้อำนวยการ' || t.department === 'รองผู้อำนวยการ');
+        } else {
+            const normalizedDept = dept.replace(/\s+/g, '');
+            filtered = allTeachersCached.filter(t => {
+                const teacherDept = (t.department || '').replace(/\s+/g, '');
+                return teacherDept === normalizedDept;
+            });
+        }
+    }
+    
+    // Filter by Teacher Advisory Grade (classroom code first digit)
+    if (teacherSelectedGrade) {
+        filtered = filtered.filter(t => {
+            const room = (t.classroom || '').trim();
+            const cleanRoom = room.replace(/^ม\./, '').trim();
+            const firstChar = cleanRoom.charAt(0);
+            return firstChar === teacherSelectedGrade;
+        });
+    }
+    
+    // Filter by Teacher House (faculty)
+    if (teacherSelectedHouse) {
+        filtered = filtered.filter(t => t.faculty === teacherSelectedHouse);
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<span class="text-muted small py-2">ไม่พบรายชื่อครูในกลุ่มสาระนี้</span>';
+        if (filterTeacherInput) filterTeacherInput.value = '';
+        return;
+    }
+    
+    // Auto-select first teacher if none preselected
+    if (!preselect && filtered.length > 0) {
+        preselect = filtered[0].teachers_id || filtered[0].id;
+    }
+
+
+    filtered.forEach(t => {
+        const cleanName = t.name.replace(/^(นาย|นางสาว|นาง|ว่าที่ร้อยตรี|สิบโท|พระอาจารย์|ครู|ดร\.)/g, '').trim();
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        
+        const isSelected = preselect && (t.teachers_id == preselect || t.id == preselect);
+        btn.className = 'btn btn-outline-secondary rounded-pill px-3 py-1 fw-bold btn-sm text-nowrap transition-all' + (isSelected ? ' active-teacher-btn btn-primary-navy text-white' : '');
+        btn.textContent = cleanName;
+        
+        btn.onclick = () => {
+            document.querySelectorAll('.active-teacher-btn').forEach(b => {
+                b.classList.remove('active-teacher-btn', 'btn-primary-navy', 'text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.add('active-teacher-btn', 'btn-primary-navy', 'text-white');
+            btn.classList.remove('btn-outline-secondary');
+            if (filterTeacherInput) filterTeacherInput.value = t.teachers_id || t.id;
+            loadTimetable();
+        };
+        container.appendChild(btn);
+    });
+    
+    if (preselect) {
+        if (filterTeacherInput) filterTeacherInput.value = preselect;
+    } else {
+        if (filterTeacherInput) filterTeacherInput.value = '';
+    }
+}
+
+function renderStudentAdvisorPicker(advisors, selectedId) {
+    const picker = document.getElementById('studentAdvisorPicker');
+    const container = document.getElementById('studentAdvisorButtonsContainer');
+    if (!picker || !container) return;
+    
+    picker.classList.remove('d-none');
+    container.innerHTML = '';
+    
+    advisors.forEach(adv => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = selectedId == adv.id;
+        btn.className = 'btn btn-outline-secondary rounded-pill px-3 py-1 fw-bold btn-sm text-nowrap transition-all' + (isSelected ? ' active-advisor-btn btn-primary-navy text-white' : '');
+        
+        // Format name
+        const cleanName = ((adv.first_name_th || '') + ' ' + (adv.last_name_th || '')).trim() || 'ครูที่ปรึกษา';
+        btn.innerHTML = `<i class="bi bi-person-fill me-1"></i>ครู${cleanName.split(' ')[0]}`;
+        
+        btn.onclick = () => {
+            document.querySelectorAll('.active-advisor-btn').forEach(b => {
+                b.classList.remove('active-advisor-btn', 'btn-primary-navy', 'text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.add('active-advisor-btn', 'btn-primary-navy', 'text-white');
+            btn.classList.remove('btn-outline-secondary');
+            studentSelectedAdvisorId = adv.id;
+            loadTimetable();
+        };
+        container.appendChild(btn);
+    });
 }
 
 async function loadTimetable() {
     showLoading(true);
     const params = new URLSearchParams();
-    const dept    = document.getElementById('filterDept') ? document.getElementById('filterDept').value : '';
-    const teacher = document.getElementById('filterTeacher').value;
-    const cr      = document.getElementById('filterClassroom') ? document.getElementById('filterClassroom').value : '';
 
-    if (dept)    params.set('department', dept);
-    if (teacher) params.set('teacher_id', teacher);
-    if (cr) {
-        const gradeNum = cr.charAt(0);
-        params.set('grade_level', 'ม.' + gradeNum);
-        params.set('class_name', cr);
+    if (currentUserRole === 'admin') {
+        if (currentTimetableMode === 'class') {
+            const cr = document.getElementById('filterClassroom').value;
+            if (cr) {
+                const gradeNum = cr.charAt(0);
+                params.set('grade_level', 'ม.' + gradeNum);
+                params.set('class_name', cr);
+            } else {
+                showLoading(false);
+                showEmpty(true);
+                return;
+            }
+        } else if (currentTimetableMode === 'room') {
+            const rl = document.getElementById('filterRoomLocation').value;
+            if (rl) {
+                params.set('room_location', rl);
+            } else {
+                showLoading(false);
+                showEmpty(true);
+                return;
+            }
+        } else {
+            const dept = document.getElementById('filterDept').value;
+            const teacher = document.getElementById('filterTeacher').value;
+            if (dept) params.set('department', dept);
+            if (teacher) params.set('teacher_id', teacher);
+        }
+    } else if (currentUserRole === 'teacher' && roleViewMode === 'middle') {
+        // ครูดูตารางเรียนของห้องที่ตนสอน
+        if (!teacherSelectedClassname) {
+            await loadTeacherMyClasses();
+            return;
+        }
+        params.set('class_name', teacherSelectedClassname);
+    } else if (currentUserRole === 'teacher' && roleViewMode === 'other') {
+        // ครูดูตารางเรียนห้องที่ปรึกษา
+        const advisoryRoom = currentUser.classroom || '';
+        if (advisoryRoom) {
+            params.set('class_name', advisoryRoom);
+        } else {
+            showLoading(false); showEmpty(true); return;
+        }
+    } else if (currentUserRole === 'student' && roleViewMode === 'middle') {
+        // นักเรียนดูตารางสอนของครูผู้สอน
+        if (!studentSelectedTeacherId) {
+            await loadStudentClassTeachers();
+            return;
+        }
+        params.set('view_my_teacher_id', studentSelectedTeacherId);
+    } else if (currentUserRole === 'student' && roleViewMode === 'other') {
+        // นักเรียนดูตารางสอนครูที่ปรึกษา
+        params.set('view_homeroom_teacher', '1');
+        if (typeof studentSelectedAdvisorId !== 'undefined' && studentSelectedAdvisorId) {
+            params.set('teacher_id', studentSelectedAdvisorId);
+        }
     }
+    // else: teacher 'self' or student 'self' → ไม่ส่ง params → API จัดการเอง
 
     try {
         const res  = await fetch('../api/timetable.php?' + params.toString(), { credentials: 'same-origin' });
         const json = await res.json();
-        if (json.success === false) {
-            console.error('timetable API:', json.error || json);
-        }
         allData = json.data || [];
         showLoading(false);
+        
+        // Handle Advisor Picker UI
+        if (currentUserRole === 'student' && roleViewMode === 'other' && json.advisors && json.advisors.length > 1) {
+            renderStudentAdvisorPicker(json.advisors, json.selected_advisor_id);
+        } else {
+            const picker = document.getElementById('studentAdvisorPicker');
+            if (picker) picker.classList.add('d-none');
+        }
+        // Keep middle-mode pickers visible after data loads
+        if (currentUserRole === 'teacher' && roleViewMode === 'middle' && teacherMyClassesList) {
+            renderTeacherMyClassesPicker(teacherMyClassesList, teacherSelectedClassname);
+        }
+        if (currentUserRole === 'student' && roleViewMode === 'middle' && studentMyTeachersList) {
+            renderStudentMyTeacherPicker(studentMyTeachersList, studentSelectedTeacherId);
+        }
+
         if (allData.length === 0) { showEmpty(true); return; }
         showEmpty(false);
         renderDesktop(allData);
@@ -383,10 +1081,78 @@ async function loadTimetable() {
     }
 }
 
+function setTeacherGradeFilter(grade) {
+    teacherSelectedGrade = grade;
+    document.querySelectorAll('#teacherGradeFilterButtons .btn').forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        btn.classList.toggle('active-teacher-grade-btn', onclickAttr.includes(`'${grade}'`));
+        btn.classList.toggle('btn-primary-navy', onclickAttr.includes(`'${grade}'`));
+        btn.classList.toggle('text-white', onclickAttr.includes(`'${grade}'`));
+    });
+    filterTeachersByDept();
+    loadTimetable();
+}
+
+function setTeacherHouseFilter(house) {
+    teacherSelectedHouse = house;
+    document.querySelectorAll('#teacherHouseFilterButtons .btn').forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        btn.classList.toggle('active-teacher-house-btn', onclickAttr.includes(`'${house}'`));
+        btn.classList.toggle('btn-primary-navy', onclickAttr.includes(`'${house}'`));
+        btn.classList.toggle('text-white', onclickAttr.includes(`'${house}'`));
+    });
+    filterTeachersByDept();
+    loadTimetable();
+}
+
 function clearFilters() {
-    if (document.getElementById('filterDept')) document.getElementById('filterDept').value = '';
-    if (document.getElementById('filterTeacher')) document.getElementById('filterTeacher').value = '';
-    if (document.getElementById('filterClassroom')) document.getElementById('filterClassroom').value = '';
+    if (currentTimetableMode === 'room') {
+        document.getElementById('filterRoomLocation').value = '';
+        document.querySelectorAll('#roomLocationButtonsContainer .btn').forEach(b => {
+            b.classList.remove('active-classroom-btn', 'btn-primary-navy', 'text-white');
+            b.classList.add('btn-outline-secondary');
+        });
+        showEmpty(true);
+        return;
+    }
+    if (currentTimetableMode === 'class') {
+        classSelectedGrade = '';
+        classSelectedHouse = '';
+        classSelectedProgram = '';
+
+        setClassGradeFilter('');
+        setClassHouseFilter('');
+        setClassProgramFilter('');
+
+        document.getElementById('filterClassroom').value = '101';
+        filterClassrooms();
+    } else {
+        teacherSelectedGrade = '';
+        teacherSelectedHouse = '';
+        
+        // Reset teacher grade buttons highlight
+        document.querySelectorAll('#teacherGradeFilterButtons .btn').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick') || '';
+            btn.classList.toggle('active-teacher-grade-btn', onclickAttr.includes(`''`));
+            btn.classList.toggle('btn-primary-navy', onclickAttr.includes(`''`));
+            btn.classList.toggle('text-white', onclickAttr.includes(`''`));
+        });
+        
+        // Reset teacher house buttons highlight
+        document.querySelectorAll('#teacherHouseFilterButtons .btn').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick') || '';
+            btn.classList.toggle('active-teacher-house-btn', onclickAttr.includes(`''`));
+            btn.classList.toggle('btn-primary-navy', onclickAttr.includes(`''`));
+            btn.classList.toggle('text-white', onclickAttr.includes(`''`));
+        });
+        
+        if (document.getElementById('filterDept')) document.getElementById('filterDept').value = '';
+        if (document.getElementById('filterTeacher')) document.getElementById('filterTeacher').value = '';
+        document.querySelectorAll('#deptQuickFilters .btn').forEach(btn => {
+            btn.classList.toggle('active-dept', btn.getAttribute('onclick').includes(`''`));
+        });
+        filterTeachersByDept();
+    }
     loadTimetable();
 }
 
@@ -415,7 +1181,66 @@ function buildMap(data) {
 /* ── Period range based on role: student = 1–9, others = 0–11 ── */
 function getPeriodRange() {
     if (currentUserRole === 'student') return { startP: 1, endP: 9 };
-    return { startP: 0, endP: PERIODS - 1 };
+    if (currentUserRole === 'admin' && currentTimetableMode === 'class') return { startP: 1, endP: 9 };
+    // ครูดูตารางเรียน (ห้องที่สอน / ห้องที่ปรึกษา) → ใช้ช่วงคาบเดียวกับนักเรียน
+    if (currentUserRole === 'teacher' && (roleViewMode === 'other' || roleViewMode === 'middle')) return { startP: 1, endP: 9 };
+    return { startP: 0, endP: 10 };
+}
+
+async function loadRoomLocationOptions() {
+    const container = document.getElementById('roomLocationButtonsContainer');
+    if (!container) return;
+    container.innerHTML = '<span class="text-muted small py-2"><i class="bi bi-hourglass-split me-1"></i>กำลังโหลดรายการห้อง...</span>';
+
+    try {
+        const res  = await fetch('../api/timetable.php?get_room_locations=1');
+        const data = await res.json();
+        const rooms = (data.rooms || []).filter(r => r && r.trim() !== '');
+        if (rooms.length === 0) {
+            container.innerHTML = '<span class="text-muted small py-2">ไม่พบข้อมูลห้อง</span>';
+            return;
+        }
+
+        // Group by leading digit(s) — treat first char as floor
+        const groups = {};
+        rooms.forEach(r => {
+            const key = /^\d/.test(r) ? ('ชั้น ' + r.charAt(0)) : 'อื่น ๆ';
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(r);
+        });
+
+        container.innerHTML = '';
+        const activeRoom = document.getElementById('filterRoomLocation').value;
+        Object.keys(groups).sort().forEach(floor => {
+            const label = document.createElement('div');
+            label.className = 'w-100 small fw-bold text-muted mt-1 mb-1';
+            label.style.fontSize = '0.7rem';
+            label.textContent = floor;
+            container.appendChild(label);
+
+            groups[floor].forEach(r => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                const isSelected = activeRoom === r;
+                btn.className = 'btn btn-sm rounded-pill fw-bold text-nowrap transition-all' +
+                    (isSelected ? ' btn-primary-navy text-white active-classroom-btn' : ' btn-outline-secondary');
+                btn.textContent = r;
+                btn.onclick = () => {
+                    document.querySelectorAll('#roomLocationButtonsContainer .btn').forEach(b => {
+                        b.classList.remove('active-classroom-btn', 'btn-primary-navy', 'text-white');
+                        b.classList.add('btn-outline-secondary');
+                    });
+                    btn.classList.add('active-classroom-btn', 'btn-primary-navy', 'text-white');
+                    btn.classList.remove('btn-outline-secondary');
+                    document.getElementById('filterRoomLocation').value = r;
+                    loadTimetable();
+                };
+                container.appendChild(btn);
+            });
+        });
+    } catch(e) {
+        container.innerHTML = '<span class="text-danger small py-2">โหลดข้อมูลไม่ได้</span>';
+    }
 }
 
 /* ── DESKTOP ── */
@@ -476,11 +1301,20 @@ function renderDesktop(data) {
                 // Group by subject (handle cases with multiple teachers for same subject/class)
                 const groupedBySubject = {};
                 cells.forEach(c => {
-                    const key = `${c.subject_name}|${c.class_name || ''}`;
-                    if (!groupedBySubject[key]) groupedBySubject[key] = { ...c, teachers: [] };
-                    if (c.teacher_first_name || c.teacher_name) {
-                        const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim().replace(/^ครู/, '').split(' ')[0] : '');
-                        groupedBySubject[key].teachers.push('ครู' + fname);
+                    const key = c.subject_name;
+                    if (!groupedBySubject[key]) {
+                        groupedBySubject[key] = { ...c, teachers: [], classes: [] };
+                    }
+                    const formattedTeacher = formatTeacherName(c.teacher_first_name, c.teacher_name);
+                    if (formattedTeacher) {
+                        groupedBySubject[key].teachers.push(formattedTeacher);
+                    }
+                    const formattedClass = buildClassLabel(c.grade_level, c.class_name);
+                    if (formattedClass) {
+                        groupedBySubject[key].classes.push(formattedClass);
+                    }
+                    if (!groupedBySubject[key].room_location && c.room_location) {
+                        groupedBySubject[key].room_location = c.room_location;
                     }
                 });
 
@@ -499,19 +1333,21 @@ function renderDesktop(data) {
 
                     const teacherNames = [...new Set(c.teachers)].filter(n => n !== '');
                     const groupedTeachers = teacherNames.join(' + ');
-                    let teacherDisplay = groupedTeachers ? `<div class="teacher-name"><i class="bi bi-person me-1"></i>${groupedTeachers}</div>` : '';
+                    let teacherDisplay = teacherNames.length > 0 ? `<div class="teacher-name"><i class="bi bi-person me-1"></i>${groupedTeachers}</div>` : '';
 
-                    if (currentUserRole === 'teacher' && groupedTeachers === 'ครู' + (currentUser.first_name_th || '')) {
+                    if (currentUserRole === 'teacher' && (c.teacher_first_name === currentUser.first_name_th || c.teacher_id == currentUser.id)) {
                         teacherDisplay = '';
                     }
 
-                    const classLabel = buildClassLabel(c.grade_level, c.class_name);
+                    const classNames = [...new Set(c.classes)].filter(n => n !== '');
+                    const classLabel = classNames.join(', ');
+                    
                     inner += `
                         <div style="margin-bottom:${Object.keys(groupedBySubject).length > 1 ? '8px' : '0'}; padding-bottom:${Object.keys(groupedBySubject).length > 1 ? '8px' : '0'}; border-bottom:${Object.keys(groupedBySubject).length > 1 ? '1px solid #f1f5f9' : 'none'};">
                             <div class="subject mb-1">${c.subject_name}</div>
                             <div class="meta d-flex flex-wrap gap-1 justify-content-center">
                                 ${classLabel ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
-                                ${c.room_location ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
+                                ${(c.room_location && currentTimetableMode !== 'room') ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
                             </div>
                             ${teacherDisplay}
                         </div>`;
@@ -583,11 +1419,20 @@ function renderDayCards(day, map) {
         // Group by subject for mobile
         const groupedBySubject = {};
         cells.forEach(c => {
-            const key = `${c.subject_name}|${c.class_name || ''}`;
-            if (!groupedBySubject[key]) groupedBySubject[key] = { ...c, teachers: [] };
-            if (c.teacher_first_name || c.teacher_name) {
-                const fname = c.teacher_first_name ? c.teacher_first_name.trim() : (c.teacher_name ? c.teacher_name.trim().replace(/^ครู/, '').split(' ')[0] : '');
-                groupedBySubject[key].teachers.push('ครู' + fname);
+            const key = c.subject_name;
+            if (!groupedBySubject[key]) {
+                groupedBySubject[key] = { ...c, teachers: [], classes: [] };
+            }
+            const formattedTeacher = formatTeacherName(c.teacher_first_name, c.teacher_name);
+            if (formattedTeacher) {
+                groupedBySubject[key].teachers.push(formattedTeacher);
+            }
+            const formattedClass = buildClassLabel(c.grade_level, c.class_name);
+            if (formattedClass) {
+                groupedBySubject[key].classes.push(formattedClass);
+            }
+            if (!groupedBySubject[key].room_location && c.room_location) {
+                groupedBySubject[key].room_location = c.room_location;
             }
         });
 
@@ -602,13 +1447,15 @@ function renderDayCards(day, map) {
             let teacherDisplay = '';
             if (!isBreak && !isLocked && groupedTeachers) {
                 teacherDisplay = `<div class="meta" style="color:#3b82f6;"><i class="bi bi-person me-1"></i>${groupedTeachers}</div>`;
-                if (currentUserRole === 'teacher' && groupedTeachers === 'ครู' + (currentUser.first_name_th || '')) {
+                if (currentUserRole === 'teacher' && (c.teacher_first_name === currentUser.first_name_th || c.teacher_id == currentUser.id)) {
                     teacherDisplay = '';
                 }
             }
 
             const slotPrefix = isLocked ? '🔒 ' : (isBreak ? '☕ ' : '');
             const slotExtraStyle = isLocked ? 'background:linear-gradient(135deg,#fef3c7,#fde68a);' : '';
+            const classNames = [...new Set(c.classes)].filter(n => n !== '');
+            const classLabel = classNames.join(', ');
 
             html += `
             <div class="mobile-slot ${isBreak ? 'is-break' : ''} ${isCurrentP ? 'current-period-slot' : ''}" style="${slotExtraStyle}">
@@ -619,7 +1466,7 @@ function renderDayCards(day, map) {
                     <div class="subject mb-1" style="${isLocked ? 'color:#92400e;' : ''}">${slotPrefix}${c.subject_name}</div>
                     ${(isBreak || isLocked) ? '' : `
                         <div class="meta d-flex flex-wrap gap-1 align-items-center">
-                            ${buildClassLabel(c.grade_level, c.class_name) ? `<span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>${buildClassLabel(c.grade_level, c.class_name)}</span>` : ''}
+                            ${classLabel ? `<span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
                             ${c.room_location ? `<span class="badge bg-light text-secondary border"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
                         </div>
                         ${teacherDisplay}
@@ -654,6 +1501,104 @@ window.addEventListener('resize', () => {
     if (!allData.length) return;
     if (window.innerWidth < 768) renderMobile(allData);
 });
+
+// ── นักเรียน: โหลดรายชื่อครูผู้สอนในห้อง ─────────────────────────────────────
+async function loadStudentClassTeachers() {
+    showLoading(true);
+    try {
+        const res = await fetch('../api/timetable.php?get_class_teachers=1', { credentials: 'same-origin' });
+        const json = await res.json();
+        const teachers = json.teachers || [];
+        if (!teachers.length) { showLoading(false); showEmpty(true); return; }
+        studentMyTeachersList    = teachers;
+        studentSelectedTeacherId = teachers[0].id;
+        renderStudentMyTeacherPicker(teachers, studentSelectedTeacherId);
+        loadTimetable();
+    } catch(e) { showLoading(false); showEmpty(true); console.error(e); }
+}
+
+function renderStudentMyTeacherPicker(teachers, selectedId) {
+    const picker    = document.getElementById('studentMyTeacherPicker');
+    const container = document.getElementById('studentMyTeacherButtonsContainer');
+    if (!picker || !container) return;
+    picker.classList.remove('d-none');
+    container.innerHTML = '';
+    teachers.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = selectedId == t.id;
+        btn.className = 'btn btn-outline-secondary rounded-pill px-3 py-1 fw-bold btn-sm text-nowrap transition-all' +
+            (isSelected ? ' active-myteacher-btn btn-primary-navy text-white' : '');
+        const firstName = (t.first_name_th || '').trim();
+        const subjectTags = (t.subjects || '').split('|').filter(Boolean)
+            .map(s => `<span class="badge rounded-pill bg-light border text-secondary" style="font-size:0.72em;font-weight:normal;">${s}</span>`)
+            .join(' ');
+        btn.innerHTML = `<div><i class="bi bi-person-fill me-1"></i>ครู${firstName.split(' ')[0]}</div>` +
+            (subjectTags ? `<div class="mt-1 d-flex flex-wrap gap-1 justify-content-center">${subjectTags}</div>` : '');
+        btn.onclick = () => {
+            container.querySelectorAll('.active-myteacher-btn').forEach(b => {
+                b.classList.remove('active-myteacher-btn','btn-primary-navy','text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.add('active-myteacher-btn','btn-primary-navy','text-white');
+            btn.classList.remove('btn-outline-secondary');
+            studentSelectedTeacherId = t.id;
+            loadTimetable();
+        };
+        container.appendChild(btn);
+    });
+}
+
+// ── ครู: โหลดรายชื่อห้องที่ตนสอน ─────────────────────────────────────────────
+async function loadTeacherMyClasses() {
+    showLoading(true);
+    try {
+        const res = await fetch('../api/timetable.php?get_my_classes=1', { credentials: 'same-origin' });
+        const json = await res.json();
+        const classes = json.classes || [];
+        if (!classes.length) { showLoading(false); showEmpty(true); return; }
+        teacherMyClassesList  = classes;
+        teacherSelectedClassname = classes[0].class_name;
+        renderTeacherMyClassesPicker(classes, teacherSelectedClassname);
+        loadTimetable();
+    } catch(e) { showLoading(false); showEmpty(true); console.error(e); }
+}
+
+function renderTeacherMyClassesPicker(classes, selectedClass) {
+    const picker    = document.getElementById('teacherMyClassesPicker');
+    const container = document.getElementById('teacherMyClassesButtonsContainer');
+    if (!picker || !container) return;
+    picker.classList.remove('d-none');
+    container.innerHTML = '';
+    classes.forEach(cls => {
+        const className = cls.class_name ?? cls;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = selectedClass === className;
+        btn.className = 'btn btn-outline-secondary rounded-pill px-3 py-1 fw-bold btn-sm text-nowrap transition-all' +
+            (isSelected ? ' active-myclasses-btn btn-primary-navy text-white' : '');
+        // Format: "101" → "ม.1/01", "1/1" → "ม.1/1", else as-is
+        const display = /^\d{3}$/.test(className)
+            ? `ม.${className[0]}/${parseInt(className.slice(1))}`
+            : (/^\d\/\d+$/.test(className) ? `ม.${className}` : className);
+        const subjectTags = (cls.subjects || '').split('|').filter(Boolean)
+            .map(s => `<span class="badge rounded-pill bg-light border text-secondary" style="font-size:0.72em;font-weight:normal;">${s}</span>`)
+            .join(' ');
+        btn.innerHTML = `<div><i class="bi bi-door-open me-1"></i>${display}</div>` +
+            (subjectTags ? `<div class="mt-1 d-flex flex-wrap gap-1 justify-content-center">${subjectTags}</div>` : '');
+        btn.onclick = () => {
+            container.querySelectorAll('.active-myclasses-btn').forEach(b => {
+                b.classList.remove('active-myclasses-btn','btn-primary-navy','text-white');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.add('active-myclasses-btn','btn-primary-navy','text-white');
+            btn.classList.remove('btn-outline-secondary');
+            teacherSelectedClassname = className;
+            loadTimetable();
+        };
+        container.appendChild(btn);
+    });
+}
 
 function updateLessonStatus(data) {
     const activeSchedule = window.__cnpActiveSchedule || 'normal';

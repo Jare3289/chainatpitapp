@@ -38,7 +38,7 @@ try {
 
     // 1. Basic stats
     $totalStudents = (int)$pdo->query("SELECT COUNT(*) FROM students")->fetchColumn();
-    $totalTeachers = (int)$pdo->query("SELECT COUNT(*) FROM teachers")->fetchColumn();
+    $totalTeachers = (int)$pdo->query("SELECT COUNT(*) FROM teachers t LEFT JOIN users u ON t.user_id = u.id WHERE u.role != 'admin' OR u.role IS NULL")->fetchColumn();
     $totalClasses  = (int)$pdo->query("SELECT COUNT(*) FROM rooms")->fetchColumn();
     $totalSubjects = (int)$pdo->query("SELECT COUNT(*) FROM subjects")->fetchColumn();
     $studentTeacherRatio = $totalTeachers > 0 ? round($totalStudents / $totalTeachers, 1) : 0;

@@ -189,7 +189,7 @@
                             <tr>
                                 <td class="text-muted small">${s.student_id}</td>
                                 <td class="text-start fw-bold text-dark">${s.prefix || ''}${s.first_name_th} ${s.last_name_th}</td>
-                                <td class="fw-bold">ห้อง ${s.room}</td>
+                                <td class="fw-bold">ห้อง ${s.class_name || '-'}</td>
                                 <td class="text-danger fw-black">${s.absent_count}</td>
                                 <td class="text-warning fw-black">${s.late_count}</td>
                                 <td><span class="risk-badge ${badge}">${level}</span></td>

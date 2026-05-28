@@ -281,7 +281,7 @@ async function loadTeachers() {
         const data = await res.json();
         const list = data.teachers || data.data || [];
         const opts = list.map(t =>
-            `<option value="${t.user_id||t.id}">${(t.prefix||'')}${t.first_name_th||''} ${t.last_name_th||''}</option>`
+            `<option value="${t.teachers_id || t.id}">${t.name}</option>`
         ).join('');
         document.getElementById('filterTeacher').innerHTML = '<option value="">— ครูทุกคน —</option>' + opts;
         document.getElementById('fTeacher').innerHTML = '<option value="">— เลือกครู —</option>' + opts;

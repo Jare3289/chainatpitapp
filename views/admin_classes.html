@@ -343,20 +343,22 @@
                                     <th>รหัสห้อง</th>
                                     <th>อาคาร/ชั้น/เลขห้อง</th>
                                     <th>รหัสสถานที่</th>
-                                    <th>คณะ / แผนการเรียน</th>
+                                    <th>คณะสี</th>
+                                    <th>แผนการเรียน</th>
                                     <th>ที่ปรึกษา</th>
                                     <th class="text-end">จัดการ</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${roomsInGrade.sort((a,b)=>a.classroom_no-b.classroom_no).map(r => {
-                                    const advisors = allTeachers.filter(t => t.room === r.classroom_code);
+                                    const advisors = allTeachers.filter(t => (t.classroom || t.room) === r.classroom_code);
                                     return `
                                         <tr>
                                             <td><span class="room-code-badge">${r.classroom_code}</span></td>
                                             <td><div class="fw-bold">อาคาร ${r.building}</div><div class="small text-muted">ชั้น ${r.floor} ห้องที่ ${r.room_no}</div></td>
                                             <td><span class="badge bg-light text-dark border px-2">${r.location_code}</span></td>
-                                            <td><div class="small fw-bold">${r.house || '-'}</div><div class="x-small text-muted">${r.program || '-'}</div></td>
+                                            <td>${getHouseBadge(r.house)}</td>
+                                            <td><span class="small fw-bold text-secondary">${r.program || '-'}</span></td>
                                             <td>
                                                 <div class="d-flex -space-x-2">
                                                     ${advisors.map(t => `<img src="${t.photo ? '../'+t.photo : '../public/img/default-avatar.png'}" class="advisor-avatar" title="${t.first_name_th}">`).join('')}
@@ -373,7 +375,7 @@
                                         </tr>
                                     `;
                                 }).join('')}
-                                ${roomsInGrade.length === 0 ? '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูลห้องเรียน</td></tr>' : ''}
+                                ${roomsInGrade.length === 0 ? '<tr><td colspan="7" class="text-center py-4 text-muted">ไม่มีข้อมูลห้องเรียน</td></tr>' : ''}
                             </tbody>
                         </table>
                     </div>
@@ -430,6 +432,31 @@
             const res = await fetch('../api/admin/rooms.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             const result = await res.json();
             if (result.success) { Swal.fire('สำเร็จ', result.message, 'success'); bootstrap.Modal.getInstance(document.getElementById('roomModal')).hide(); loadData(); }
+        }
+
+        function viewRoom(id) {
+            const r = allRooms.find(x => x.id == id);
+            if (!r) return;
+
+            const advisors = allTeachers.filter(t => (t.classroom || t.room) === r.classroom_code);
+            const advisorNames = advisors.map(t => `${t.prefix || ''}${t.first_name_th} ${t.last_name_th}`).join(', ') || 'ไม่มี';
+
+            Swal.fire({
+                title: `<span class="fw-black text-navy">ห้องเรียน ${r.classroom_code}</span>`,
+                html: `
+                    <div class="text-start p-3 small">
+                        <div class="mb-2"><strong>ระดับชั้น:</strong> ${r.grade_level || '-'}</div>
+                        <div class="mb-2"><strong>อาคารเรียน:</strong> อาคาร ${r.building || '-'} ชั้น ${r.floor || '-'} ห้อง ${r.room_no || '-'}</div>
+                        <div class="mb-2"><strong>รหัสสถานที่ (Location Code):</strong> ${r.location_code || '-'}</div>
+                        <div class="mb-2"><strong>คณะสี:</strong> ${r.house || 'ไม่ระบุ'}</div>
+                        <div class="mb-2"><strong>แผนการเรียน:</strong> ${r.program || 'ทั่วไป'}</div>
+                        <div class="mb-0"><strong>ครูที่ปรึกษา:</strong> ${advisorNames}</div>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonText: 'ปิด',
+                confirmButtonColor: '#1e3c72'
+            });
         }
 
         async function deleteRoom(id) {

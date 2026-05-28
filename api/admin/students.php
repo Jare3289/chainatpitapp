@@ -111,6 +111,7 @@ try {
         $stmt = $pdo->prepare("SELECT s.*, u.username FROM students s
                                LEFT JOIN users u ON s.user_id = u.id
                                WHERE (s.class_name IN ($ph) OR s.grade_level IN ($ph))
+                               AND (s.enrollment_status IS NULL OR s.enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา'))
                                ORDER BY CAST(s.number_in_class AS UNSIGNED) ASC, s.student_id ASC");
         $stmt->execute(array_merge($vars, $vars));
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -128,11 +129,13 @@ try {
         $stmt = $pdo->prepare("SELECT s.*, u.username FROM students s
                                LEFT JOIN users u ON s.user_id = u.id
                                WHERE s.class_name = ?
+                               AND (s.enrollment_status IS NULL OR s.enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา'))
                                ORDER BY CAST(s.number_in_class AS UNSIGNED) ASC, s.student_id ASC");
         $stmt->execute([$classroom]);
     } else {
         $stmt = $pdo->query("SELECT s.*, u.username FROM students s
                              LEFT JOIN users u ON s.user_id = u.id
+                             WHERE (s.enrollment_status IS NULL OR s.enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา'))
                              ORDER BY s.grade_level, s.class_name, CAST(s.number_in_class AS UNSIGNED) ASC, s.student_id ASC");
     }
 

@@ -9,118 +9,132 @@ cnp_csrf_verify();
 $role   = $_SESSION['role'] ?? '';
 $userId = (int)($_SESSION['user_id'] ?? 0);
 
-if (!$userId || !in_array($role, ['admin', 'teacher'], true)) {
+if (!$userId || $role !== 'admin') {
     http_response_code(403);
     echo json_encode(['error' => 'Forbidden']);
     exit;
 }
 
-$importDir = __DIR__ . '/../../public/uploads/import/';
-$uploadDir = __DIR__ . '/../../public/uploads/students/';
+$importDir = realpath(__DIR__ . '/../../public/uploads/import') . DIRECTORY_SEPARATOR;
+$uploadDir = realpath(__DIR__ . '/../../public/uploads/students');
 
-// Ensure directories exist
-if (!is_dir($importDir)) {
-    mkdir($importDir, 0755, true);
+// Ensure upload dir exists
+if (!$uploadDir) {
+    $path = __DIR__ . '/../../public/uploads/students';
+    if (!mkdir($path, 0755, true) && !is_dir($path)) {
+        echo json_encode(['error' => 'ไม่สามารถสร้างโฟลเดอร์รูปภาพได้: ' . $path], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $uploadDir = realpath($path);
 }
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
+$uploadDir .= DIRECTORY_SEPARATOR;
+
+// Ensure import dir exists
+if (!$importDir) {
+    $path = __DIR__ . '/../../public/uploads/import';
+    if (!mkdir($path, 0755, true) && !is_dir($path)) {
+        echo json_encode(['error' => 'ไม่สามารถสร้างโฟลเดอร์ import ได้'], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    $importDir = realpath($path) . DIRECTORY_SEPARATOR;
 }
 
-// Scan the import directory for files
-$files = scandir($importDir);
-$imageFiles = [];
+// Scan import directory for image files
 $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+$imageFiles  = [];
 
-foreach ($files as $file) {
-    if ($file === '.' || $file === '..') {
-        continue;
-    }
-    
-    $filePath = $importDir . $file;
-    if (is_file($filePath)) {
-        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        if (in_array($ext, $allowedExts, true)) {
-            $imageFiles[] = [
-                'filename' => $file,
-                'basename' => pathinfo($file, PATHINFO_FILENAME),
-                'ext' => $ext,
-                'path' => $filePath
-            ];
-        }
-    }
+foreach (scandir($importDir) as $file) {
+    if ($file === '.' || $file === '..') continue;
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    if (!in_array($ext, $allowedExts, true)) continue;
+    if (!is_file($importDir . $file)) continue;
+    $imageFiles[] = [
+        'filename' => $file,
+        'basename' => pathinfo($file, PATHINFO_FILENAME),
+        'ext'      => $ext,
+        'path'     => $importDir . $file,
+    ];
 }
 
 if (empty($imageFiles)) {
     echo json_encode([
         'success' => true,
-        'empty' => true,
-        'message' => 'โฟลเดอร์นำเข้าว่างเปล่า กรุณานำรูปภาพนักเรียนไปใส่ในโฟลเดอร์ public/uploads/import/'
+        'empty'   => true,
+        'message' => 'โฟลเดอร์นำเข้าว่างเปล่า กรุณานำรูปภาพที่ตั้งชื่อเป็นรหัสนักเรียนไปวางใน public/uploads/import/',
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
+// Pre-fetch all students indexed by student_id (1 query)
+$studentMap = [];
+foreach ($pdo->query("SELECT id, student_id, first_name_th, last_name_th FROM students")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $studentMap[trim($row['student_id'])] = $row;
+}
+
 $processed = 0;
-$updated = 0;
-$notFound = 0;
-$details = [];
+$updated   = 0;
+$notFound  = 0;
+$details   = [];
 
 foreach ($imageFiles as $img) {
     $studentId = trim($img['basename']);
-    
-    // Check if student exists in database
-    $stmt = $pdo->prepare("SELECT id, first_name_th, last_name_th FROM students WHERE student_id = ? LIMIT 1");
-    $stmt->execute([$studentId]);
-    $student = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($student) {
-        $newFilename = 'student_' . $studentId . '_sync.' . $img['ext'];
-        $newPath = $uploadDir . $newFilename;
-        $dbPath = 'public/uploads/students/' . $newFilename;
-        
-        // Copy file to students upload directory and update DB
-        if (copy($img['path'], $newPath)) {
-            // Update student photo path
-            $update = $pdo->prepare("UPDATE students SET photo = ? WHERE id = ?");
-            $update->execute([$dbPath, $student['id']]);
-            
-            // Delete original file from import folder
-            unlink($img['path']);
-            
-            $updated++;
-            $details[] = [
-                'filename' => $img['filename'],
-                'student_id' => $studentId,
-                'status' => 'success',
-                'name' => $student['first_name_th'] . ' ' . $student['last_name_th'],
-                'message' => 'ซิงค์สำเร็จ'
-            ];
-        } else {
-            $details[] = [
-                'filename' => $img['filename'],
-                'student_id' => $studentId,
-                'status' => 'error',
-                'name' => $student['first_name_th'] . ' ' . $student['last_name_th'],
-                'message' => 'ไม่สามารถคัดลอกไฟล์ได้'
-            ];
-        }
-    } else {
+    $student   = $studentMap[$studentId] ?? null;
+    $processed++;
+
+    if (!$student) {
         $notFound++;
         $details[] = [
-            'filename' => $img['filename'],
+            'filename'   => $img['filename'],
             'student_id' => $studentId,
-            'status' => 'not_found',
-            'name' => '-',
-            'message' => 'ไม่พบรหัสนักเรียนในฐานข้อมูล'
+            'status'     => 'not_found',
+            'name'       => '-',
+            'message'    => 'ไม่พบรหัสนักเรียนในฐานข้อมูล',
         ];
+        continue;
     }
-    $processed++;
+
+    $newFilename = 'student_' . $studentId . '_' . time() . '.' . $img['ext'];
+    $destPath    = $uploadDir . $newFilename;
+    $dbPath      = 'public/uploads/students/' . $newFilename;
+
+    // Try copy first; fall back to rename if copy fails (same filesystem)
+    $moved = @copy($img['path'], $destPath);
+    if (!$moved) {
+        $moved = @rename($img['path'], $destPath);
+        if (!$moved) {
+            $details[] = [
+                'filename'   => $img['filename'],
+                'student_id' => $studentId,
+                'status'     => 'error',
+                'name'       => $student['first_name_th'] . ' ' . $student['last_name_th'],
+                'message'    => 'คัดลอกไฟล์ไม่ได้ (ตรวจสิทธิ์โฟลเดอร์ public/uploads/)',
+            ];
+            continue;
+        }
+    }
+
+    // Update DB
+    $pdo->prepare("UPDATE students SET photo = ? WHERE id = ?")
+        ->execute([$dbPath, $student['id']]);
+
+    // Remove source (if copy succeeded rename already moved it)
+    if (file_exists($img['path'])) @unlink($img['path']);
+
+    $updated++;
+    $details[] = [
+        'filename'   => $img['filename'],
+        'student_id' => $studentId,
+        'status'     => 'success',
+        'name'       => $student['first_name_th'] . ' ' . $student['last_name_th'],
+        'message'    => 'ซิงค์สำเร็จ',
+    ];
 }
 
 echo json_encode([
-    'success' => true,
-    'empty' => false,
+    'success'   => true,
+    'empty'     => false,
     'processed' => $processed,
-    'updated' => $updated,
+    'updated'   => $updated,
     'not_found' => $notFound,
-    'details' => $details
+    'details'   => $details,
 ], JSON_UNESCAPED_UNICODE);

@@ -79,8 +79,8 @@ if ($method === 'GET') {
     }
 
     try {
-        // 1. Get students in room
-        $stmt = $pdo->prepare("SELECT * FROM students WHERE class_name = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC");
+        // 1. Get students in room (exclude obviously resigned)
+        $stmt = $pdo->prepare("SELECT * FROM students WHERE class_name = ? AND (enrollment_status IS NULL OR enrollment_status NOT IN ('พ้นสภาพ', 'ลาออก', 'สำเร็จการศึกษา')) ORDER BY CAST(number_in_class AS UNSIGNED) ASC");
         $stmt->execute([$class_name]);
         $students = $stmt->fetchAll();
 

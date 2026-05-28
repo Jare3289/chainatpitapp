@@ -27,6 +27,11 @@ $mapping = [
     "IDS (รหัสนักเรียน)" => "student_id",
     "รหัสนักเรียน"     => "student_id",
     "เลขที่"           => "number_in_class",
+    "เลขที่นักเรียน"   => "number_in_class",
+    "เลขที่นักเรียนในห้อง" => "number_in_class",
+    "ลำดับที่"         => "number_in_class",
+    "ลำดับ"           => "number_in_class",
+    "ที่"              => "number_in_class",
     "ห้อง"             => "class_name",
     "ระดับชั้น"         => "grade_level",
     "คณะ"             => "house",
@@ -290,11 +295,24 @@ try {
         throw new Exception("ไม่พบ role 'student' ในตาราง roles");
     }
 
-    // ── Pre-fetch existing student_ids (1 query instead of N) ──
-    $existingMap = [];
-    foreach ($pdo->query("SELECT student_id, first_name_th, last_name_th, class_name FROM students")->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $existingMap[$row['student_id']] = $row;
+    // ── Pre-fetch existing students (1 query) — indexed by student_id and full_name_th ──
+    $existingMapById   = [];   // student_id  → row
+    $existingMapByName = [];   // full_name_th → row (secondary match)
+
+    // Only select full_name_th if the column exists in the table
+    $hasFnthCol = isset($validCols['full_name_th']);
+    $fnthSel    = $hasFnthCol ? ', full_name_th' : '';
+
+    foreach ($pdo->query("SELECT id, student_id, user_id{$fnthSel}, first_name_th, last_name_th, class_name FROM students")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $existingMapById[$row['student_id']] = $row;
+        $nameKey = $hasFnthCol ? trim($row['full_name_th'] ?? '') : '';
+        if ($nameKey !== '') {
+            $existingMapByName[$nameKey] = $row;
+        }
     }
+
+    // Alias so the rest of the code below (still using $existingMap) continues to work
+    $existingMap = &$existingMapById;
 
     // ── Hash default password ONCE (not 2757 times — bcrypt is slow on purpose) ──
     $defaultPasswordHash = password_hash('cnp12345', PASSWORD_DEFAULT);
@@ -303,7 +321,7 @@ try {
     $stmtGetUid  = $pdo->prepare("SELECT id FROM users WHERE username = ?");
 
     if (!$dryRun) $pdo->beginTransaction();
-    $batchSize = 200;
+    $batchSize       = 200;
     $sinceLastCommit = 0;
 
     foreach ($rows as $idx => $rawData) {
@@ -333,31 +351,37 @@ try {
             continue;
         }
 
-        // ── ตรวจสอบเลขบัตรประชาชน (13 หลัก) ──
+        // ── ตรวจสอบเลขบัตรประชาชน (ถ้าไม่ผ่าน ข้ามแค่ field นี้ ไม่ข้ามทั้งแถว) ──
+        $invalidIdCard = false;
         if ($idCardVal) {
             $cleanIdCard = preg_replace('/\D/', '', $idCardVal);
             if (strlen($cleanIdCard) !== 13) {
-                $skipCount++;
-                $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): เลขบัตรประชาชนไม่ครบ 13 หลัก ($idCardVal)";
-                continue;
+                $invalidIdCard = true;
+                $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): ข้ามเลขบัตรประชาชน (ไม่ครบ 13 หลัก: $idCardVal)";
             }
         }
 
-        // ── ตรวจสอบเบอร์โทรศัพท์ (10 หลัก ขึ้นต้นด้วย 0) ──
+        // ── ตรวจสอบเบอร์โทรศัพท์ (ถ้าไม่ผ่าน ข้ามแค่ field นี้ ไม่ข้ามทั้งแถว) ──
+        $invalidPhone = false;
         if ($phoneVal) {
             $cleanPhone = preg_replace('/\D/', '', $phoneVal);
             if (strlen($cleanPhone) < 10 || substr($cleanPhone, 0, 1) !== '0') {
-                $skipCount++;
-                $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): เบอร์โทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0 ($phoneVal)";
-                continue;
+                $invalidPhone = true;
+                $skipReasons[] = "แถวที่ " . ($idx + 2) . " ($stdId): ข้ามเบอร์โทรศัพท์ (ต้อง 10 หลักขึ้นต้น 0: $phoneVal)";
             }
         }
 
-        // ── Lookup existing record ──
-        $existing = $existingMap[$stdId] ?? null;
-        
-        $roomVal = $col(['ห้อง']);
-        $prefixVal = $col(['คำนำหน้าชื่อ']);
+        // ── Lookup existing record — try student_id first, then full_name_th ──
+        $existing = $existingMapById[$stdId] ?? null;
+        if (!$existing) {
+            $fullNameThVal = $col(['ชื่อจริง']);
+            if ($fullNameThVal !== '' && isset($existingMapByName[$fullNameThVal])) {
+                $existing = $existingMapByName[$fullNameThVal];
+            }
+        }
+
+        $roomVal     = $col(['ห้อง']);
+        $prefixVal   = $col(['คำนำหน้าชื่อ']);
         $lastNameVal = $col(['นามสกุล']);
 
         if ($dryRun) {
@@ -379,15 +403,20 @@ try {
             continue;
         }
 
-        // ── Build field map from Excel row ──
+        // ── Build field map from Excel row (non-empty values only — avoids NULL on NOT NULL columns) ──
         $fieldMap = [];
 
         foreach ($normalizedMapping as $cleanHeader => $dbCol) {
             if (!isset($rawData[$cleanHeader])) continue;
             if (!isset($validCols[$dbCol]))    continue;
+            if ($dbCol === 'student_id')        continue; // key field — ห้ามอัปเดต
 
             $val = trim($rawData[$cleanHeader]);
             if ($val === '') continue;
+
+            // ข้าม field ที่ validate ไม่ผ่าน
+            if ($dbCol === 'id_card' && $invalidIdCard) continue;
+            if ($dbCol === 'phone'   && $invalidPhone)  continue;
 
             // Normalise birth_date
             if ($dbCol === 'birth_date') {
@@ -417,17 +446,38 @@ try {
             $fieldMap[$dbCol] = $val;
         }
 
+        // ── Force-extract number_in_class directly (ทุกชื่อหัวคอลัมน์ที่เป็นไปได้) ──
+        if (!isset($fieldMap['number_in_class']) && isset($validCols['number_in_class'])) {
+            $numVariants = ['เลขที่', 'เลขที่นักเรียน', 'เลขที่นักเรียนในห้อง', 'ลำดับที่', 'ลำดับ', 'ที่'];
+            foreach ($numVariants as $v) {
+                $ck = preg_replace('/[\s\x{200B}-\x{200D}\x{FEFF}]+/u', '', $v);
+                if (isset($rawData[$ck]) && trim($rawData[$ck]) !== '') {
+                    $fieldMap['number_in_class'] = trim($rawData[$ck]);
+                    break;
+                }
+                // Also try the raw key without cleaning (in case $rawData was not cleaned for this col)
+                if (isset($rawData[$v]) && trim($rawData[$v]) !== '') {
+                    $fieldMap['number_in_class'] = trim($rawData[$v]);
+                    break;
+                }
+            }
+        }
+
         if ($existing) {
-            // ── UPDATE existing student ──
+            // ── UPDATE existing student — apply all non-empty values from file ──
+            // ถ้า student_id เดิมเป็น null ให้ update ด้วย (ป้องกัน import ซ้ำแล้วยังเป็น null)
+            if (empty($existing['student_id']) && $stdId) {
+                $fieldMap['student_id'] = $stdId;
+            }
             if (!empty($fieldMap)) {
                 $setParts = [];
                 $setVals  = [];
-                foreach ($fieldMap as $col => $val) {
-                    $setParts[] = "`$col` = ?";
+                foreach ($fieldMap as $dbColKey => $val) {
+                    $setParts[] = "`$dbColKey` = ?";
                     $setVals[]  = $val;
                 }
-                $setVals[] = $stdId;
-                $pdo->prepare("UPDATE students SET " . implode(', ', $setParts) . " WHERE student_id = ?")
+                $setVals[] = $existing['id'];
+                $pdo->prepare("UPDATE students SET " . implode(', ', $setParts) . " WHERE id = ?")
                     ->execute($setVals);
             }
             $updateCount++;
@@ -437,7 +487,8 @@ try {
             $uid = $pdo->lastInsertId();
             if (!$uid) { $stmtGetUid->execute([$stdId]); $uid = $stmtGetUid->fetchColumn(); }
 
-            $fieldMap['user_id'] = $uid;
+            $fieldMap['user_id']    = $uid;
+            $fieldMap['student_id'] = $stdId; // ต้องใส่ตรงนี้ (ถูก skip ใน loop เพื่อป้องกัน UPDATE)
             $cols = array_keys($fieldMap);
             $vals = array_values($fieldMap);
             $pdo->prepare("INSERT INTO students (`" . implode('`,`', $cols) . "`) VALUES (" . implode(',', array_fill(0, count($cols), '?')) . ")")
@@ -456,19 +507,30 @@ try {
 
     if (!$dryRun && $pdo->inTransaction()) $pdo->commit();
 
+    // Collect headers that were actually detected in the file (for dry-run debug)
+    $parsedHeaders  = array_keys($rows[0] ?? []);
+    $detectedDbCols = [];
+    foreach ($parsedHeaders as $h) {
+        if (isset($normalizedMapping[$h]) && isset($validCols[$normalizedMapping[$h]])) {
+            $detectedDbCols[] = $normalizedMapping[$h];
+        }
+    }
+
     echo json_encode([
-        'success'      => true,
-        'inserted'     => $insertCount,
-        'updated'      => $updateCount,
-        'imported'     => $insertCount + $updateCount,   // backward-compat
-        'skipped'      => $skipCount,
-        'will_update'  => $dryRun ? $willUpdate : [],
-        'duplicates'   => $dryRun ? $willUpdate : [],    // compat key for modal
-        'duplicate_count' => $dryRun ? count($willUpdate) : $updateCount,
-        'skip_reasons' => array_slice($skipReasons, 0, 20),
-        'message'      => $dryRun
-            ? "ตรวจสอบแล้ว: เพิ่มใหม่ $insertCount รายการ, อัปเดต $updateCount รายการ"
-            : "เพิ่มใหม่ $insertCount รายการ, อัปเดต $updateCount รายการ, ข้าม $skipCount รายการ",
+        'success'          => true,
+        'inserted'         => $insertCount,
+        'updated'          => $updateCount,
+        'imported'         => $insertCount + $updateCount,
+        'skipped'          => $skipCount,
+        'will_update'      => $dryRun ? $willUpdate : [],
+        'duplicates'       => $dryRun ? $willUpdate : [],
+        'duplicate_count'  => $dryRun ? count($willUpdate) : $updateCount,
+        'skip_reasons'     => array_slice($skipReasons, 0, 20),
+        'parsed_headers'   => $dryRun ? $parsedHeaders : [],
+        'detected_db_cols' => $dryRun ? $detectedDbCols : [],
+        'message'          => $dryRun
+            ? "ตรวจสอบแล้ว: เพิ่มใหม่ $insertCount, อัปเดต $updateCount รายการ"
+            : "เพิ่มใหม่ $insertCount, อัปเดต $updateCount, ข้าม $skipCount รายการ",
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {

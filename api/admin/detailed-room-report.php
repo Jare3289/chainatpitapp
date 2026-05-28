@@ -20,7 +20,7 @@ if (empty($room)) {
 
 try {
     // 1. Get all students in this room
-    $stmtStudents = $pdo->prepare("SELECT id, student_id, first_name_th, last_name_th, prefix, number_in_class FROM students WHERE class_name = ? ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
+    $stmtStudents = $pdo->prepare("SELECT id, student_id, first_name_th, last_name_th, prefix, number_in_class FROM students WHERE class_name = ? AND (enrollment_status IS NULL OR enrollment_status = 'กำลังศึกษา') ORDER BY CAST(number_in_class AS UNSIGNED) ASC, student_id ASC");
     $stmtStudents->execute([$room]);
     $students = $stmtStudents->fetchAll(PDO::FETCH_ASSOC);
 

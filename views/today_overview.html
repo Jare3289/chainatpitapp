@@ -351,14 +351,21 @@
             const badge = document.getElementById('unreportedCountBadge');
             const cont  = document.getElementById('unreportedRoomsList');
             if (!cont) return;
-            badge.textContent = list.length;
-            if (list.length === 0) {
+            // Deduplicate by room — keep first entry (any one teacher)
+            const seenRooms = {};
+            const deduped = list.filter(r => {
+                if (seenRooms[r.room]) return false;
+                seenRooms[r.room] = true;
+                return true;
+            });
+            badge.textContent = deduped.length;
+            if (deduped.length === 0) {
                 cont.innerHTML = '<div class="text-success fw-bold w-100"><i class="bi bi-check-circle-fill me-2"></i>ทุกห้องรายงานครบแล้ว</div>';
                 return;
             }
             // Group by grade_level
             const byGrade = {};
-            list.forEach(r => {
+            deduped.forEach(r => {
                 const g = r.grade_level || 'ไม่ระบุชั้น';
                 if (!byGrade[g]) byGrade[g] = [];
                 byGrade[g].push(r);

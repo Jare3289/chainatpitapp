@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8"/>
+    <title>ประชาสัมพันธ์ | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport'/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: var(--font-sans); background-color: var(--bg-main) !important; color: var(--text); }
+        
+        /* Brand Navy Gradients */
+        .bg-gradient-navy { background: linear-gradient(135deg, var(--navy-700) 0%, var(--navy-500) 100%) !important; }
+        .banner-icon-bg { position:absolute; right:-20px; bottom:-20px; font-size:12rem; opacity:0.08; transform:rotate(-15deg); color:white; }
+        
+        /* Floating hearts dynamic micro-interaction */
+        .floating-heart {
+            position: absolute;
+            font-size: 1.5rem;
+            color: var(--danger);
+            pointer-events: none;
+            z-index: 100;
+            animation: floatHeart 1s ease-out forwards;
+        }
+        @keyframes floatHeart {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) translateX(25px) scale(1.5); opacity: 0; }
+        }
+
+        /* High-tech Urgent Announcement Ticker (Sleek CSS Alternative to Marquee) */
+        .urgent-ticker-container {
+            background: var(--danger-soft);
+            border-left: 5px solid var(--danger);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-xs);
+            display: none;
+        }
+        .urgent-badge-glow {
+            background: var(--danger);
+            color: white;
+            font-weight: 800;
+            font-size: var(--fs-xs);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            animation: redGlow 1.5s infinite;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        @keyframes redGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+        
+        .ticker-wrapper {
+            overflow: hidden;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: tickerLoop 30s linear infinite;
+            font-weight: 800;
+            color: var(--danger);
+            font-size: var(--fs-sm);
+        }
+        .ticker-content:hover {
+            animation-play-state: paused;
+            cursor: pointer;
+        }
+        @keyframes tickerLoop {
+            0% { transform: translate3d(100%, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        /* Card Hover Elevation Glow mapping for PR cards */
+        .pr-card {
+            transition: all var(--dur-base) var(--ease-out);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            cursor: pointer;
+        }
+        .pr-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--navy-500), var(--primary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .pr-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(13, 110, 253, 0.2) !important;
+        }
+        .pr-card:hover::before {
+            opacity: 1;
+        }
+        
+        .pr-status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-bold);
+            padding: 0.3rem 0.6rem;
+            border-radius: var(--radius-sm);
+            backdrop-filter: blur(8px);
+            z-index: 5;
+        }
+        
+        /* Modern interaction toolbar inside post cards */
+        .social-bar-btn {
+            background: var(--bg-subtle);
+            border: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: var(--fs-sm);
+            font-weight: var(--fw-bold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+        .social-bar-btn:hover {
+            background: var(--border-soft);
+            color: var(--primary);
+            transform: scale(1.03);
+        }
+        .social-bar-btn.liked {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+        .social-bar-btn.bookmarked {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+        
+        /* Category specific borders */
+        .pr-card-ทั่วไป { border-top: 4px solid var(--text-muted) !important; }
+        .pr-card-วิชาการ { border-top: 4px solid var(--info) !important; }
+        .pr-card-งบประมาณ { border-top: 4px solid var(--house-khunsan) !important; }
+        .pr-card-บุคคล { border-top: 4px solid var(--primary) !important; }
+        .pr-card-กิจกรรม { border-top: 4px solid var(--warning) !important; }
+        .pr-card-แสดงความยินดี { border-top: 4px solid var(--success) !important; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <!-- Modern Sidebar Panel -->
+    <div class="sidebar" id="mainSidebar"></div>
+
+    <!-- Main Workspace Panel -->
+    <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+        <!-- Top Navigation Header Container -->
+        <div id="header-container"></div>
+
+        <div class="app-content page-content flex-grow-1 py-4">
+            <div class="container-fluid px-4">
+                
+                <!-- HERO BANNER (Unified brand navy style matching other premium views) -->
+                <div class="card border-0 rounded-4 bg-gradient-navy text-white shadow-sm overflow-hidden position-relative mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <i class="bi bi-megaphone banner-icon-bg"></i>
+                        <div class="row align-items-center">
+                            <div class="col-12 col-md-8 text-center text-md-start">
+                                <h1 class="display-5 fw-black text-white mb-2" style="font-family: 'Google Sans', sans-serif;">ข่าวสาร & ประชาสัมพันธ์</h1>
+                                <p class="lead mb-4 text-white-50 small" style="max-width: 600px;">บอร์ดข้อมูลประชาสัมพันธ์ระดับพรีเมียม ร่วมแบ่งปันข่าวสารและกิจกรรมที่สำคัญของโรงเรียนชัยนาทพิทยาคมโดยครูและนักเรียน</p>
+                                <button class="btn btn-warning rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="openNewPostModal()">
+                                    <i class="bi bi-pencil-square me-2"></i> ร่วมสร้างประชาสัมพันธ์
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- URGENT BROADCAST TICKER -->
+                    <div class="urgent-ticker-container p-3 align-items-center gap-3 border-top border-white border-opacity-25" id="urgentBroadcastTicker" style="display:none; background:rgba(0,0,0,0.25); backdrop-filter:blur(4px);">
+                        <span class="urgent-badge-glow flex-shrink-0"><i class="bi bi-lightning-charge-fill me-1"></i> ด่วนที่สุด</span>
+                        <div class="ticker-wrapper flex-grow-1">
+                            <div class="ticker-content mb-0 small text-white" id="urgentTickerText">
+                                ยินดีต้อนรับเข้าสู่บอร์ดประชาสัมพันธ์อัจฉริยะรุ่นใหม่
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN APPROVAL BOARD CONTAINER (ADMIN ONLY) -->
+                <div id="adminApprovalSection" class="d-none mb-4">
+                    <div class="card border-0 rounded-4 shadow-lg bg-gradient-navy" style="border-left: 6px solid var(--warning) !important;">
+                        <div class="card-body p-4 text-white">
+                            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <div>
+                                    <h4 class="fw-bold mb-1 text-warning">
+                                        <i class="bi bi-shield-lock-fill me-2 text-warning"></i> ศาลากลางรอการอนุมัติโพสต์ (Admins Box)
+                                    </h4>
+                                    <p class="text-white-50 small mb-0">ตรวจสอบและพิจารณาเนื้อหาข่าวประชาสัมพันธ์ของนักเรียนและคุณครูก่อนขึ้นหน้าประกาศสาธารณะ</p>
+                                </div>
+                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold" id="pendingCountBadge">0 คำขอ</span>
+                            </div>
+                            
+                            <div id="adminApprovalList" class="row g-3">
+                                <!-- Pending posts load dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEARCH AND FILTERS TOOLBAR -->
+                <div class="cnp-card cnp-card--compact mb-4 border-0">
+                    <div class="row g-3 align-items-center">
+                        <!-- Left: Live Search -->
+                        <div class="col-12 col-md-5">
+                            <div class="input-group border border-light rounded-pill shadow-sm overflow-hidden" style="background: var(--bg-subtle);">
+                                <span class="input-group-text border-0 bg-transparent ps-3"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-0 bg-transparent py-2 small" id="prSearchInput" placeholder="ค้นหาประกาศ ข่าวสาร หรือชื่อผู้เขียน..." onkeyup="handleLiveSearch()">
+                            </div>
+                        </div>
+                        
+                        <!-- Middle: Quick Filters Buttons -->
+                        <div class="col-12 col-md-7 text-md-end">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end" id="prCategoryFilters">
+                                <button class="btn btn-primary rounded-pill px-3 py-1.5 fw-bold small active-cat-filter" onclick="filterCategory('')">ทั้งหมด</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('ทั่วไป')">⚪ ทั่วไป</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('วิชาการ')">🔵 วิชาการ</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('งบประมาณ')">💰 งบประมาณ</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('บุคคล')">👥 บุคคล</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('กิจกรรม')">🟡 กิจกรรม</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('แสดงความยินดี')">🎉 แสดงความยินดี</button>
+                                <button class="btn btn-light rounded-pill px-3 py-1.5 fw-bold small text-muted border border-light" onclick="filterCategory('pinned')">
+                                    <i class="bi bi-pin-angle-fill me-1 text-primary"></i>ปักหมุดของฉัน <span class="bookmark-badge" id="pinnedCountBadge">0</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC SHIMMER SKELETON SCREENS (Uses cnp-skeleton design token presets) -->
+                <div id="prSkeletonLoader" class="row g-4 mb-4">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="cnp-card cnp-card--compact">
+                            <div class="d-flex gap-2 mb-3">
+                                <div class="cnp-skeleton" style="height:25px; width:80px;"></div>
+                                <div class="cnp-skeleton" style="height:25px; width:80px;"></div>
+                            </div>
+                            <div class="cnp-skeleton mb-2" style="height:28px; width:85%;"></div>
+                            <div class="cnp-skeleton mb-3" style="height:80px; width:100%;"></div>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top border-light">
+                                <div class="d-flex gap-2 align-items-center w-100">
+                                    <div class="cnp-skeleton" style="height:32px; width:32px; border-radius:50%;"></div>
+                                    <div class="cnp-skeleton" style="height:20px; width:100px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="cnp-card cnp-card--compact">
+                            <div class="d-flex gap-2 mb-3">
+                                <div class="cnp-skeleton" style="height:25px; width:80px;"></div>
+                                <div class="cnp-skeleton" style="height:25px; width:80px;"></div>
+                            </div>
+                            <div class="cnp-skeleton mb-2" style="height:28px; width:75%;"></div>
+                            <div class="cnp-skeleton mb-3" style="height:80px; width:100%;"></div>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top border-light">
+                                <div class="d-flex gap-2 align-items-center w-100">
+                                    <div class="cnp-skeleton" style="height:32px; width:32px; border-radius:50%;"></div>
+                                    <div class="cnp-skeleton" style="height:20px; width:120px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="cnp-card cnp-card--compact">
+                            <div class="d-flex gap-2 mb-3">
+                                <div class="cnp-skeleton" style="height:25px; width:80px;"></div>
+                                <div class="cnp-skeleton" style="height:25px; width:80px;"></div>
+                            </div>
+                            <div class="cnp-skeleton mb-2" style="height:28px; width:90%;"></div>
+                            <div class="cnp-skeleton mb-3" style="height:80px; width:100%;"></div>
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top border-light">
+                                <div class="d-flex gap-2 align-items-center w-100">
+                                    <div class="cnp-skeleton" style="height:32px; width:32px; border-radius:50%;"></div>
+                                    <div class="cnp-skeleton" style="height:20px; width:90px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAIN NEWS GRID -->
+                <div class="row g-4" id="prNewsGrid">
+                    <!-- PR cards populated here -->
+                </div>
+
+                <!-- EMPTY STATE (Uses standard cnp-empty styles) -->
+                <div id="emptyPrState" class="cnp-empty d-none">
+                    <i class="bi bi-megaphone-slash cnp-empty__icon"></i>
+                    <h5 class="fw-bold text-navy mb-2">ไม่พบข่าวประชาสัมพันธ์ที่ตรงตามเงื่อนไข</h5>
+                    <p class="cnp-empty__text text-muted mb-0">ร่วมแบ่งปันข่าวสารและกิจกรรมที่สำคัญร่วมกันเป็นคนแรกได้เลยวันนี้!</p>
+                </div>
+
+            </div>
+        </div>
+
+        <footer id="footer-container" class="mt-auto"></footer>
+    </main>
+</div>
+
+<!-- NEW POST MODAL (Ultra-Premium Glassmorphic Design) -->
+<div class="modal fade" id="newPostModal" tabindex="-1" aria-labelledby="newPostModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 bg-gradient-navy text-white p-4 position-relative">
+                <i class="bi bi-rocket-takeoff position-absolute end-0 bottom-0 opacity-10 m-3" style="font-size: 5rem;"></i>
+                <h5 class="modal-title fw-black" id="newPostModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i> เขียนข่าวประชาสัมพันธ์ใหม่
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <form id="newPostForm">
+                    <div class="mb-4">
+                        <label class="cnp-form-label">หัวข้อประชาสัมพันธ์ <span class="text-danger">*</span></label>
+                        <input type="text" class="cnp-form-input" id="postTitle" placeholder="ระบุหัวข้อเด่น เช่น 'ยินดีต้อนรับสู่บอร์ดกิจกรรมชัยนาทพิทยาคม'" required>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-4">
+                            <label class="cnp-form-label">หมวดหมู่ข่าว</label>
+                            <select class="form-select rounded-3 border-light shadow-sm fw-bold text-secondary" id="postCategory" style="height: 43px;">
+                                <option value="ทั่วไป">ทั่วไป</option>
+                                <option value="วิชาการ">วิชาการ</option>
+                                <option value="งบประมาณ">งบประมาณ</option>
+                                <option value="บุคคล">บุคคล</option>
+                                <option value="กิจกรรม">กิจกรรม</option>
+                                <option value="แสดงความยินดี">แสดงความยินดี</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="cnp-form-label">ใครเห็นประกาศนี้บ้าง? (กลุ่มเป้าหมาย)</label>
+                            <select class="form-select rounded-3 border-light shadow-sm fw-bold text-secondary" id="postVisibility" style="height: 43px;">
+                                <option value="all">ทั้งหมด (ทุกคนเห็นได้)</option>
+                                <option value="teacher">เฉพาะคุณครูเท่านั้น</option>
+                                <option value="student">เฉพาะนักเรียนเท่านั้น</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="cnp-form-label mb-2">ผู้เผยแพร่ประกาศ</label>
+                            <span class="badge bg-white border text-dark px-3 fw-bold shadow-sm rounded-3 w-100 text-start d-flex align-items-center" id="postAuthorBadge" style="font-size:0.8rem; border-color: var(--border) !important; height: 43px;">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="cnp-form-label">เนื้อหาประชาสัมพันธ์โดยละเอียด <span class="text-danger">*</span></label>
+                        <textarea class="cnp-form-input" id="postContent" rows="6" placeholder="กรอกข่าวสาร ประกาศ ตารางเวลา สถานที่จัดงาน และข้อความอื่นๆ..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
+                <button type="button" class="btn btn-light rounded-pill px-4 border fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow" onclick="submitNewPost()">
+                    <i class="bi bi-send-fill me-1"></i>ส่งและเผยแพร่ข่าว
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- POST DETAIL MODAL (Fully interactive details modal) -->
+<div class="modal fade" id="postDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header border-0 text-white p-4" id="detailModalHeader">
+                <h5 class="modal-title fw-black" id="detailModalTitle">รายละเอียด</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
+                    <img src="" onerror="this.src='../public/img/default-avatar.png'" class="cnp-avatar cnp-avatar--lg" id="detailAuthorPhoto">
+                    <div>
+                        <div class="fw-black text-navy mb-1" id="detailAuthorName">ผู้เขียน</div>
+                        <div class="small text-muted"><span class="badge bg-secondary text-white px-2 py-0.5" id="detailAuthorRole">บทบาท</span><span class="badge bg-info text-dark ms-1" id="detailVisibilityBadge">เป้าหมาย</span> · เผยแพร่เมื่อ <span id="detailPublishDate">วันเวลา</span></div>
+                    </div>
+                </div>
+                
+                <h4 class="fw-black text-navy mb-3" style="line-height:1.4;" id="detailTitle">หัวข้อ</h4>
+                <div class="text-muted mb-4" style="line-height:1.8; font-size:0.95rem; white-space:pre-wrap;" id="detailContent">เนื้อหา</div>
+                
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <div class="d-flex gap-2">
+                        <button class="social-bar-btn" id="detailLikeBtn">
+                            <i class="bi bi-heart-fill"></i> <span id="detailLikesCount">0</span> ไลก์
+                        </button>
+                        <button class="social-bar-btn" id="detailBookmarkBtn">
+                            <i class="bi bi-pin-angle-fill"></i> ปักหมุด
+                        </button>
+                    </div>
+                    <span class="text-muted small"><i class="bi bi-eye-fill me-1"></i> เข้าชมแล้ว <strong id="detailViewsCount">0</strong> ครั้ง</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../public/js/main.js"></script>
+<script src="../public/js/cookie-pdpa.js"></script>
+
+<script>
+    let currentUser = null;
+    let allPrPosts = [];
+    let selectedCategoryFilter = '';
+    let searchQuery = '';
+
+    // Initialize local storage features (Likes, private Bookmarks and Views counter)
+    const store = {
+        getLikes: () => JSON.parse(localStorage.getItem('cnp_pr_likes') || '{}'),
+        setLikes: (likes) => localStorage.setItem('cnp_pr_likes', JSON.stringify(likes)),
+        
+        getBookmarks: () => JSON.parse(localStorage.getItem('cnp_pr_bookmarks') || '[]'),
+        setBookmarks: (bookmarks) => localStorage.setItem('cnp_pr_bookmarks', JSON.stringify(bookmarks)),
+        
+        getViews: () => JSON.parse(localStorage.getItem('cnp_pr_views') || '{}'),
+        setViews: (views) => localStorage.setItem('cnp_pr_views', JSON.stringify(views))
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Authenticate user roles dynamically
+        currentUser = await checkAuth(['admin', 'teacher', 'student']);
+        if (!currentUser) return;
+        
+        // Display user account name on modal author badge
+        const authorBadge = document.getElementById('postAuthorBadge');
+        if (authorBadge) {
+            let roleTh = currentUser.role === 'admin' ? 'ผู้ดูแลระบบ' : currentUser.role === 'teacher' ? 'คุณครู' : 'นักเรียน';
+            authorBadge.innerHTML = `<i class="bi bi-person-fill text-primary me-1"></i> ${currentUser.username} (${roleTh})`;
+        }
+        
+        // Fast parallelized initialization
+        await loadPrPosts();
+        updatePinnedBadgeCount();
+    });
+
+    async function loadPrPosts() {
+        document.getElementById('prSkeletonLoader').style.display = 'flex';
+        document.getElementById('prNewsGrid').style.display = 'none';
+        
+        try {
+            const res = await fetch('../api/public_relations.php?action=list');
+            const data = await res.json();
+            
+            if (!data.success) {
+                console.error('Failed to load PR posts:', data.error);
+                return;
+            }
+            
+            allPrPosts = data.posts || [];
+            
+            // Build high-tech urgent ticker with latest 3 approved posts of any category
+            const urgentAnnouncements = allPrPosts.filter(p => p.status === 'approved').slice(0, 3);
+            const tickerContainer = document.getElementById('urgentBroadcastTicker');
+            const tickerText = document.getElementById('urgentTickerText');
+            
+            if (urgentAnnouncements.length > 0) {
+                tickerContainer.style.display = 'flex';
+                tickerText.innerHTML = urgentAnnouncements.map(p => `📢 ${p.title} (${p.author_name})`).join(' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ');
+            } else {
+                tickerContainer.style.display = 'none';
+            }
+            
+            renderPrDashboard();
+        } catch (e) {
+            console.error('loadPrPosts Error:', e);
+        } finally {
+            document.getElementById('prSkeletonLoader').style.display = 'none';
+            document.getElementById('prNewsGrid').style.display = 'flex';
+        }
+    }
+
+    function renderPrDashboard() {
+        const adminApprovalSection = document.getElementById('adminApprovalSection');
+        const adminApprovalList = document.getElementById('adminApprovalList');
+        const pendingCountBadge = document.getElementById('pendingCountBadge');
+        const prNewsGrid = document.getElementById('prNewsGrid');
+        const emptyPrState = document.getElementById('emptyPrState');
+        
+        if (adminApprovalList) adminApprovalList.innerHTML = '';
+        if (prNewsGrid) prNewsGrid.innerHTML = '';
+        
+        const isAdmin = currentUser.role === 'admin';
+        const likesMap = store.getLikes();
+        const bookmarksList = store.getBookmarks();
+        const viewsMap = store.getViews();
+        
+        // 1. Separate pending items for Admin panel box
+        if (isAdmin) {
+            const pendingPosts = allPrPosts.filter(p => p.status === 'pending');
+            const pendingCount = pendingPosts.length;
+            
+            if (pendingCount > 0) {
+                adminApprovalSection.classList.remove('d-none');
+                pendingCountBadge.textContent = `${pendingCount} คำขออนุมัติ`;
+                
+                pendingPosts.forEach(post => {
+                    const postDate = new Date(post.created_at).toLocaleDateString('th-TH', {
+                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    
+                    const roleBadge = post.author_role === 'teacher' ? 'badge bg-primary' : 'badge bg-info';
+                    const roleName = post.author_role === 'teacher' ? 'คุณครู' : 'นักเรียน';
+
+                    let catBadgeClass = 'cnp-badge';
+                    if (post.category === 'วิชาการ') catBadgeClass = 'cnp-badge cnp-badge--info';
+                    else if (post.category === 'กิจกรรม') catBadgeClass = 'cnp-badge cnp-badge--warning';
+                    else if (post.category === 'แสดงความยินดี') catBadgeClass = 'cnp-badge cnp-badge--success';
+                    else if (post.category === 'งบประมาณ') catBadgeClass = 'cnp-badge cnp-badge--danger';
+                    else if (post.category === 'บุคคล') catBadgeClass = 'cnp-badge cnp-badge--primary';
+
+                    let visibilityHtml = '';
+                    if (post.visibility === 'teacher') {
+                        visibilityHtml = `<span class="badge bg-warning text-dark px-2.5 py-1 small" style="font-size: 0.65rem;"><i class="bi bi-people-fill me-1"></i> เฉพาะคุณครู</span>`;
+                    } else if (post.visibility === 'student') {
+                        visibilityHtml = `<span class="badge bg-info text-dark px-2.5 py-1 small" style="font-size: 0.65rem;"><i class="bi bi-people-fill me-1"></i> เฉพาะนักเรียน</span>`;
+                    } else {
+                        visibilityHtml = `<span class="badge bg-secondary text-white px-2.5 py-1 small" style="font-size: 0.65rem;"><i class="bi bi-globe me-1"></i> ทุกคน</span>`;
+                    }
+
+                    const item = document.createElement('div');
+                    item.className = 'col-12';
+                    item.innerHTML = `
+                        <div class="cnp-card border-0 p-3 text-white mb-2 shadow-sm" style="background: rgba(255,255,255,0.06); border-left: 5px solid var(--warning) !important; border-radius: var(--radius-lg);">
+                            <div class="row align-items-center">
+                                <div class="col-12 col-md-8">
+                                    <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                                        <span class="${catBadgeClass}">${post.category}</span>
+                                        <span class="${roleBadge} px-2.5 py-1 small" style="font-size: 0.65rem;">${roleName}</span>
+                                        ${visibilityHtml}
+                                        <small class="text-white-50"><i class="bi bi-clock me-1"></i> ${postDate}</small>
+                                    </div>
+                                    <h5 class="fw-bold mb-1 text-warning">${escapeHtml(post.title)}</h5>
+                                    <p class="mb-0 text-light opacity-75 small" style="white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(post.content)}</p>
+                                    <div class="mt-2 text-white-50 small">
+                                        <i class="bi bi-person-fill me-1 text-warning"></i> เขียนโดย: <strong>${escapeHtml(post.author_name)}</strong>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4 text-md-end mt-3 mt-md-0">
+                                    <button class="btn btn-success rounded-pill btn-sm px-3.5 py-2 fw-bold me-2 shadow-sm" onclick="approvePost(${post.id})">
+                                        <i class="bi bi-check-circle-fill me-1"></i> อนุมัติเผยแพร่
+                                    </button>
+                                    <button class="btn btn-outline-danger rounded-pill btn-sm px-3.5 py-2 fw-bold border-light text-white" onclick="rejectPost(${post.id})">
+                                        <i class="bi bi-x-circle-fill me-1"></i> ปฏิเสธ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    adminApprovalList.appendChild(item);
+                });
+            } else {
+                adminApprovalSection.classList.add('d-none');
+            }
+        } else {
+            adminApprovalSection.classList.add('d-none');
+        }
+
+        // Filter feed posts dynamically based on Category Buttons & Search Input
+        const filteredPosts = allPrPosts.filter(post => {
+            // Unapproved posts are private to author and admins
+            if (post.status !== 'approved' && !isAdmin && post.author_id != currentUser.id) {
+                return false;
+            }
+            
+            // Category Quick filter
+            if (selectedCategoryFilter === 'pinned') {
+                if (!bookmarksList.includes(post.id)) return false;
+            } else if (selectedCategoryFilter && post.category !== selectedCategoryFilter) {
+                return false;
+            }
+            
+            // Search Query live filtering
+            if (searchQuery) {
+                const titleMatch = (post.title || '').toLowerCase().includes(searchQuery);
+                const contentMatch = (post.content || '').toLowerCase().includes(searchQuery);
+                const authorMatch = (post.author_name || '').toLowerCase().includes(searchQuery);
+                if (!titleMatch && !contentMatch && !authorMatch) return false;
+            }
+            
+            return true;
+        });
+
+        // 2. Render published feed cards (leveraging standard CNP components)
+        if (filteredPosts.length > 0) {
+            emptyPrState.classList.add('d-none');
+            prNewsGrid.classList.remove('d-none');
+            
+            filteredPosts.forEach(post => {
+                const postDate = new Date(post.created_at).toLocaleDateString('th-TH', {
+                    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                
+                // Show status tag if it is pending or rejected (only visible to author and admins)
+                let statusBadgeHtml = '';
+                if (post.status === 'pending') {
+                    statusBadgeHtml = `<span class="pr-status-badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i> รออนุมัติ</span>`;
+                } else if (post.status === 'rejected') {
+                    statusBadgeHtml = `<span class="pr-status-badge bg-danger text-white"><i class="bi bi-x-circle me-1"></i> ถูกปฏิเสธ</span>`;
+                }
+                
+                // Category standard badge preset
+                let catBadgeClass = 'cnp-badge';
+                if (post.category === 'วิชาการ') catBadgeClass = 'cnp-badge cnp-badge--info';
+                else if (post.category === 'กิจกรรม') catBadgeClass = 'cnp-badge cnp-badge--warning';
+                else if (post.category === 'แสดงความยินดี') catBadgeClass = 'cnp-badge cnp-badge--success';
+                else if (post.category === 'งบประมาณ') catBadgeClass = 'cnp-badge cnp-badge--danger';
+                else if (post.category === 'บุคคล') catBadgeClass = 'cnp-badge cnp-badge--primary';
+                
+                // Visibility target audience label
+                let visibilityHtml = '';
+                if (post.visibility === 'teacher') {
+                    visibilityHtml = `<span class="badge bg-warning-soft text-warning border border-warning-soft px-2.5 py-1 small" style="font-size:0.65rem;"><i class="bi bi-people-fill me-1"></i>เฉพาะครู</span>`;
+                } else if (post.visibility === 'student') {
+                    visibilityHtml = `<span class="badge bg-info-soft text-info border border-info-soft px-2.5 py-1 small" style="font-size:0.65rem;"><i class="bi bi-people-fill me-1"></i>เฉพาะนักเรียน</span>`;
+                }
+                
+                // Author role badge
+                let roleTh = post.author_role === 'admin' ? 'ผู้ดูแลระบบ' : post.author_role === 'teacher' ? 'คุณครู' : 'นักเรียน';
+                let roleColorClass = post.author_role === 'admin' ? 'bg-gradient-navy' : post.author_role === 'teacher' ? 'bg-primary' : 'bg-info';
+
+                // Admin actions
+                let adminActionsHtml = '';
+                if (isAdmin) {
+                    adminActionsHtml = `
+                        <div class="card-footer bg-transparent border-0 pt-0 text-end">
+                            <hr class="my-2 opacity-10">
+                            <button class="btn btn-outline-danger btn-xs rounded-pill px-3 py-1 text-xs fw-bold border-light" onclick="deletePost(${post.id})">
+                                <i class="bi bi-trash3-fill me-1"></i> ลบประกาศ
+                            </button>
+                        </div>
+                    `;
+                }
+
+                // Heart like state
+                const currentLikes = likesMap[post.id] || 0;
+                const userLiked = localStorage.getItem(`cnp_liked_${post.id}`) === 'true';
+                
+                // Pinned state
+                const isBookmarked = bookmarksList.includes(post.id);
+
+                const col = document.createElement('div');
+                col.className = 'col-12 col-md-6 col-lg-4';
+                col.innerHTML = `
+                    <div class="cnp-card cnp-card--compact pr-card pr-card-${post.category || 'ทั่วไป'}" id="card-pr-${post.id}">
+                        ${statusBadgeHtml}
+                        <div class="card-body p-0 d-flex flex-column h-100" onclick="showPostDetails(${post.id})">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <span class="${catBadgeClass}">${post.category}</span>
+                                <span class="badge ${roleColorClass} text-white px-2.5 py-1 small" style="font-size:0.65rem;">${roleTh}</span>
+                                ${visibilityHtml}
+                            </div>
+                            
+                            <h5 class="card-title fw-bold text-navy mb-2 fs-5" style="line-height:1.4;">${escapeHtml(post.title)}</h5>
+                            <p class="card-text text-muted small flex-grow-1 mb-3" style="white-space: pre-wrap; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(post.content)}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                                        <i class="bi bi-person-fill text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark small" style="font-size: 0.75rem;">${escapeHtml(post.author_name)}</div>
+                                        <div class="text-muted small" style="font-size:0.65rem;"><i class="bi bi-clock me-1"></i> ${postDate}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Premium Micro-Interaction Footer Bar -->
+                        <div class="pb-0 pt-3 d-flex gap-2">
+                            <button class="social-bar-btn flex-grow-1 justify-content-center ${userLiked ? 'liked' : ''}" onclick="toggleLikePost(${post.id}, this, event)">
+                                <i class="bi bi-heart${userLiked ? '-fill' : ''}"></i> <span>${currentLikes}</span>
+                            </button>
+                            <button class="social-bar-btn ${isBookmarked ? 'bookmarked' : ''}" onclick="toggleBookmarkPost(${post.id}, this, event)" title="ปักหมุดข่าวนี้">
+                                <i class="bi bi-pin-angle${isBookmarked ? '-fill' : ''}"></i>
+                            </button>
+                        </div>
+                        
+                        ${adminActionsHtml}
+                    </div>
+                `;
+                prNewsGrid.appendChild(col);
+            });
+        } else {
+            prNewsGrid.classList.add('d-none');
+            emptyPrState.classList.remove('d-none');
+        }
+    }
+
+    function filterCategory(cat) {
+        selectedCategoryFilter = cat;
+        
+        // Highlight active category filter pill
+        document.querySelectorAll('#prCategoryFilters .btn').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick') || '';
+            const isActive = onclickAttr.includes(`'${cat}'`);
+            btn.classList.toggle('btn-primary', isActive);
+            btn.classList.toggle('active-cat-filter', isActive);
+            btn.classList.toggle('btn-light', !isActive);
+            btn.classList.toggle('text-muted', !isActive);
+        });
+        
+        renderPrDashboard();
+    }
+
+    function handleLiveSearch() {
+        searchQuery = document.getElementById('prSearchInput').value.trim().toLowerCase();
+        renderPrDashboard();
+    }
+
+    function updatePinnedBadgeCount() {
+        const bookmarks = store.getBookmarks();
+        document.getElementById('pinnedCountBadge').textContent = bookmarks.length;
+    }
+
+    /* ── PRIVATE SOCIAL INTERACTION HANDLERS ── */
+    function toggleLikePost(postId, btn, event) {
+        if (event) event.stopPropagation();
+        
+        const likesMap = store.getLikes();
+        const userLikedKey = `cnp_liked_${postId}`;
+        const userLiked = localStorage.getItem(userLikedKey) === 'true';
+        
+        // Dynamic heart burst floating micro-animation
+        const containerCard = document.getElementById(`card-pr-${postId}`);
+        if (containerCard) {
+            const heart = document.createElement('div');
+            heart.className = 'floating-heart';
+            heart.innerHTML = '❤️';
+            
+            // Random alignment
+            const rect = btn.getBoundingClientRect();
+            const cardRect = containerCard.getBoundingClientRect();
+            heart.style.left = (rect.left - cardRect.left + 15) + 'px';
+            heart.style.top = (rect.top - cardRect.top - 20) + 'px';
+            
+            containerCard.appendChild(heart);
+            setTimeout(() => heart.remove(), 1000);
+        }
+        
+        if (userLiked) {
+            localStorage.setItem(userLikedKey, 'false');
+            likesMap[postId] = Math.max(0, (likesMap[postId] || 1) - 1);
+            btn.classList.remove('liked');
+            btn.querySelector('i').className = 'bi bi-heart';
+        } else {
+            localStorage.setItem(userLikedKey, 'true');
+            likesMap[postId] = (likesMap[postId] || 0) + 1;
+            btn.classList.add('liked');
+            btn.querySelector('i').className = 'bi bi-heart-fill';
+        }
+        
+        btn.querySelector('span').textContent = likesMap[postId];
+        store.setLikes(likesMap);
+    }
+
+    function toggleBookmarkPost(postId, btn, event) {
+        if (event) event.stopPropagation();
+        
+        let bookmarks = store.getBookmarks();
+        const index = bookmarks.indexOf(postId);
+        
+        if (index > -1) {
+            bookmarks.splice(index, 1);
+            btn.classList.remove('bookmarked');
+            btn.querySelector('i').className = 'bi bi-pin-angle';
+            Swal.fire({ toast: true, position: 'bottom-end', icon: 'info', title: 'ถอนหมุดออกแล้ว', showConfirmButton: false, timer: 1500 });
+        } else {
+            bookmarks.push(postId);
+            btn.classList.add('bookmarked');
+            btn.querySelector('i').className = 'bi bi-pin-angle-fill';
+            Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'ปักหมุดโพสต์เรียบร้อย', showConfirmButton: false, timer: 1500 });
+        }
+        
+        store.setBookmarks(bookmarks);
+        updatePinnedBadgeCount();
+        
+        // If we are currently in pinned filter tab, re-render
+        if (selectedCategoryFilter === 'pinned') {
+            renderPrDashboard();
+        }
+    }
+
+    // Modal detailed preview box + local views tracker
+    function showPostDetails(postId) {
+        const post = allPrPosts.find(x => x.id == postId);
+        if (!post) return;
+
+        // Dynamic views counter increment
+        const viewsMap = store.getViews();
+        viewsMap[postId] = (viewsMap[postId] || 0) + 1;
+        store.setViews(viewsMap);
+
+        const postDate = new Date(post.created_at).toLocaleDateString('th-TH', {
+            day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        // Set colors and badges
+        const headerEl = document.getElementById('detailModalHeader');
+        headerEl.className = 'modal-header border-0 text-white p-4 ' + 
+            (post.category === 'ประกาศสำคัญ' ? 'bg-gradient-navy' : 
+             post.category === 'วิชาการ' ? 'bg-gradient-navy' : 
+             post.category === 'กิจกรรม' ? 'bg-gradient-navy' : 'bg-gradient-navy');
+
+        document.getElementById('detailModalTitle').textContent = `ประกาศในหมวด: ${post.category}`;
+        document.getElementById('detailAuthorName').textContent = post.author_name;
+        document.getElementById('detailAuthorRole').textContent = post.author_role === 'teacher' ? 'คุณครู' : post.author_role === 'admin' ? 'แอดมิน' : 'นักเรียน';
+        
+        let visText = 'ทุกคน';
+        let visClass = 'badge bg-secondary text-white ms-1';
+        if (post.visibility === 'teacher') {
+            visText = 'เฉพาะครู';
+            visClass = 'badge bg-warning text-dark ms-1';
+        } else if (post.visibility === 'student') {
+            visText = 'เฉพาะนักเรียน';
+            visClass = 'badge bg-info text-dark ms-1';
+        }
+        const visBadge = document.getElementById('detailVisibilityBadge');
+        if (visBadge) {
+            visBadge.textContent = visText;
+            visBadge.className = visClass;
+        }
+
+        document.getElementById('detailPublishDate').textContent = postDate;
+        document.getElementById('detailTitle').textContent = post.title;
+        document.getElementById('detailContent').textContent = post.content;
+        
+        const likesMap = store.getLikes();
+        document.getElementById('detailLikesCount').textContent = likesMap[postId] || 0;
+        document.getElementById('detailViewsCount').textContent = viewsMap[postId];
+
+        // Bind interactive elements inside detail modal
+        const userLiked = localStorage.getItem(`cnp_liked_${postId}`) === 'true';
+        const likeBtn = document.getElementById('detailLikeBtn');
+        likeBtn.className = 'social-bar-btn ' + (userLiked ? 'liked' : '');
+        likeBtn.onclick = () => {
+            toggleLikePost(postId, likeBtn);
+            // Refresh underlying page display
+            renderPrDashboard();
+        };
+
+        const bookmarks = store.getBookmarks();
+        const isBookmarked = bookmarks.includes(postId);
+        const bookmarkBtn = document.getElementById('detailBookmarkBtn');
+        bookmarkBtn.className = 'social-bar-btn ' + (isBookmarked ? 'bookmarked' : '');
+        bookmarkBtn.onclick = () => {
+            toggleBookmarkPost(postId, bookmarkBtn);
+            renderPrDashboard();
+        };
+
+        // Render photo avatar
+        const defaultAvatar = '../public/img/default-avatar.png';
+        document.getElementById('detailAuthorPhoto').src = defaultAvatar;
+
+        new bootstrap.Modal(document.getElementById('postDetailModal')).show();
+    }
+
+    function openNewPostModal() {
+        document.getElementById('newPostForm').reset();
+        new bootstrap.Modal(document.getElementById('newPostModal')).show();
+    }
+
+    async function submitNewPost() {
+        const title = document.getElementById('postTitle').value.trim();
+        const category = document.getElementById('postCategory').value;
+        const visibility = document.getElementById('postVisibility').value;
+        const content = document.getElementById('postContent').value.trim();
+        
+        if (!title || !content) {
+            Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอกหัวข้อและเนื้อหาประชาสัมพันธ์ให้ครบถ้วนก่อนส่ง' });
+            return;
+        }
+        
+        try {
+            const res = await fetch('../api/public_relations.php?action=create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, category, visibility, content })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                const modalEl = document.getElementById('newPostModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ส่งประชาสัมพันธ์แล้ว!',
+                    text: data.message,
+                    confirmButtonText: 'รับทราบ',
+                    confirmButtonColor: '#4f46e5'
+                });
+                
+                await loadPrPosts();
+            } else {
+                Swal.fire('เกิดข้อผิดพลาด', data.error || 'ไม่สามารถเผยแพร่ข่าวได้', 'error');
+            }
+        } catch (e) {
+            console.error('submitNewPost error:', e);
+            Swal.fire('เกิดข้อผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ชั่วคราว', 'error');
+        }
+    }
+
+    async function approvePost(id) {
+        const confirm = await Swal.fire({
+            title: 'อนุมัติประกาศประชาสัมพันธ์นี้?',
+            text: 'ข่าวสารนี้จะขึ้นบอร์ดเผยแพร่สู่หน้าจอครู นักเรียน และบุคลากรทั้งหมดทันที',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'อนุมัติการแชร์',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#10b981',
+            customClass: { popup: 'rounded-4' }
+        });
+        
+        if (!confirm.isConfirmed) return;
+        
+        try {
+            const res = await fetch('../api/public_relations.php?action=approve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('อนุมัติแล้ว!', data.message, 'success');
+                await loadPrPosts();
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function rejectPost(id) {
+        const confirm = await Swal.fire({
+            title: 'ปฏิเสธคำขอนี้?',
+            text: 'ข่าวสารนี้จะไม่ได้รับการอนุมัติเผยแพร่ในระบบ',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันการปฏิเสธ',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#ef4444',
+            customClass: { popup: 'rounded-4' }
+        });
+        
+        if (!confirm.isConfirmed) return;
+        
+        try {
+            const res = await fetch('../api/public_relations.php?action=reject', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('ปฏิเสธแล้ว', data.message, 'success');
+                await loadPrPosts();
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    async function deletePost(id) {
+        const confirm = await Swal.fire({
+            title: 'ลบโพสต์อย่างถาวร?',
+            text: 'ข่าวประชาสัมพันธ์นี้จะถูกลบออกจากฐานข้อมูลและบอร์ดทันทีอย่างกู้คืนไม่ได้',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันลบโพสต์',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#ef4444',
+            customClass: { popup: 'rounded-4' }
+        });
+        
+        if (!confirm.isConfirmed) return;
+        
+        try {
+            const res = await fetch('../api/public_relations.php?action=delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('ลบแล้ว!', data.message, 'success');
+                await loadPrPosts();
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
+</body>
+</html>

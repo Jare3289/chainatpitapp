@@ -273,9 +273,15 @@
                         </div>
                     </div>
 
+                    <!-- Read-only banner for non-advisory rooms -->
+                    <div id="readonlyBanner" class="alert alert-warning d-flex align-items-center gap-2 rounded-3 d-none" style="border-left: 4px solid #f59e0b;">
+                        <i class="bi bi-eye-fill fs-5"></i>
+                        <span><strong>โหมดดูอย่างเดียว</strong> — ห้องนี้ไม่ใช่ห้องโฮมรูมของคุณ ไม่สามารถบันทึกการเช็คชื่อได้</span>
+                    </div>
+
                     <!-- Action Button -->
                     <div class="text-center mt-4 mb-5">
-                        <button class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow" onclick="saveAttendance()" style="min-width: 250px; font-size: 1.1rem;">
+                        <button id="btnSaveAttendance" class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow" onclick="saveAttendance()" style="min-width: 250px; font-size: 1.1rem;">
                             <i class="bi bi-check-circle-fill me-2"></i> บันทึกข้อมูลเช็คชื่อ
                         </button>
                     </div>
@@ -365,6 +371,7 @@
     <script src="../public/js/main.js"></script>
     <script>
         let studentData = [];
+        let myAdvisoryRoom = null;
 
         // ===== Homeroom session helpers =====
         function onHomeroomTypeChange() {
@@ -516,6 +523,7 @@
                 
                 // Priority Selection Logic:
                 const advisoryRoom = data.advisory_room || (user ? user.classroom : null);
+                myAdvisoryRoom = advisoryRoom ? advisoryRoom.toString().trim() : null;
                 if (advisoryRoom) {
                     const roomVal = advisoryRoom.toString().trim();
                     let exists = Array.from(select.options).some(opt => opt.value === roomVal);
@@ -549,14 +557,29 @@
             } catch (e) { Swal.fire('Error', 'เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error'); }
         }
 
+        function isReadOnlyRoom() {
+            if (!myAdvisoryRoom) return false;
+            const selected = (document.getElementById('classSelect').value || '').trim();
+            return selected !== myAdvisoryRoom;
+        }
+
+        function updateReadOnlyUI() {
+            const ro = isReadOnlyRoom();
+            document.getElementById('readonlyBanner').classList.toggle('d-none', !ro);
+            const btn = document.getElementById('btnSaveAttendance');
+            if (btn) { btn.disabled = ro; btn.classList.toggle('d-none', ro); }
+        }
+
         function renderStudents() {
             const tbody = $('#studentTableBody');
             tbody.empty();
             $('#totalStudentsCount').text(studentData.length);
+            updateReadOnlyUI();
 
+            const ro = isReadOnlyRoom();
             studentData.forEach((s, idx) => {
                 const statuses = [{ key: 'ม', label: 'มา' }, { key: 'ข', label: 'ขาด' }, { key: 'ป', label: 'ป่วย' }, { key: 'ก', label: 'ลากิจ' }, { key: 'ส', label: 'สาย' }];
-                let btns = statuses.map(st => `<button class="status-btn ${s.status === st.label ? 'active-'+st.key : ''}" onclick="setStatus(${s.id}, '${st.label}')">${st.key}</button>`).join('');
+                let btns = statuses.map(st => `<button class="status-btn ${s.status === st.label ? 'active-'+st.key : ''}" ${ro ? 'disabled style="opacity:0.6;cursor:not-allowed"' : `onclick="setStatus(${s.id}, '${st.label}')"`}>${st.key}</button>`).join('');
                 const firstName = s.first_name_th || s.first_name || '-';
                 const lastName = s.last_name_th || s.last_name || '';
                 const photo = s.photo_profile ? s.photo_profile : '../public/img/default-avatar.png';
@@ -576,7 +599,7 @@
 
                         <td><div class="d-flex gap-2 gap-2-mobile justify-content-center">${btns}</div></td>
                         <td class="hide-mobile">
-                            <input type="text" class="remark-input" placeholder="ระบุเหตุผล..." value="${s.remark || ''}" onchange="updateRemark(${s.id}, this.value)" id="rem_${s.id}">
+                            <input type="text" class="remark-input" placeholder="ระบุเหตุผล..." value="${s.remark || ''}" ${ro ? 'readonly style="background:#f8f9fa;cursor:default"' : `onchange="updateRemark(${s.id}, this.value)"`} id="rem_${s.id}">
                         </td>
                     </tr>
                 `;

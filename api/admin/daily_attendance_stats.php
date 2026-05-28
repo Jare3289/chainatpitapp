@@ -33,7 +33,7 @@ try {
         SELECT 
             r.classroom_code,
             r.grade_level,
-            (SELECT COUNT(*) FROM students s WHERE s.class_name = r.classroom_code AND s.is_active = 1) as total_students,
+            (SELECT COUNT(*) FROM students s WHERE s.class_name = r.classroom_code AND s.is_active = 1 AND (s.enrollment_status IS NULL OR s.enrollment_status = 'กำลังศึกษา')) as total_students,
             SUM(CASE WHEN a.status = 'ขาด' THEN 1 ELSE 0 END) as absent_count,
             SUM(CASE WHEN a.status = 'ป่วย' THEN 1 ELSE 0 END) as sick_count,
             SUM(CASE WHEN a.status IN ('ลากิจ', 'ลา') THEN 1 ELSE 0 END) as leave_count,
@@ -53,86 +53,75 @@ try {
     
     $rooms = [];
     $totals = [
-        'absent' => 0,
-        'sick' => 0,
-        'leave' => 0,
-        'total_students' => 0,
-        'present' => 0,
-        'not_present' => 0
+        'absent' => 0, 'sick' => 0, 'leave' => 0,
+        'total_students' => 0, 'present' => 0, 'not_present' => 0
     ];
-    
-    $unreported = [
-        'ม.1' => [],
-        'ม.2' => [],
-        'ม.3' => [],
-        'ม.4' => [],
-        'ม.5' => [],
-        'ม.6' => []
-    ];
-    
+
     foreach ($statsData as $row) {
-        $total = (int)$row['total_students'];
-        $absent = (int)$row['absent_count'];
-        $sick = (int)$row['sick_count'];
-        $leave = (int)$row['leave_count'];
-        $present = (int)$row['present_count'];
-        $reported = (int)$row['reported_checks'];
-        
-        $grade = $row['grade_level'] ?: 'อื่น ๆ';
-        
-        if ($reported === 0) {
-            // Classroom has not reported attendance today
-            if (!isset($unreported[$grade])) {
-                $unreported[$grade] = [];
-            }
-            $unreported[$grade][] = [
-                'room' => $row['classroom_code'],
-                'advisor' => $row['advisor_name']
-            ];
-            
-            // For unreported classrooms, default to 0s for all counts and present = total students (or 0)
-            $present = 0;
-        }
-        
+        $total   = (int)$row['total_students'];
+        $absent  = (int)$row['absent_count'];
+        $sick    = (int)$row['sick_count'];
+        $leave   = (int)$row['leave_count'];
+        $present = (int)$row['reported_checks'] > 0 ? (int)$row['present_count'] : 0;
+
         $not_present = $absent + $sick + $leave;
         $pct = $total > 0 ? ($not_present / $total) * 100 : 0;
-        
+
         $rooms[] = [
-            'room' => $row['classroom_code'],
-            'grade_level' => $row['grade_level'],
-            'absent' => $absent,
-            'sick' => $sick,
-            'leave' => $leave,
-            'total_students' => $total,
-            'present' => $present,
-            'not_present' => $not_present,
+            'room'                => $row['classroom_code'],
+            'grade_level'         => $row['grade_level'],
+            'absent'              => $absent,
+            'sick'                => $sick,
+            'leave'               => $leave,
+            'total_students'      => $total,
+            'present'             => $present,
+            'not_present'         => $not_present,
             'percent_not_present' => round($pct, 2),
-            'reported' => $reported > 0
+            'reported'            => (int)$row['reported_checks'] > 0,
         ];
-        
-        $totals['absent'] += $absent;
-        $totals['sick'] += $sick;
-        $totals['leave'] += $leave;
+
+        $totals['absent']         += $absent;
+        $totals['sick']           += $sick;
+        $totals['leave']          += $leave;
         $totals['total_students'] += $total;
-        $totals['present'] += $present;
-        $totals['not_present'] += $not_present;
+        $totals['present']        += $present;
+        $totals['not_present']    += $not_present;
     }
-    
-    $totals['percent_not_present'] = $totals['total_students'] > 0 
-        ? round(($totals['not_present'] / $totals['total_students']) * 100, 2) 
+
+    $totals['percent_not_present'] = $totals['total_students'] > 0
+        ? round(($totals['not_present'] / $totals['total_students']) * 100, 2)
         : 0;
-        
-    $thai_date = getThaiDate($date);
+
+    // ── Unreported rooms: NOT IN approach (ตรงนี้แม่นยำกว่า LEFT JOIN) ────────
+    // ใช้ query เดียวกันกับ executive_overview.php เพื่อ consistency
+    $unreportedStmt = $pdo->prepare("
+        SELECT r.classroom_code AS room,
+               r.grade_level,
+               (SELECT first_name_th FROM teachers
+                WHERE advisory_room_id = r.id ORDER BY id LIMIT 1) AS advisor_name
+        FROM rooms r
+        WHERE r.classroom_code NOT IN (
+            SELECT DISTINCT class_name FROM attendance
+            WHERE date = ? AND type = 'daily' AND class_name IS NOT NULL
+        )
+        ORDER BY r.grade_level ASC,
+                 CAST(r.classroom_code AS UNSIGNED) ASC,
+                 r.classroom_code ASC
+    ");
+    $unreportedStmt->execute([$date]);
+    $unreportedRooms = $unreportedStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $thai_date  = getThaiDate($date);
     $print_time = getThaiDate(date('Y-m-d')) . ' เวลา ' . date('H:i') . ' น.';
-    
+
     echo json_encode([
-        'success' => true,
-        'date' => $date,
-        'thai_date' => $thai_date,
-        'rooms' => $rooms,
-        'totals' => $totals,
-        'unreported' => $unreported,
-        'print_time' => $print_time
+        'success'         => true,
+        'date'            => $date,
+        'thai_date'       => $thai_date,
+        'rooms'           => $rooms,
+        'totals'          => $totals,
+        'unreported_rooms' => $unreportedRooms,
+        'print_time'      => $print_time,
     ], JSON_UNESCAPED_UNICODE);
     
 } catch (PDOException $e) {

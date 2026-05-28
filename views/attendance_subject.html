@@ -399,11 +399,21 @@
                     return;
                 }
 
-                // map existing attendance by student_id
+                // map existing subject attendance by student_id
                 const existing = {};
                 (j.attendance || []).forEach(a => existing[a.student_id] = { status: a.status, remark: a.remark || '' });
 
-                // Default = "มา" สำหรับทุกคน (ถ้ายังไม่เคยบันทึก)
+                // Pre-load daily homeroom attendance as fallback default
+                const dailyStatus = {};
+                try {
+                    const dr = await fetch(`../api/teacher/attendance.php?type=daily&class_name=${encodeURIComponent(className)}&date=${date}`);
+                    const dj = await dr.json();
+                    if (dj.success) {
+                        (dj.students || []).forEach(s => { if (s.status) dailyStatus[s.id] = s.status; });
+                    }
+                } catch (_) { /* ถ้าโหลดไม่ได้ก็ใช้ค่า default */ }
+
+                // Default: ใช้ค่าจากโฮมรูมถ้ายังไม่เคยบันทึกวิชา
                 studentData = (j.students || []).map(s => {
                     const ex = existing[s.id];
                     return {
@@ -414,7 +424,7 @@
                         last_name_th:     s.last_name_th  || s.last_name  || '',
                         nickname:         s.nickname      || '',
                         number_in_class:  s.number_in_class,
-                        status:           ex ? ex.status : 'มา',     // ← default "มา"
+                        status:           ex ? ex.status : (dailyStatus[s.id] || 'มา'),
                         remark:           ex ? ex.remark : '',
                     };
                 });

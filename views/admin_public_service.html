@@ -17,27 +17,17 @@
         .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
         .stat-icon { width: 54px; height: 54px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 12px; }
         
-        .record-card { 
-            background: white; border-radius: 22px; border: 1px solid rgba(0,0,0,0.03); 
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); height: 100%;
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-        .record-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: #3b82f6; }
-        .card-header-student { padding: 20px; background: #fcfdfe; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 12px; }
-        .student-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: #f1f5f9; border: 2px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        
-        .status-pill { font-weight: 700; font-size: 0.7rem; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; }
+        .status-pill { font-weight: 700; font-size: 0.68rem; padding: 4px 10px; border-radius: 50px; white-space: nowrap; }
         .status-approved { background: #dcfce7; color: #15803d; }
-        .status-pending { background: #fef9c3; color: #a16207; }
+        .status-pending  { background: #fef9c3; color: #a16207; }
         .status-rejected { background: #fee2e2; color: #b91c1c; }
-        
-        .btn-action { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; border: none; transition: 0.2s; }
-        .btn-edit { background: #eff6ff; color: #3b82f6; }
-        .btn-edit:hover { background: #3b82f6; color: white; }
-        .btn-approve { background: #f0fdf4; color: #10b981; }
-        .btn-approve:hover { background: #10b981; color: white; }
-        .btn-reject { background: #fff1f2; color: #f43f5e; }
-        .btn-reject:hover { background: #f43f5e; color: white; }
+
+        /* Compact table */
+        #recordTable { font-size: 0.8rem; }
+        #recordTable thead th { background: #1e3a8a; color: #fff; font-weight: 700; padding: 10px 12px; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+        #recordTable tbody td { padding: 8px 12px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+        #recordTable tbody tr:hover { background: #f8fafc; }
+        .mini-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
 
         .choices__inner { background-color: #f1f5f9 !important; border: none !important; border-radius: 14px !important; min-height: 52px !important; display: flex; align-items: center; }
         .choices__list--dropdown { border-radius: 18px !important; border: none !important; box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important; z-index: 3000 !important; }
@@ -59,21 +49,13 @@
                     <!-- HEADER -->
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                         <div>
-                            <h4 class="fw-black text-navy mb-1 letter-spacing-n1">รับรองสาธารณประโยชน์</h4>
+                            <h4 class="fw-black text-navy mb-1 letter-spacing-n1">ภาพรวมกิจกรรมสาธารณประโยชน์</h4>
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb mb-0 small opacity-75">
                                     <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
-                                    <li class="breadcrumb-item active">จัดการกิจกรรม</li>
+                                    <li class="breadcrumb-item active">ภาพรวมกิจกรรม</li>
                                 </ol>
                             </nav>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-white border rounded-pill px-4 fw-bold shadow-sm" onclick="toggleView()">
-                                <i class="bi bi-grid-fill me-2" id="viewIcon"></i> สลับมุมมอง
-                            </button>
-                            <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openAddModal()">
-                                <i class="bi bi-plus-lg me-2"></i> เพิ่มกิจกรรม
-                            </button>
                         </div>
                     </div>
 
@@ -136,8 +118,8 @@
                             </div>
                             <div class="col-md-3">
                                 <select id="filterStatus" class="form-select bg-light border-0 rounded-pill py-2">
-                                    <option value="">ทุกสถานะ</option>
-                                    <option value="pending" selected>รอตรวจสอบ (Pending)</option>
+                                    <option value="" selected>ทุกสถานะ</option>
+                                    <option value="pending">รอตรวจสอบ (Pending)</option>
                                     <option value="approved">อนุมัติแล้ว (Approved)</option>
                                     <option value="rejected">ไม่ผ่าน (Rejected)</option>
                                 </select>
@@ -149,8 +131,26 @@
                     </div>
 
                     <!-- DATA DISPLAY -->
-                    <div id="dataContainer" class="row g-4">
-                        <!-- Cards or Table load here -->
+                    <div class="bg-white rounded-4 shadow-sm border border-white overflow-hidden">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="recordTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:36px;">#</th>
+                                        <th>นักเรียน</th>
+                                        <th>ห้อง</th>
+                                        <th>กิจกรรม</th>
+                                        <th>สถานที่</th>
+                                        <th>วันที่</th>
+                                        <th>สถานะ</th>
+                                        <th class="text-center" style="width:110px;">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataContainer">
+                                    <tr><td colspan="8" class="text-center text-muted py-4">กำลังโหลด...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                 </div>
@@ -158,110 +158,24 @@
         </main>
     </div>
 
-    <!-- EDIT MODAL -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 30px;">
-                <div class="modal-header border-0 p-4 pb-0">
-                    <h5 class="fw-black text-navy mb-0">แก้ไขข้อมูลสาธารณประโยชน์</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form id="editForm" class="row g-3">
-                        <input type="hidden" name="id" id="edit-id">
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-navy">นักเรียนเจ้าของข้อมูล</label>
-                            <select id="edit-student-select" name="student_internal_id" class="form-select" required></select>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label small fw-bold text-navy">ชื่อกิจกรรม</label>
-                            <input type="text" name="activity_name" id="edit-name" class="form-control border-0 bg-light rounded-3 py-2" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold text-navy">วันที่</label>
-                            <input type="date" name="activity_date" id="edit-date" class="form-control border-0 bg-light rounded-3 py-2" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-navy">สถานที่</label>
-                            <input type="text" name="location" id="edit-loc" class="form-control border-0 bg-light rounded-3 py-2" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-navy">ผลที่เกิด / ประทับใจ</label>
-                            <textarea name="impact_benefit" id="edit-impact" class="form-control border-0 bg-light rounded-3 py-2" rows="3"></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-navy">ผู้รับรอง</label>
-                            <input type="text" name="certifier_name" id="edit-certifier" class="form-control border-0 bg-light rounded-3 py-2" placeholder="ชื่อครูหรือผู้รับรอง">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold text-navy">สถานะ</label>
-                            <select name="status" id="edit-status" class="form-select border-0 bg-light rounded-3 py-2">
-                                <option value="pending">รอตรวจสอบ (Pending)</option>
-                                <option value="approved">อนุมัติ (Approved)</option>
-                                <option value="rejected">ปฏิเสธ (Rejected)</option>
-                            </select>
-                        </div>
-                        <div class="col-12 mt-4 d-flex gap-2">
-                            <button type="button" class="btn btn-light rounded-pill px-4 flex-grow-1" data-bs-dismiss="modal">ยกเลิก</button>
-                            <button type="submit" class="btn btn-primary rounded-pill px-4 flex-grow-2 fw-bold">บันทึกการแก้ไข</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <script src="../public/js/main.js"></script>
     <script>
-        let currentView = 'card';
         let allRecords = [];
-        let studentChoices;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkAuth(['admin', 'teacher']);
-            initChoices();
+            await checkAuth(['admin']);
             loadData();
-            document.getElementById('editForm').onsubmit = handleUpdate;
         });
-
-        function initChoices() {
-            studentChoices = new Choices('#edit-student-select', {
-                searchEnabled: true,
-                placeholder: true,
-                placeholderValue: 'ค้นหานักเรียน...',
-                noResultsText: 'ไม่พบนักเรียน',
-                shouldSort: false
-            });
-            // Initial load of some students
-            loadStudents('');
-        }
-
-        async function loadStudents(q) {
-            try {
-                const res = await fetch(`../api/get_students_list.php?q=${q}`);
-                const data = await res.json();
-                if(data.success) {
-                    const list = data.students.map(s => ({
-                        value: s.id,
-                        label: `${s.code} - ${s.name} (${s.room})`
-                    }));
-                    studentChoices.setChoices(list, 'value', 'label', true);
-                }
-            } catch (e) {}
-        }
 
         async function loadData() {
             const status = document.getElementById('filterStatus').value;
             const search = document.getElementById('searchInput').value;
-            // Empty type lets the API decide: teacher sees (approver=me OR my room); admin sees all
-            const type = '';
-
+            
             try {
-                const res = await fetch(`../api/public_service.php?status=${status}&search=${search}&type=${type}`);
+                const res = await fetch(`../api/public_service.php?status=${status}&search=${search}`);
                 const data = await res.json();
                 if(data.success) {
                     allRecords = data.records;
@@ -287,237 +201,94 @@
 
         function renderData() {
             const container = document.getElementById('dataContainer');
-            if(allRecords.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center py-5 text-muted bg-white rounded-5 border border-dashed">ไม่พบข้อมูลที่ตรงตามเงื่อนไข</div>';
+            if (allRecords.length === 0) {
+                container.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-5">ไม่พบข้อมูลกิจกรรมที่บันทึกไว้</td></tr>';
                 return;
             }
-
-            // Batch action bar — only show if there are pending records
-            const pendingCount = allRecords.filter(r => r.status === 'pending').length;
-            const batchBar = `
-                <div class="col-12 mb-3">
-                    <div class="bg-white rounded-3 shadow-sm p-3 d-flex flex-wrap align-items-center gap-2">
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="checkbox" id="batchSelectAll" class="form-check-input" onchange="toggleSelectAllBatch(this)">
-                            <label for="batchSelectAll" class="fw-bold small text-muted">เลือกทุกแถวที่รอตรวจสอบ (${pendingCount})</label>
-                        </div>
-                        <div class="ms-auto d-flex gap-2">
-                            <span class="badge bg-light text-dark border" id="batchSelectedCount">เลือก 0 รายการ</span>
-                            <button class="btn btn-success btn-sm rounded-pill px-3" onclick="batchUpdate('approved')">
-                                <i class="bi bi-check2-all me-1"></i> อนุมัติที่เลือก
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="batchUpdate('rejected')">
-                                <i class="bi bi-x-circle me-1"></i> ปฏิเสธที่เลือก
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-
-            if (currentView === 'card') {
-                container.innerHTML = batchBar + allRecords.map(r => renderCard(r)).join('');
-            } else {
-                container.innerHTML = batchBar + `<div class="col-12"><div class="bg-white rounded-4 overflow-hidden border shadow-sm"><table class="table align-middle mb-0"><thead><tr><th style="width:50px;"></th><th>นักเรียน</th><th>กิจกรรม</th><th>วันที่</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>${allRecords.map(r => renderTableRow(r)).join('')}</tbody></table></div></div>`;
-            }
+            container.innerHTML = allRecords.map((r, i) => renderRow(r, i + 1)).join('');
         }
 
-        function toggleSelectAllBatch(cb) {
-            document.querySelectorAll('.batch-row-check').forEach(c => { c.checked = cb.checked; });
-            updateBatchSelectedCount();
-        }
-
-        function updateBatchSelectedCount() {
-            const n = document.querySelectorAll('.batch-row-check:checked').length;
-            const el = document.getElementById('batchSelectedCount');
-            if (el) el.textContent = `เลือก ${n} รายการ`;
-        }
-
-        async function batchUpdate(status) {
-            const ids = Array.from(document.querySelectorAll('.batch-row-check:checked')).map(c => Number(c.value));
-            if (ids.length === 0) {
-                Swal.fire('ไม่ได้เลือก', 'กรุณาเลือกอย่างน้อย 1 รายการ', 'warning');
-                return;
-            }
-            const confirm = await Swal.fire({
-                title: status === 'approved' ? `อนุมัติ ${ids.length} รายการ?` : `ปฏิเสธ ${ids.length} รายการ?`,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: status === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: status === 'approved' ? '#10b981' : '#ef4444',
-            });
-            if (!confirm.isConfirmed) return;
-
-            try {
-                const res = await fetch('../api/public_service.php', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ batch: true, ids, status }),
-                });
-                const j = await res.json();
-                if (j.success) {
-                    Swal.fire('สำเร็จ', j.message || `ดำเนินการ ${ids.length} รายการ`, 'success');
-                    loadData();
-                } else {
-                    Swal.fire('ผิดพลาด', j.error || 'ไม่สามารถดำเนินการได้', 'error');
-                }
-            } catch (e) {
-                Swal.fire('ผิดพลาด', 'เชื่อมต่อ server ไม่ได้', 'error');
-            }
-        }
-
-        function renderCard(r) {
+        function renderRow(r, idx) {
             const statusCls = r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
             const statusTxt = r.status === 'approved' ? 'อนุมัติแล้ว' : (r.status === 'rejected' ? 'ปฏิเสธ' : 'รอตรวจสอบ');
             const avatar = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
-            
-            return `
-                <div class="col-md-6 col-lg-4">
-                    <div class="record-card shadow-sm">
-                        <div class="card-header-student">
-                            <img src="${avatar}" class="student-avatar" onerror="this.src='../public/img/default-avatar.png'">
-                            <div class="overflow-hidden">
-                                <div class="fw-bold text-navy text-truncate">${r.first_name_th} ${r.last_name_th}</div>
-                                <div class="small text-muted">ID: ${r.student_code} • ห้อง ${r.class_name || '-'}</div>
-                            </div>
-                        </div>
-                        <div class="p-4 flex-grow-1">
-                            <div class="d-flex justify-content-between mb-3">
-                                <span class="status-pill ${statusCls}">${statusTxt}</span>
-                                <span class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
-                            </div>
-                            <h6 class="fw-black text-navy mb-2">${r.activity_name}</h6>
-                            <div class="small text-muted mb-2"><i class="bi bi-geo-alt-fill me-1 text-primary"></i> ${r.location}</div>
-                            <div class="p-3 bg-light rounded-3 small text-muted border-start border-primary border-4">
-                                "${r.impact_benefit || '-'}"
-                            </div>
-                        </div>
-                        <div class="px-4 py-3 bg-light d-flex justify-content-end gap-2 border-top">
-                            <button class="btn-action btn-edit" onclick="openEditModal(${r.id})" title="แก้ไขข้อมูล"><i class="bi bi-pencil-square"></i></button>
-                            ${r.status === 'pending' ? `
-                                <button class="btn-action btn-approve" onclick="updateStatus(${r.id}, 'approved')" title="อนุมัติ"><i class="bi bi-check-lg"></i></button>
-                                <button class="btn-action btn-reject" onclick="updateStatus(${r.id}, 'rejected')" title="ปฏิเสธ"><i class="bi bi-x-lg"></i></button>
-                            ` : ''}
+            const isPending = r.status === 'pending';
+
+            return `<tr>
+                <td class="text-muted">${idx}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="${avatar}" class="mini-avatar" onerror="this.src='../public/img/default-avatar.png'">
+                        <div>
+                            <div class="fw-bold text-navy" style="font-size:.82rem;">${r.first_name_th} ${r.last_name_th}</div>
+                            <div class="text-muted" style="font-size:.7rem;">${r.student_code}</div>
                         </div>
                     </div>
-                </div>
-            `;
+                </td>
+                <td class="text-muted">${r.class_name || '-'}</td>
+                <td class="fw-semibold" style="max-width:200px;">${r.activity_name}</td>
+                <td class="text-muted" style="max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.location || '-'}</td>
+                <td class="text-muted text-nowrap">${r.activity_date_th || '-'}</td>
+                <td><span class="status-pill ${statusCls}">${statusTxt}</span></td>
+                <td class="text-center text-nowrap">
+                    ${isPending ? `
+                    <button class="btn btn-sm btn-success px-2 py-1 me-1 rounded-3" onclick="changeStatus(${r.id},'approved')" title="อนุมัติ"><i class="bi bi-check-lg"></i></button>
+                    <button class="btn btn-sm btn-danger px-2 py-1 me-1 rounded-3" onclick="changeStatus(${r.id},'rejected')" title="ปฏิเสธ"><i class="bi bi-x-lg"></i></button>
+                    ` : ''}
+                    <button class="btn btn-sm btn-outline-primary px-2 py-1 rounded-3" onclick="viewDetail(${r.id})" title="รายละเอียด"><i class="bi bi-eye"></i></button>
+                </td>
+            </tr>`;
         }
 
-        function renderTableRow(r) {
-            const statusCls = r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
-            const isPending = r.status === 'pending';
-            return `
-                <tr>
-                    <td>${isPending ? `<input type="checkbox" class="form-check-input batch-row-check" value="${r.id}" onchange="updateBatchSelectedCount()">` : ''}</td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div>
-                                <div class="fw-bold text-navy">${r.first_name_th} ${r.last_name_th}</div>
-                                <div class="small text-muted">ID ${r.student_code} · ห้อง ${r.class_name || '-'}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td><div class="fw-bold">${r.activity_name}</div><div class="small text-muted">${r.location || ''}</div></td>
-                    <td class="small">${r.activity_date_th}</td>
-                    <td><span class="status-pill ${statusCls}">${r.status}</span></td>
-                    <td>
-                        <div class="d-flex gap-1">
-                            ${isPending ? `
-                                <button class="btn btn-sm btn-success" onclick="updateStatus(${r.id}, 'approved')" title="อนุมัติ"><i class="bi bi-check"></i></button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="updateStatus(${r.id}, 'rejected')" title="ปฏิเสธ"><i class="bi bi-x"></i></button>
-                            ` : ''}
-                            <button class="btn btn-sm btn-light border" onclick="openEditModal(${r.id})"><i class="bi bi-pencil"></i></button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        }
-
-        function toggleView() {
-            currentView = currentView === 'card' ? 'table' : 'card';
-            const icon = document.getElementById('viewIcon');
-            icon.className = currentView === 'card' ? 'bi bi-grid-fill me-2' : 'bi bi-list me-2';
-            renderData();
-        }
-
-        function openAddModal() {
-            document.getElementById('editForm').reset();
-            document.getElementById('edit-id').value = '';
-            document.querySelector('#editModal .modal-title || h5').innerText = 'เพิ่มกิจกรรมสาธารณประโยชน์';
-            studentChoices.removeActiveItems();
-            new bootstrap.Modal('#editModal').show();
-        }
-
-        function openEditModal(id) {
-            const r = allRecords.find(x => x.id == id);
-            if(!r) return;
-
-            document.getElementById('edit-id').value = r.id;
-            document.getElementById('edit-name').value = r.activity_name;
-            document.getElementById('edit-date').value = r.activity_date;
-            document.getElementById('edit-loc').value = r.location;
-            document.getElementById('edit-impact').value = r.impact_benefit;
-            document.getElementById('edit-certifier').value = r.certifier_name || '';
-            document.getElementById('edit-status').value = r.status;
-            document.querySelector('#editModal .modal-title || h5').innerText = 'แก้ไขข้อมูลสาธารณประโยชน์';
-
-            // Set student choice
-            studentChoices.setChoices([{
-                value: r.student_id,
-                label: `${r.student_code} - ${r.first_name_th} ${r.last_name_th} (ห้อง ${r.room || '-'})`,
-                selected: true
-            }], 'value', 'label', true);
-
-            new bootstrap.Modal('#editModal').show();
-        }
-
-        async function handleUpdate(e) {
-            e.preventDefault();
-            const fd = new FormData(e.target);
-            const data = Object.fromEntries(fd.entries());
-            const id = document.getElementById('edit-id').value;
-            const method = id ? 'PUT' : 'POST';
-            if (id) data.full_edit = true;
-
-            try {
-                const res = await fetch('../api/public_service.php', {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const resData = await res.json();
-                if(resData.success) {
-                    Swal.fire({ icon: 'success', title: id ? 'อัปเดตสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ', timer: 1500, showConfirmButton: false });
-                    bootstrap.Modal.getInstance('#editModal').hide();
-                    loadData();
-                }
-            } catch (e) { Swal.fire('Error', 'Operation failed', 'error'); }
-        }
-
-        async function updateStatus(id, status) {
-            const confirmed = await Swal.fire({
-                title: status === 'approved' ? 'ยืนยันการอนุมัติ?' : 'ยืนยันการปฏิเสธ?',
-                text: "การดำเนินการนี้จะไม่สามารถย้อนกลับได้",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'ตกลง',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: status === 'approved' ? '#10b981' : '#f43f5e'
+        async function changeStatus(id, status) {
+            const label = status === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ';
+            const confirm = await Swal.fire({ title: `${label}รายการนี้?`, icon: 'question', showCancelButton: true, confirmButtonText: label, cancelButtonText: 'ยกเลิก' });
+            if (!confirm.isConfirmed) return;
+            const res = await fetch('../api/public_service.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update_status', id, status })
             });
+            const data = await res.json();
+            if (data.success) { Swal.fire('สำเร็จ', '', 'success'); loadData(); }
+            else Swal.fire('ผิดพลาด', data.error || '', 'error');
+        }
 
-            if(!confirmed.isConfirmed) return;
-
-            try {
-                const res = await fetch('../api/public_service.php', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, status })
-                });
-                if((await res.json()).success) {
-                    loadData();
-                }
-            } catch (e) {}
+        function viewDetail(id) {
+            const r = allRecords.find(x => x.id == id);
+            if (!r) return;
+            const avatar = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
+            document.getElementById('detailBody').innerHTML = `
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <img src="${avatar}" class="rounded-circle" style="width:52px;height:52px;object-fit:cover;" onerror="this.src='../public/img/default-avatar.png'">
+                    <div>
+                        <div class="fw-bold text-navy fs-6">${r.first_name_th} ${r.last_name_th}</div>
+                        <div class="text-muted small">${r.student_code} · ห้อง ${r.class_name || '-'}</div>
+                    </div>
+                </div>
+                <table class="table table-sm table-borderless" style="font-size:.83rem;">
+                    <tr><th class="text-muted fw-semibold" style="width:110px;">กิจกรรม</th><td class="fw-bold">${r.activity_name}</td></tr>
+                    <tr><th class="text-muted fw-semibold">วันที่</th><td>${r.activity_date_th || '-'}</td></tr>
+                    <tr><th class="text-muted fw-semibold">สถานที่</th><td>${r.location || '-'}</td></tr>
+                    <tr><th class="text-muted fw-semibold">ผลที่ได้</th><td>${r.impact_benefit || '-'}</td></tr>
+                    <tr><th class="text-muted fw-semibold">ผู้รับรอง</th><td>${r.certifier_name || '-'}</td></tr>
+                    <tr><th class="text-muted fw-semibold">สถานะ</th><td><span class="status-pill ${r.status === 'approved' ? 'status-approved' : r.status === 'rejected' ? 'status-rejected' : 'status-pending'}">${r.status === 'approved' ? 'อนุมัติแล้ว' : r.status === 'rejected' ? 'ปฏิเสธ' : 'รอตรวจสอบ'}</span></td></tr>
+                </table>`;
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
         }
     </script>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0 px-4 pt-4">
+                    <h6 class="fw-bold text-navy mb-0"><i class="bi bi-info-circle me-2"></i>รายละเอียดกิจกรรม</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pb-4" id="detailBody"></div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

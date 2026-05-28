@@ -61,6 +61,12 @@
             .noti-content { flex-grow: 1; }
             .noti-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 2px; line-height: 1.3; }
             .noti-msg { font-size: 0.85rem; color: #65676b; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .noti-item.system-update { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-left: 3px solid #7c3aed; }
+            .noti-item.system-update:hover { background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); }
+            .noti-item.system-update .noti-msg { white-space: pre-line; -webkit-line-clamp: 8; color: #4b5563; }
+            .noti-dismiss { position: absolute; top: 8px; right: 8px; background: none; border: none; color: #9ca3af; font-size: 1rem; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+            .noti-dismiss:hover { background: rgba(0,0,0,0.06); color: #374151; }
+            .noti-item { position: relative; }
             .noti-time { font-size: 0.75rem; color: #0866ff; font-weight: 600; }
             .noti-dot { width: 12px; height: 12px; background-color: #0866ff; border-radius: 50%; align-self: center; flex-shrink: 0; }
             .noti-badge { position: absolute; top: -5px; right: -5px; background-color: #e41e3f; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; border: 2px solid white; }
@@ -304,6 +310,7 @@ function renderSidebar(role, user, settings = {}) {
     if (role === 'admin' || role === 'teacher') {
         html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
         html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
+        html += _navItem('public_relations.html', 'bi bi-megaphone-fill text-warning', 'ประชาสัมพันธ์', a('public_relations.html'));
         const attendanceItems = [
             { href: 'attendance_daily.html', icon: 'bi bi-calendar-check', label: 'เช็คชื่อรายวัน', active: a('attendance_daily.html') },
             { href: 'attendance_subject.html', icon: 'bi bi-qr-code-scan', label: 'เช็คชื่อรายวิชา', active: a('attendance_subject.html') }
@@ -345,8 +352,9 @@ function renderSidebar(role, user, settings = {}) {
             ], ['admin_classes.html', 'admin_subjects.html', 'admin_departments.html', 'admin_teachers.html', 'admin_students.html'].some(x => a(x)));
 
             html += _navGroup('bi bi-tools', 'ตั้งค่าระบบ', [
-                { href: 'admin_settings.html', icon: 'bi bi-gear', label: 'ตั้งค่าทั่วไป', active: a('admin_settings.html') }
-            ], a('admin_settings.html'));
+                { href: 'admin_settings.html', icon: 'bi bi-gear', label: 'ตั้งค่าทั่วไป', active: a('admin_settings.html') },
+                { href: 'admin_sysadmins.html', icon: 'bi bi-shield-lock', label: 'ผู้ดูแลระบบ', active: a('admin_sysadmins.html') }
+            ], a('admin_settings.html') || a('admin_sysadmins.html'));
             html += _navGroup('bi bi-table text-info', 'ตารางสอน', [
                 { href: 'timetable.html',       icon: 'bi bi-calendar-week',   label: 'ดูตารางสอน',        active: a('timetable.html') },
                 { href: 'admin_timetable.html', icon: 'bi bi-pencil-square',   label: 'จัดการตารางสอน',   active: a('admin_timetable.html') }
@@ -363,7 +371,7 @@ function renderSidebar(role, user, settings = {}) {
         const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
         let psItems = [];
         if (role === 'admin') {
-            psItems.push({ href: 'admin_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('admin_public_service.html') });
+            psItems.push({ href: 'admin_public_service.html', icon: 'bi bi-activity', label: 'ภาพรวมกิจกรรม', active: a('admin_public_service.html') });
             psItems.push({ href: 'admin_public_service_stats.html', icon: 'bi bi-bar-chart-line', label: 'รายงานและสถิติ', active: a('admin_public_service_stats.html') });
         }
         if (role === 'teacher') {
@@ -376,6 +384,7 @@ function renderSidebar(role, user, settings = {}) {
     if (role === 'student') {
         html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
         html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
+        html += _navItem('public_relations.html', 'bi bi-megaphone-fill text-warning', 'ประชาสัมพันธ์', a('public_relations.html'));
         html += _navItem('student_attendance_history.html', 'bi bi-calendar-check', 'ประวัติการมาเรียน', a('student_attendance_history.html'));
         html += _navItem('student_credit_history.html', 'bi bi-star', 'คะแนนความประพฤติ', a('student_credit_history.html'));
         html += _navItem('student_public_service.html', 'bi bi-heart-fill text-danger', 'สาธารณประโยชน์', a('student_public_service.html'));
@@ -441,6 +450,7 @@ async function checkAuth(expectedRole) {
             window.location.href = '../';
             return null;
         }
+        window._cnpRole = data.user.role;
         renderSidebar(data.user.role, data.user, sysSettings);
         renderHeader(data.user.role, data.user, sysSettings);
         renderFooter(sysSettings);
@@ -637,13 +647,23 @@ function renderHeader(role, user, settings = {}) {
                 <a class="nav-link dropdown-toggle d-flex align-items-center px-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="${user.photo ? '../' + user.photo : '../public/img/default-avatar.png'}" class="rounded-circle avatar-img shadow-sm" width="36" height="36" style="object-fit:cover; border: 2px solid white;" alt="User">
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 rounded-3">
-                    <li class="px-3 py-2 text-center bg-light rounded-top">
-                        <small class="text-muted fw-bold">ปีการศึกษา: ${settings.current_academic_year || '2569'}/${settings.current_semester || '1'}</small>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3 rounded-4 p-0 overflow-hidden" style="min-width: 260px; animation: dropdownFade .2s ease-out;">
+                    <li class="p-4 text-center position-relative" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+                        <img src="${user.photo ? '../' + user.photo : '../public/img/default-avatar.png'}" class="rounded-circle shadow-sm border border-3 border-white mb-2" width="64" height="64" style="object-fit:cover;" alt="User">
+                        <h6 class="mb-0 fw-bold text-white">${user.first_name_th || 'ไม่ระบุชื่อ'} ${user.last_name_th || ''}</h6>
+                        <div class="small text-white-50 mt-1">${role === 'student' ? '<i class="bi bi-mortarboard me-1"></i> นักเรียน' + (user.student_id ? ' (' + user.student_id + ')' : '') : role === 'teacher' ? '<i class="bi bi-person-workspace me-1"></i> บุคลากรครู' : '<i class="bi bi-shield-lock me-1"></i> ผู้ดูแลระบบ'}</div>
                     </li>
-                    <li><a class="dropdown-item py-2" href="${role === 'admin' ? 'admin_profile.html' : role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html'}"><i class="fa-solid fa-user-circle text-primary me-2"></i> โปรไฟล์</a></li>
-                    <li><hr class="dropdown-divider opacity-50 my-1"></li>
-                    <li><a class="dropdown-item py-2 text-danger fw-bold" href="#" onclick="event.preventDefault(); logout();"><i class="fa-solid fa-power-off me-2"></i> ออกจากระบบ</a></li>
+                    <li class="px-3 py-2 bg-light text-center border-bottom">
+                        <small class="text-muted fw-bold" style="font-size: 0.75rem;"><i class="bi bi-calendar3 me-1"></i> ภาคเรียนที่ ${settings.current_semester || '1'}/${settings.current_academic_year || '2569'}</small>
+                    </li>
+                    <li class="p-2">
+                        <a class="dropdown-item py-2 rounded-3 fw-medium mb-1 transition-all" href="${role === 'admin' ? 'admin_profile.html' : role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html'}">
+                            <i class="bi bi-person-circle text-primary me-2"></i> ข้อมูลส่วนตัว
+                        </a>
+                        <a class="dropdown-item py-2 rounded-3 text-danger fw-bold transition-all" href="#" onclick="event.preventDefault(); logout();">
+                            <i class="bi bi-box-arrow-right me-2"></i> ออกจากระบบ
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -836,22 +856,54 @@ function updateNotiBadge(count) {
     lastUnreadCount = count;
 }
 
+function dismissSystemAlert(id, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    const dismissed = JSON.parse(localStorage.getItem('cnp_dismissed_alerts') || '[]');
+    if (!dismissed.includes(id)) dismissed.push(id);
+    localStorage.setItem('cnp_dismissed_alerts', JSON.stringify(dismissed));
+    const el = event.target.closest('.noti-item');
+    if (el) el.remove();
+    const badge = document.getElementById('noti-unread-badge');
+    if (badge && !badge.classList.contains('d-none')) {
+        const next = (parseInt(badge.textContent) || 1) - 1;
+        if (next <= 0) badge.classList.add('d-none');
+        else badge.textContent = next > 9 ? '9+' : next;
+    }
+}
+
 function renderNotifications(items) {
     const container = document.getElementById('noti-list-container');
     if (!container) return;
-    if (!items || items.length === 0) {
+
+    // กรอง alert ที่ user ปิดไปแล้ว (เก็บใน localStorage)
+    const dismissed = JSON.parse(localStorage.getItem('cnp_dismissed_alerts') || '[]');
+
+    // Admin ไม่เห็น alert รอรับรองสาธา
+    let filtered = (items || []).filter(n =>
+        !(window._cnpRole === 'admin' && n.id === 'alert_ps_pending') &&
+        !dismissed.includes(n.id)
+    );
+    if (filtered.length === 0) {
         container.innerHTML = '<div class="noti-empty">ไม่มีการแจ้งเตือน</div>';
         return;
     }
 
     let html = '';
-    items.forEach(n => {
-        const isUnread = n.is_read == 0 || n.is_read === '0';
-        const isAlert = typeof n.id === 'string' && n.id.startsWith('alert_');
-        const color = n.color || (isAlert ? '#e11d48' : '#0d6efd');
+    filtered.forEach(n => {
+        const isUnread    = n.is_read == 0 || n.is_read === '0';
+        const isAlert     = typeof n.id === 'string' && n.id.startsWith('alert_');
+        const isSysUpdate = n.type === 'system_update';
+        const color       = n.color || (isAlert ? '#e11d48' : '#0d6efd');
+        const tag         = (n.link && n.link !== '#' && n.link !== '') ? 'a' : 'div';
+        const href        = tag === 'a' ? `href="${n.link}"` : '';
+        const onclick     = tag === 'a' ? `onclick="markAsRead('${n.id}')"` : '';
+        const dismissBtn  = isSysUpdate
+            ? `<button class="noti-dismiss" onclick="dismissSystemAlert('${n.id}', event)" title="ปิด">×</button>`
+            : '';
 
         html += `
-            <a href="${n.link || '#'}" class="noti-item ${isUnread ? 'unread' : ''}" onclick="markAsRead('${n.id}')">
+            <${tag} ${href} class="noti-item${isSysUpdate ? ' system-update' : ''}${isUnread ? ' unread' : ''}" ${onclick}>
                 <div class="noti-icon" style="background: ${color}15; color: ${color};">
                     <i class="${n.icon || 'bi bi-bell'}"></i>
                 </div>
@@ -860,8 +912,9 @@ function renderNotifications(items) {
                     <div class="noti-msg">${n.message}</div>
                     <div class="noti-time">${n.time_ago}</div>
                 </div>
-                ${isUnread ? '<div class="noti-dot"></div>' : ''}
-            </a>
+                ${isUnread && !isSysUpdate ? '<div class="noti-dot"></div>' : ''}
+                ${dismissBtn}
+            </${tag}>
         `;
     });
     container.innerHTML = html;
@@ -931,8 +984,8 @@ function updateSidebarActionDots(items) {
         document.head.appendChild(style);
     }
 
-    // 1. Pending Public Service Approvals (Teacher/Admin)
-    if (hasPsPending) {
+    // 1. Pending Public Service Approvals (Teacher only — Admin doesn't need dot)
+    if (hasPsPending && window._cnpRole !== 'admin') {
         const psGroupLink = Array.from(document.querySelectorAll('#mainSidebar .nav-link')).find(el => el.textContent.includes('สาธารณประโยชน์'));
         if (psGroupLink && !psGroupLink.querySelector('.sidebar-action-dot')) {
             const pTag = psGroupLink.querySelector('p');
@@ -982,25 +1035,92 @@ function updateSidebarActionDots(items) {
 function showNotificationsModal() {
     let modal = document.getElementById('notiModal');
     if (!modal) {
+        if (!document.getElementById('_notiModalStyle')) {
+            const s = document.createElement('style');
+            s.id = '_notiModalStyle';
+            s.textContent = `
+                #notiModal .modal-content { background:#fff; }
+                .nmod-header {
+                    background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 100%);
+                    color:#fff; padding:18px 22px;
+                    display:flex; align-items:center; justify-content:space-between;
+                }
+                .nmod-title { font-weight:800; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+                .nmod-title .nmod-badge {
+                    background:rgba(255,255,255,.22); color:#fff;
+                    font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:20px;
+                    backdrop-filter:blur(4px);
+                }
+                .nmod-actions { display:flex; align-items:center; gap:14px; }
+                .nmod-mark { color:rgba(255,255,255,.85); font-size:.74rem; text-decoration:none; font-weight:600; transition:.2s; cursor:pointer; }
+                .nmod-mark:hover { color:#fff; text-decoration:underline; }
+                .nmod-close { background:transparent; border:none; color:rgba(255,255,255,.8); font-size:1.1rem; cursor:pointer; padding:0; line-height:1; transition:.2s; }
+                .nmod-close:hover { color:#fff; transform:rotate(90deg); }
+
+                .nmod-tabs { display:flex; padding:8px 14px; gap:6px; border-bottom:1px solid #f1f5f9; background:#fafbfc; }
+                .nmod-tab {
+                    flex:none; padding:6px 14px; border-radius:50px; border:none; background:transparent;
+                    font-size:.74rem; font-weight:700; color:#64748b; cursor:pointer; transition:.2s;
+                }
+                .nmod-tab.active { background:#1e3a8a; color:#fff; box-shadow:0 4px 10px rgba(30,58,138,.25); }
+                .nmod-tab:not(.active):hover { background:#e2e8f0; color:#1e293b; }
+
+                .nmod-list { max-height:440px; overflow-y:auto; padding:6px 0; }
+                .nmod-list::-webkit-scrollbar { width:6px; }
+                .nmod-list::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:3px; }
+
+                .nmi {
+                    display:flex; align-items:flex-start; gap:12px;
+                    padding:12px 20px 12px 17px;
+                    text-decoration:none; color:inherit;
+                    position:relative; transition:.2s; cursor:pointer;
+                    border-left:3px solid transparent;
+                }
+                .nmi:hover { background:#f8fafc; transform:translateX(2px); }
+                .nmi.unread { background:linear-gradient(90deg,rgba(37,99,235,.04),transparent 60%); border-left-color:#2563eb; }
+                .nmi-icon {
+                    width:38px; height:38px; border-radius:11px;
+                    display:flex; align-items:center; justify-content:center;
+                    flex-shrink:0; font-size:1rem;
+                }
+                .nmi-body { flex:1; min-width:0; }
+                .nmi-title { font-weight:700; font-size:.82rem; color:#0f172a; line-height:1.3; margin-bottom:2px; }
+                .nmi-msg {
+                    font-size:.76rem; color:#64748b; line-height:1.4;
+                    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+                }
+                .nmi-time { font-size:.68rem; color:#94a3b8; margin-top:5px; display:flex; align-items:center; gap:3px; }
+                .nmi-dot { width:7px; height:7px; background:#2563eb; border-radius:50%; flex-shrink:0; margin-top:6px; }
+
+                .nmod-empty {
+                    text-align:center; padding:50px 20px; color:#94a3b8;
+                }
+                .nmod-empty i { font-size:2.5rem; opacity:.3; display:block; margin-bottom:10px; }
+                .nmod-empty p { font-size:.82rem; margin:0; font-weight:500; }
+            `;
+            document.head.appendChild(s);
+        }
         const modalHtml = `
-        <div class="modal fade" id="notiModal" tabindex="-1" aria-labelledby="notiModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                <div class="modal-content rounded-4 border-0 shadow-lg" style="background-color: #f8fafc;">
-                    <div class="modal-header border-bottom-0 pb-0 bg-white rounded-top-4 pt-3 px-4">
-                        <h5 class="modal-title fw-black text-navy d-flex align-items-center" id="notiModalLabel">
-                            <i class="bi bi-bell-fill text-primary me-2"></i> การแจ้งเตือน
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal fade" id="notiModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width:410px;">
+                <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                    <div class="nmod-header">
+                        <div class="nmod-title">
+                            <i class="bi bi-bell-fill"></i>
+                            <span>การแจ้งเตือน</span>
+                            <span class="nmod-badge" id="nmodUnreadCount" style="display:none;"></span>
+                        </div>
+                        <div class="nmod-actions">
+                            <a class="nmod-mark" onclick="markAllAsReadModal()">อ่านทั้งหมด</a>
+                            <button class="nmod-close" data-bs-dismiss="modal" aria-label="ปิด"><i class="bi bi-x-lg"></i></button>
+                        </div>
                     </div>
-                    <div class="modal-body pt-2 px-4 pb-4">
-                        <div class="d-flex align-items-center gap-2 mb-3 bg-white p-2 rounded-pill shadow-sm">
-                            <button class="noti-btn-filter btn btn-primary btn-sm rounded-pill px-3 active" id="noti-modal-filter-all" onclick="filterModalNotifications('all')">ทั้งหมด</button>
-                            <button class="noti-btn-filter btn btn-outline-primary btn-sm rounded-pill px-3" id="noti-modal-filter-unread" onclick="filterModalNotifications('unread')">ยังไม่ได้อ่าน</button>
-                            <button class="btn btn-link btn-sm text-decoration-none ms-auto p-0 px-2 fw-bold text-primary" onclick="markAllAsReadModal()">อ่านทั้งหมด</button>
-                        </div>
-                        <div id="noti-modal-list-container" class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto; padding: 2px;">
-                            กำลังโหลด...
-                        </div>
+                    <div class="nmod-tabs">
+                        <button class="nmod-tab active" data-filter="all" onclick="filterModalNotifications('all')">ทั้งหมด</button>
+                        <button class="nmod-tab" data-filter="unread" onclick="filterModalNotifications('unread')">ยังไม่ได้อ่าน</button>
+                    </div>
+                    <div id="noti-modal-list-container" class="nmod-list">
+                        <div class="nmod-empty"><i class="bi bi-hourglass-split"></i><p>กำลังโหลด...</p></div>
                     </div>
                 </div>
             </div>
@@ -1031,34 +1151,46 @@ async function fetchModalNotifications() {
 function renderModalNotifications(items) {
     const container = document.getElementById('noti-modal-list-container');
     if (!container) return;
-    if (!items || items.length === 0) {
-        container.innerHTML = '<div class="text-center py-5 text-muted bg-white rounded-4 shadow-sm"><i class="bi bi-bell-slash fs-2 mb-2 d-block opacity-50"></i>ไม่มีการแจ้งเตือน</div>';
+
+    // Admin ไม่เห็น alert รอรับรองสาธา (ดูข้อมูลได้แต่ไม่ต้องแจ้งเตือน)
+    let filtered = (items || []).filter(n =>
+        !(window._cnpRole === 'admin' && n.id === 'alert_ps_pending')
+    );
+
+    // อัปเดต unread badge ใน header
+    const unreadCount = filtered.filter(n => n.is_read == 0 || n.is_read === '0').length;
+    const badge = document.getElementById('nmodUnreadCount');
+    if (badge) {
+        if (unreadCount > 0) { badge.textContent = unreadCount; badge.style.display = 'inline-block'; }
+        else badge.style.display = 'none';
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div class="nmod-empty">
+            <i class="bi bi-bell-slash"></i>
+            <p>ไม่มีการแจ้งเตือน</p>
+        </div>`;
         return;
     }
 
-    let html = '';
-    items.forEach(n => {
+    container.innerHTML = filtered.map(n => {
         const isUnread = n.is_read == 0 || n.is_read === '0';
         const isAlert = typeof n.id === 'string' && n.id.startsWith('alert_');
-        const color = n.color || (isAlert ? '#e11d48' : '#0d6efd');
-
-        html += `
-            <a href="${n.link || '#'}" class="d-flex align-items-center p-3 rounded-4 text-decoration-none border-0 mb-2 text-dark bg-white shadow-sm" style="transition: all 0.2s; border-left: 4px solid ${isUnread ? color : '#e2e8f0'} !important;" onclick="markAsReadModal('${n.id}', '${n.link || '#'}')">
-                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: ${color}15; color: ${color}; flex-shrink: 0;">
-                    <i class="${n.icon || 'bi bi-bell'} fs-5"></i>
+        const color = n.color || (isAlert ? '#e11d48' : '#2563eb');
+        return `
+            <a href="${n.link || '#'}" class="nmi${isUnread ? ' unread' : ''}"
+               onclick="markAsReadModal('${n.id}','${n.link || '#'}')">
+                <div class="nmi-icon" style="background:${color}18;color:${color};">
+                    <i class="${n.icon || 'bi bi-bell'}"></i>
                 </div>
-                <div class="flex-grow-1 min-w-0">
-                    <div class="fw-bold text-navy text-truncate" style="font-size: 0.9rem;">${n.title}</div>
-                    <div class="text-muted text-truncate-2 small mt-1" style="font-size: 0.8rem; line-height: 1.3;">${n.message}</div>
-                    <div class="x-small text-muted mt-2 d-flex align-items-center" style="font-size: 0.72rem;">
-                        <i class="bi bi-clock me-1"></i> ${n.time_ago}
-                    </div>
+                <div class="nmi-body">
+                    <div class="nmi-title">${n.title}</div>
+                    <div class="nmi-msg">${n.message}</div>
+                    <div class="nmi-time"><i class="bi bi-clock"></i>${n.time_ago}</div>
                 </div>
-                ${isUnread ? '<div class="rounded-circle bg-danger ms-2" style="width: 8px; height: 8px; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);"></div>' : ''}
-            </a>
-        `;
-    });
-    container.innerHTML = html;
+                ${isUnread ? '<span class="nmi-dot"></span>' : ''}
+            </a>`;
+    }).join('');
 }
 
 async function markAsReadModal(id, link) {
@@ -1093,23 +1225,27 @@ async function markAllAsReadModal() {
 }
 
 function filterModalNotifications(type) {
-    document.querySelectorAll('#notiModal .noti-btn-filter').forEach(b => b.classList.remove('active', 'btn-primary'));
-    document.querySelectorAll('#notiModal .noti-btn-filter').forEach(b => b.classList.add('btn-outline-primary'));
-    
-    const btn = document.getElementById(`noti-modal-filter-${type}`);
-    if (btn) {
-        btn.classList.add('active', 'btn-primary');
-        btn.classList.remove('btn-outline-primary');
-    }
-
-    const items = document.querySelectorAll('#noti-modal-list-container > a');
-    if (type === 'unread') {
-        items.forEach(it => {
-            const hasUnreadDot = it.querySelector('.bg-danger');
-            it.style.display = hasUnreadDot ? 'flex' : 'none';
-        });
-    } else {
-        items.forEach(it => it.style.display = 'flex');
+    document.querySelectorAll('#notiModal .nmod-tab').forEach(b =>
+        b.classList.toggle('active', b.dataset.filter === type)
+    );
+    const items = document.querySelectorAll('#noti-modal-list-container .nmi');
+    let visibleCount = 0;
+    items.forEach(it => {
+        const show = (type !== 'unread' || it.classList.contains('unread'));
+        it.style.display = show ? 'flex' : 'none';
+        if (show) visibleCount++;
+    });
+    // ถ้าไม่มี item ที่ตรงเงื่อนไข ให้แสดง empty state ใน list
+    const existingEmpty = document.querySelector('#noti-modal-list-container .nmod-empty-filtered');
+    if (visibleCount === 0 && items.length > 0) {
+        if (!existingEmpty) {
+            const empty = document.createElement('div');
+            empty.className = 'nmod-empty nmod-empty-filtered';
+            empty.innerHTML = '<i class="bi bi-check-all"></i><p>อ่านครบทุกรายการแล้ว</p>';
+            document.getElementById('noti-modal-list-container').appendChild(empty);
+        }
+    } else if (existingEmpty) {
+        existingEmpty.remove();
     }
 }
 

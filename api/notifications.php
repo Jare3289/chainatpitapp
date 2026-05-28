@@ -44,39 +44,31 @@ function handleGet($pdo, $user_id) {
 
         // --- Dynamic System Alerts (Things that need doing) ---
         $actions = [];
-        if ($role === 'teacher' || $role === 'admin') {
-            // Check for pending Public Service
-            $psSql = "SELECT COUNT(*) FROM public_service_records r JOIN students s ON r.student_id = s.id WHERE r.status = 'pending'";
-            $psParams = [];
-            
-            if ($role === 'teacher') {
-                $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
-                $stmtRoom->execute([$user_id]);
-                $room = $stmtRoom->fetchColumn();
-                if ($room) {
-                    $vars = cnp_classroom_code_variants((string) $room);
-                    $ph   = implode(',', array_fill(0, count($vars), '?'));
-                    $psSql .= " AND (s.class_name IN ($ph) OR r.approver_id = ?)";
-                    foreach ($vars as $v) {
-                        $psParams[] = $v;
-                    }
-                    $psParams[] = $user_id;
-                } else {
-                    $psSql .= " AND (r.approver_id = ? OR 1=0)"; // Fallback or strict
-                    $psParams[] = $user_id;
-                }
+
+        // ── Teacher Alerts ──
+        if ($role === 'teacher') {
+            // Fetch advisory room once — reused for both PS count and homeroom check
+            $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
+            $stmtRoom->execute([$user_id]);
+            $room  = $stmtRoom->fetchColumn();
+            $varsR = $room ? cnp_classroom_code_variants((string) $room) : [];
+
+            // Pending PS approvals: assigned to this teacher OR unassigned records from their advisory room
+            if ($varsR) {
+                $phR     = implode(',', array_fill(0, count($varsR), '?'));
+                $stmtPs  = $pdo->prepare("SELECT COUNT(*) FROM public_service_records r JOIN students s ON r.student_id = s.id WHERE r.status = 'pending' AND (r.approver_id = ? OR (r.approver_id IS NULL AND s.class_name IN ($phR)))");
+                $stmtPs->execute(array_merge([$user_id], $varsR));
+            } else {
+                $stmtPs = $pdo->prepare("SELECT COUNT(*) FROM public_service_records WHERE status = 'pending' AND approver_id = ?");
+                $stmtPs->execute([$user_id]);
             }
-            
-            $stmtPs = $pdo->prepare($psSql);
-            $stmtPs->execute($psParams);
-            $pendingCount = $stmtPs->fetchColumn();
-            
+            $pendingCount = (int)$stmtPs->fetchColumn();
             if ($pendingCount > 0) {
                 $actions[] = [
                     'id' => 'alert_ps_pending',
                     'type' => 'action',
                     'title' => 'คำขอสาธารณประโยชน์',
-                    'message' => "มีนักเรียนในห้องรอให้คุณอนุมัติกิจกรรม $pendingCount รายการ",
+                    'message' => "มีนักเรียนรอให้คุณอนุมัติกิจกรรม $pendingCount รายการ",
                     'link' => 'teacher_public_service.html',
                     'icon' => 'bi bi-heart-pulse-fill',
                     'color' => '#e11d48',
@@ -85,13 +77,11 @@ function handleGet($pdo, $user_id) {
                 ];
             }
 
-            // Teacher: ยังไม่เช็คชื่อโฮมรูมวันนี้
-            if ($role === 'teacher' && isset($room) && $room) {
-                $today = date('Y-m-d');
-                $varsR = cnp_classroom_code_variants((string) $room);
-                $phR = implode(',', array_fill(0, count($varsR), '?'));
-                $chkSql = "SELECT COUNT(*) FROM attendance WHERE date = ? AND class_name IN ($phR) AND type = 'daily'";
-                $stmtChk = $pdo->prepare($chkSql);
+            // ยังไม่เช็คชื่อโฮมรูมวันนี้
+            if ($room && $varsR) {
+                $today  = date('Y-m-d');
+                $phR2   = implode(',', array_fill(0, count($varsR), '?'));
+                $stmtChk = $pdo->prepare("SELECT COUNT(*) FROM attendance WHERE date = ? AND class_name IN ($phR2) AND type = 'daily'");
                 $stmtChk->execute(array_merge([$today], $varsR));
                 $todayChecked = (int) $stmtChk->fetchColumn();
 
@@ -110,6 +100,28 @@ function handleGet($pdo, $user_id) {
                     ];
                 }
             }
+        }
+
+        // ── Admin Alerts ──
+        if ($role === 'admin') {
+            try {
+                $stmtPr = $pdo->prepare("SELECT COUNT(*) FROM public_relations WHERE status = 'pending'");
+                $stmtPr->execute([]);
+                $pendingPrCount = (int)$stmtPr->fetchColumn();
+                if ($pendingPrCount > 0) {
+                    $actions[] = [
+                        'id' => 'alert_pr_pending',
+                        'type' => 'action',
+                        'title' => 'รออนุมัติประชาสัมพันธ์',
+                        'message' => "มีบทความรอการอนุมัติ $pendingPrCount รายการ",
+                        'link' => 'public_relations.html',
+                        'icon' => 'bi-megaphone-fill',
+                        'color' => '#f59e0b',
+                        'is_read' => 0,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                }
+            } catch (Throwable $e) { /* table อาจยังไม่มี */ }
         }
 
         // Student: dynamic alerts (today's absence summary, PS status)
@@ -155,6 +167,23 @@ function handleGet($pdo, $user_id) {
                     ];
                 }
             }
+        }
+
+        // ── System Update Alert (แสดงทุก role, หมดอายุ 14 วันหลัง release) ────
+        $releaseTs  = strtotime('2026-05-27');
+        $expireTs   = $releaseTs + 14 * 86400;
+        if (time() <= $expireTs) {
+            array_unshift($actions, [
+                'id'         => 'alert_system_update_20260527',
+                'type'       => 'system_update',
+                'title'      => '🆕 อัปเดตระบบ 27-28 พ.ค. 2569',
+                'message'    => "• โปรไฟล์นักเรียน: ความสัมพันธ์แบบ rating scale, label BMI, ปุ่มบันทึกล่าง\n• สถิติรายสัปดาห์ใน Monthly Stats และ Attendance Report\n• Export PDF ทุกรายงาน\n• ลบนักเรียน: ลบข้อมูลที่เกี่ยวข้องทั้งหมดออกโดยอัตโนมัติ\n• สาธารณประโยชน์: แก้ไข/ลบรายการได้, Batch delete สำหรับครู\n• รายงานครูที่เซ็นอนุมัติสาธา\n• ประวัติคะแนน: ออกแบบใหม่ กรองได้",
+                'link'       => '',
+                'icon'       => 'bi bi-stars',
+                'color'      => '#7c3aed',
+                'is_read'    => 0,
+                'created_at' => date('Y-m-d 08:00:00', $releaseTs),
+            ]);
         }
 
         // Count total unread from DB

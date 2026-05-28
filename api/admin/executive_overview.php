@@ -107,14 +107,13 @@ try {
     $atRisk = $atRiskStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 8. Unreported rooms: rooms with students but no attendance today
-    //    Includes grade_level + advisor first name only
+    //    Correlated subqueries avoid JOIN duplicates when multiple teachers share advisory_room_id
     $unreportedStmt = $pdo->prepare("
         SELECT r.classroom_code AS room,
                r.grade_level,
-               (SELECT COUNT(*) FROM students s WHERE s.class_name = r.classroom_code AND s.is_active = 1) AS total_students,
-               t.first_name_th AS advisor_name
+               (SELECT COUNT(*) FROM students s WHERE s.class_name = r.classroom_code AND s.is_active = 1 AND (s.enrollment_status IS NULL OR s.enrollment_status = 'กำลังศึกษา')) AS total_students,
+               (SELECT first_name_th FROM teachers WHERE advisory_room_id = r.id ORDER BY id LIMIT 1) AS advisor_name
         FROM rooms r
-        LEFT JOIN teachers t ON t.advisory_room_id = r.id
         WHERE r.classroom_code NOT IN (
             SELECT DISTINCT class_name FROM attendance
             WHERE date = ? AND type = 'daily' AND class_name IS NOT NULL

@@ -74,11 +74,21 @@ if (session_status() === PHP_SESSION_NONE) {
         || (($_SERVER['SERVER_PORT'] ?? '') == 443)
     );
 
+    // Private session directory — แยกจาก C:\xampp\tmp ที่ใช้ร่วมกับ phpMyAdmin/แอปอื่น
+    // php.ini มี gc_maxlifetime=1440 (24 นาที) ทำให้ phpMyAdmin ลบ session file ของเราได้
+    // โดยใช้ directory แยก จะมีแต่ request ที่ผ่าน config.php เท่านั้นที่ GC และใช้ค่า 5184000
+    $_cnp_sess_dir = rtrim(ini_get('session.save_path'), '/\\') . DIRECTORY_SEPARATOR . 'cnpapp';
+    if (!is_dir($_cnp_sess_dir)) @mkdir($_cnp_sess_dir, 0700, true);
+    if (is_dir($_cnp_sess_dir) && is_writable($_cnp_sess_dir)) {
+        ini_set('session.save_path', $_cnp_sess_dir);
+    }
+    unset($_cnp_sess_dir);
+
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.cookie_httponly', '1');
     ini_set('session.cookie_samesite', 'Lax');
-    ini_set('session.cookie_path', '/');   // กำหนด path ชัดเจน ป้องกัน Plesk ใช้ path อื่น
+    ini_set('session.cookie_path', '/');
     if ($isHttps) {
         ini_set('session.cookie_secure', '1');
     }

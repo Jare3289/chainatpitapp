@@ -98,15 +98,13 @@ function handleGet($pdo) {
                     $where .= " AND 1=0";
                 }
             } else {
-                // Default / type=my: show records where this teacher is the approver OR students in teacher's advisory room
+                // Show records assigned to this teacher, plus unassigned records from their advisory room
                 if ($userRoom) {
                     $vars = cnp_classroom_code_variants((string) $userRoom);
                     $ph   = implode(',', array_fill(0, count($vars), '?'));
-                    $where .= " AND (r.approver_id = ? OR s.class_name IN ($ph))";
+                    $where .= " AND (r.approver_id = ? OR (r.approver_id IS NULL AND s.class_name IN ($ph)))";
                     $params[] = $user_id;
-                    foreach ($vars as $v) {
-                        $params[] = $v;
-                    }
+                    foreach ($vars as $v) { $params[] = $v; }
                 } else {
                     $where .= " AND r.approver_id = ?";
                     $params[] = $user_id;
@@ -300,9 +298,12 @@ function handlePost($pdo) {
             $approver_id = $data['certifier_id'];
         }
 
+        $duration = (!empty($data['duration']) && floatval($data['duration']) > 0) ? floatval($data['duration']) : 1.00;
+        $duration_unit = !empty($data['duration_unit']) ? $data['duration_unit'] : 'ครั้ง';
+
         $stmt->execute([
             $student_id, $data['activity_name'], $data['location'], $data['impact_benefit'] ?? '',
-            $data['activity_date'], $data['duration'] ?? 1, $data['duration_unit'] ?? 'ครั้ง',
+            $data['activity_date'], $duration, $duration_unit,
             $data['certifier_name'] ?? '', $approver_id, $status, $year, $semester
         ]);
         $newRecordId = (int) $pdo->lastInsertId();
@@ -359,7 +360,7 @@ function handlePut($pdo) {
                     $verify = $pdo->prepare("
                         SELECT r.id FROM public_service_records r
                         JOIN students s ON r.student_id = s.id
-                        WHERE r.id IN ($placeholders) AND (r.approver_id = ? OR s.class_name IN ($phRoom))
+                        WHERE r.id IN ($placeholders) AND (r.approver_id = ? OR (r.approver_id IS NULL AND s.class_name IN ($phRoom)))
                     ");
                     $verify->execute(array_merge($ids, [$userId], $vars));
                 } else {
@@ -411,25 +412,44 @@ function handlePut($pdo) {
         }
 
         if (isset($data['full_edit']) && $data['full_edit']) {
-            // Full record edit
-            $sql = "UPDATE public_service_records SET 
-                    student_id = ?, activity_name = ?, location = ?, impact_benefit = ?, 
-                    activity_date = ?, duration = ?, duration_unit = ?, certifier_name = ?, status = ?, approver_id = ? 
-                    WHERE id = ?";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                $data['student_internal_id'] ?? $data['student_id'], 
-                $data['activity_name'], 
-                $data['location'], 
-                $data['impact_benefit'] ?? '',
-                $data['activity_date'], 
-                $data['duration'] ?? 1,
-                $data['duration_unit'] ?? 'ครั้ง',
-                $data['certifier_name'] ?? '', 
-                $data['status'], 
-                $_SESSION['user_id'],
-                $data['id']
-            ]);
+            if ($_SESSION['role'] === 'student') {
+                $stmt = $pdo->prepare("SELECT id, status FROM public_service_records WHERE id = ? AND student_id = (SELECT id FROM students WHERE user_id = ?)");
+                $stmt->execute([$data['id'], $_SESSION['user_id']]);
+                $record = $stmt->fetch();
+                if (!$record || $record['status'] !== 'pending') {
+                    echo json_encode(['success' => false, 'message' => 'ไม่มีสิทธิ์แก้ไข หรือรายการนี้ถูกรับรองแล้ว']);
+                    return;
+                }
+                $approver_id = !empty($data['certifier_id']) ? $data['certifier_id'] : null;
+                $sql = "UPDATE public_service_records SET 
+                        activity_name = ?, location = ?, impact_benefit = ?, 
+                        activity_date = ?, certifier_name = ?, approver_id = ? 
+                        WHERE id = ?";
+                $pdo->prepare($sql)->execute([
+                    $data['activity_name'], $data['location'], $data['impact_benefit'] ?? '',
+                    $data['activity_date'], $data['certifier_name'] ?? '', $approver_id, $data['id']
+                ]);
+            } else {
+                // Full record edit
+                $sql = "UPDATE public_service_records SET 
+                        student_id = ?, activity_name = ?, location = ?, impact_benefit = ?, 
+                        activity_date = ?, duration = ?, duration_unit = ?, certifier_name = ?, status = ?, approver_id = ? 
+                        WHERE id = ?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([
+                    $data['student_internal_id'] ?? $data['student_id'], 
+                    $data['activity_name'], 
+                    $data['location'], 
+                    $data['impact_benefit'] ?? '',
+                    $data['activity_date'], 
+                    $data['duration'] ?? 1,
+                    $data['duration_unit'] ?? 'ครั้ง',
+                    $data['certifier_name'] ?? '', 
+                    $data['status'], 
+                    $_SESSION['user_id'],
+                    $data['id']
+                ]);
+            }
         } else {
             // Quick status update
             $stmt = $pdo->prepare("UPDATE public_service_records SET status = ?, approver_id = ? WHERE id = ?");
@@ -444,7 +464,7 @@ function handlePut($pdo) {
             WHERE r.id = ?");
         $lookup->execute([$data['id']]);
         $info = $lookup->fetch(PDO::FETCH_ASSOC);
-        if ($info && $info['user_id']) {
+        if ($info && $info['user_id'] && isset($data['status'])) {
             $newStatus = $data['status'];
             $isOk = ($newStatus === 'approved');
             $title = $isOk ? '✅ กิจกรรมได้รับการรับรองแล้ว'
@@ -469,8 +489,55 @@ function handlePut($pdo) {
 
 function handleDelete($pdo) {
     try {
-        $stmt = $pdo->prepare("DELETE FROM public_service_records WHERE id = ?");
-        $stmt->execute([$_GET['id']]);
+        $id = (int)($_GET['id'] ?? 0);
+        $rawInput = '';
+        if (!$id) {
+            $rawInput = file_get_contents('php://input');
+            $data = json_decode($rawInput, true);
+            $id = (int)($data['id'] ?? 0);
+        }
+        if (!$id && isset($_SERVER['REQUEST_URI'])) {
+            $parts = parse_url($_SERVER['REQUEST_URI']);
+            if (isset($parts['query'])) {
+                parse_str($parts['query'], $query);
+                $id = (int)($query['id'] ?? 0);
+            }
+        }
+        $userId = (int)$_SESSION['user_id'];
+        $role   = $_SESSION['role'];
+
+        if (!$id) { echo json_encode(['error' => 'Invalid ID', 'debug_get' => $_GET, 'debug_input' => $rawInput]); return; }
+
+        if ($role === 'student') {
+            $chk = $pdo->prepare("SELECT id FROM public_service_records WHERE id = ? AND status = 'pending' AND student_id = (SELECT id FROM students WHERE user_id = ?)");
+            $chk->execute([$id, $userId]);
+            if (!$chk->fetch()) {
+                http_response_code(403);
+                echo json_encode(['error' => 'ไม่มีสิทธิ์ลบรายการนี้ หรือรายการถูกรับรองไปแล้ว'], JSON_UNESCAPED_UNICODE);
+                return;
+            }
+        } elseif ($role === 'teacher') {
+            $stmtRoom = $pdo->prepare("SELECT COALESCE(r.classroom_code, t.classroom) AS classroom FROM teachers t LEFT JOIN rooms r ON r.id = t.advisory_room_id WHERE t.user_id = ? LIMIT 1");
+            $stmtRoom->execute([$userId]);
+            $userRoom = $stmtRoom->fetchColumn() ?: null;
+
+            if ($userRoom) {
+                $vars   = cnp_classroom_code_variants((string) $userRoom);
+                $phRoom = implode(',', array_fill(0, count($vars), '?'));
+                $chk    = $pdo->prepare("SELECT r.id FROM public_service_records r JOIN students s ON r.student_id = s.id WHERE r.id = ? AND (r.approver_id = ? OR (r.approver_id IS NULL AND s.class_name IN ($phRoom)))");
+                $chk->execute(array_merge([$id, $userId], $vars));
+            } else {
+                $chk = $pdo->prepare("SELECT id FROM public_service_records WHERE id = ? AND approver_id = ?");
+                $chk->execute([$id, $userId]);
+            }
+            if (!$chk->fetch()) {
+                http_response_code(403);
+                echo json_encode(['error' => 'ไม่มีสิทธิ์ลบรายการนี้'], JSON_UNESCAPED_UNICODE);
+                return;
+            }
+        }
+
+        $pdo->prepare("DELETE FROM public_service_records WHERE id = ?")->execute([$id]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) { error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => 'ระบบขัดข้องชั่วคราว']); }
 }

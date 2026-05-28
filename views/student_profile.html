@@ -68,6 +68,27 @@
         #profileForm.view-mode [for="photoInput"] { display: none !important; }
         #profileForm.view-mode .check-in-btn { display: none !important; }
 
+        /* Relationship Rating Scale */
+        .rel-scale-wrap { overflow-x: auto; }
+        .rel-scale-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; }
+        .rel-scale-table thead th { text-align: center; font-size: 0.78rem; font-weight: 700; color: #64748b; padding: 6px 4px 10px; border-bottom: 2px solid #e2e8f0; }
+        .rel-scale-table thead th:first-child { text-align: left; min-width: 130px; }
+        .rel-row-label { font-size: 0.85rem; font-weight: 700; color: #1e293b; padding: 8px 14px 8px 10px; white-space: nowrap; }
+        .rel-scale-table tbody tr:nth-child(odd) td { background: #f8fafc; }
+        .rel-scale-table tbody tr:nth-child(odd) .rel-row-label { border-radius: 8px 0 0 8px; }
+        .rel-scale-table tbody tr:nth-child(odd) td:last-child { border-radius: 0 8px 8px 0; }
+        .rel-radio-cell { display: block; text-align: center; cursor: pointer; padding: 8px 6px; }
+        .rel-radio-cell input[type="radio"] { display: none; }
+        .rel-dot { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid #cbd5e1; background: white; display: inline-block; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
+        .rel-radio-cell input:checked + .rel-dot { background: var(--house-color); border-color: var(--house-color); transform: scale(1.2); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+        .rel-radio-cell:hover .rel-dot { border-color: var(--house-color); transform: scale(1.08); }
+        #profileForm.view-mode .rel-radio-cell { cursor: default; pointer-events: none; }
+        #profileForm.view-mode .rel-dot { opacity: 0.12; }
+        #profileForm.view-mode .rel-radio-cell input:checked + .rel-dot { opacity: 1; }
+
+        /* Bottom Save Bar */
+        .bottom-save-bar { position: sticky; bottom: 0; z-index: 100; background: white; border-top: 2px solid #e2e8f0; padding: 14px 24px; margin-top: 20px; border-radius: 0 0 20px 20px; box-shadow: 0 -6px 24px rgba(0,0,0,0.08); }
+
         /* Completion bar */
         .completion-wrap { background: white; border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 18px 20px; margin-bottom: 18px; }
 
@@ -85,8 +106,9 @@
 <div class="wrapper">
     <div class="sidebar" id="mainSidebar"></div>
 
-    <main class="app-main main-panel d-flex flex-column min-vh-100" id="main">
-        <div class="app-content page-content py-4">
+    <main class="main-panel d-flex flex-column min-vh-100" id="main">
+        <div id="header-container"></div>
+        <div class="app-content page-content flex-grow-1 py-4">
             <div class="container-fluid">
 
                 <form id="profileForm" onsubmit="saveProfile(event)" class="view-mode">
@@ -197,8 +219,8 @@
                                     <div class="col-md-5"><label class="form-label">นามสกุล (ภาษาไทย)</label><input type="text" name="last_name_th" class="form-control" required></div>
                                     <div class="col-md-6"><label class="form-label">FIRST NAME (EN)</label><input type="text" name="first_name_en" class="form-control" oninput="this.value=this.value.toUpperCase()"></div>
                                     <div class="col-md-6"><label class="form-label">LAST NAME (EN)</label><input type="text" name="last_name_en" class="form-control" oninput="this.value=this.value.toUpperCase()"></div>
-                                    <div class="col-md-3"><label class="form-label">ชื่อเล่น</label><input type="text" name="nickname" class="form-control"></div>
-                                    <div class="col-md-9"><label class="form-label">ชื่อจริง (กรณีเปลี่ยนชื่อ)</label><input type="text" name="full_name_th" class="form-control" placeholder="ระบุชื่อจริงเต็ม ถ้ามีการเปลี่ยน"></div>
+                                    <div class="col-md-3"><label class="form-label">ชื่อเล่น</label><input type="text" name="nickname" class="form-control" oninput="this.value=this.value.replace(/[^฀-๿\s]/g,'')"></div>
+                                    <div class="col-md-9"><label class="form-label">ชื่อจริง (กรณีเปลี่ยนชื่อ) <small class="fw-normal text-muted">— เว้นว่างถ้าชื่อยังเหมือนเดิม</small></label><input type="text" name="full_name_th" class="form-control" placeholder="ระบุชื่อเต็มที่ถูกต้อง เฉพาะกรณีเปลี่ยนชื่อ/นามสกุลแล้ว"></div>
                                 </div>
                             </div>
 
@@ -453,12 +475,64 @@
                                 <div class="section-title"><span class="icon-box"><i class="bi bi-chat-heart-fill"></i></span>ความสัมพันธ์ & วิถีชีวิต</div>
                                 <div class="row g-3">
                                     <div class="col-md-6"><label class="form-label">ความสัมพันธ์ของสมาชิก</label><select name="family_relationship" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับบิดา</label><select name="rel_father" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับมารดา</label><select name="rel_mother" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับพี่/น้องชาย</label><select name="rel_brothers" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับพี่/น้องสาว</label><select name="rel_sisters" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับปู่ย่าตายาย</label><select name="rel_grandparents" class="form-select"></select></div>
-                                    <div class="col-md-3"><label class="form-label">กับญาติพี่น้อง</label><select name="rel_relatives" class="form-select"></select></div>
+                                    <div class="col-12">
+                                        <label class="form-label mb-2">ความสัมพันธ์กับสมาชิกในครอบครัว</label>
+                                        <div class="rel-scale-wrap">
+                                            <table class="rel-scale-table">
+                                                <thead><tr><th></th><th>สนิทสนม</th><th>เฉย ๆ</th><th>ห่างเหิน</th><th>ขัดแย้ง</th><th>ไม่มี</th></tr></thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับบิดา</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_father" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับมารดา</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_mother" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับพี่/น้องชาย</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_brothers" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับพี่/น้องสาว</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_sisters" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับปู่ย่าตายาย</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_grandparents" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="rel-row-label">กับญาติพี่น้อง</td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="สนิทสนม"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="เฉย ๆ"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="ห่างเหิน"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="ขัดแย้ง"><span class="rel-dot"></span></label></td>
+                                                        <td><label class="rel-radio-cell"><input type="radio" name="rel_relatives" value="ไม่มี"><span class="rel-dot"></span></label></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                     <div class="col-md-4"><label class="form-label">เวลาอยู่ร่วมกัน (ชม./วัน)</label><input type="number" step="0.5" name="time_spent_together" class="form-control"></div>
                                     <div class="col-md-4">
                                         <label class="form-label">ได้รับเงินจาก</label>
@@ -488,7 +562,13 @@
                                 <div class="row g-3">
                                     <div class="col-md-3"><label class="form-label">น้ำหนัก (กก.)</label><input type="number" step="0.1" name="weight" class="form-control bmi-calc"></div>
                                     <div class="col-md-3"><label class="form-label">ส่วนสูง (ซม.)</label><input type="number" step="0.1" name="height" class="form-control bmi-calc"></div>
-                                    <div class="col-md-3"><label class="form-label">BMI</label><input type="text" id="displayBMI" class="form-control fw-bold text-center" readonly></div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">BMI <small class="text-muted fw-normal">(คำนวณอัตโนมัติ)</small></label>
+                                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                                            <input type="text" id="displayBMI" class="form-control fw-bold text-center" readonly style="max-width:90px;">
+                                            <span id="bmiLabel" class="fw-bold fs-6"></span>
+                                        </div>
+                                    </div>
                                     <div class="col-md-3">
                                         <label class="form-label">กรุ๊ปเลือด</label>
                                         <div class="btn-group-modern">
@@ -524,10 +604,22 @@
 
                         </div><!-- /col-lg-9 -->
                     </div><!-- /row -->
+
+                    <!-- Bottom Save Bar -->
+                    <div id="bottomSaveBar" class="bottom-save-bar" style="display:none;">
+                        <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                            <span class="text-muted small me-auto"><i class="bi bi-pencil-square me-1"></i>โหมดแก้ไข — กดบันทึกเพื่อยืนยันการเปลี่ยนแปลง</span>
+                            <button type="button" class="btn btn-light border rounded-pill px-4 fw-bold" onclick="toggleEditMode(false)">ยกเลิก</button>
+                            <button type="submit" form="profileForm" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                                <i class="bi bi-save2-fill me-2"></i>บันทึกข้อมูล
+                            </button>
+                        </div>
+                    </div>
                 </form>
 
             </div>
         </div>
+        <footer id="footer-container" class="mt-auto"></footer>
     </main>
 </div>
 
@@ -565,7 +657,6 @@
     // ──── Boot ────
     document.addEventListener('DOMContentLoaded', async () => {
         const user = await checkAuth('student');
-        console.log('[student/profile] auth user:', user);
         if (user) {
             populateStaticSelects();
             await setupAddressDropdowns();
@@ -592,12 +683,6 @@
             'g_education':        EDUCATIONS,
             'family_status':      FAMILY_STATUSES_OVERALL,
             'family_relationship':FAMILY_RELATIONSHIPS_MEMBER,
-            'rel_father':         RELATION_LEVELS,
-            'rel_mother':         RELATION_LEVELS,
-            'rel_brothers':       RELATION_LEVELS,
-            'rel_sisters':        RELATION_LEVELS,
-            'rel_grandparents':   RELATION_LEVELS,
-            'rel_relatives':      RELATION_LEVELS,
             'house_type':         HOUSE_TYPES,
             'house_style':        HOUSE_STYLES,
             'house_condition':    HOUSE_CONDITIONS,
@@ -619,14 +704,11 @@
         try {
             const res = await fetch('../api/student/profile.php');
             const result = await res.json();
-            console.log('[student/profile] API response:', result);
             if (!result.success) {
-                console.warn('[student/profile] failed:', result.error);
                 Swal.fire('ไม่พบข้อมูล', result.error || 'ไม่พบข้อมูลนักเรียน', 'warning');
                 return;
             }
             const data = result.data;
-            console.log('[student/profile] data keys:', Object.keys(data));
             window.currentStudentData = data;
 
             // Badge
@@ -646,13 +728,15 @@
             } catch(qrErr) { console.warn('[QR student]', qrErr); }
 
             setHouseValue(data.house);
-            console.log('[debug] ค่าจริง:', { first_name_th: data.first_name_th, student_id: data.student_id, house: data.house, grade_level: data.grade_level });
 
             // Populate form fields
             const form = document.getElementById('profileForm');
+            const computedFullName = `${data.prefix || ''}${data.first_name_th || ''} ${data.last_name_th || ''}`.trim();
             for (const key in data) {
                 const val = data[key];
                 if (val === null || val === undefined) continue;
+                // full_name_th handled separately below
+                if (key === 'full_name_th') continue;
                 const inputs = form.querySelectorAll(`[name="${key}"]`);
                 if (!inputs.length) continue;
 
@@ -673,8 +757,22 @@
                 }
             }
 
+            // full_name_th: แสดงเฉพาะกรณีที่ต่างจากชื่อปัจจุบัน (ไม่ auto-fill ชื่อปัจจุบัน)
+            const fullNameInput = form.querySelector('[name="full_name_th"]');
+            if (fullNameInput) {
+                const stored = (data.full_name_th || '').trim();
+                fullNameInput.value = (stored && stored !== computedFullName) ? stored : '';
+            }
+
+            // Live badge update เมื่อแก้ไขชื่อ/คำนำหน้าในโหมดแก้ไข
+            ['prefix', 'first_name_th', 'last_name_th'].forEach(fld => {
+                const el = form.querySelector(`[name="${fld}"]`);
+                if (el) el.addEventListener('change', updateDisplayName);
+                if (el) el.addEventListener('input', updateDisplayName);
+            });
+
             calcBMI();
-            
+
             // Initialize Leaflet Map with loaded coordinates
             initStudentMap(data.location_coords || '');
 
@@ -715,7 +813,8 @@
             addressCache.districts[pId] = await res.json();
         }
         sel.innerHTML = '<option value="">เลือกอำเภอ</option>';
-        addressCache.districts[pId].forEach(d => sel.add(new Option(d.name, d.name, d.name === distVal, d.name === distVal)));
+        addressCache.districts[pId].forEach(d => sel.add(new Option(d.name, d.name, false, false)));
+        if (distVal) sel.value = distVal;
         sel.onchange = async function() {
             const d = addressCache.districts[pId].find(x => x.name === this.value);
             const sSel = document.querySelector(`[name="${this.dataset.targetSubdistrict}"]`);
@@ -736,10 +835,11 @@
         }
         sel.innerHTML = '<option value="">เลือกตำบล</option>';
         addressCache.subdistricts[dId].forEach(s => {
-            const opt = new Option(s.name, s.name, s.name === subVal, s.name === subVal);
+            const opt = new Option(s.name, s.name, false, false);
             opt.dataset.zip = s.postcode;
             sel.add(opt);
         });
+        if (subVal) sel.value = subVal;
         sel.onchange = function() {
             const zipField = document.querySelector(`[name="${this.dataset.zipcode}"]`);
             const opt = this.options[this.selectedIndex];
@@ -748,6 +848,11 @@
         if (zipVal) {
             const zipField = document.querySelector(`[name="${sel.dataset.zipcode}"]`);
             if (zipField) zipField.value = zipVal;
+        } else if (subVal) {
+            // auto-fill zipcode from the selected subdistrict option
+            const selected = sel.options[sel.selectedIndex];
+            const zipField = document.querySelector(`[name="${sel.dataset.zipcode}"]`);
+            if (zipField && selected && selected.dataset.zip) zipField.value = selected.dataset.zip;
         }
     }
 
@@ -766,6 +871,8 @@
         document.getElementById('saveBtn').style.display   = editing ? 'inline-block' : 'none';
         document.getElementById('cancelBtn').style.display = editing ? 'inline-block' : 'none';
         document.getElementById('editBtn').style.display   = editing ? 'none' : 'inline-block';
+        const bottomBar = document.getElementById('bottomSaveBar');
+        if (bottomBar) bottomBar.style.display = editing ? 'block' : 'none';
     }
 
     let studentMap = null;
@@ -947,6 +1054,17 @@
         }
     }
 
+    // ──── Badge live name update ────
+    function updateDisplayName() {
+        const form = document.getElementById('profileForm');
+        if (!form) return;
+        const prefix = (form.querySelector('[name="prefix"]')?.value || '').trim();
+        const first  = (form.querySelector('[name="first_name_th"]')?.value || '').trim();
+        const last   = (form.querySelector('[name="last_name_th"]')?.value || '').trim();
+        const badge  = document.getElementById('displayNameTH');
+        if (badge) badge.innerText = `${prefix}${first} ${last}`.trim() || 'ไม่มีชื่อ';
+    }
+
     // ──── BMI ────
     function setupBMICalc() {
         document.querySelectorAll('.bmi-calc').forEach(el => el.addEventListener('input', calcBMI));
@@ -957,14 +1075,24 @@
         if (!wInput || !hInput) return;
         const w = parseFloat(wInput.value);
         const h = parseFloat(hInput.value) / 100;
-        const el = document.getElementById('displayBMI');
+        const el    = document.getElementById('displayBMI');
+        const label = document.getElementById('bmiLabel');
         if (el) {
             if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
                 const bmi = (w / (h * h)).toFixed(2);
                 el.value = bmi;
-                el.className = `form-control fw-bold text-center ${bmi < 18.5 ? 'text-warning' : bmi < 25 ? 'text-success' : 'text-danger'}`;
+                let text, cls;
+                if      (bmi < 18.5) { text = '⚠️ ผอม';          cls = 'text-warning'; }
+                else if (bmi < 23.0) { text = '✅ ปกติ';          cls = 'text-success'; }
+                else if (bmi < 25.0) { text = '⚡ น้ำหนักเกิน';  cls = 'text-warning'; }
+                else if (bmi < 30.0) { text = '🔴 อ้วน';          cls = 'text-danger';  }
+                else                 { text = '🔴 อ้วนมาก';       cls = 'text-danger';  }
+                el.className = `form-control fw-bold text-center ${cls}`;
+                if (label) { label.textContent = text; label.className = `fw-bold fs-6 ${cls}`; }
             } else {
                 el.value = '';
+                el.className = 'form-control fw-bold text-center';
+                if (label) { label.textContent = ''; label.className = 'fw-bold fs-6'; }
             }
         }
     }

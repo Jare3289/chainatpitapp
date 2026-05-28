@@ -49,7 +49,7 @@ header('Content-Disposition: attachment; filename="' . $filename . '"');
 echo "\xEF\xBB\xBF"; // BOM for Thai in Excel
 
 $output = fopen('php://output', 'w');
-// Use semicolon delimiter to align with Excel list separator on Thai Windows regional settings
-fputcsv($output, $headers, ";", "\"", "\\"); 
+// Use standard comma delimiter for universal Excel and import compatibility
+fputcsv($output, $headers, ",", "\"", "\\"); 
 fclose($output);
 exit;

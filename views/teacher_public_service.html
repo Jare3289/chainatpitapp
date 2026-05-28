@@ -12,21 +12,11 @@
     <link rel="stylesheet" href="../public/css/style.css">
     <style>
         body { font-family: 'Google Sans', 'Sarabun', sans-serif; background:#f8fafc; }
-        .req-card { background:#fff; border-radius:18px; padding:0; box-shadow:0 4px 12px rgba(0,0,0,0.03); border:1.5px solid #f1f5f9; margin-bottom:12px; overflow:hidden; transition:.2s; }
-        .req-card.selected { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
-        .req-card .top { padding:12px 18px; background:linear-gradient(135deg,#f8fafc,#f1f5f9); border-bottom:1px solid #f1f5f9; }
-        .req-card .body { padding:12px 18px; cursor: pointer; }
-        .req-card .body:hover { background: #fcfdfe; }
-        .req-card .actions { padding:10px 18px; background:#fff; border-top:1px solid #f1f5f9; display:flex; gap:8px; }
-        .btn-approve-big { flex:1; padding:10px; border:none; border-radius:12px; background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-weight:800; font-size:0.9rem; transition:.2s; }
-        .btn-approve-big:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(16,185,129,0.2); }
-        .btn-reject-big { flex:1; padding:10px; border:1px solid #fecaca; border-radius:12px; background:#fff; color:#dc2626; font-weight:800; font-size:0.9rem; transition:.2s; }
-        .btn-reject-big:hover { background:#fef2f2; }
 
-        .status-pill { font-weight:800; font-size:0.7rem; padding:6px 14px; border-radius:50px; text-transform:uppercase; letter-spacing:0.5px; display:inline-block; }
+        .status-pill { font-weight:800; font-size:0.72rem; padding:5px 12px; border-radius:50px; letter-spacing:0.3px; display:inline-block; white-space:nowrap; }
         .status-approved { background:#dcfce7; color:#15803d; border:1px solid #bcf1cf; }
-        .status-pending { background:#fef9c3; color:#a16207; border:1px solid #fcf2a8; }
-        .status-rejected { background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
+        .status-pending   { background:#fef9c3; color:#a16207; border:1px solid #fcf2a8; }
+        .status-rejected  { background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
 
         .stat-box { background:#fff; border-radius:18px; padding:18px; border:1px solid #f1f5f9; text-align:center; }
         .stat-box .num { font-weight:900; font-size:2rem; line-height:1; }
@@ -38,33 +28,37 @@
         .empty-state { background:#fff; border-radius:20px; padding:50px 20px; text-align:center; border:2px dashed #e2e8f0; color:#94a3b8; }
         .empty-state i { font-size:3.5rem; opacity:0.4; }
 
-        .student-meta { font-size:0.85rem; color:#64748b; }
-        .activity-title { font-weight:800; font-size:1.05rem; color:#0f172a; margin-bottom:4px; }
-        .impact-box { background:#f8fafc; border-left:4px solid #3b82f6; padding:10px 14px; border-radius:8px; font-size:0.85rem; color:#475569; margin-top:10px; font-style:italic; }
-
         /* Batch toolbar */
         #batchToolbar { display:none; position:sticky; top:60px; z-index:100; background:linear-gradient(135deg,#1e3a8a,#3b82f6); color:#fff; border-radius:16px; padding:14px 20px; margin-bottom:16px; box-shadow:0 8px 24px rgba(30,58,138,0.3); }
         #batchToolbar.visible { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
         .batch-count { font-weight:900; font-size:1.1rem; }
-        .btn-batch { padding:10px 20px; border:none; border-radius:12px; font-weight:800; font-size:0.9rem; transition:.2s; }
+        .btn-batch { padding:9px 18px; border:none; border-radius:12px; font-weight:800; font-size:0.88rem; transition:.2s; cursor:pointer; }
         .btn-batch-approve { background:#10b981; color:#fff; }
         .btn-batch-approve:hover { background:#059669; }
         .btn-batch-reject { background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.4); }
         .btn-batch-reject:hover { background:rgba(255,255,255,0.3); }
-        .btn-batch-clear { background:transparent; color:rgba(255,255,255,0.7); font-size:0.85rem; border:none; text-decoration:underline; }
+        .btn-batch-delete { background:rgba(239,68,68,0.25); color:#fff; border:1px solid rgba(239,68,68,0.5); }
+        .btn-batch-delete:hover { background:rgba(239,68,68,0.45); }
+        .btn-batch-clear { background:transparent; color:rgba(255,255,255,0.7); font-size:0.85rem; border:none; text-decoration:underline; cursor:pointer; }
 
-        /* Card checkbox */
-        .card-checkbox { width:22px; height:22px; border-radius:6px; border:2px solid #cbd5e1; background:#fff; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:.15s; }
+        /* Row checkbox */
+        .card-checkbox { width:20px; height:20px; border-radius:5px; border:2px solid #cbd5e1; background:#fff; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:.15s; }
         .card-checkbox.checked { background:#3b82f6; border-color:#3b82f6; }
-        .card-checkbox.checked::after { content:'✓'; color:#fff; font-size:0.85rem; font-weight:900; }
+        .card-checkbox.checked::after { content:'✓'; color:#fff; font-size:0.78rem; font-weight:900; }
 
-        /* Select-all row */
-        .select-bar { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 18px; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
-        .select-bar label { font-size:0.88rem; font-weight:700; color:#475569; cursor:pointer; margin:0; }
+        /* Table */
+        .ps-table { border-collapse:separate; border-spacing:0 5px; width:100%; }
+        .ps-table thead th { padding:10px 14px; font-size:0.78rem; font-weight:700; color:#64748b; border:none; background:transparent; white-space:nowrap; }
+        .ps-table thead th:first-child { padding-left:18px; }
+        .ps-row { background:#fff; transition:background .12s; }
+        .ps-row td { padding:11px 14px; border-top:1px solid #f1f5f9; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+        .ps-row td:first-child { border-left:1px solid #f1f5f9; border-radius:12px 0 0 12px; padding-left:18px; }
+        .ps-row td:last-child { border-right:1px solid #f1f5f9; border-radius:0 12px 12px 0; }
+        .ps-row:hover { background:#f8fafc; }
+        .ps-row.selected { background:#eff6ff; }
+        .ps-row.selected td { border-color:#bfdbfe; }
 
-        /* New request banner */
-        @keyframes slideDown { from { transform:translateY(-20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-        .new-request-banner { animation:slideDown .4s ease; background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1.5px solid #86efac; border-radius:14px; padding:14px 20px; margin-bottom:14px; display:flex; align-items:center; gap:12px; }
+        @keyframes slideDown { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
     </style>
 </head>
 <body>
@@ -118,23 +112,19 @@
                     <div class="batch-count"><span id="selectedCount">0</span> รายการที่เลือก</div>
                     <div class="d-flex gap-2 ms-auto flex-wrap">
                         <button class="btn-batch btn-batch-approve" onclick="batchDecide('approved')">
-                            <i class="bi bi-check2-circle me-1"></i> รับรองทั้งหมด
+                            <i class="bi bi-check2-circle me-1"></i> รับรองที่เลือก
                         </button>
                         <button class="btn-batch btn-batch-reject" onclick="batchDecide('rejected')">
-                            <i class="bi bi-x-circle me-1"></i> ปฏิเสธทั้งหมด
+                            <i class="bi bi-x-circle me-1"></i> ปฏิเสธที่เลือก
+                        </button>
+                        <button class="btn-batch btn-batch-delete" onclick="batchDelete()">
+                            <i class="bi bi-trash3 me-1"></i> ลบที่เลือก
                         </button>
                         <button class="btn-batch-clear" onclick="clearSelection()">ยกเลิกการเลือก</button>
                     </div>
                 </div>
 
-                <!-- SELECT ALL BAR (pending only) -->
-                <div class="select-bar d-none" id="selectBar">
-                    <div class="card-checkbox" id="checkAll" onclick="toggleSelectAll()"></div>
-                    <label for="checkAll" onclick="toggleSelectAll()">เลือกทั้งหมด (<span id="pendingCount">0</span> รายการ)</label>
-                    <div class="ms-auto text-muted small" id="selectHint">คลิกที่การ์ดเพื่อเลือก</div>
-                </div>
-
-                <!-- LIST -->
+                <!-- TABLE CONTAINER -->
                 <div id="list-container"></div>
 
             </div>
@@ -147,14 +137,12 @@
 <!-- DETAIL MODAL -->
 <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:24px;">
             <div class="modal-header border-0 p-4 pb-0">
                 <h5 class="fw-black text-navy mb-0">รายละเอียดคำขอ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4" id="detailBody">
-                <!-- Dynamic Content -->
-            </div>
+            <div class="modal-body p-4" id="detailBody"></div>
             <div class="modal-footer border-0 p-4 pt-0">
                 <button type="button" class="btn btn-light rounded-pill w-100 fw-bold" data-bs-dismiss="modal">ปิด</button>
             </div>
@@ -184,32 +172,24 @@ async function loadRecords(silent = false) {
     const c = document.getElementById('list-container');
     if (!silent) c.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
     try {
-        const res = await fetch('../api/public_service.php');
+        const res  = await fetch('../api/public_service.php');
         const data = await res.json();
         if (data.success) {
-            const prevPending = allRecords.filter(r => r.status === 'pending').length;
             allRecords = data.records || [];
             const nowPending = allRecords.filter(r => r.status === 'pending').length;
 
-            // Show notification when new pending requests arrive during polling
             if (lastPendingCount >= 0 && nowPending > lastPendingCount && silent) {
                 const diff = nowPending - lastPendingCount;
                 Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'info',
+                    toast: true, position: 'top-end', icon: 'info',
                     title: `มีคำขอรับรองใหม่ ${diff} รายการ`,
                     html: '<a href="#" onclick="setFilter(\'pending\',document.querySelector(\'[data-filter=pending]\'))" style="color:#3b82f6;font-weight:700;">ดูรายการ →</a>',
-                    timer: 8000,
-                    showConfirmButton: false,
-                    showCloseButton: true,
+                    timer: 8000, showConfirmButton: false, showCloseButton: true,
                 });
-                // Auto switch to pending tab
                 const pendingBtn = document.querySelector('[data-filter="pending"]');
                 if (currentFilter !== 'pending' && pendingBtn) setFilter('pending', pendingBtn);
             }
             lastPendingCount = nowPending;
-
             updateStats();
             render();
         } else {
@@ -222,7 +202,7 @@ async function loadRecords(silent = false) {
 
 function startPolling() {
     if (pollTimer) clearInterval(pollTimer);
-    pollTimer = setInterval(() => loadRecords(true), 30000); // poll every 30s
+    pollTimer = setInterval(() => loadRecords(true), 30000);
 }
 
 function updateStats() {
@@ -242,21 +222,9 @@ function setFilter(f, btn) {
 
 function render() {
     const c = document.getElementById('list-container');
-    const selectBar = document.getElementById('selectBar');
 
     let list = allRecords;
     if (currentFilter !== 'all') list = allRecords.filter(r => r.status === currentFilter);
-
-    const isPendingView = (currentFilter === 'pending' || currentFilter === 'all');
-    const pendingList = list.filter(r => r.status === 'pending');
-
-    // Show/hide select bar
-    if (pendingList.length > 0) {
-        selectBar.classList.remove('d-none');
-        document.getElementById('pendingCount').textContent = pendingList.length;
-    } else {
-        selectBar.classList.add('d-none');
-    }
 
     if (list.length === 0) {
         const labels = { pending: 'ไม่มีคำขอรอรับรอง', approved: 'ยังไม่มีรายการที่รับรอง', rejected: 'ยังไม่มีรายการที่ปฏิเสธ', all: 'ยังไม่มีรายการ' };
@@ -264,47 +232,94 @@ function render() {
         return;
     }
 
-    c.innerHTML = list.map(r => renderCard(r)).join('');
+    const allIds     = list.map(r => r.id);
+    const allChecked = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
+
+    c.innerHTML = `
+        <div class="content-card p-0" style="overflow:hidden;">
+            <div class="table-responsive">
+                <table class="ps-table">
+                    <thead>
+                        <tr>
+                            <th style="width:44px;">
+                                <div class="card-checkbox ${allChecked ? 'checked' : ''}" id="checkAll" onclick="toggleSelectAll()"></div>
+                            </th>
+                            <th>นักเรียน</th>
+                            <th>กิจกรรม / สถานที่</th>
+                            <th class="text-center">วันที่</th>
+                            <th class="text-center">ครั้ง</th>
+                            <th class="text-center">สถานะ</th>
+                            <th class="text-center" style="min-width:175px;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${list.map(r => renderRow(r)).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-4 py-2 text-muted small border-top" style="background:#fafbfc;">
+                แสดง ${list.length} รายการ
+            </div>
+        </div>
+    `;
 }
 
-function renderCard(r) {
-    const isPending = r.status === 'pending';
+function renderRow(r) {
+    const isPending  = r.status === 'pending';
     const isSelected = selectedIds.has(r.id);
-    const statusCls = r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
-    const statusTxt = r.status === 'approved' ? '✅ รับรองแล้ว' : (r.status === 'rejected' ? '❌ ปฏิเสธ' : '⏳ รอรับรอง');
-
-    const avatar = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
+    const statusCls  = r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
+    const statusTxt  = r.status === 'approved' ? '✅ รับรอง' : (r.status === 'rejected' ? '❌ ปฏิเสธ' : '⏳ รอรับรอง');
+    const avatar      = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
     const studentName = `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim();
+    const safeStudent  = studentName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const safeActivity = (r.activity_name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
     return `
-        <div class="req-card ${isSelected ? 'selected' : ''}" id="card-${r.id}">
-            <div class="top d-flex align-items-center gap-2">
-                ${isPending ? `<div class="card-checkbox ${isSelected ? 'checked' : ''}" id="chk-${r.id}" onclick="toggleCard(${r.id}, event)"></div>` : ''}
-                <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'"
-                     style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid #fff;">
-                <div class="flex-grow-1 overflow-hidden">
-                    <div class="fw-black text-navy text-truncate" style="font-size:0.9rem;">${studentName}</div>
-                    <div class="student-meta" style="font-size:0.75rem;">ห้อง ${r.class_name || '-'}</div>
+        <tr class="ps-row ${isSelected ? 'selected' : ''}" id="card-${r.id}">
+            <td onclick="toggleCard(${r.id}, event)">
+                <div class="card-checkbox ${isSelected ? 'checked' : ''}" id="chk-${r.id}"></div>
+            </td>
+            <td onclick="showDetail(${r.id})" style="cursor:pointer;">
+                <div class="d-flex align-items-center gap-2">
+                    <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'"
+                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;flex-shrink:0;">
+                    <div>
+                        <div class="fw-bold text-navy" style="font-size:0.88rem;">${studentName}</div>
+                        <div class="text-muted" style="font-size:0.73rem;">ห้อง ${r.class_name || '-'}</div>
+                    </div>
                 </div>
-                <span class="status-pill ${statusCls} px-2 py-1" style="font-size: 0.6rem;">${statusTxt}</span>
-            </div>
-            <div class="body" onclick="showDetail(${r.id})">
-                <div class="activity-title" style="font-size: 0.95rem;">${r.activity_name}</div>
-                <div class="d-flex flex-wrap gap-2 small text-muted mb-0" style="font-size: 0.75rem;">
-                    <span><i class="bi bi-calendar3 me-1"></i>${r.activity_date_th}</span>
-                    <span><i class="bi bi-geo-alt-fill me-1 text-primary"></i>${r.location || '-'}</span>
+            </td>
+            <td onclick="showDetail(${r.id})" style="cursor:pointer; max-width:260px;">
+                <div class="fw-semibold text-truncate" style="font-size:0.87rem;" title="${(r.activity_name || '').replace(/"/g, '&quot;')}">${r.activity_name}</div>
+                <div class="text-muted" style="font-size:0.73rem;"><i class="bi bi-geo-alt-fill me-1 text-primary"></i>${r.location || '-'}</div>
+            </td>
+            <td class="text-center" onclick="showDetail(${r.id})" style="cursor:pointer; white-space:nowrap;">
+                <span style="font-size:0.82rem;">${r.activity_date_th}</span>
+            </td>
+            <td class="text-center" onclick="showDetail(${r.id})" style="cursor:pointer;">
+                <span class="badge bg-light text-dark border rounded-pill px-2" style="font-size:0.78rem;">${parseFloat(r.duration) || 1}</span>
+            </td>
+            <td class="text-center">
+                <span class="status-pill ${statusCls}">${statusTxt}</span>
+            </td>
+            <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center flex-wrap">
+                    ${isPending ? `
+                    <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold" style="font-size:0.77rem;"
+                            onclick="decide(${r.id},'approved','${safeStudent}','${safeActivity}')">
+                        <i class="bi bi-check2 me-1"></i>รับรอง
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold" style="font-size:0.77rem;"
+                            onclick="decide(${r.id},'rejected','${safeStudent}','${safeActivity}')">
+                        <i class="bi bi-x me-1"></i>ปฏิเสธ
+                    </button>` : ''}
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-2" style="font-size:0.77rem;"
+                            onclick="deleteRecord(${r.id}, event)" title="ลบ">
+                        <i class="bi bi-trash3"></i>
+                    </button>
                 </div>
-            </div>
-            ${isPending ? `
-                <div class="actions">
-                    <button class="btn-reject-big" onclick="decide(${r.id}, 'rejected', '${(studentName).replace(/'/g, "\\'")}', '${(r.activity_name || '').replace(/'/g, "\\'")}')">
-                        ปฏิเสธ
-                    </button>
-                    <button class="btn-approve-big" onclick="decide(${r.id}, 'approved', '${(studentName).replace(/'/g, "\\'")}', '${(r.activity_name || '').replace(/'/g, "\\'")}')">
-                        รับรอง
-                    </button>
-                </div>` : ''}
-        </div>
+            </td>
+        </tr>
     `;
 }
 
@@ -313,13 +328,13 @@ function showDetail(id) {
     if (!r) return;
 
     const studentName = `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim();
-    const avatar = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
+    const avatar    = r.photo ? `../${r.photo}` : '../public/img/default-avatar.png';
     const statusCls = r.status === 'approved' ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
     const statusTxt = r.status === 'approved' ? 'อนุมัติแล้ว' : (r.status === 'rejected' ? 'ไม่ผ่าน' : 'รอรับรอง');
 
     document.getElementById('detailBody').innerHTML = `
         <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
-            <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'" style="width:60px; height:60px; border-radius:50%; object-fit:cover; border:3px solid #fff;">
+            <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid #fff;">
             <div>
                 <div class="fw-black text-navy h6 mb-1">${studentName}</div>
                 <div class="small text-muted">รหัส ${r.student_code} · ห้อง ${r.class_name || '-'}</div>
@@ -327,9 +342,8 @@ function showDetail(id) {
         </div>
         <div class="mb-4">
             <span class="status-pill ${statusCls} mb-2">${statusTxt}</span>
-            <h5 class="fw-black text-navy">${r.activity_name}</h5>
+            <h5 class="fw-black text-navy mt-2">${r.activity_name}</h5>
             <div class="small text-muted mb-3"><i class="bi bi-calendar3 me-1"></i> ${r.activity_date_th}</div>
-            
             <div class="row g-2 mb-3">
                 <div class="col-6">
                     <div class="p-2 px-3 bg-light rounded-3 small">
@@ -340,57 +354,62 @@ function showDetail(id) {
                 <div class="col-6">
                     <div class="p-2 px-3 bg-light rounded-3 small">
                         <div class="fw-bold text-muted" style="font-size:0.7rem;">จำนวนครั้ง</div>
-                        <div class="fw-bold">${r.duration || 1} ครั้ง</div>
+                        <div class="fw-bold">${parseFloat(r.duration) || 1} ครั้ง</div>
                     </div>
                 </div>
             </div>
-
             <div class="p-3 bg-light rounded-4 small">
                 <div class="fw-bold text-muted mb-1" style="font-size:0.7rem;">ผลที่เกิดขึ้น / ความประทับใจ</div>
                 <div class="text-navy" style="font-style:italic;">"${r.impact_benefit || 'ไม่มีข้อมูล'}"</div>
             </div>
         </div>
+        ${r.status === 'pending' ? `
+        <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-success rounded-pill flex-grow-1 fw-bold"
+                    onclick="decide(${r.id},'approved','${studentName.replace(/'/g,"\\'")}','${(r.activity_name||'').replace(/'/g,"\\'")}');bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide()">
+                <i class="bi bi-check2-circle me-1"></i>รับรอง
+            </button>
+            <button class="btn btn-outline-danger rounded-pill flex-grow-1 fw-bold"
+                    onclick="decide(${r.id},'rejected','${studentName.replace(/'/g,"\\'")}','${(r.activity_name||'').replace(/'/g,"\\'")}');bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide()">
+                <i class="bi bi-x-circle me-1"></i>ปฏิเสธ
+            </button>
+        </div>` : ''}
     `;
     new bootstrap.Modal(document.getElementById('detailModal')).show();
 }
 
 function toggleCard(id, e) {
     if (e) e.stopPropagation();
-    const r = allRecords.find(x => x.id == id);
-    if (!r || r.status !== 'pending') return;
-
     if (selectedIds.has(id)) selectedIds.delete(id);
     else selectedIds.add(id);
 
-    // Update visual state without full re-render
-    const card = document.getElementById('card-' + id);
-    const chk  = document.getElementById('chk-' + id);
-    if (card) card.classList.toggle('selected', selectedIds.has(id));
-    if (chk)  chk.classList.toggle('checked', selectedIds.has(id));
+    const row = document.getElementById('card-' + id);
+    const chk = document.getElementById('chk-' + id);
+    if (row) row.classList.toggle('selected', selectedIds.has(id));
+    if (chk) chk.classList.toggle('checked', selectedIds.has(id));
 
     updateBatchToolbar();
     updateSelectAllState();
 }
 
 function toggleSelectAll() {
-    const pendingIds = allRecords.filter(r => r.status === 'pending').map(r => r.id);
-    const allSelected = pendingIds.every(id => selectedIds.has(id));
+    let list = allRecords;
+    if (currentFilter !== 'all') list = allRecords.filter(r => r.status === currentFilter);
+    const allIds     = list.map(r => r.id);
+    const allSelected = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
 
-    if (allSelected) {
-        pendingIds.forEach(id => selectedIds.delete(id));
-    } else {
-        pendingIds.forEach(id => selectedIds.add(id));
-    }
+    if (allSelected) allIds.forEach(id => selectedIds.delete(id));
+    else             allIds.forEach(id => selectedIds.add(id));
 
-    // Re-render to reflect changes
     render();
     updateBatchToolbar();
-    updateSelectAllState();
 }
 
 function updateSelectAllState() {
-    const pendingIds = allRecords.filter(r => r.status === 'pending').map(r => r.id);
-    const allChecked = pendingIds.length > 0 && pendingIds.every(id => selectedIds.has(id));
+    let list = allRecords;
+    if (currentFilter !== 'all') list = allRecords.filter(r => r.status === currentFilter);
+    const allIds    = list.map(r => r.id);
+    const allChecked = allIds.length > 0 && allIds.every(id => selectedIds.has(id));
     const el = document.getElementById('checkAll');
     if (el) el.classList.toggle('checked', allChecked);
 }
@@ -412,10 +431,49 @@ function clearSelection() {
     updateBatchToolbar();
 }
 
+async function batchDelete() {
+    const ids = Array.from(selectedIds);
+    if (!ids.length) return;
+
+    const confirm = await Swal.fire({
+        title: `ลบ ${ids.length} รายการ?`,
+        text: 'การลบนี้จะไม่สามารถกู้คืนได้',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: `ลบ ${ids.length} รายการ`,
+        cancelButtonText: 'ยกเลิก',
+        customClass: { popup: 'rounded-4' }
+    });
+    if (!confirm.isConfirmed) return;
+
+    let ok = 0, fail = 0;
+    for (const id of ids) {
+        try {
+            const res = await fetch(`../api/public_service.php?id=${id}`, { method: 'DELETE' });
+            const d   = await res.json();
+            if (d.success) ok++; else fail++;
+        } catch { fail++; }
+    }
+    selectedIds.clear();
+    await loadRecords();
+    if (fail === 0) {
+        Swal.fire({ icon: 'success', title: `ลบ ${ok} รายการสำเร็จ`, timer: 1600, showConfirmButton: false, toast: true, position: 'top-end' });
+    } else {
+        Swal.fire('เสร็จสิ้น', `ลบสำเร็จ ${ok} / ล้มเหลว ${fail} รายการ`, 'info');
+    }
+}
+
 async function batchDecide(newStatus) {
     const isOk = newStatus === 'approved';
-    const ids   = Array.from(selectedIds);
-    if (!ids.length) return;
+    const ids  = Array.from(selectedIds).filter(id => {
+        const r = allRecords.find(x => x.id == id);
+        return r && r.status === 'pending';
+    });
+    if (!ids.length) {
+        Swal.fire('แจ้งเตือน', 'ไม่มีรายการที่รอรับรองในรายการที่เลือก', 'info');
+        return;
+    }
 
     const confirm = await Swal.fire({
         title: isOk ? `รับรอง ${ids.length} รายการ?` : `ปฏิเสธ ${ids.length} รายการ?`,
@@ -423,7 +481,7 @@ async function batchDecide(newStatus) {
         icon: isOk ? 'success' : 'warning',
         showCancelButton: true,
         confirmButtonColor: isOk ? '#10b981' : '#ef4444',
-        confirmButtonText: isOk ? `รับรองทั้งหมด` : `ปฏิเสธทั้งหมด`,
+        confirmButtonText: isOk ? 'รับรองทั้งหมด' : 'ปฏิเสธทั้งหมด',
         cancelButtonText: 'ยกเลิก',
         customClass: { popup: 'rounded-4' }
     });
@@ -477,6 +535,39 @@ async function decide(id, newStatus, studentName, activityName) {
             Swal.fire('ผิดพลาด', d.error || d.message || 'ไม่สามารถดำเนินการได้', 'error');
         }
     } catch (e) {
+        Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+    }
+}
+
+async function deleteRecord(id, e) {
+    if (e) e.stopPropagation();
+    const r = allRecords.find(x => x.id == id);
+    if (!r) return;
+    const studentName = `${r.first_name_th || ''} ${r.last_name_th || ''}`.trim();
+
+    const confirm = await Swal.fire({
+        title: 'ยืนยันการลบกิจกรรม?',
+        html: `<div class="text-start"><b>นักเรียน:</b> ${studentName}<br><b>กิจกรรม:</b> ${r.activity_name}</div><div class="text-danger small mt-2"><i class="bi bi-exclamation-triangle-fill"></i> การลบนี้จะไม่สามารถกู้คืนข้อมูลได้</div>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'ลบข้อมูล',
+        cancelButtonText: 'ยกเลิก',
+        customClass: { popup: 'rounded-4' }
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+        const res = await fetch(`../api/public_service.php?id=${id}`, { method: 'DELETE' });
+        const d   = await res.json();
+        if (d.success) {
+            Swal.fire({ icon: 'success', title: 'ลบรายการสำเร็จ', timer: 1400, showConfirmButton: false, toast: true, position: 'top-end' });
+            selectedIds.delete(id);
+            await loadRecords();
+        } else {
+            Swal.fire('ผิดพลาด', d.error || d.message || 'ไม่สามารถลบข้อมูลได้', 'error');
+        }
+    } catch (err) {
         Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
     }
 }

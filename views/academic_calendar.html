@@ -24,8 +24,11 @@
         /* Day Types Colors - Vibrant */
         .m-holiday, .m-activity { background-color: #3b82f6 !important; color: #ffffff !important; font-weight: 800; }
         .m-comp    { background-color: #db2777 !important; color: #ffffff !important; font-weight: 800; }
+        .m-special { background-color: #16a34a !important; color: #ffffff !important; font-weight: 800; }
         .m-weekend { background-color: #f8fafc; color: #cbd5e1; }
         .m-today { background-color: #fffbeb !important; outline: 3px solid #f59e0b !important; outline-offset: -3px; z-index: 5; }
+        .m-past:not(.m-today) { opacity: 0.35; filter: saturate(0.6); }
+        .holiday-item.is-past { opacity: 0.42; }
 
         /* Legend */
         .legend-chip { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; padding: 8px 16px; border-radius: 50px; background: white; border: 1px solid #f1f5f9; color: #64748b; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
@@ -79,7 +82,8 @@
                             </ul>
                             <div class="d-flex flex-wrap gap-2">
                                 <div class="legend-chip"><div class="legend-box" style="background:#db2777"></div> ชดเชย</div>
-                                <div class="legend-chip"><div class="legend-box" style="background:#3b82f6"></div> วันหยุด / กิจกรรม</div>
+                                <div class="legend-chip"><div class="legend-box" style="background:#3b82f6"></div> วันหยุดราชการ</div>
+                                <div class="legend-chip"><div class="legend-box" style="background:#16a34a"></div> กิจกรรมสำคัญ</div>
                             </div>
                         </div>
 
@@ -183,6 +187,7 @@
         let allEvents = [];
         let userRole = null;
         let state = { viewYear: new Date().getFullYear() };
+        const todayStr = new Date().toISOString().split('T')[0];
 
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await checkAuth(['admin', 'teacher', 'student']);
@@ -228,12 +233,17 @@
                     let evs = allEvents.filter(e => e.date_val.startsWith(ds));
                     if (userRole === 'student') evs = evs.filter(e => e.category !== 'ครู');
                     let cls = '';
-                    if (dow === 0 || dow === 6) cls = 'm-weekend';
-                    else if (evs.some(e => (e.day_type || '').includes('ชดเชย'))) cls = 'm-comp';
-                    else if (evs.some(e => (e.day_type || '').includes('หยุด'))) cls = 'm-holiday'; // Blue in CSS
-                    else if (evs.some(e => (e.day_type || '').includes('กิจกรรม'))) cls = 'm-activity'; // Blue in CSS
-                    if (ds === new Date().toISOString().split('T')[0]) cls += ' m-today';
-                    if (cls === '' || cls === 'm-activity') count++;
+                    // กรอง weekend marker (activity 'วันเสาร์'/'วันอาทิตย์') ที่เป็นแค่ป้ายเสาร์-อาทิตย์
+                    const realEvs = evs.filter(e => e.activity !== 'วันเสาร์' && e.activity !== 'วันอาทิตย์');
+                    if (realEvs.some(e => (e.day_type || '').includes('ชดเชย'))) cls = 'm-comp';
+                    else if (realEvs.some(e => (e.day_type || '').includes('หยุด'))) cls = 'm-holiday';
+                    else if (realEvs.some(e => e.day_type === 'กิจกรรมพิเศษ')) cls = 'm-special';
+                    else if (realEvs.some(e => (e.day_type || '').includes('กิจกรรม'))) cls = 'm-activity';
+                    else if (dow === 0 || dow === 6) cls = 'm-weekend';
+                    if (ds === todayStr) cls += ' m-today';
+                    const baseClass = cls.trim().split(' ')[0];
+                    if (!['m-weekend','m-holiday','m-comp'].includes(baseClass)) count++;
+                    if (ds < todayStr && baseClass && baseClass !== 'm-weekend') cls += ' m-past';
                     html += `<td class="${cls}" onclick="openEventByDate('${ds}')">${DAY_SHORT[dow]}</td>`;
                 }
                 html += `<td class="fw-bold bg-light">${count}</td></tr>`;
@@ -260,12 +270,14 @@
                     const evs = allEvents.filter(e => e.date_val.startsWith(ds));
                     const dow = new Date(y, m, d).getDay();
                     let bg = '', col = '#1e293b';
-                    if (dow === 0 || dow === 6) bg = 'background:#f8fafc; color:#cbd5e1;';
-                    else if (evs.some(e => (e.day_type || '').includes('ชดเชย'))) bg = 'background:#db2777; color:#ffffff; font-weight:800;';
-                    else if (evs.some(e => (e.day_type || '').includes('หยุด'))) bg = 'background:#3b82f6; color:#ffffff; font-weight:800;';
-                    else if (evs.some(e => (e.day_type || '').includes('กิจกรรม'))) bg = 'background:#3b82f6; color:#ffffff; font-weight:800;';
-                    
-                    gridHtml += `<div class="rounded-1 d-flex align-items-center justify-content-center" style="aspect-ratio:1; ${bg}" onclick="showDayDetail('${ds}')">${d}</div>`;
+                    const realEvs = evs.filter(e => e.activity !== 'วันเสาร์' && e.activity !== 'วันอาทิตย์');
+                    if (realEvs.some(e => (e.day_type || '').includes('ชดเชย'))) bg = 'background:#db2777; color:#ffffff; font-weight:800;';
+                    else if (realEvs.some(e => (e.day_type || '').includes('หยุด'))) bg = 'background:#3b82f6; color:#ffffff; font-weight:800;';
+                    else if (realEvs.some(e => e.day_type === 'กิจกรรมพิเศษ')) bg = 'background:#16a34a; color:#ffffff; font-weight:800;';
+                    else if (realEvs.some(e => (e.day_type || '').includes('กิจกรรม'))) bg = 'background:#3b82f6; color:#ffffff; font-weight:800;';
+                    else if (dow === 0 || dow === 6) bg = 'background:#f8fafc; color:#cbd5e1;';
+                    const fadeStyle = (ds < todayStr && bg && !(dow === 0 || dow === 6)) ? 'opacity:0.35; filter:saturate(0.6);' : '';
+                    gridHtml += `<div class="rounded-1 d-flex align-items-center justify-content-center" style="aspect-ratio:1; ${bg}${fadeStyle}" onclick="showDayDetail('${ds}')">${d}</div>`;
                 }
                 gridHtml += '</div>';
 
@@ -285,16 +297,11 @@
 
         function renderHolidaySummary() {
             const container = document.getElementById('holidaySummaryList');
-            let holidays = allEvents.filter(e => {
-                if (!e.date_val || e.day_type === 'ปกติ') return false;
-                const d = new Date(e.date_val);
-                const dow = d.getDay();
-                
-                // Hide ALL weekends from summary (Show only things that affect school days)
-                if (dow === 0 || dow === 6) return false;
-                
-                return true;
-            }).sort((a,b) => a.date_val.localeCompare(b.date_val));
+            // แสดงเฉพาะวันหยุดราชการ/ชดเชย/กิจกรรมสำคัญจริง — กรอง marker 'วันเสาร์/วันอาทิตย์' ออก
+            let holidays = allEvents.filter(e =>
+                e.date_val && e.day_type !== 'ปกติ'
+                && e.activity !== 'วันเสาร์' && e.activity !== 'วันอาทิตย์'
+            ).sort((a,b) => a.date_val.localeCompare(b.date_val));
 
             if (userRole === 'student') holidays = holidays.filter(e => e.category !== 'ครู');
             
@@ -318,11 +325,13 @@
                     monthEvents.forEach(h => {
                         const d = new Date(h.date_val);
                         const dayType = (h.day_type || '').trim();
-                        let badgeColor = '#3b82f6'; // Default Blue (Holiday/Activity)
+                        let badgeColor = '#3b82f6'; // หยุด/วันหยุด default ฟ้า
                         if (dayType.includes('ชดเชย')) badgeColor = '#db2777';
+                        else if (dayType === 'กิจกรรมพิเศษ') badgeColor = '#16a34a';
 
+                        const isPast = h.date_val.substring(0, 10) < todayStr;
                         html += `
-                            <div class="holiday-item" onclick="openEventEdit(${h.id})" style="cursor:pointer">
+                            <div class="holiday-item${isPast ? ' is-past' : ''}" onclick="openEventEdit(${h.id})" style="cursor:pointer">
                                 <div class="h-text d-flex align-items-center">
                                     <div class="legend-box me-3" style="background:${badgeColor}; flex-shrink:0;"></div>
                                     <span class="fw-bold text-navy me-2" style="min-width:60px;">${d.getDate()} (${DAY_SHORT[d.getDay()]})</span>
@@ -349,7 +358,8 @@
         }
 
         function showDayDetail(ds) {
-            let evs = allEvents.filter(e => e.date_val.startsWith(ds));
+            let evs = allEvents.filter(e => e.date_val.startsWith(ds))
+                .filter(e => e.activity !== 'วันเสาร์' && e.activity !== 'วันอาทิตย์');
             if (userRole === 'student') evs = evs.filter(e => e.category !== 'ครู');
 
             const d = new Date(ds + 'T00:00:00');
@@ -369,8 +379,8 @@
                 }
             } else {
                 document.getElementById('dayDetailTitle').textContent = evs.length > 1 ? `${evs.length} กิจกรรมในวันนี้` : evs[0].activity;
-                const typeColors = { 'หยุด': '#3b82f6', 'ชดเชย': '#db2777', 'กิจกรรมพิเศษ': '#8b5cf6', 'ปกติ': '#10b981' };
-                const typeLabels = { 'หยุด': 'วันหยุดราชการ', 'ชดเชย': 'วันหยุดชดเชย', 'กิจกรรมพิเศษ': 'กิจกรรมสำคัญ', 'ปกติ': 'วันเรียนปกติ' };
+                const typeColors = { 'หยุด': '#3b82f6', 'วันหยุด': '#3b82f6', 'ชดเชย': '#db2777', 'กิจกรรมพิเศษ': '#16a34a', 'ปกติ': '#10b981' };
+                const typeLabels = { 'หยุด': 'วันหยุดราชการ', 'วันหยุด': 'วันหยุดราชการ', 'ชดเชย': 'วันหยุดชดเชย', 'กิจกรรมพิเศษ': 'กิจกรรมสำคัญ', 'ปกติ': 'วันเรียนปกติ' };
 
                 document.getElementById('dayDetailBody').innerHTML = evs.map(ev => {
                     const color = typeColors[ev.day_type] || '#64748b';
@@ -421,15 +431,37 @@
             if (document.getElementById('visTeacher').checked) vis.push('teacher');
             let cat = (vis.length === 2) ? 'ทั่วไป' : (vis.length === 1 && vis[0] === 'teacher' ? 'ครู' : vis.join(','));
             const data = Object.fromEntries(fd.entries()); data.category = cat;
-            const res = await fetch('../api/calendar.php?action=saveEvent', { method: 'POST', body: JSON.stringify(data) });
-            if (res.ok) { Swal.fire('สำเร็จ', 'บันทึกแล้ว', 'success'); bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide(); fetchData(); }
+            const res = await fetch('../api/calendar.php?action=saveEvent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if (json.success) {
+                Swal.fire('สำเร็จ', 'บันทึกแล้ว', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                fetchData();
+            } else {
+                Swal.fire('เกิดข้อผิดพลาด', json.error || 'ไม่สามารถบันทึกได้', 'error');
+            }
         }
 
         async function deleteEvent() {
             const id = document.getElementById('eventId').value;
             if (confirm('ยืนยันการลบกิจกรรมนี้?')) {
-                const res = await fetch('../api/calendar.php?action=deleteEvent', { method: 'POST', body: JSON.stringify({id: id}) });
-                if (res.ok) { Swal.fire('สำเร็จ', 'ลบแล้ว', 'success'); bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide(); fetchData(); }
+                const res = await fetch('../api/calendar.php?action=deleteEvent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({id: id})
+                });
+                const json = await res.json();
+                if (json.success) {
+                    Swal.fire('สำเร็จ', 'ลบแล้ว', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                    fetchData();
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด', json.error || 'ไม่สามารถลบได้', 'error');
+                }
             }
         }
 

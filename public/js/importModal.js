@@ -146,21 +146,72 @@ function initImportModal({ type, apiUrl, templateUrl, templateBaseUrl, onSuccess
 
     // Set both template download links
     const sep = _templateBase.includes('?') ? '&' : '?';
-    document.getElementById('import-template-full').style.display = '';
     
-    if (isTimetable) {
-        document.getElementById('import-template-minimal').href = _templateBase + sep + 'fields=minimal';
-        document.getElementById('import-template-minimal').querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
-        document.getElementById('import-template-minimal').querySelector('.text-muted').textContent = 'ชื่อครู · วัน · คาบ · วิชา';
+    const minBtn = document.getElementById('import-template-minimal');
+    const fullBtn = document.getElementById('import-template-full');
+    const minCol = minBtn.closest('.col-6');
+    const fullCol = fullBtn.closest('.col-6');
+
+    // Reset column classes
+    if (minCol && fullCol) {
+        minCol.className = 'col-6';
+        fullCol.className = 'col-6';
+        minCol.classList.remove('d-none');
+        fullCol.classList.remove('d-none');
+    }
+
+    // Explicitly force filename with .csv extension to ensure Excel registers and opens it correctly
+    minBtn.download = `Template_${type.charAt(0).toUpperCase() + type.slice(1)}_Minimal.csv`;
+    fullBtn.download = `Template_${type.charAt(0).toUpperCase() + type.slice(1)}_Full.csv`;
+
+    if (isStudent) {
+        minBtn.href = _templateBase + sep + 'fields=minimal';
+        minBtn.querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
+        minBtn.querySelector('.text-muted').innerHTML = 'เฉพาะข้อมูลจำเป็น<br>รหัส · ชื่อ · ห้อง · ชั้น';
         
-        document.getElementById('import-template-full').href = _templateBase + sep + 'fields=full';
-        document.getElementById('import-template-full').querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
-        document.getElementById('import-template-full').querySelector('.text-muted').textContent = 'รหัสวิชา · ชั้น/ห้อง · ปีการศึกษา · ภาคเรียน';
-    } else {
-        document.getElementById('import-template-minimal').href = _templateBase + sep + 'fields=minimal';
-        document.getElementById('import-template-minimal').querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
-        document.getElementById('import-template-full').href    = _templateBase + sep + 'fields=full';
-        document.getElementById('import-template-full').querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
+        fullBtn.href = _templateBase + sep + 'fields=full';
+        fullBtn.querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
+        fullBtn.querySelector('.text-muted').innerHTML = 'ทุกคอลัมน์ในระบบ<br>สุขภาพ · ที่อยู่ · ติดต่อ';
+    } 
+    else if (isTeacher) {
+        minBtn.href = _templateBase + sep + 'fields=minimal';
+        minBtn.querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
+        minBtn.querySelector('.text-muted').innerHTML = 'เฉพาะข้อมูลจำเป็น<br>ชื่อ · สกุล · อีเมล · ห้องที่ปรึกษา';
+        
+        fullBtn.href = _templateBase + sep + 'fields=full';
+        fullBtn.querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
+        fullBtn.querySelector('.text-muted').innerHTML = 'ทุกคอลัมน์ในระบบ<br>ประวัติ · ที่อยู่ · ลายเซ็น';
+    }
+    else if (isTimetable) {
+        minBtn.href = _templateBase + sep + 'fields=minimal';
+        minBtn.querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
+        minBtn.querySelector('.text-muted').innerHTML = 'ชื่อครู · วัน · คาบ · วิชา<br>ชั้นเรียน · ห้องเรียน';
+        
+        fullBtn.href = _templateBase + sep + 'fields=full';
+        fullBtn.querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
+        fullBtn.querySelector('.text-muted').innerHTML = 'รหัสวิชา · ชั้น/ห้อง · หมายเหตุ<br>ปีการศึกษา · ภาคเรียน';
+    }
+    else if (isClass) {
+        minBtn.href = _templateBase + sep + 'fields=minimal';
+        minBtn.querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
+        minBtn.querySelector('.text-muted').innerHTML = 'เฉพาะข้อมูลจำเป็น<br>รหัสห้อง · ม.ปีที่ · ห้องที่';
+        
+        fullBtn.href = _templateBase + sep + 'fields=full';
+        fullBtn.querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
+        fullBtn.querySelector('.text-muted').innerHTML = 'ทุกคอลัมน์ในระบบ<br>อาคาร · ชั้น · คณะสี · แผนเรียน';
+    }
+    else if (isCredit) {
+        minBtn.href = _templateBase + sep + 'fields=minimal';
+        minBtn.querySelector('.fw-black').textContent = 'ฉบับย่อ (Minimal)';
+        minBtn.querySelector('.text-muted').innerHTML = 'เฉพาะข้อมูลจำเป็น<br>รหัสนักเรียน · ประเภท · คะแนน';
+        
+        fullBtn.href = _templateBase + sep + 'fields=full';
+        fullBtn.querySelector('.fw-black').textContent = 'ฉบับเต็ม (Full)';
+        fullBtn.querySelector('.text-muted').innerHTML = 'ทุกคอลัมน์ในระบบ<br>พฤติกรรม · วันที่ · ภาคเรียน';
+    }
+    else {
+        minBtn.href = _templateBase + sep + 'fields=minimal';
+        fullBtn.href = _templateBase + sep + 'fields=full';
     }
 
     document.getElementById('import-file-input').value = '';
@@ -215,29 +266,33 @@ async function importRunCheck() {
         if (data.error) { Swal.fire('ผิดพลาด', data.error, 'error'); showImportStep(1); return; }
 
         // Build summary
-        const dups = data.duplicates || [];
+        const dups     = data.duplicates || [];
         const inserted = data.inserted ?? data.imported ?? 0;
         const updated  = data.updated  ?? dups.length;
         const sumHtml = `
-            <div class="row g-3 text-center">
-                <div class="col-4"><div class="bg-success bg-opacity-10 rounded-3 p-3">
+            <div class="row g-2 text-center">
+                <div class="col-6"><div class="bg-success bg-opacity-10 rounded-3 p-3">
                     <div class="fw-black text-success fs-3">${inserted}</div>
                     <div class="small fw-bold text-muted">เพิ่มใหม่</div>
                 </div></div>
-                <div class="col-4"><div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                <div class="col-6"><div class="bg-warning bg-opacity-10 rounded-3 p-3">
                     <div class="fw-black text-warning fs-3">${updated}</div>
                     <div class="small fw-bold text-muted">จะอัปเดต</div>
                 </div></div>
-                <div class="col-4"><div class="bg-secondary bg-opacity-10 rounded-3 p-3">
-                    <div class="fw-black text-secondary fs-3">${inserted + updated}</div>
-                    <div class="small fw-bold text-muted">รวมทั้งหมด</div>
-                </div></div>
             </div>`;
-        document.getElementById('import-summary').innerHTML = sumHtml;
+        // Show warning if number_in_class not found in file
+        let headerWarn = '';
+        if (data.detected_db_cols && !data.detected_db_cols.includes('number_in_class')) {
+            headerWarn = `<div class="alert alert-warning py-2 mt-2 mb-0 small">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                <strong>ไม่พบคอลัมน์ "เลขที่"</strong> ในไฟล์ที่อัปโหลด — เลขที่นักเรียนในห้องจะไม่ถูกอัปเดต
+                <br><span class="text-muted">คอลัมน์ที่รู้จัก: ${(data.parsed_headers || []).join(', ') || '-'}</span>
+            </div>`;
+        }
+        document.getElementById('import-summary').innerHTML = sumHtml + headerWarn;
 
         if (dups.length > 0) {
             document.getElementById('import-dup-table-wrap').classList.remove('d-none');
-            // Update heading to reflect upsert (not skip)
             const dupHeading = document.querySelector('#import-dup-table-wrap h6');
             if (dupHeading) dupHeading.innerHTML = '<i class="bi bi-arrow-repeat me-2 text-warning"></i>รายการที่จะอัปเดตข้อมูล';
             const dupNote = document.querySelector('#import-dup-table-wrap p.small');
@@ -289,8 +344,8 @@ async function importConfirm() {
                 icon: 'success',
                 title: 'นำเข้าสำเร็จ!',
                 html: `<div class="text-start">
-                    <div>✅ นำเข้าสำเร็จ: <strong>${data.imported}</strong> รายการ</div>
-                    <div>⚠️ ข้ามซ้ำ: <strong>${data.duplicate_count || 0}</strong> รายการ</div>
+                    <div>✅ เพิ่มใหม่: <strong>${data.inserted || 0}</strong> รายการ</div>
+                    <div>🔄 อัปเดต: <strong>${data.updated || data.duplicate_count || 0}</strong> รายการ</div>
                     ${errorDetails}
                 </div>`,
                 confirmButtonText: 'ตกลง'

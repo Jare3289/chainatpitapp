@@ -89,6 +89,21 @@
         .nav-pills .nav-link { color: #475569; background: transparent; transition: all 0.2s; }
         .nav-pills .nav-link:hover { color: #0d6efd; background: rgba(13, 110, 253, 0.05); }
         .nav-pills .nav-link.active { background: #0d6efd !important; color: #ffffff !important; }
+
+        /* Summary weekly table */
+        .table-weekly th { background: #f1f5f9; padding: 10px 14px; font-weight: 700; border: 1px solid #e2e8f0; text-align: center; }
+        .table-weekly td { padding: 10px 14px; border: 1px solid #f1f5f9; text-align: center; vertical-align: middle; }
+        .table-weekly { border-collapse: collapse; width: 100%; border-radius: 12px; overflow: hidden; }
+
+        @media print {
+            .sidebar, #mainSidebar, #header-container, #globalFooter,
+            #reportTabs, .dropdown-style-wrap, .card.card-modern:has(.dropdown-style),
+            .btn, .modal { display: none !important; }
+            .main-panel, .app-content { margin-left: 0 !important; padding: 0 !important; width: 100% !important; }
+            .tab-pane { display: block !important; opacity: 1 !important; }
+            .card-modern { box-shadow: none !important; border: 1px solid #ddd !important; }
+            thead { display: table-header-group; }
+        }
     </style>
 </head>
 <body>
@@ -110,6 +125,9 @@
                             </nav>
                         </div>
                         <div class="d-flex flex-column flex-md-row gap-2">
+                            <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
+                                <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+                            </button>
                             <a href="advisory_stats.html" class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm">
                                 <i class="bi bi-pie-chart-fill me-2"></i>ดูสถิติย้อนหลัง (แผนภูมิ)
                             </a>
@@ -126,6 +144,11 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link fw-bold py-3 rounded-3" id="tab-monthly-tab" data-bs-toggle="tab" data-bs-target="#tab-monthly" type="button" role="tab" aria-controls="tab-monthly" aria-selected="false" onclick="onMonthlyTabActive()">
                                 <i class="bi bi-calendar-range-fill me-2"></i> บันทึกประจำวัน (สถิติรายวันห้องเรียน)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link fw-bold py-3 rounded-3" id="tab-summary-tab" data-bs-toggle="tab" data-bs-target="#tab-summary" type="button" role="tab" aria-controls="tab-summary" aria-selected="false" onclick="onSummaryTabActive()">
+                                <i class="bi bi-bar-chart-fill me-2"></i> สรุปรายสัปดาห์-เดือน
                             </button>
                         </li>
                     </ul>
@@ -276,6 +299,81 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- TAB 3: WEEKLY / MONTHLY SUMMARY -->
+                        <div class="tab-pane fade" id="tab-summary" role="tabpanel" aria-labelledby="tab-summary-tab">
+                            <!-- Filter -->
+                            <div class="card card-modern mb-4 bg-white">
+                                <div class="card-body p-4">
+                                    <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
+                                        <i class="bi bi-funnel-fill text-primary"></i> เลือกห้องและเดือนที่ต้องการสรุป
+                                    </h6>
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-lg-3">
+                                            <label class="text-muted small fw-bold mb-2 d-block">เลือกเดือน:</label>
+                                            <select id="summaryMonthSelect" class="dropdown-style"></select>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <label class="text-muted small fw-bold mb-2 d-block">เลือกปี พ.ศ.:</label>
+                                            <select id="summaryYearSelect" class="dropdown-style"></select>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <label class="text-muted small fw-bold mb-2 d-block">ห้องเรียน:</label>
+                                            <select id="summaryRoomSelect" class="dropdown-style" onchange="syncRooms(this.value)">
+                                                <option value="">เลือกห้องเรียน...</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-2 d-flex align-items-end">
+                                            <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="loadSummaryData()">
+                                                <i class="bi bi-search me-2"></i>สรุป
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Monthly KPIs -->
+                            <div class="row g-3 mb-4" id="summaryKPIs"></div>
+                            <!-- Weekly breakdown -->
+                            <div class="card card-modern overflow-hidden mb-4 bg-white">
+                                <div class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                                    <h6 class="fw-bold text-navy mb-0"><i class="bi bi-calendar-week me-2 text-primary"></i>สรุปรายสัปดาห์ — <span id="summaryRoomLabel">-</span></h6>
+                                    <button class="btn btn-dark rounded-pill px-3 fw-bold shadow-sm" onclick="window.print()"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table class="table-weekly">
+                                            <thead><tr>
+                                                <th>สัปดาห์</th><th>ช่วงวันที่</th><th>วันที่เช็ค</th>
+                                                <th class="text-success">มาเรียน (ครั้ง)</th>
+                                                <th class="text-danger">ขาดเรียน (ครั้ง)</th>
+                                                <th class="text-primary">% มาเรียน</th>
+                                            </tr></thead>
+                                            <tbody id="weeklyBreakdownBody"><tr><td colspan="6" class="text-center py-4 text-muted">กรุณากดสรุป</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Monthly day-by-day -->
+                            <div class="card card-modern overflow-hidden mb-5 bg-white">
+                                <div class="card-header bg-white border-bottom py-3 px-4">
+                                    <h6 class="fw-bold text-navy mb-0"><i class="bi bi-calendar3 me-2 text-success"></i>สรุปรายวันทั้งเดือน</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive">
+                                        <table class="table-weekly">
+                                            <thead><tr>
+                                                <th>วันที่</th><th>นักเรียนทั้งหมด</th>
+                                                <th class="text-success">มาเรียน</th>
+                                                <th class="text-danger">ไม่มาเรียน</th>
+                                                <th class="text-primary">% มาเรียน</th>
+                                                <th>สถานะ</th>
+                                            </tr></thead>
+                                            <tbody id="summaryDailyBody"><tr><td colspan="6" class="text-center py-4 text-muted">กรุณากดสรุป</td></tr></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -384,18 +482,22 @@
                 const res = await fetch('../api/teacher/my-classes.php?type=daily');
                 const data = await res.json();
                 
-                const select = document.getElementById('detailedRoomSelect');
+                const select  = document.getElementById('detailedRoomSelect');
                 const mSelect = document.getElementById('monthlyRoomSelect');
+                const sSelect = document.getElementById('summaryRoomSelect');
                 if (!select) return;
-                
-                select.innerHTML = '<option value="">เลือกห้องเรียน...</option>';
+
+                initSummaryFilters();
+                select.innerHTML  = '<option value="">เลือกห้องเรียน...</option>';
                 mSelect.innerHTML = '<option value="">เลือกห้องเรียน...</option>';
-                
+                sSelect.innerHTML = '<option value="">เลือกห้องเรียน...</option>';
+
                 if (data.classes) {
                     data.classes.forEach(c => {
                         if (c) {
                             select.add(new Option(c.trim(), c.trim()));
                             mSelect.add(new Option(c.trim(), c.trim()));
+                            sSelect.add(new Option(c.trim(), c.trim()));
                         }
                     });
                 }
@@ -449,8 +551,10 @@
         }
 
         function syncRooms(val) {
-            document.getElementById('detailedRoomSelect').value = val;
-            document.getElementById('monthlyRoomSelect').value = val;
+            ['detailedRoomSelect', 'monthlyRoomSelect', 'summaryRoomSelect'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = val;
+            });
         }
 
         function onMonthlyTabActive() {
@@ -604,6 +708,144 @@
 
         function exportDetailedToExcel() { alert('กำลังเตรียมข้อมูลสำหรับการส่งออก Excel...'); }
         function exportMonthlyToExcel() { alert('กำลังเตรียมข้อมูลสถิติรายเดือนสำหรับการส่งออก Excel...'); }
+
+        // ── Summary Tab ─────────────────────────────────────────────────────────
+        function onSummaryTabActive() {
+            // Sync selects from other tabs
+            const room = $('#monthlyRoomSelect').val() || $('#detailedRoomSelect').val();
+            const mon  = $('#monthSelect').val();
+            const yr   = $('#yearSelect').val();
+            if (room) syncAllSummarySelects(room, mon, yr);
+            if (room && mon && yr) loadSummaryData();
+        }
+
+        function syncAllSummarySelects(room, mon, yr) {
+            const smSel = document.getElementById('summaryMonthSelect');
+            const sySel = document.getElementById('summaryYearSelect');
+            const srSel = document.getElementById('summaryRoomSelect');
+            if (!smSel.innerHTML) initSummaryFilters();
+            if (mon) smSel.value = mon;
+            if (yr)  sySel.value = yr;
+            // Add room option if missing
+            if (room && !Array.from(srSel.options).some(o => o.value === room)) {
+                srSel.add(new Option(room, room));
+            }
+            if (room) srSel.value = room;
+        }
+
+        function initSummaryFilters() {
+            const now = new Date();
+            const smSel = document.getElementById('summaryMonthSelect');
+            const sySel = document.getElementById('summaryYearSelect');
+            smSel.innerHTML = '';
+            monthNames.forEach((m, i) => smSel.add(new Option(m, (i+1).toString().padStart(2, '0'))));
+            smSel.value = (now.getMonth() + 1).toString().padStart(2, '0');
+            sySel.innerHTML = '';
+            const curBE = now.getFullYear() + 543;
+            for (let i = 0; i < 5; i++) sySel.add(new Option(curBE - i, curBE - i - 543));
+        }
+
+        async function loadSummaryData() {
+            const room  = $('#summaryRoomSelect').val();
+            const month = $('#summaryMonthSelect').val() || $('#monthSelect').val();
+            const year  = $('#summaryYearSelect').val()  || $('#yearSelect').val();
+            if (!room)  return Swal.fire('แจ้งเตือน', 'กรุณาเลือกห้องเรียน', 'warning');
+            if (!month || !year) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกเดือนและปี', 'warning');
+
+            document.getElementById('summaryRoomLabel').textContent = `ห้อง ${room} — ${monthNames[parseInt(month)-1]} ${parseInt(year)+543}`;
+            $('#weeklyBreakdownBody').html('<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-primary opacity-25"></div></td></tr>');
+            $('#summaryDailyBody').html('<tr><td colspan="6" class="text-center py-4"><div class="spinner-border text-primary opacity-25"></div></td></tr>');
+            $('#summaryKPIs').html('');
+
+            try {
+                const res  = await fetch(`../api/admin/monthly_stats.php?room=${encodeURIComponent(room)}&month=${month}&year=${year}`);
+                const data = await res.json();
+                if (!data.success || !data.report || !data.report.length) {
+                    $('#weeklyBreakdownBody').html('<tr><td colspan="6" class="text-center py-4 text-muted">ไม่พบข้อมูลเดือนนี้</td></tr>');
+                    $('#summaryDailyBody').html('<tr><td colspan="6" class="text-center py-4 text-muted">ไม่พบข้อมูลเดือนนี้</td></tr>');
+                    return;
+                }
+
+                const checkedDays = data.report.filter(r => r.checked_count > 0);
+
+                // ── KPI ──
+                const totalPresent = checkedDays.reduce((s, r) => s + (parseInt(r.present_m)||0) + (parseInt(r.present_f)||0), 0);
+                const totalAbsent  = checkedDays.reduce((s, r) => s + (parseInt(r.absent_m)||0)  + (parseInt(r.absent_f)||0),  0);
+                const totalRec     = totalPresent + totalAbsent;
+                const avgPct       = totalRec > 0 ? ((totalPresent / totalRec) * 100).toFixed(1) : '0';
+                const avgStudents  = checkedDays.length > 0 ? Math.round(checkedDays.reduce((s, r) => s + (parseInt(r.total_m)||0) + (parseInt(r.total_f)||0), 0) / checkedDays.length) : 0;
+
+                $('#summaryKPIs').html(`
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-navy">
+                        <div class="small fw-bold text-muted mb-1">นักเรียนเฉลี่ย</div><h3 class="fw-black text-navy mb-0">${avgStudents} คน</h3>
+                    </div></div>
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-success">
+                        <div class="small fw-bold text-muted mb-1">มาเรียนรวม</div><h3 class="fw-black text-success mb-0">${totalPresent.toLocaleString()} ครั้ง</h3>
+                    </div></div>
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-danger">
+                        <div class="small fw-bold text-muted mb-1">ขาดเรียนรวม</div><h3 class="fw-black text-danger mb-0">${totalAbsent.toLocaleString()} ครั้ง</h3>
+                    </div></div>
+                    <div class="col-md-3"><div class="kpi-mini-card border-start border-4 border-primary">
+                        <div class="small fw-bold text-muted mb-1">% มาเรียนเฉลี่ย</div><h3 class="fw-black text-primary mb-0">${avgPct}%</h3>
+                    </div></div>
+                `);
+
+                // ── Daily table ──
+                let dailyHtml = '';
+                data.report.forEach(r => {
+                    const tr  = (parseInt(r.total_m)||0)   + (parseInt(r.total_f)||0);
+                    const pr  = (parseInt(r.present_m)||0) + (parseInt(r.present_f)||0);
+                    const ar  = (parseInt(r.absent_m)||0)  + (parseInt(r.absent_f)||0);
+                    const pct = tr > 0 ? ((pr / tr) * 100).toFixed(1) : '-';
+                    const checked = r.checked_count > 0;
+                    dailyHtml += `<tr>
+                        <td class="fw-bold text-navy">${thDate(r.date)}</td>
+                        <td>${checked ? tr : '-'}</td>
+                        <td class="text-success fw-bold">${checked ? pr : '-'}</td>
+                        <td class="text-danger">${checked ? ar : '-'}</td>
+                        <td class="${pct !== '-' && pct >= 80 ? 'text-success' : 'text-danger'} fw-bold">${pct !== '-' ? pct + '%' : '-'}</td>
+                        <td>${r.is_complete ? '<span class="status-badge badge-done">ครบ</span>' : (checked ? '<span class="status-badge badge-not">ไม่ครบ</span>' : '<span class="text-muted small">—</span>')}</td>
+                    </tr>`;
+                });
+                $('#summaryDailyBody').html(dailyHtml);
+
+                // ── Weekly breakdown ──
+                const weeks = {};
+                checkedDays.forEach(r => {
+                    const dt  = new Date(r.date + 'T00:00:00');
+                    const mon = dt.getDay() === 0 ? -6 : 1 - dt.getDay();
+                    const wkStart = new Date(dt); wkStart.setDate(dt.getDate() + mon);
+                    const key = wkStart.toISOString().split('T')[0];
+                    if (!weeks[key]) weeks[key] = { start: wkStart, end: null, present: 0, absent: 0, days: 0 };
+                    const wkEnd = new Date(wkStart); wkEnd.setDate(wkStart.getDate() + 6);
+                    weeks[key].end = wkEnd;
+                    weeks[key].present += (parseInt(r.present_m)||0) + (parseInt(r.present_f)||0);
+                    weeks[key].absent  += (parseInt(r.absent_m)||0)  + (parseInt(r.absent_f)||0);
+                    weeks[key].days++;
+                });
+                const weekKeys = Object.keys(weeks).sort();
+                let weekHtml = '';
+                weekKeys.forEach((k, i) => {
+                    const w   = weeks[k];
+                    const tot = w.present + w.absent;
+                    const pct = tot > 0 ? ((w.present / tot) * 100).toFixed(1) : '-';
+                    const fmtDate = d => `${d.getDate()} ${monthNames[d.getMonth()]}`;
+                    weekHtml += `<tr>
+                        <td class="fw-bold text-navy">สัปดาห์ที่ ${i+1}</td>
+                        <td class="text-muted">${fmtDate(w.start)} – ${fmtDate(w.end)}</td>
+                        <td>${w.days} วัน</td>
+                        <td class="text-success fw-bold">${w.present.toLocaleString()}</td>
+                        <td class="text-danger">${w.absent.toLocaleString()}</td>
+                        <td class="${pct !== '-' && pct >= 80 ? 'text-success' : 'text-danger'} fw-bold">${pct !== '-' ? pct + '%' : '-'}</td>
+                    </tr>`;
+                });
+                $('#weeklyBreakdownBody').html(weekHtml || '<tr><td colspan="6" class="text-center py-4 text-muted">ไม่มีข้อมูล</td></tr>');
+
+            } catch (e) {
+                console.error(e);
+                $('#weeklyBreakdownBody, #summaryDailyBody').html('<tr><td colspan="6" class="text-center py-4 text-danger">โหลดข้อมูลไม่สำเร็จ</td></tr>');
+            }
+        }
 
         async function viewHistory(studentId) {
             const student = allStudents.find(s => s.id == studentId);
