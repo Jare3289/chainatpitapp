@@ -550,9 +550,26 @@
                 const result = await res.json();
                 
                 if (result.success) {
+                    const isSaved = result.students.some(s => s.status !== null);
                     studentData = result.students.map(s => { s.status = s.status || 'มา'; return s; });
                     renderStudents();
                     $('#stats-container').fadeIn().removeClass('hidden');
+
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    if (date === todayStr && !isSaved) {
+                        const now = new Date();
+                        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                        const cutoffMinutes = 8 * 60 + 30; // 08:30
+                        if (currentMinutes >= cutoffMinutes) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'เลยเวลาเช็คชื่อแล้ว (08.30 น.) ⚠️',
+                                text: 'กรุณาเช็คชื่อนักเรียนและบันทึกข้อมูลโดยด่วน',
+                                confirmButtonText: 'ตกลง',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    }
                 }
             } catch (e) { Swal.fire('Error', 'เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error'); }
         }

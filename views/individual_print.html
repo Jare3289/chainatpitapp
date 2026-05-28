@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบรายงานการมาเรียนรายบุคคล | CNP APP</title>
+    <link rel="stylesheet" href="../public/css/fonts.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            font-size: 16pt;
+            line-height: 1.15;
+        }
+        
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        
+        .print-page {
+            background-color: #ffffff;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .no-print-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            thead { display: table-header-group; }
+            tfoot { display: table-row-group; }
+            .signatures-section { page-break-inside: avoid; }
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 10px; 
+            line-height: 1.1;
+        }
+        .school-logo {
+            height: 80px;
+            margin-bottom: 4px;
+            object-fit: contain;
+        }
+        .report-title { font-size: 18pt; margin: 2px 0; }
+        .school-name { font-size: 16pt; margin: 0; }
+        .report-date { font-size: 16pt; margin-top: 2px; }
+        
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px; 
+            font-size: 14pt;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #000000;
+            padding: 2px 4px;
+            text-align: center;
+            font-size: 14pt;
+        }
+        
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding: 0 30px;
+            page-break-inside: avoid;
+            font-size: 16pt;
+            color: #000000;
+        }
+        .signature-block {
+            text-align: center;
+            width: 45%;
+        }
+        
+        /* Loader Overlay */
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #000000; border-top: 4px solid transparent; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 12px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-bar no-print">
+        <button onclick="window.close()" style="background:transparent; border:none; font-size:16pt; cursor:pointer;">&times; ปิด</button>
+        <button onclick="window.print()" style="background:#000; color:#fff; border:none; padding:8px 24px; font-size:16pt; cursor:pointer;">พิมพ์ / บันทึก PDF</button>
+    </div>
+
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <h4>กำลังประมวลผลข้อมูล...</h4>
+    </div>
+
+    <div class="print-page">
+        <div class="header-section">
+            <img src="../public/img/logo.png" class="school-logo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';">
+            <div class="report-title"><b>แบบรายงานการมาเรียนรายบุคคล</b></div>
+            <div class="school-name">โรงเรียนชัยนาทพิทยาคม อำเภอเมือง จังหวัดชัยนาท</div>
+            <div class="school-name">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท</div>
+            <div class="report-date">วันที่ : <span id="lblReportDate">-</span></div>
+        </div>
+
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:40px;">ที่.</th>
+                    <th rowspan="2" style="text-align:left;">ชื่อ-นามสกุล</th>
+                    <th id="dateHeaderParent">วันที่เช็คชื่อ</th>
+                    <th colspan="4">สรุป (วัน)</th>
+                </tr>
+                <tr id="detailedHeaderRow2">
+                    <th style="width: 35px;">มา</th>
+                    <th style="width: 35px;">ขาด</th>
+                    <th style="width: 35px;">ลา</th>
+                    <th style="width: 35px;">สาย</th>
+                </tr>
+            </thead>
+            <tbody id="detailedTableBody">
+            </tbody>
+        </table>
+
+        <div class="signatures-section">
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายวิษณุ ประสิทธิกสิกร<br>
+                    หัวหน้ากิจกรรมพัฒนาผู้เรียน<br>
+                    งานกิจกรรม
+                </div>
+            </div>
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">(......................................................)</div>
+                <div style="line-height:1.25;">
+                    นายชูชาติ พารีสอน<br>
+                    ผู้อำนวยการสถานศึกษา
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function getThaiDateRange(startStr, endStr) {
+            const thMonth = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            if (!startStr || !endStr) return "-";
+            const ds = new Date(startStr);
+            const de = new Date(endStr);
+            const sy = ds.getFullYear() + 543;
+            const ey = de.getFullYear() + 543;
+            if (ds.getTime() === de.getTime()) return `${ds.getDate()} ${thMonth[ds.getMonth()]} ${sy}`;
+            if (sy === ey && ds.getMonth() === de.getMonth()) return `${ds.getDate()} - ${de.getDate()} ${thMonth[de.getMonth()]} ${ey}`;
+            return `${ds.getDate()} ${thMonth[ds.getMonth()]} ${sy} - ${de.getDate()} ${thMonth[de.getMonth()]} ${ey}`;
+        }
+
+        $(document).ready(async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const room = urlParams.get('room');
+            const start = urlParams.get('start');
+            const end = urlParams.get('end');
+            
+            if (!room || !start || !end) {
+                alert("ข้อมูลไม่ครบถ้วน");
+                $('#loader').hide();
+                return;
+            }
+
+            $('#lblReportDate').text(getThaiDateRange(start, end));
+
+            try {
+                const res = await fetch(`../api/teacher/detailed-room-report.php?room=${encodeURIComponent(room)}&start_date=${start}&end_date=${end}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (!data.dates || data.dates.length === 0) {
+                        $('#detailedHeaderRow2').find('th:not(:nth-last-child(-n+4))').remove();
+                        $('#dateHeaderParent').attr('colspan', 1);
+                        $('#detailedTableBody').html('<tr><td colspan="7" style="text-align:center;">ไม่พบข้อมูลการเช็คชื่อในช่วงเวลาที่เลือก</td></tr>');
+                    } else {
+                        const dateHeaders = data.dates.map(d => {
+                            const dO = new Date(d);
+                            return `<th>${dO.getDate().toString().padStart(2, '0')}/${(dO.getMonth()+1).toString().padStart(2, '0')}</th>`;
+                        }).join('');
+                        
+                        $('#detailedHeaderRow2').prepend(dateHeaders);
+                        $('#dateHeaderParent').attr('colspan', data.dates.length);
+
+                        let bodyHtml = '';
+                        data.students.forEach((s, idx) => {
+                            let sum = { p: 0, a: 0, l: 0, s: 0 };
+                            let rowHtml = `<tr>
+                                <td>${s.number_in_class || (idx+1)}</td>
+                                <td style="text-align:left;">${s.prefix || ''}${s.first_name_th} ${s.last_name_th}</td>`;
+                            
+                            data.dates.forEach(d => {
+                                const st = data.attendance[s.id] ? data.attendance[s.id][d] : null;
+                                let ic = '-';
+                                if (st === 'มา') { ic = '<i class="bi bi-check-lg"></i>'; sum.p++; }
+                                else if (st === 'ขาด') { ic = 'ข'; sum.a++; }
+                                else if (st === 'สาย') { ic = 'ส'; sum.s++; }
+                                else if (st === 'ลา' || st === 'ป่วย' || st === 'ลากิจ') { ic = 'ล'; sum.l++; }
+                                rowHtml += `<td>${ic}</td>`;
+                            });
+                            rowHtml += `<td>${sum.p}</td><td>${sum.a}</td><td>${sum.l}</td><td>${sum.s}</td></tr>`;
+                            bodyHtml += rowHtml;
+                        });
+                        $('#detailedTableBody').html(bodyHtml);
+                    }
+                } else {
+                    $('#detailedTableBody').html(`<tr><td colspan="100">${data.error || 'เกิดข้อผิดพลาด'}</td></tr>`);
+                }
+            } catch (err) { 
+                $('#detailedTableBody').html('<tr><td colspan="100">เกิดข้อผิดพลาดในการเชื่อมต่อ</td></tr>'); 
+            }
+            
+            $('#loader').fadeOut(300);
+            setTimeout(() => window.print(), 800);
+        });
+    </script>
+</body>
+</html>

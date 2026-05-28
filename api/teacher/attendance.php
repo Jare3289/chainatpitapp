@@ -165,12 +165,15 @@ if ($method === 'GET') {
             foreach ($records as $r) {
                 $stmt->execute([$r['student_id'], $class_name, $date, $r['status'], $r['remark'] ?? null, $recorded_by]);
             }
+            
+            // Mark any urgent attendance reminders for this teacher as read
+            $pdo->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ? AND title LIKE '%เตือนให้เช็คชื่อโฮมรูมประจำวัน%'")->execute([$recorded_by]);
         }
 
         $pdo->commit();
 
-        // 🔔 Notify each student whose status was set to ขาด / สาย / ลา / ป่วย / กิจ / ลากิจ
-        $notable = ['ขาด','สาย','ลา','ป่วย','กิจ','ลากิจ'];
+        // 🔔 Notify each student whose status was set to ขาด / สาย / ลา / ป่วย / กิจ / ลากิจ / โดดเรียน
+        $notable = ['ขาด','สาย','ลา','ป่วย','กิจ','ลากิจ','โดดเรียน'];
         foreach ($records as $r) {
             $st = $r['status'] ?? '';
             if (!in_array($st, $notable, true)) continue;
@@ -180,22 +183,53 @@ if ($method === 'GET') {
             $look = $pdo->prepare("SELECT user_id FROM students WHERE id = ? LIMIT 1");
             $look->execute([$sid]);
             $uid = (int) ($look->fetchColumn() ?: 0);
-            if ($uid <= 0) continue;
+            
+            if ($uid > 0) {
+                $emoji = ['ขาด'=>'⚠️','สาย'=>'⏰','ลา'=>'📝','ป่วย'=>'🤒','กิจ'=>'📝','ลากิจ'=>'📝','โดดเรียน'=>'🚨'][$st] ?? '🔔';
+                $color = ['ขาด'=>'#ef4444','สาย'=>'#f59e0b','ลา'=>'#3b82f6','ป่วย'=>'#06b6d4','กิจ'=>'#3b82f6','ลากิจ'=>'#3b82f6','โดดเรียน'=>'#fd7e14'][$st] ?? '#3b82f6';
+                $title = "{$emoji} ผลการเช็คชื่อ: {$st}";
+                $msg   = ($type === 'subject')
+                    ? "วันที่ " . date('j/n/Y', strtotime($date)) . " คาบ {$period} — สถานะ: {$st}"
+                    : "วันที่ " . date('j/n/Y', strtotime($date)) . " (โฮมรูม) — สถานะ: {$st}";
+                cnp_notify(
+                    $pdo, $uid, $title, $msg,
+                    'student_attendance_history.html',
+                    'bi-clipboard2-check-fill',
+                    $color,
+                    'attendance',
+                    'att_' . $type . '_' . $date . '_' . ($period ?? 'd') . '_' . $sid
+                );
+            }
 
-            $emoji = ['ขาด'=>'⚠️','สาย'=>'⏰','ลา'=>'📝','ป่วย'=>'🤒','กิจ'=>'📝','ลากิจ'=>'📝'][$st] ?? '🔔';
-            $color = ['ขาด'=>'#ef4444','สาย'=>'#f59e0b','ลา'=>'#3b82f6','ป่วย'=>'#06b6d4','กิจ'=>'#3b82f6','ลากิจ'=>'#3b82f6'][$st] ?? '#3b82f6';
-            $title = "{$emoji} ผลการเช็คชื่อ: {$st}";
-            $msg   = ($type === 'subject')
-                ? "วันที่ " . date('j/n/Y', strtotime($date)) . " คาบ {$period} — สถานะ: {$st}"
-                : "วันที่ " . date('j/n/Y', strtotime($date)) . " (โฮมรูม) — สถานะ: {$st}";
-            cnp_notify(
-                $pdo, $uid, $title, $msg,
-                'student_attendance_history.html',
-                'bi-clipboard2-check-fill',
-                $color,
-                'attendance',
-                'att_' . $type . '_' . $date . '_' . ($period ?? 'd') . '_' . $sid
-            );
+            // Notify homeroom teacher if 'โดดเรียน'
+            if ($st === 'โดดเรียน') {
+                $lookAdv = $pdo->prepare("
+                    SELECT t.user_id 
+                    FROM teachers t 
+                    LEFT JOIN rooms r ON r.id = t.advisory_room_id 
+                    WHERE COALESCE(r.classroom_code, t.classroom) = ? 
+                    LIMIT 1
+                ");
+                $lookAdv->execute([$class_name]);
+                $advisorUid = (int) ($lookAdv->fetchColumn() ?: 0);
+                
+                if ($advisorUid > 0) {
+                    $lookStu = $pdo->prepare("SELECT prefix, first_name_th, last_name_th, number_in_class FROM students WHERE id = ?");
+                    $lookStu->execute([$sid]);
+                    $stuInfo = $lookStu->fetch();
+                    $stuName = $stuInfo ? "เลขที่ {$stuInfo['number_in_class']} " . trim("{$stuInfo['prefix']}{$stuInfo['first_name_th']} {$stuInfo['last_name_th']}") : 'นักเรียน';
+
+                    $advMsg = "พบ {$stuName} มีสถานะ โดดเรียน ในวันที่ " . date('j/n/Y', strtotime($date)) . " คาบ {$period}" . ($subject_code ? " วิชา {$subject_code}" : "");
+                    cnp_notify(
+                        $pdo, $advisorUid, "🚨 แจ้งเตือนนักเรียนโดดเรียน", $advMsg,
+                        'advisory_period_report.html',
+                        'bi-exclamation-octagon-fill',
+                        '#fd7e14',
+                        'attendance',
+                        'att_skip_' . $date . '_' . ($period ?? 'd') . '_' . $sid
+                    );
+                }
+            }
         }
 
         echo json_encode(['success' => true, 'message' => 'บันทึกข้อมูลเรียบร้อยแล้ว']);

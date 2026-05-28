@@ -350,7 +350,7 @@ views/daily_attendance_print.html
             
             <div class="qr-box">
                 <canvas id="qrCanvas" class="qr-image" width="80" height="80"></canvas>
-                <div class="qr-caption">แสกนเพื่อดูรายการมาเรียนวันนี้</div>
+                <div class="qr-caption">สแกนเพื่อดูรายการมาเรียนวันนี้</div>
             </div>
         </div>
 
@@ -417,7 +417,7 @@ views/daily_attendance_print.html
                 
                 if (data.rooms && data.rooms.length > 0) {
                     data.rooms.forEach(r => {
-                        const pctStr = r.percent_not_present > 0 ? r.percent_not_present.toFixed(2) + '%' : '0.00%';
+                        const pctStr = r.percent_not_present > 0 ? r.percent_not_present.toFixed(2) : '0.00';
                         
                         const tr = `
                             <tr>
@@ -447,7 +447,7 @@ views/daily_attendance_print.html
                     $('#totPresent').text(t.present);
                     $('#totNotPresent').text(t.not_present);
                     
-                    const pctTotalStr = t.percent_not_present > 0 ? t.percent_not_present.toFixed(2) + '%' : '0.00%';
+                    const pctTotalStr = t.percent_not_present > 0 ? t.percent_not_present.toFixed(2) : '0.00';
                     $('#totPercent').text(pctTotalStr);
                 }
                 

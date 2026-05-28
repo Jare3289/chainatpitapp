@@ -39,7 +39,12 @@ try {
     // 3. Grade-Level Performance
     $gradeStmt = $pdo->prepare("
         SELECT s.grade_level AS grade,
-               SUM(CASE WHEN a.status = 'มา' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(a.id), 0) AS attendance_rate
+               SUM(CASE WHEN a.status = 'มา' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(a.id), 0) AS attendance_rate,
+               SUM(CASE WHEN a.status = 'มา' THEN 1 ELSE 0 END) AS present_count,
+               SUM(CASE WHEN a.status = 'สาย' THEN 1 ELSE 0 END) AS late_count,
+               SUM(CASE WHEN a.status = 'ขาด' THEN 1 ELSE 0 END) AS absent_count,
+               SUM(CASE WHEN a.status IN ('ลา', 'ป่วย', 'ลากิจ') THEN 1 ELSE 0 END) AS leave_count,
+               COUNT(a.id) AS total_count
         FROM attendance a
         JOIN students s ON a.student_id = s.id
         WHERE a.date = ? AND a.type = 'daily' AND s.is_active = 1

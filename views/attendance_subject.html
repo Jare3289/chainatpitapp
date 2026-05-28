@@ -43,6 +43,7 @@
         .status-btn.active-ป { background: #0dcaf0; color: white; border-color: #0dcaf0; }
         .status-btn.active-ก { background: #0d6efd; color: white; border-color: #0d6efd; }
         .status-btn.active-ส { background: #ffc107; color: #000; border-color: #ffc107; }
+        .status-btn.active-ด { background: #fd7e14; color: white; border-color: #fd7e14; }
 
         .remark-input { width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.9rem; }
         .remark-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1); }
@@ -81,7 +82,6 @@
                                 </ol>
                             </nav>
                         </div>
-                        <div class="d-flex gap-2">
                             <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="window.location.href='subject_attendance_stats.html'">
                                 <i class="bi bi-pie-chart-fill me-1"></i> ดูสถิติรายวิชา
                             </button>
@@ -92,7 +92,7 @@
                     </div>
 
                     <!-- Filter Section -->
-                    <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+                        <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                         <div class="card-body p-4">
                             <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
                                 <i class="bi bi-journal-bookmark-fill text-primary"></i> เลือกรายวิชา / ห้อง / วันที่
@@ -454,6 +454,7 @@
                     { key:'ป', label:'ป่วย' },
                     { key:'ก', label:'ลา' },
                     { key:'ส', label:'สาย' },
+                    { key:'ด', label:'โดดเรียน' },
                 ];
                 const btns = statuses.map(st =>
                     `<button class="status-btn ${s.status === st.label ? 'active-'+st.key : ''}" onclick="setStatus(${s.id}, '${st.label}')">${st.key}</button>`
@@ -500,7 +501,7 @@
             const c = { total: studentData.length, present:0, absent:0, leave:0, late:0 };
             studentData.forEach(s => {
                 if (s.status === 'มา')                                   c.present++;
-                else if (s.status === 'ขาด')                              c.absent++;
+                else if (s.status === 'ขาด' || s.status === 'โดดเรียน')   c.absent++;
                 else if (s.status === 'สาย')                              c.late++;
                 else if (s.status === 'ลา' || s.status === 'ป่วย')        c.leave++;
             });
@@ -638,6 +639,11 @@
                     onSubjectChange();
                 }
             });
+        }
+        function thDate(ymd) {
+            if (!ymd) return '';
+            const d = new Date(ymd);
+            return `${d.getDate()} ${["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][d.getMonth()+1]} ${d.getFullYear()+543}`;
         }
     </script>
 </body>

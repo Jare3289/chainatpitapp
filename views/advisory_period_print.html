@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานการเข้าเรียนรายคาบห้องที่ปรึกษา | CNP APP</title>
+    <link rel="stylesheet" href="../public/css/fonts.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            font-size: 14pt;
+            line-height: 1.15;
+        }
+        
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        
+        .print-page {
+            background-color: #ffffff;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .no-print-bar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #000000;
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .signatures-section { page-break-inside: avoid; }
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 15px; 
+            line-height: 1.1;
+        }
+        .school-logo {
+            height: 70px;
+            margin-bottom: 4px;
+            object-fit: contain;
+        }
+        .report-title { font-size: 16pt; margin: 2px 0; }
+        .school-name { font-size: 14pt; margin: 0; }
+        .report-date { font-size: 14pt; margin-top: 2px; }
+        
+        /* Table styles */
+        .table-print {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12pt;
+        }
+        .table-print th {
+            border: 1px solid #000000;
+            padding: 6px 4px;
+            background-color: #f2f2f2;
+            font-weight: bold;
+            text-align: center;
+        }
+        .table-print td {
+            border: 1px solid #000000;
+            padding: 6px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .table-print td.text-start {
+            text-align: left;
+            padding-left: 8px;
+        }
+        
+        .status-badge {
+            font-weight: bold;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            border-radius: 50%;
+            text-align: center;
+        }
+        .status-ม { background-color: #d1fae5; color: #065f46; }
+        .status-ข { background-color: #fee2e2; color: #991b1b; }
+        .status-สาย { background-color: #fef3c7; color: #92400e; }
+        .status-ลา { background-color: #dbeafe; color: #1e40af; }
+        .status-ป่วย { background-color: #e0f2fe; color: #0369a1; }
+        .status-กิจ { background-color: #dbeafe; color: #1e40af; }
+        .status-ลากิจ { background-color: #dbeafe; color: #1e40af; }
+        
+        .subj-code {
+            display: block;
+            font-size: 8pt;
+            color: #555555;
+            margin-top: 2px;
+        }
+        
+        .signatures-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding: 0 30px;
+            page-break-inside: avoid;
+            font-size: 14pt;
+            color: #000000;
+        }
+        .signature-block {
+            text-align: center;
+            width: 45%;
+        }
+        
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #000000; border-top: 4px solid transparent; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 12px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="no-print-bar no-print">
+        <button onclick="window.close()" style="background:transparent; border:none; font-size:14pt; cursor:pointer;">&times; ปิด</button>
+        <button onclick="window.print()" style="background:#000; color:#fff; border:none; padding:6px 20px; font-size:14pt; cursor:pointer;">พิมพ์ / บันทึก PDF</button>
+    </div>
+
+    <div id="loader" class="loader-overlay no-print">
+        <div class="spinner"></div>
+        <h4>กำลังประมวลผลข้อมูล...</h4>
+    </div>
+
+    <div class="print-page">
+        <div class="header-section">
+            <img src="../public/img/logo.png" class="school-logo" alt="โลโก้โรงเรียน" onerror="this.src='../public/img/logo-cnp.png';">
+            <div class="report-title"><b>รายงานการเข้าเรียนรายคาบห้องที่ปรึกษา</b></div>
+            <div class="school-name">โรงเรียนชัยนาทพิทยาคม อำเภอเมือง จังหวัดชัยนาท</div>
+            <div class="school-name">ระดับชั้น มัธยมศึกษาปีที่ <span id="lblGrade">-</span> ห้องเรียน <span id="lblClass">-</span></div>
+            <div class="report-date">ประจำวันที่ : <span id="lblReportDate">-</span></div>
+        </div>
+
+        <table class="table-print">
+            <thead>
+                <tr>
+                    <th width="5%">เลขที่</th>
+                    <th width="8%">รหัสนักเรียน</th>
+                    <th width="20%">ชื่อ-นามสกุล</th>
+                    <th width="7%">คาบ 1</th>
+                    <th width="7%">คาบ 2</th>
+                    <th width="7%">คาบ 3</th>
+                    <th width="7%">คาบ 4</th>
+                    <th width="7%">คาบ 5</th>
+                    <th width="7%">คาบ 6</th>
+                    <th width="7%">คาบ 7</th>
+                    <th width="7%">คาบ 8</th>
+                    <th width="7%">คาบ 9</th>
+                    <th width="8%">ขาดสะสม</th>
+                </tr>
+            </thead>
+            <tbody id="printTableBody">
+                <tr><td colspan="13" class="text-center py-4">ไม่มีข้อมูล</td></tr>
+            </tbody>
+        </table>
+
+        <div class="signatures-section">
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">ลงชื่อ......................................................ครูที่ปรึกษา</div>
+                <div style="line-height:1.25; margin-top: 5px;">
+                    (......................................................)<br>
+                    ครูที่ปรึกษาประจำชั้นเรียน
+                </div>
+            </div>
+            <div class="signature-block">
+                <div style="margin-bottom:5px;">ลงชื่อ......................................................ผู้ตรวจรายงาน</div>
+                <div style="line-height:1.25; margin-top: 5px;">
+                    (......................................................)<br>
+                    งานทะเบียนและวัดผลกิจกรรมพัฒนาผู้เรียน
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const monthNames = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+        
+        function thDate(dateInput) {
+            if (!dateInput) return '-';
+            const date = new Date(dateInput);
+            if (isNaN(date.getTime())) return dateInput;
+            const d = date.getDate();
+            const m = monthNames[date.getMonth()];
+            const y = date.getFullYear() + 543;
+            return `${d} ${m} ${y}`;
+        }
+
+        $(document).ready(async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const date = urlParams.get('date') || new Date().toISOString().split('T')[0];
+            const classroom = urlParams.get('classroom') || '';
+
+            $('#lblReportDate').text(thDate(date));
+
+            if (!classroom) {
+                $('#printTableBody').html('<tr><td colspan="13" class="text-center">กรุณาระบุห้องเรียน</td></tr>');
+                $('#loader').fadeOut(300);
+                return;
+            }
+
+            try {
+                const res = await fetch(`../api/teacher/get-advisory-period-attendance.php?date=${date}&classroom=${encodeURIComponent(classroom)}`);
+                const data = await res.json();
+                
+                if (data.success && data.students) {
+                    $('#lblClass').text(data.classroom);
+                    const gradePart = data.classroom.split('/')[0].replace('ม.', '').trim();
+                    $('#lblGrade').text(gradePart || '-');
+
+                    const tbody = $('#printTableBody');
+                    tbody.empty();
+
+                    data.students.forEach((s, idx) => {
+                        let rowHtml = `<tr>
+                            <td>${s.number_in_class || idx + 1}</td>
+                            <td>${s.code}</td>
+                            <td class="text-start">${s.prefix || ''}${s.first_name_th} ${s.last_name_th}</td>
+                        `;
+
+                        // Render period columns 1 to 9
+                        for (let p = 1; p <= 9; p++) {
+                            const att = s.periods[p];
+                            if (att && att.status) {
+                                let statusAbbr = 'ม'; // Default
+                                if (att.status === 'ขาด') statusAbbr = 'ข';
+                                else if (att.status === 'สาย') statusAbbr = 'ส';
+                                else if (att.status === 'ป่วย') statusAbbr = 'ป';
+                                else if (att.status === 'ลา' || att.status === 'ลากิจ' || att.status === 'กิจ') statusAbbr = 'ล';
+
+                                const badgeClass = `status-${att.status}`;
+                                const subjText = att.subject_code ? `<span class="subj-code">${att.subject_code}</span>` : '';
+                                rowHtml += `<td><span class="status-badge ${badgeClass}">${statusAbbr}</span>${subjText}</td>`;
+                            } else {
+                                rowHtml += `<td>-</td>`;
+                            }
+                        }
+
+                        // Render cumulative absents
+                        const absCount = s.cumulative_absents;
+                        const riskStyle = absCount > 3 ? 'style="color:red; font-weight:bold;"' : '';
+                        rowHtml += `<td ${riskStyle}>${absCount}</td></tr>`;
+
+                        tbody.append(rowHtml);
+                    });
+
+                } else {
+                    $('#printTableBody').html(`<tr><td colspan="13" class="text-center">${data.error || 'ไม่พบข้อมูล'}</td></tr>`);
+                }
+            } catch (err) {
+                console.error(err);
+                $('#printTableBody').html('<tr><td colspan="13" class="text-center">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>');
+            }
+            
+            $('#loader').fadeOut(300);
+            setTimeout(() => window.print(), 1000);
+        });
+    </script>
+</body>
+</html>

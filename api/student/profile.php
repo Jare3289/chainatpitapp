@@ -57,6 +57,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
     try {
+        // Helper function to parse Thai full name
+        $parseThaiFullName = function($fullName) {
+            $fullName = trim($fullName);
+            $prefixes = ['เด็กชาย', 'เด็กหญิง', 'นาย', 'นางสาว', 'นาง', 'หม่อมหลวง', 'หม่อมราชวงศ์', 'หม่อมเจ้า'];
+            $foundPrefix = '';
+            foreach ($prefixes as $p) {
+                if (strpos($fullName, $p) === 0) {
+                    $foundPrefix = $p;
+                    $fullName = substr($fullName, strlen($p));
+                    break;
+                }
+            }
+            $fullName = trim($fullName);
+            $parts = preg_split('/\s+/', $fullName);
+            $firstName = $parts[0] ?? '';
+            $lastName = $parts[1] ?? '';
+            return [
+                'prefix' => $foundPrefix,
+                'first_name' => $firstName,
+                'last_name' => $lastName
+            ];
+        };
+
         // Handle photo upload
         if (!empty($data['photo_base64'])) {
             $b64 = $data['photo_base64'];
@@ -74,10 +97,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         unset($data['photo_base64']);
 
-        // Allowed student-editable fields
+        // Allowed student-editable fields (house removed)
         $allowed = [
             'photo','prefix','first_name_th','last_name_th','full_name_th',
-            'first_name_en','last_name_en','nickname','number_in_class','house',
+            'first_name_en','last_name_en','nickname','number_in_class',
             'email','gender','birth_sex','ethnicity','nationality','religion',
             'birth_date','child_order','id_card','student_id_card','phone',
             'line_id','facebook','instagram',
@@ -109,12 +132,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'internet_access','social_media_usage','talents','interests','hobbies',
         ];
 
+        // Fetch current data for name syncing
+        $stmtCur = $pdo->prepare("SELECT prefix, first_name_th, last_name_th, full_name_th FROM students WHERE user_id = ?");
+        $stmtCur->execute([$user_id]);
+        $curStudent = $stmtCur->fetch();
+
+        // Synchronize name fields
+        $new_prefix = isset($data['prefix']) ? trim($data['prefix']) : ($curStudent['prefix'] ?? '');
+        $new_first  = isset($data['first_name_th']) ? trim($data['first_name_th']) : ($curStudent['first_name_th'] ?? '');
+        $new_last   = isset($data['last_name_th']) ? trim($data['last_name_th']) : ($curStudent['last_name_th'] ?? '');
+        $new_full   = isset($data['full_name_th']) ? trim($data['full_name_th']) : '';
+
+        if ($new_full !== '') {
+            // User entered a new full name (name change). Parse and overwrite prefix, first name, last name.
+            $parsed = $parseThaiFullName($new_full);
+            if ($parsed['first_name'] !== '') {
+                $new_prefix = $parsed['prefix'] !== '' ? $parsed['prefix'] : $new_prefix;
+                $new_first  = $parsed['first_name'];
+                $new_last   = $parsed['last_name'] !== '' ? $parsed['last_name'] : $new_last;
+
+                $data['prefix'] = $new_prefix;
+                $data['first_name_th'] = $new_first;
+                $data['last_name_th'] = $new_last;
+                $data['full_name_th'] = trim($new_prefix . $new_first . ' ' . $new_last);
+            }
+        } else {
+            // No name change filled: keep full_name_th synced with prefix + first + last
+            $data['full_name_th'] = trim($new_prefix . $new_first . ' ' . $new_last);
+        }
+
+        // Server-side validation: ensure no required fields are blank (except full_name_th and photo)
+        foreach ($data as $key => $val) {
+            if ($key === 'full_name_th' || $key === 'photo') continue;
+            if (in_array($key, $allowed, true)) {
+                if (trim((string)$val) === '') {
+                    echo json_encode(['success' => false, 'error' => "กรุณากรอกข้อมูลช่อง {$key} ให้เรียบร้อย (หากไม่มีข้อมูลให้ระบุ '-')"], JSON_UNESCAPED_UNICODE);
+                    exit;
+                }
+            }
+        }
+
+        // Build UPDATE SQL
         $updateParts = [];
         $params      = [];
         foreach ($data as $key => $val) {
             if (!in_array($key, $allowed, true)) continue;
-            // Don't nullify house/ENUM fields that were submitted empty — skip them
-            if (in_array($key, ['house'], true) && ($val === '' || $val === null)) continue;
             $updateParts[] = "`$key` = ?";
             $params[]      = ($val === '') ? null : $val;
         }
@@ -128,6 +190,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $sql = 'UPDATE students SET ' . implode(', ', $updateParts) . ' WHERE user_id = ?';
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
+
+        // If email was updated, update users table as well
+        if (!empty($data['email'])) {
+            $stmtUser = $pdo->prepare("UPDATE users SET email = ? WHERE id = ?");
+            $stmtUser->execute([$data['email'], $user_id]);
+        }
+
         echo json_encode(['success' => true], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
     } catch (PDOException $e) {

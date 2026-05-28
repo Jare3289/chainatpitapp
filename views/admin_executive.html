@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <title>ภาพรวมผู้บริหาร | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f0f4f8; }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: white;
+            border-radius: 20px;
+            padding: 22px 24px;
+            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+        .kpi-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .kpi-value { font-size: 2rem; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+        .kpi-label { font-size: 0.8rem; font-weight: 600; color: #64748b; margin-top: 2px; }
+        .kpi-delta { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+
+        /* Attendance Rate Arc */
+        .rate-circle { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+
+        /* Chart card */
+        .chart-card { background: white; border-radius: 20px; padding: 24px; border: 1px solid rgba(0,0,0,0.04); box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+
+        /* Table styles */
+        .table-exec { width: 100%; border-collapse: collapse; }
+        .table-exec th { background: #f8fafc; padding: 12px 16px; font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0; font-size: 0.8rem; text-align: center; white-space: nowrap; }
+        .table-exec td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; text-align: center; vertical-align: middle; font-size: 0.875rem; }
+        .table-exec tr:hover td { background: #fafcff; }
+
+        /* Status badges */
+        .badge-checked { background: #ecfdf5; color: #059669; font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; }
+        .badge-pending { background: #fff7ed; color: #d97706; font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; }
+        .badge-critical { background: #fff1f2; color: #e11d48; font-weight: 700; padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; }
+
+        /* Progress bars */
+        .progress-slim { height: 8px; border-radius: 20px; }
+
+        /* Tab pills */
+        .trend-pills .btn { border-radius: 20px; font-size: 0.78rem; font-weight: 700; padding: 5px 14px; }
+
+        /* Section header */
+        .section-hd { font-size: 0.9rem; font-weight: 800; color: #1e293b; letter-spacing: -0.3px; margin-bottom: 14px; }
+
+        /* Date picker card */
+        .date-card { background: white; border-radius: 16px; padding: 12px 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: inline-flex; align-items: center; gap: 10px; }
+
+        @media (max-width: 768px) { .kpi-value { font-size: 1.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main" tabindex="-1">
+            <div id="header-container"></div>
+
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+
+                    <!-- Page Header -->
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">
+                                <i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>ภาพรวมผู้บริหาร
+                            </h4>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0 small opacity-75">
+                                    <li class="breadcrumb-item"><a href="admin_dashboard.html" class="text-decoration-none text-primary">หน้าแรก</a></li>
+                                    <li class="breadcrumb-item active">ภาพรวมผู้บริหาร</li>
+                                </ol>
+                            </nav>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="date-card">
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                <input type="date" id="execDate" class="form-control form-control-sm border-0 bg-transparent fw-bold shadow-none p-0" style="width:140px;" onchange="loadExecutiveData()">
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="goToday()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>วันนี้
+                            </button>
+                            <button class="btn btn-danger btn-sm rounded-pill px-3 fw-bold" onclick="sendAttendanceReminder()">
+                                <i class="bi bi-bell-fill me-1"></i>เตือนเช็คชื่อ
+                            </button>
+                            <button class="btn btn-dark btn-sm rounded-pill px-4 fw-bold" onclick="openPrintView()">
+                                <i class="bi bi-file-earmark-pdf me-2"></i>Export PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- KPI Row 1: Main stats -->
+                    <div class="row g-3 mb-3" id="kpiRow">
+                        <!-- loaded by JS -->
+                        <div class="col-12 text-center py-5"><div class="spinner-border text-primary opacity-25"></div></div>
+                    </div>
+
+                    <!-- Row 2: Chart + Grade Stats -->
+                    <div class="row g-3 mb-3">
+                        <!-- Trend Chart -->
+                        <div class="col-lg-8">
+                            <div class="chart-card">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="section-hd mb-0"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>แนวโน้มการมาเรียน</div>
+                                    <div class="trend-pills btn-group" role="group">
+                                        <button class="btn btn-outline-primary active" id="trendBtnDaily" onclick="renderChart('daily')">รายวัน</button>
+                                        <button class="btn btn-outline-primary" id="trendBtnWeekly" onclick="renderChart('weekly')">รายสัปดาห์</button>
+                                        <button class="btn btn-outline-primary" id="trendBtnMonthly" onclick="renderChart('monthly')">รายเดือน</button>
+                                    </div>
+                                </div>
+                                <canvas id="trendChart" style="height:260px; max-height:260px;"></canvas>
+                            </div>
+                        </div>
+                        <!-- Grade-level breakdown -->
+                        <div class="col-lg-4">
+                            <div class="chart-card h-100">
+                                <div class="section-hd"><i class="bi bi-diagram-3-fill me-2 text-success"></i>สถิติรายระดับชั้น</div>
+                                <div style="height: 260px; position: relative;" id="gradeChartContainer">
+                                    <canvas id="gradeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Critical Rooms + Unreported Rooms -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-lg-6">
+                            <div class="chart-card">
+                                <div class="section-hd"><i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>ห้องเรียนที่มีนักเรียนขาดมากที่สุด (Top 5)</div>
+                                <div class="table-responsive">
+                                    <table class="table-exec">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-start">ห้องเรียน</th>
+                                                <th>นักเรียนขาด</th>
+                                                <th>สถานะ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="criticalRoomsBody">
+                                            <tr><td colspan="3" class="text-center py-4 text-muted small">ไม่มีข้อมูล</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="chart-card">
+                                <div class="section-hd"><i class="bi bi-x-circle-fill me-2 text-warning"></i>ห้องที่ยังไม่รายงาน</div>
+                                <div class="table-responsive" style="max-height:280px; overflow-y:auto;">
+                                    <table class="table-exec">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-start">ห้องเรียน</th>
+                                                <th>นักเรียน</th>
+                                                <th>ครูที่ปรึกษา</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="unreportedBody">
+                                            <tr><td colspan="3" class="text-center py-4 text-muted small">ไม่มีข้อมูล</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: At-Risk Students Summary + Room Detail Table -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="section-hd mb-0"><i class="bi bi-table me-2 text-info"></i>สรุปสถิติรายห้อง วันนี้</div>
+                                    <a href="monthly_stats.html" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">ดูรายเดือน</a>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table-exec">
+                                        <thead>
+                                            <tr>
+                                                <th rowspan="2" class="text-start bg-navy text-white align-middle" style="background: #1e3c72; color: white;">ห้องเรียน</th>
+                                                <th colspan="3" class="text-center" style="background:#eff6ff; color:#1e3a8a; border-bottom: 1px solid white;">ทั้งหมด (คน)</th>
+                                                <th colspan="3" class="text-center" style="background:#ecfdf5; color:#065f46; border-bottom: 1px solid white;">มาเรียน (คน)</th>
+                                                <th colspan="3" class="text-center" style="background:#fef2f2; color:#991b1b; border-bottom: 1px solid white;">ไม่มาเรียน (คน)</th>
+                                                <th rowspan="2" class="text-center align-middle" style="background:#f8fafc;">% มา</th>
+                                                <th rowspan="2" class="text-center align-middle" style="background:#f8fafc;">สถานะ</th>
+                                            </tr>
+                                            <tr>
+                                                <th class="small py-2 text-center" style="background:#eff6ff; color:#1e3a8a;">ช</th>
+                                                <th class="small py-2 text-center" style="background:#eff6ff; color:#1e3a8a;">ญ</th>
+                                                <th class="small py-2 fw-bold text-center" style="background:#eff6ff; color:#1e3a8a;">รวม</th>
+                                                <th class="small py-2 text-center" style="background:#ecfdf5; color:#065f46;">ช</th>
+                                                <th class="small py-2 text-center" style="background:#ecfdf5; color:#065f46;">ญ</th>
+                                                <th class="small py-2 fw-bold text-center" style="background:#ecfdf5; color:#065f46;">รวม</th>
+                                                <th class="small py-2 text-center" style="background:#fef2f2; color:#991b1b;">ช</th>
+                                                <th class="small py-2 text-center" style="background:#fef2f2; color:#991b1b;">ญ</th>
+                                                <th class="small py-2 fw-bold text-center" style="background:#fef2f2; color:#991b1b;">รวม</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="roomDetailBody">
+                                            <tr><td colspan="12" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary opacity-25"></div></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <footer id="globalFooter" class="app-footer text-center text-md-start mt-auto pb-4">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 mb-3 mb-md-0">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-1" style="font-size: 0.8rem;">
+                                    2026 <a href="#" class="text-decoration-none footer-link fw-bold" style="color: #1e3c72;">CNPAPP<sup>©</sup></a>
+                                    ระบบสารสนเทศนักเรียนโรงเรียนชัยนาทพิทยาคม
+                                </span>
+                                <span class="text-secondary" style="font-size: 0.8rem;">แอปพลิเคชันเพื่อการบริหารจัดการข้อมูลโรงเรียนชัยนาทพิทยาคม</span>
+                            </div>
+                        </div>
+                        <div class="col-md-7 text-md-end">
+                            <div class="mb-1 text-secondary" style="font-size: 0.75rem;">
+                                สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท กระทรวงศึกษาธิการ<br>
+                                งานพิธีการและประชาสัมพันธ์การศึกษา : ผู้พัฒนา cnpapp@chainatpit.ac.th
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        const thaiMonths = ["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+        const thaiMonthsFull = ["","มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+        let trendChart = null;
+        let gradeChart = null;
+        let trendDataCache = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) {
+                goToday();
+                loadTrends();
+            }
+        });
+
+        function goToday() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('execDate').value = today;
+            loadExecutiveData();
+        }
+
+        async function loadExecutiveData() {
+            const date = document.getElementById('execDate').value;
+            if (!date) return;
+
+            $('#kpiRow').html('<div class="col-12 text-center py-4"><div class="spinner-border text-primary opacity-25"></div></div>');
+            $('#roomDetailBody').html('<tr><td colspan="12" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary opacity-25"></div></td></tr>');
+            $('#criticalRoomsBody').html('<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm text-danger opacity-25"></div></td></tr>');
+            $('#unreportedBody').html('<tr><td colspan="3" class="text-center py-3"><div class="spinner-border spinner-border-sm text-warning opacity-25"></div></td></tr>');
+            $('#gradeLevelStats').html('<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-success opacity-25"></div></div>');
+
+            try {
+                const res = await fetch(`../api/admin/executive_overview.php?date=${date}`);
+                const data = await res.json();
+
+                if (!data.success) {
+                    $('#kpiRow').html(`<div class="col-12"><div class="alert alert-danger">${data.error || 'เกิดข้อผิดพลาด'}</div></div>`);
+                    return;
+                }
+
+                // ── KPIs ── API structure: data.kpis.attendance_summary
+                const kpis = data.kpis || {};
+                const s = kpis.attendance_summary || {};
+                const totalRooms   = kpis.total_rooms   || 0;
+                const checkedRooms = kpis.checked_rooms || 0;
+
+                const present    = parseInt(s.present)      || 0;
+                const absent     = parseInt(s.absent)       || 0;
+                const late       = parseInt(s.late)         || 0;
+                const leave      = parseInt(s.leave)        || 0;
+                const total      = present + absent + late + leave;
+                const pct        = total > 0 ? (((present + late) / total) * 100).toFixed(1) : '0';
+
+                const d = new Date(date + 'T00:00:00');
+                const dateLabel = `${d.getDate()} ${thaiMonthsFull[d.getMonth()+1]} ${d.getFullYear()+543}`;
+
+                $('#kpiRow').html(`
+                    <div class="col-6 col-lg-2">
+                        <div class="kpi-card">
+                            <div class="kpi-icon bg-primary bg-opacity-10 text-primary mb-2"><i class="bi bi-people-fill"></i></div>
+                            <div class="kpi-value text-navy">${total.toLocaleString()}</div>
+                            <div class="kpi-label">เช็คชื่อทั้งหมด</div>
+                            <div class="small text-muted mt-1" style="font-size:0.72rem;">${dateLabel}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="kpi-card">
+                            <div class="kpi-icon bg-success bg-opacity-10 text-success mb-2"><i class="bi bi-check-circle-fill"></i></div>
+                            <div class="kpi-value text-success">${present.toLocaleString()}</div>
+                            <div class="kpi-label">มาเรียนปกติ</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="kpi-card">
+                            <div class="kpi-icon bg-danger bg-opacity-10 text-danger mb-2"><i class="bi bi-x-circle-fill"></i></div>
+                            <div class="kpi-value text-danger">${absent.toLocaleString()}</div>
+                            <div class="kpi-label">ขาดเรียน</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="kpi-card">
+                            <div class="kpi-icon bg-warning bg-opacity-10 text-warning mb-2"><i class="bi bi-clock-fill"></i></div>
+                            <div class="kpi-value text-warning">${late.toLocaleString()}</div>
+                            <div class="kpi-label">มาสาย</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="kpi-card">
+                            <div class="kpi-icon bg-info bg-opacity-10 text-info mb-2"><i class="bi bi-file-medical-fill"></i></div>
+                            <div class="kpi-value text-info">${leave.toLocaleString()}</div>
+                            <div class="kpi-label">ลา/ป่วย</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="kpi-card text-center">
+                            <div class="kpi-icon bg-primary bg-opacity-10 text-primary mb-2 mx-auto"><i class="bi bi-percent"></i></div>
+                            <div class="kpi-value ${pct >= 80 ? 'text-success' : 'text-danger'}">${pct}%</div>
+                            <div class="kpi-label">ร้อยละมาเรียน</div>
+                            <div class="small mt-1"><span class="badge-${checkedRooms >= totalRooms && totalRooms > 0 ? 'checked' : 'pending'}">${checkedRooms}/${totalRooms} ห้อง</span></div>
+                        </div>
+                    </div>
+                `);
+
+                // ── Grade Level Stats (3-bar chart) ──
+                if (gradeChart) {
+                    gradeChart.destroy();
+                    gradeChart = null;
+                }
+
+                if (data.grade_stats && data.grade_stats.length > 0) {
+                    $('#gradeChartContainer').html('<canvas id="gradeChart"></canvas>');
+                    const labels = [];
+                    const presentData = [];
+                    const absentData = [];
+                    const leaveData = [];
+
+                    data.grade_stats.forEach(g => {
+                        labels.push(g.grade);
+                        const present = parseInt(g.present_count) || 0;
+                        const late = parseInt(g.late_count) || 0;
+                        const absent = parseInt(g.absent_count) || 0;
+                        const leave = parseInt(g.leave_count) || 0;
+
+                        presentData.push(present + late);
+                        absentData.push(absent);
+                        leaveData.push(leave);
+                    });
+
+                    const ctx = document.getElementById('gradeChart').getContext('2d');
+                    gradeChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'มาเรียน',
+                                    data: presentData,
+                                    backgroundColor: '#10b981',
+                                    borderRadius: 4
+                                },
+                                {
+                                    label: 'ไม่มาเรียน',
+                                    data: absentData,
+                                    backgroundColor: '#ef4444',
+                                    borderRadius: 4
+                                },
+                                {
+                                    label: 'ลา',
+                                    data: leaveData,
+                                    backgroundColor: '#0ea5e9',
+                                    borderRadius: 4
+                                }
+                            ]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: { family: 'Sarabun', size: 10 },
+                                        boxWidth: 10
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const index = context.dataIndex;
+                                            const val = context.raw;
+                                            const total = presentData[index] + absentData[index] + leaveData[index];
+                                            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                            return ` ${context.dataset.label}: ${val} คน (${pct}%)`;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    grid: { color: '#f1f5f9' },
+                                    ticks: { font: { family: 'Sarabun' }, color: '#64748b' }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: { font: { family: 'Sarabun' }, color: '#64748b' }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    $('#gradeChartContainer').html('<div class="text-center py-5 text-muted small">ไม่มีข้อมูลระดับชั้น</div>');
+                }
+
+                // ── Critical Rooms ──
+                if (data.critical_rooms && data.critical_rooms.length > 0) {
+                    let html = '';
+                    data.critical_rooms.forEach((r, i) => {
+                        const levelBadge = i === 0 ? 'badge-critical" style="background:#fee2e2; color:#dc2626;' : i < 3 ? 'badge-pending' : 'badge-checked';
+                        const levelText  = i === 0 ? 'วิกฤต' : i < 3 ? 'เฝ้าระวัง' : 'ปกติ';
+                        html += `<tr>
+                            <td class="text-start fw-bold text-navy">ห้อง ${r.room}</td>
+                            <td><span class="badge-critical">${r.absent_count} คน</span></td>
+                            <td><span class="${levelBadge}">${levelText}</span></td>
+                        </tr>`;
+                    });
+                    $('#criticalRoomsBody').html(html);
+                } else {
+                    $('#criticalRoomsBody').html('<tr><td colspan="3" class="text-center py-4 text-muted small"><i class="bi bi-check-circle text-success me-1"></i>ทุกห้องมีนักเรียนขาดน้อยมาก</td></tr>');
+                }
+
+                // ── Unreported Rooms ──
+                if (data.unreported_rooms && data.unreported_rooms.length > 0) {
+                    let html = '';
+                    data.unreported_rooms.forEach(r => {
+                        html += `<tr>
+                            <td class="text-start fw-bold text-danger">ห้อง ${r.room}</td>
+                            <td>${r.total_students || '-'} คน</td>
+                            <td class="text-muted">${r.advisor_name || '-'}</td>
+                        </tr>`;
+                    });
+                    $('#unreportedBody').html(html);
+                } else {
+                    $('#unreportedBody').html('<tr><td colspan="3" class="text-center py-4 text-muted small"><i class="bi bi-check-all text-success me-1"></i>ทุกห้องรายงานแล้ว</td></tr>');
+                }
+
+                // ── Room Detail Table ──
+                if (data.room_gender_stats && data.room_gender_stats.length > 0) {
+                    let html = '';
+                    data.room_gender_stats.forEach(r => {
+                        const totM = parseInt(r.total_m)   || 0;
+                        const totF = parseInt(r.total_f)   || 0;
+                        const tot  = totM + totF;
+                        const preM = parseInt(r.present_m) || 0;
+                        const preF = parseInt(r.present_f) || 0;
+                        const pre  = preM + preF;
+                        const absM = parseInt(r.absent_m)  || 0;
+                        const absF = parseInt(r.absent_f)  || 0;
+                        const abs  = absM + absF;
+                        const checked = parseInt(r.checked_count) > 0;
+                        const rowPct  = tot > 0 && checked ? ((pre / tot) * 100).toFixed(1) : '-';
+                        html += `<tr>
+                            <td class="text-start fw-bold text-navy">ห้อง ${r.room}</td>
+                            <td>${totM}</td>
+                            <td>${totF}</td>
+                            <td class="fw-bold">${tot}</td>
+                            <td class="text-success">${checked ? preM : '-'}</td>
+                            <td class="text-success">${checked ? preF : '-'}</td>
+                            <td class="text-success fw-bold">${checked ? pre : '-'}</td>
+                            <td class="text-danger">${checked ? absM : '-'}</td>
+                            <td class="text-danger">${checked ? absF : '-'}</td>
+                            <td class="text-danger fw-bold">${checked ? abs : '-'}</td>
+                            <td class="fw-bold ${rowPct !== '-' && rowPct >= 80 ? 'text-success' : 'text-danger'}">${rowPct !== '-' ? rowPct + '%' : '-'}</td>
+                            <td>${checked ? '<span class="badge-checked">รายงานแล้ว</span>' : '<span class="badge-pending">ยังไม่รายงาน</span>'}</td>
+                        </tr>`;
+                    });
+                    $('#roomDetailBody').html(html);
+                } else {
+                    $('#roomDetailBody').html('<tr><td colspan="12" class="text-center py-4 text-muted">ไม่พบข้อมูล</td></tr>');
+                }
+
+            } catch (e) {
+                console.error('[executive] load error:', e);
+                $('#kpiRow').html('<div class="col-12"><div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาลองใหม่อีกครั้ง</div></div>');
+            }
+        }
+
+
+        async function loadTrends() {
+            try {
+                const res = await fetch('../api/admin/executive_trends.php');
+                const data = await res.json();
+                if (data.success) {
+                    trendDataCache = data;
+                    renderChart('daily');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function renderChart(type) {
+            if (!trendDataCache) return;
+            ['Daily','Weekly','Monthly'].forEach(t => document.getElementById('trendBtn'+t)?.classList.remove('active'));
+            document.getElementById('trendBtn' + type.charAt(0).toUpperCase() + type.slice(1))?.classList.add('active');
+
+            let labels = [], rates = [], presents = [], absents = [];
+            const src = trendDataCache[type] || [];
+            src.forEach(d => {
+                labels.push(d.label);
+                rates.push(parseFloat(d.attendance_rate || 0));
+                presents.push(parseInt(d.present || 0));
+                absents.push(parseInt(d.absent || 0));
+            });
+
+            if (trendChart) trendChart.destroy();
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: '% มาเรียน',
+                            data: rates,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59,130,246,0.08)',
+                            borderWidth: 2.5,
+                            pointBackgroundColor: '#3b82f6',
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: {
+                        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}%` }
+                    }},
+                    scales: {
+                        y: {
+                            beginAtZero: false, suggestedMin: 70, max: 100,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => v + '%', font: { family: 'Sarabun' }, color: '#64748b' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Sarabun' }, color: '#64748b' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function openPrintView() {
+            window.open('executive_print.html', '_blank');
+        }
+
+        async function sendAttendanceReminder() {
+            Swal.fire({
+                title: 'ส่งสัญญาณเตือนเช็คชื่อ?',
+                text: "ระบบจะแจ้งเตือนครูที่ปรึกษาของห้องเรียนที่ยังไม่ได้เช็คชื่อวันนี้ทุกคน",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งคำเตือน',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#dc3545'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'กำลังส่งคำเตือน...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+                    try {
+                        const res = await fetch('../api/admin/send_attendance_reminder.php', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            if (data.reminded_count > 0) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'ส่งสำเร็จ!',
+                                    text: `ส่งสัญญาณเตือนครูที่ปรึกษาเรียบร้อยแล้ว (${data.reminded_count} ห้องเรียน: ${data.reminded_rooms.join(', ')})`,
+                                    confirmButtonColor: '#10b981'
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: 'ไม่จำเป็นต้องส่ง',
+                                    text: 'ครูที่ปรึกษาทุกห้องเรียนเช็คชื่อครบแล้ววันนี้',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                            }
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด', data.error || 'ไม่สามารถส่งสัญญาณเตือนได้', 'error');
+                        }
+                    } catch (e) {
+                        Swal.fire('เกิดข้อผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
