@@ -1,7 +1,12 @@
 # Deny access to .env (works on any Apache config)
 <Files ".env">
-    Order allow,deny
-    Deny from all
+    Require all denied
+</Files>
+<Files "*.zip">
+    Require all denied
+</Files>
+<Files "*.sql">
+    Require all denied
 </Files>
 
 # Increase upload limits for large Excel/CSV files

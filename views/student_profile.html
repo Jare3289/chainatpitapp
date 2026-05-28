@@ -364,7 +364,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-4"><label class="form-label">ระยะทางจากโรงเรียน (กม.)</label><input type="number" step="0.1" name="dist_to_school" class="form-control"></div>
-                                    <div class="col-md-4"><label class="form-label">ใช้เวลาอยู่กับครอบครัวต่อวัน (นาที)</label><input type="number" name="travel_time" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">เวลาเดินทาง (ชม.:นาที)</label><input type="text" name="travel_time" class="form-control hhmm-input" placeholder="0:00" maxlength="5" data-fmt="hhmm-minutes" autocomplete="off"></div>
                                     <div class="col-md-4"><label class="form-label">เดินทางโดย</label><select name="travel_method" class="form-select"></select></div>
                                 </div>
                             </div>
@@ -531,7 +531,7 @@
                                             </table>
                                         </div>
                                     </div>
-                                    <div class="col-md-4"><label class="form-label">เวลาอยู่ร่วมกัน (ชม./วัน)</label><input type="number" step="0.5" name="time_spent_together" class="form-control"></div>
+                                    <div class="col-md-4"><label class="form-label">เวลาอยู่ร่วมกัน (ชม.:นาที)</label><input type="text" name="time_spent_together" class="form-control hhmm-input" placeholder="0:00" maxlength="5" data-fmt="hhmm-hours" autocomplete="off"></div>
                                     <div class="col-md-4">
                                         <label class="form-label">ได้รับเงินจาก</label>
                                         <div class="btn-group-modern">
@@ -579,7 +579,17 @@
                                     <div class="col-md-4"><label class="form-label">แพ้อาหาร</label><input type="text" name="food_allergies" class="form-control"></div>
                                     <div class="col-md-4"><label class="form-label">แพ้ยา</label><input type="text" name="drug_allergies" class="form-control"></div>
                                     <div class="col-md-4"><label class="form-label">โรคประจำตัว</label><input type="text" name="congenital_disease" class="form-control"></div>
-                                    <div class="col-md-6"><label class="form-label">การฉีดวัคซีนโควิด</label><select name="covid_vaccine" class="form-select"></select></div>
+                                    <div class="col-12">
+                                        <label class="form-label">การฉีดวัคซีนโควิด</label>
+                                        <div class="btn-group-modern flex-wrap">
+                                            <input type="radio" class="btn-check" name="covid_vaccine" id="vax_0" value="ยังไม่ได้ฉีด"><label class="btn btn-outline-secondary" for="vax_0">ยังไม่ได้ฉีด</label>
+                                            <input type="radio" class="btn-check" name="covid_vaccine" id="vax_1" value="1 เข็ม"><label class="btn btn-outline-primary" for="vax_1">1 เข็ม</label>
+                                            <input type="radio" class="btn-check" name="covid_vaccine" id="vax_2" value="2 เข็ม"><label class="btn btn-outline-primary" for="vax_2">2 เข็ม</label>
+                                            <input type="radio" class="btn-check" name="covid_vaccine" id="vax_3" value="3 เข็ม"><label class="btn btn-outline-primary" for="vax_3">3 เข็ม</label>
+                                            <input type="radio" class="btn-check" name="covid_vaccine" id="vax_4" value="4 เข็ม"><label class="btn btn-outline-primary" for="vax_4">4 เข็ม</label>
+                                            <input type="radio" class="btn-check" name="covid_vaccine" id="vax_5" value="มากกว่า 5 เข็ม"><label class="btn btn-outline-primary" for="vax_5">5+ เข็ม</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -593,7 +603,7 @@
                                             <input type="radio" class="btn-check" name="internet_access" id="net_n" value="ไม่ได้"><label class="btn btn-outline-primary" for="net_n">ไม่ได้</label>
                                         </div>
                                     </div>
-                                    <div class="col-md-8"><label class="form-label">ใช้โซเชียลมีเดีย (ชม./วัน)</label><input type="number" step="0.5" name="social_media_usage" class="form-control"></div>
+                                    <div class="col-md-8"><label class="form-label">ใช้โซเชียลมีเดีย (ชม.:นาที)</label><input type="text" name="social_media_usage" class="form-control hhmm-input" placeholder="0:00" maxlength="5" data-fmt="hhmm-hours" autocomplete="off"></div>
                                     <div class="col-md-6"><label class="form-label">ความสามารถพิเศษ</label><textarea name="talents" class="form-control" rows="2"></textarea></div>
                                     <div class="col-md-6"><label class="form-label">ความสนใจ</label><textarea name="interests" class="form-control" rows="2"></textarea></div>
                                     <div class="col-12"><label class="form-label">งานอดิเรก</label><textarea name="hobbies" class="form-control" rows="2"></textarea></div>
@@ -733,7 +743,7 @@
             'house_style':        HOUSE_STYLES,
             'house_condition':    HOUSE_CONDITIONS,
             'travel_method':      TRAVEL_METHODS,
-            'covid_vaccine':      VACCINES,
+            // covid_vaccine: ใช้ radio buttons แทน (ไม่ต้อง populate)
             'caregiver_when_away':CAREGIVERS,
         };
         for (const [name, opts] of Object.entries(map)) {
@@ -743,6 +753,61 @@
                 opts.forEach(v => el.add(new Option(v, v)));
             }
         }
+    }
+
+    // ──── HH:MM helpers ────
+    // decimal hours → "H:MM"  (e.g. 1.5 → "1:30")
+    function hoursToHHMM(v) {
+        const f = parseFloat(v);
+        if (isNaN(f)) return '';
+        const h = Math.floor(f);
+        const m = Math.round((f - h) * 60);
+        return `${h}:${String(m).padStart(2, '0')}`;
+    }
+    // "H:MM" → decimal hours  (e.g. "1:30" → 1.5)
+    function hhmmToHours(s) {
+        if (!s || !String(s).includes(':')) return s;
+        const [h, m] = String(s).split(':').map(n => parseInt(n) || 0);
+        return parseFloat((h + m / 60).toFixed(4));
+    }
+    // integer minutes → "H:MM"  (e.g. 90 → "1:30")
+    function minutesToHHMM(v) {
+        const n = parseInt(v);
+        if (isNaN(n)) return '';
+        return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`;
+    }
+    // "H:MM" → integer minutes  (e.g. "1:30" → 90)
+    function hhmmToMinutes(s) {
+        if (!s || !String(s).includes(':')) return s;
+        const [h, m] = String(s).split(':').map(n => parseInt(n) || 0);
+        return h * 60 + m;
+    }
+
+    // Auto-format: allow only digits and colon, insert colon after 2nd digit
+    function initHHMMInputs() {
+        document.querySelectorAll('.hhmm-input').forEach(el => {
+            el.addEventListener('input', function () {
+                let v = this.value.replace(/[^0-9:]/g, '');
+                // auto-insert colon
+                if (v.length === 2 && !v.includes(':')) v = v + ':';
+                // clamp minutes to 59
+                if (v.includes(':')) {
+                    const [h, m] = v.split(':');
+                    if (m !== undefined && m.length === 2) {
+                        const mNum = Math.min(parseInt(m) || 0, 59);
+                        v = `${h}:${String(mNum).padStart(2, '0')}`;
+                    }
+                }
+                this.value = v;
+            });
+            el.addEventListener('blur', function () {
+                let v = this.value.trim();
+                if (!v) return;
+                if (!v.includes(':')) v = v + ':00';
+                const [h, m] = v.split(':');
+                this.value = `${parseInt(h) || 0}:${String(parseInt(m) || 0).padStart(2, '0')}`;
+            });
+        });
     }
 
     // ──── Fetch & Populate ────
@@ -799,9 +864,19 @@
                 } else if (key.endsWith('_district') || key.endsWith('_subdistrict') || key.endsWith('_zipcode')) {
                     // handled by cascade above
                 } else {
-                    inputs.forEach(el => { el.value = val; });
+                    inputs.forEach(el => {
+                        if (el.dataset.fmt === 'hhmm-hours') {
+                            el.value = hoursToHHMM(val);
+                        } else if (el.dataset.fmt === 'hhmm-minutes') {
+                            el.value = minutesToHHMM(val);
+                        } else {
+                            el.value = val;
+                        }
+                    });
                 }
             }
+
+            initHHMMInputs();
 
             // full_name_th: แสดงเฉพาะกรณีที่ต่างจากชื่อปัจจุบัน (ไม่ auto-fill ชื่อปัจจุบัน)
             const fullNameInput = form.querySelector('[name="full_name_th"]');
@@ -982,22 +1057,62 @@
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 const coordsVal = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                
+
                 const coordsInput = document.getElementById('student_location_coords') || document.querySelector('[name="location_coords"]');
                 if (coordsInput) {
                     coordsInput.value = coordsVal;
                     updateLocationMapAndDistance(coordsInput);
                 }
-                
+
+                // คำนวณระยะห่างจากโรงเรียน (Haversine)
+                const schoolLat = 15.1878, schoolLng = 100.1245;
+                const R = 6371000; // เมตร
+                const dLat = (schoolLat - lat) * Math.PI / 180;
+                const dLon = (schoolLng - lng) * Math.PI / 180;
+                const a = Math.sin(dLat/2)**2 +
+                          Math.cos(lat * Math.PI/180) * Math.cos(schoolLat * Math.PI/180) * Math.sin(dLon/2)**2;
+                const distMeters = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+
+                // เปลี่ยนปุ่มเป็น "เช็คอินแล้ว ✓" ชั่วคราว
                 btn.disabled = false;
-                btn.innerHTML = originalText;
-                Swal.fire({
-                    icon: 'success',
-                    title: 'เช็คอินสำเร็จ',
-                    text: `บันทึกพิกัดแล้ว: ${coordsVal}`,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>เช็คอินแล้ว ✓';
+
+                if (distMeters <= 800) {
+                    // ใกล้โรงเรียน — เตือนก่อน
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '⚠️ คุณอาจยังอยู่ใกล้โรงเรียน',
+                        html: `ตรวจพบว่าพิกัดของคุณห่างจากโรงเรียน <b>${distMeters} เมตร</b><br>
+                               พิกัดที่บ้านควรห่างออกไปมากกว่านี้<br><br>
+                               <span class="text-muted small">📍 บันทึกพิกัดนี้ไว้ชั่วคราวแล้ว<br>
+                               <b>เมื่อกลับถึงบ้าน กรุณากดปุ่มเช็คอินอีกครั้ง</b></span>`,
+                        confirmButtonText: 'รับทราบ',
+                        confirmButtonColor: '#f59e0b',
+                    }).then(() => {
+                        // คืนปุ่มกลับหลัง dismiss
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-primary');
+                        btn.innerHTML = originalText;
+                    });
+                } else {
+                    // ไกลโรงเรียน — แจ้งสำเร็จ + เตือนให้กดอีกครั้งเมื่อกลับบ้าน
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'บันทึกพิกัดชั่วคราวแล้ว',
+                        html: `พิกัด: <code>${coordsVal}</code><br>
+                               ห่างจากโรงเรียน <b>${distMeters >= 1000 ? (distMeters/1000).toFixed(1)+' กม.' : distMeters+' ม.'}</b><br><br>
+                               <span class="text-primary fw-bold">🏠 เมื่อกลับถึงบ้านแล้ว กรุณากดปุ่มเช็คอินอีกครั้ง<br>เพื่อบันทึกพิกัดที่บ้านที่แม่นยำที่สุด</span>`,
+                        confirmButtonText: 'รับทราบ',
+                        timer: 6000,
+                        timerProgressBar: true,
+                    }).then(() => {
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-primary');
+                        btn.innerHTML = originalText;
+                    });
+                }
             },
             (error) => {
                 btn.disabled = false;
@@ -1264,7 +1379,17 @@
         const data = Object.fromEntries(new FormData(form).entries());
         disabled.forEach(el => el.disabled = true);
         if (currentPhotoBase64) data.photo_base64 = currentPhotoBase64;
-        
+
+        // แปลง HH:MM กลับเป็นตัวเลขก่อนส่ง
+        form.querySelectorAll('.hhmm-input').forEach(el => {
+            if (!el.name) return;
+            if (el.dataset.fmt === 'hhmm-hours') {
+                data[el.name] = hhmmToHours(el.value);
+            } else if (el.dataset.fmt === 'hhmm-minutes') {
+                data[el.name] = hhmmToMinutes(el.value);
+            }
+        });
+
         // Ensure house is deleted from submitted data
         delete data.house;
 
