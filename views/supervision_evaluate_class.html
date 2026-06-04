@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>ประเมินนิเทศการจัดการเรียนรู้ (31 ข้อ) | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../public/css/style.css">
+    
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f4f7fa; color: #1e293b; }
+        
+        .bg-gradient-navy {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+        .text-navy { color: #1e3a8a; }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            background: #f8fafc;
+            border-left: 5px solid #1e3a8a;
+            padding: 12px 18px;
+            font-weight: 700;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+
+        .question-card {
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease-in-out;
+        }
+        .question-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border-color: #cbd5e1;
+        }
+
+        .rating-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .slider-rating-wrapper {
+            position: relative;
+            padding: 25px 0 20px;
+            margin-top: 10px;
+            user-select: none;
+            max-width: 500px; /* To keep it compact and readable */
+        }
+
+        .slider-track-container {
+            position: absolute;
+            top: 32px;
+            left: 5%;
+            right: 5%;
+            height: 4px;
+            background-color: #cbd5e1;
+            z-index: 1;
+            border-radius: 2px;
+        }
+
+        .slider-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: #3b82f6;
+            z-index: 2;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .slider-nodes {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 3;
+            padding: 0 5%;
+        }
+
+        .slider-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .node-circle {
+            width: 14px;
+            height: 14px;
+            background-color: #cbd5e1;
+            border-radius: 50%;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .slider-node:hover .node-circle {
+            transform: scale(1.3);
+        }
+
+        .slider-node.active .node-circle {
+            width: 28px;
+            height: 28px;
+            background-color: #3b82f6;
+            margin-top: -7px;
+            margin-bottom: 5px;
+            transform: scale(1);
+        }
+
+        .slider-node.filled .node-circle {
+            background-color: #3b82f6;
+        }
+
+        .node-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-align: center;
+            position: absolute;
+            top: 25px;
+            white-space: nowrap;
+            transition: color 0.2s ease;
+        }
+
+        .slider-node.active .node-label {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .slider-range-overlay {
+            position: absolute;
+            top: 24px;
+            left: 5%;
+            right: 5%;
+            width: 90%;
+            height: 30px;
+            margin: 0;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .badge-translation {
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-trans-0 { background-color: #f1f5f9; color: #64748b; }
+        .badge-trans-1 { background-color: #fef2f2; color: #ef4444; }
+        .badge-trans-2 { background-color: #fff7ed; color: #f97316; }
+        .badge-trans-3 { background-color: #fef9c3; color: #a16207; }
+        .badge-trans-4 { background-color: #ecfdf5; color: #065f46; }
+        .badge-trans-5 { background-color: #eff6ff; color: #1d4ed8; }
+
+        .sticky-summary {
+            position: sticky;
+            bottom: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border-top: 2px solid #e2e8f0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            padding: 16px 24px;
+        }
+
+        .disabled-card {
+            background-color: #f8fafc;
+            opacity: 0.7;
+            border-color: #e2e8f0;
+        }
+        .disabled-card .slider-rating-wrapper {
+            pointer-events: none;
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        .active-standing-card {
+            border: 2px solid #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .nested-list {
+            margin-left: 20px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <aside class="sidebar" id="mainSidebar"></aside>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div class="app-content page-content flex-grow-1">
+                <div class="container-fluid pb-5">
+                    
+                    <!-- Back Button and Header -->
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <a href="#" id="back-btn" class="btn btn-light rounded-circle shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-arrow-left fs-5"></i>
+                        </a>
+                        <div>
+                            <h4 class="fw-bold mb-0 text-navy" style="font-family:'Google Sans', sans-serif; letter-spacing:-0.5px;">แบบประเมินนิเทศการจัดการเรียนรู้ (สังเกตการสอน)</h4>
+                            <p class="text-muted small mb-0 fw-bold">ระบบบันทึกผลการนิเทศและสังเกตการจัดการเรียนรู้</p>
+                        </div>
+                    </div>
+
+                    <!-- Profile Header Details Card -->
+                    <div class="profile-card">
+                        <h5 class="fw-bold text-navy border-bottom pb-2 mb-3"><i class="bi bi-person-badge-fill me-2"></i>ข้อมูลผู้รับการนิเทศและผู้ประเมิน</h5>
+                        <div class="row g-3" id="profile-container">
+                            <div class="col-md-6">
+                                <div class="row g-2">
+                                    <div class="col-4 text-muted fw-bold">สำหรับครูผู้รับประเมินเพื่อ:</div>
+                                    <div class="col-8 fw-bold text-navy" id="info-purpose">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">ผู้รับการประเมิน:</div>
+                                    <div class="col-8 fw-bold" id="info-teacher-name">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">ตำแหน่ง:</div>
+                                    <div class="col-8" id="info-teacher-pos">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">วิทยฐานะ:</div>
+                                    <div class="col-8"><span class="badge bg-navy bg-opacity-10 text-navy fw-bold" id="info-teacher-standing">-</span></div>
+
+                                    <div class="col-4 text-muted fw-bold">กลุ่มสาระการเรียนรู้:</div>
+                                    <div class="col-8" id="info-teacher-dept">-</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 border-start ps-md-4">
+                                <div class="row g-2">
+                                    <div class="col-4 text-muted fw-bold">รายวิชา:</div>
+                                    <div class="col-8 fw-bold text-dark" id="info-subject">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">ระดับชั้น/ห้อง:</div>
+                                    <div class="col-8" id="info-classroom">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">ชื่อเรื่อง/หน่วย:</div>
+                                    <div class="col-8 text-wrap fw-bold text-navy" id="info-topic">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">วันที่แบบไทย:</div>
+                                    <div class="col-8" id="info-date">-</div>
+
+                                    <div class="col-4 text-muted fw-bold">ผู้ประเมิน:</div>
+                                    <div class="col-8 fw-bold text-success" id="info-evaluator">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instruction Card -->
+                    <div class="alert alert-light border shadow-sm rounded-4 mb-4 small">
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>คำชี้แจงการประเมิน</h6>
+                        <ol class="mb-0 text-muted ps-3">
+                            <li>ให้ผู้ประเมินสังเกตการจัดการเรียนรู้ของผู้รับการนิเทศ แล้วคลิกเลือกระดับคุณภาพ 0-5 ตามความเป็นจริง</li>
+                            <li>ระดับคุณภาพ: <strong>5 = ยอดเยี่ยม, 4 = ดีเลิศ, 3 = ดี, 2 = ปานกลาง, 1 = กำลังพัฒนา, 0 = ไม่ปฏิบัติ</strong></li>
+                            
+                        </ol>
+                    </div>
+
+                    <form id="evaluationForm">
+                        <input type="hidden" id="eval_booking_id">
+
+                        
+                        <!-- ตอนที่ 1 -->
+                        <div class="section-header mt-4">
+                            <span class="fs-5">ตอนที่ 1 การเตรียมการสอน/ขั้นนำ</span>
+                        </div>
+                        <div id="part1-container"></div>
+
+                        <!-- ตอนที่ 2 -->
+                        <div class="section-header mt-5">
+                            <span class="fs-5">ตอนที่ 2 ด้านการจัดการเรียนรู้</span>
+                        </div>
+                        <div id="part2-container"></div>
+
+                        <!-- ตอนที่ 3 -->
+                        <div class="section-header mt-5">
+                            <span class="fs-5">ตอนที่ 3 การบริหารจัดการชั้นเรียน</span>
+                        </div>
+                        <div id="part3-container"></div>
+
+                        <!-- ตอนที่ 4 -->
+                        <div class="section-header mt-5">
+                            <span class="fs-5">ตอนที่ 4 การสรุป</span>
+                        </div>
+                        <div id="part4-container"></div>
+                        
+                        <!-- ตอนที่ 5 -->
+                        <div class="section-header mt-5">
+                            <span class="fs-5">ตอนที่ 5 การวัดผลประเมินผล</span>
+                        </div>
+                        <div id="part5-container"></div>
+                        
+                        <!-- ตอนที่ 6 -->
+                        <div class="section-header mt-5">
+                            <span class="fs-5">ตอนที่ 6 บุคลิกภาพ ด้านร่างกายและอารมณ์</span>
+                        </div>
+                        <div id="part6-container"></div>
+
+
+                        <!-- คำชี้แจง / ข้อเสนอแนะเพิ่มเติม -->
+                        <div class="profile-card mt-5">
+                            <h5 class="fw-bold text-navy border-bottom pb-2 mb-3"><i class="bi bi-chat-square-text-fill me-2"></i>ข้อคิดเห็น/ข้อเสนอแนะในการปรับปรุง/แก้ไข</h5>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted small">บันทึกข้อเสนอแนะสำหรับนำไปใช้ปรับปรุงพัฒนาแผนหน่วยและแผนการจัดกิจกรรมการเรียนรู้</label>
+                                <textarea class="form-control border shadow-sm rounded-3 p-3" id="doc_comments" rows="4" placeholder="กรอกข้อคิดเห็นหรือคำแนะนำเพิ่มเติมเพื่อประโยชน์ในการพัฒนาวิชาชีพ..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <!-- Sticky Summary & Submit Bar -->
+            <div class="sticky-summary">
+                
+                <div class="row align-items-center g-3">
+                    <div class="col-lg-8">
+                        <div class="row text-center text-md-start">
+                            <div class="col-sm-6 border-end">
+                                <div class="text-muted small fw-bold">คะแนนรวมทั้งหมด</div>
+                                <h5 class="fw-black mb-0 text-navy"><span id="sum-score">0</span>/155 <span class="fs-6 fw-bold">คะแนน</span></h5>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="text-muted small fw-bold">ผลการประเมินโดยรวม</div>
+                                <h5 class="fw-black mb-0 text-success"><span id="avg-score">0.00</span> <span class="fs-6 fw-bold">/ 5.00</span></h5>
+                                <div class="small fw-black text-success">ระดับคุณภาพ: <span id="overall-qual">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center text-lg-end">
+                        <button type="button" class="btn btn-navy rounded-pill fw-black px-4 py-3 shadow" onclick="submitClassEvaluation()">
+                            <i class="bi-check-circle-fill me-2 fs-5"></i> บันทึกผลการประเมิน
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    
+    <script>
+        let currentBookingId = 0;
+        let currentUser = null;
+        let dutyRecord = null;
+        let pressTimer = null;
+
+        function startPress(part) {
+            pressTimer = window.setTimeout(() => {
+                showSecretMenu(part);
+            }, 1000);
+        }
+        function cancelPress() {
+            if (pressTimer) clearTimeout(pressTimer);
+        }
+
+        function showSecretMenu(part) {
+            Swal.fire({
+                title: '⚡ เมนูลับ (Secret Menu)',
+                text: 'ให้คะแนนทุกข้อในหมวดนี้รวดเดียว',
+                html: `
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <button class="btn btn-primary" onclick="Swal.close(); setAllScores('${part}', 5)">ให้ 5 ยอดเยี่ยม ทุกข้อ</button>
+                        <button class="btn btn-info text-white" onclick="Swal.close(); setAllScores('${part}', 4)">ให้ 4 ดีเลิศ ทุกข้อ</button>
+                        <button class="btn btn-success" onclick="Swal.close(); setAllScores('${part}', 3)">ให้ 3 ดี ทุกข้อ</button>
+                        <button class="btn btn-warning text-dark" onclick="Swal.close(); setAllScores('${part}', 2)">ให้ 2 ปานกลาง ทุกข้อ</button>
+                        <button class="btn btn-danger" onclick="Swal.close(); setAllScores('${part}', 1)">ให้ 1 กำลังพัฒนา ทุกข้อ</button>
+                        <button class="btn btn-secondary mt-2" onclick="Swal.close(); setAllScores('${part}', 0)">ให้ 0 ไม่ปฏิบัติ ทุกข้อ</button>
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                showCancelButton: true,
+                cancelButtonText: 'ปิด'
+            });
+        }
+
+                const questionsData = {
+            p1: [
+                "จัดทำแผนการจัดการเรียนรู้เสร็จล่วงหน้าและถูกต้องสมบูรณ์ (ดูจากคะแนนภาพรวมของการประเมินแผนการจัดการเรียนรู้รายชั่วโมง)",
+                "ห้องเรียนสะอาด เรียบร้อย เหมาะสำหรับการจัดการเรียนรู้",
+                "เช็คชื่อนักเรียน ซักถามเหตุผลของนักเรียนที่เข้าห้องเรียนสายหรือติดตามนักเรียนที่ขาดเรียน",
+                "เตรียมวัสดุ-อุปกรณ์ สื่อ กิจกรรมตามแผนฯ ก่อนเข้าสอน",
+                "ใช้วิธีการนำเข้าสู่บทเรียนที่น่าสนใจเหมาะสมกับเวลาและเนื้อหา ตามแผนการจัดการเรียนรู้ โดยมีการทบทวนความรู้ ทักษะ หรือประสบการณ์เดิม เช่น การใช้คำถาม แบบฝึก กิจกรรม หรือ เกมสั้น ๆ ฯลฯ",
+                "แจ้งหรือบอกผลการเรียนรู้/จุดประสงค์การเรียนรู้และแนวทางการเรียนที่นักเรียนมีส่วนร่วมในการกำหนด"
+            ],
+            p2: [
+                "เนื้อหา/มโนทัศน์ที่สอนหรือจัดให้ผู้เรียนเรียนรู้ หรือฝึกฝนมีความถูกต้องและสอดคล้องกับผลการเรียนรู้/จุดประสงค์การเรียนรู้ตรงตามหลักสูตร",
+                "จัดกิจกรรมการเรียนรู้สอดคล้องตาม ตัวชี้วัด/ผลการเรียนรู้และจุดประสงค์การเรียนรู้ ของหลักสูตรรายวิชา",
+                "ครูดำเนินการสอนตามขั้นตอนที่กำหนดไว้ในแผนการจัดการเรียนรู้",
+                "ใช้วิธีการ/เทคนิคการสอนเหมาะสมกับเนื้อหามีความท้าทายและมีระดับความยากง่ายเหมาะสมกับวัยและพัฒนาการของนักเรียน",
+                "กิจกรรมการเรียนรู้หรือตัวอย่างที่ใช้ประกอบเรื่องที่สอน มีความหลากหลาย เหมาะกับเนื้อหา เชื่อมโยง สอดคล้องและสัมพันธ์กับชีวิตจริงของนักเรียนหรือบริบทชุมชน",
+                "จัดกิจกรรมการเรียนรู้เพื่อให้นักเรียนมีผลงานหรือผลการปฏิบัติสะท้อนถึงความสามารถในการเรียนรู้ (Cognitive Abilities) เน้นให้นักเรียนได้เรียนรู้โดยผ่านกระบวนการคิด ได้แก่ ความยืดหยุ่นในการคิดหรือการคิดเชื่อมโยงสิ่งต่าง ๆ ความคิดสร้างสรรค์ หรือการคิดเชิงนวัตกรรม กระบวนการสืบเสาะหาความหมายหรือกระบวนการตัดสินใจ กระบวนการคิดเชิงเหตุผลหรือการให้เหตุผลเชิงตรรกะ กระบวนการคิดเชิงระบบ โดยให้นักเรียนลงมือปฏิบัติกิจกรรมที่ต้องใช้ความรู้หรือบูรณาการทักษะหลากหลายต่าง ๆ ลงสู่การปฏิบัติกิจกรรมการเรียนรู้ตามจุดประสงค์การเรียนรู้และผู้เรียนได้ประยุกต์ใช้ทักษะที่ได้รับการพัฒนาในสถานการณ์หรือแก้ปัญหาใหม่ ๆ",
+                "ตรวจสอบความเข้าใจของนักเรียนระหว่างการสอน ด้วยการสังเกตหรือค้นหาข้อผิดพลาดในการปฏิบัติหรือมโนทัศน์ที่คลาดเคลื่อนของนักเรียนในระหว่างการเรียนรู้โดยการใช้คำถาม ฯลฯ",
+                "มีการประเมินผลระหว่างการเรียนรู้โดยใช้วิธีการที่เหมาะสม เช่น การใช้คำถามแบบทดสอบ การปฏิบัติ ฯลฯ",
+                "มีการนำผลการสังเกต หรือผลการค้นหา หรือผลการประเมินระหว่างเรียนรู้สะท้อนกลับให้ผู้เรียน",
+                "จัดกิจกรรมการเรียนรู้ เพื่อให้ผู้เรียนมีผลงานหรือผลการปฏิบัติสะท้อนการได้รับการพัฒนาทักษะพื้นฐาน (Basic Skills)ผู้เรียนได้รับการฝึกทักษะการแสดงออกและทักษะการสื่อสาร โดยการนำเสนอผลงาน ด้วยการพูด การเขียน หรือการแสดงออกในรูปแบบอื่น ๆ อย่างเป็นระบบ น่าสนใจ มีความถูกต้อง ความคล่องแคล่ว หรือความชำนาญ",
+                "ผู้เรียนได้รับการฝึกทักษะให้สรุปองค์ความรู้หรือประสบการณ์ใหม่ด้วยตนเอง เช่น แผนที่ความคิด ตารางวิเคราะห์ การทดลองปฏิบัติ การนำเสนอ ฯลฯ",
+                "ใช้สื่อการสอนที่หลากหลายได้อย่างเหมาะสมและคุ้มค่า ช่วยกระตุ้นให้นักเรียน คิดวิเคราะห์ เปรียบเทียบจากสื่อการเรียนหรือตัวอย่าง และช่วยในการเรียนรู้ของนักเรียนให้บรรลุวัตถุประสงค์ของบทเรียน",
+                "มอบหมายงานหรือแบบฝึกหัดเป็นไปตามเป้าหมายหรือวัตถุประสงค์การเรียนรู้ที่กำหนดไว้ในแผนการจัดการเรียนรู้ เหมาะสมกับวัย พัฒนาการ บริบทของนักเรียนและชั้นเรียน คุ้มค่าและเป็นประโยชน์ต่อการเรียนรู้ของนักเรียนเป็นรายบุคคล หรือรายกลุ่ม"
+            ],
+            p3: [
+                `จัดกิจกรรมการเรียนรู้ที่ส่งเสริมให้ผู้เรียน มีทักษะชีวิตและทักษะการทำงาน เพื่อให้ผลงานหรือผลการปฏิบัติสะท้อนทักษะในการทำงาน (Cross-functional Skills) ดังนี้
+                <div class="nested-list">
+                    - ทักษะกระบวนการ เช่น การออกแบบและการวางแผน การวิเคราะห์วิจารณการกำกับตนเองการทดลองปฏิบัติ การนำเสนอความคิด และ/หรือ<br>
+                    - ทักษะทางสังคม เช่น การทำงานร่วมกับผู้อื่น การโน้มน้าว การเจรจาการบริการการสอนหรือฝึกผู้อื่น และ/หรือ<br>
+                    - ทักษะการจัดการ เช่น การจัดการเวลา การจัดการทรัพยากรการจัดการทีม ทำงาน และ/หรือ<br>
+                    - ทักษะเฉพาะทาง เช่น ทักษะทางกายภาพ การเคลื่อนไหว การใช้กล้ามเนื้อ ดนตรี กีฬา หรือทักษะเฉพาะทางตามลักษณะรายวิชาหรือสาระการเรียนรู้ และ/หรือ<br>
+                    - ทักษะการแก้ปัญหาที่ซับซ้อน เช่น การแก้ปัญหาที่ต้องใช้ทักษะหลากหลาย การแก้ปัญหาหลายขั้นตอน การแก้ปัญหาที่ต้องใช้ความร่วมมือจากผู้อื่นการแก้ปัญหาเชิงซ้อนหลายระดับ
+                </div>`,
+                "ให้ความสนใจนักเรียนอย่างทั่วถึง โดยมีการเข้าถึงผู้เรียนที่ยังไม่พร้อมที่จะเรียนรู้ใหม่ และช่วยเหลือเด็กนักเรียนที่เรียนช้าที่ยังไม่พร้อมที่จะเรียนรู้สิ่งใหม่ หรือนักเรียนที่ยังมีความรู้ ทักษะ หรือประสบการณ์เดิมไม่เพียงพอที่จะเชื่อมโยงกับการเรียนรู้ใหม่ เช่น การอธิบาย ยกตัวอย่าง การใช้คำถาม เกมหรือกิจกรรม ฯลฯ และส่งเสริมเด็กนักเรียนที่เรียนเก่ง",
+                "อบรมบ่มนิสัยให้ผู้เรียนมีคุณธรรมจริยธรรม ค่านิยมที่ดีงาม คุณลักษณะอันพึงประสงค์ สมรรถนะที่สำคัญ และทักษะในศตวรรษที่ 21 ตามที่กำหนดไว้ในแผนการจัดการเรียนรู้ อย่างครบถ้วน",
+                "มีการบริหารจัดการชั้นเรียน โดยการเสริมแรงแก่นักเรียนอย่างเหมาะสม โดยเน้นการมีปฏิสัมพันธ์เชิงบวกให้เด็กรักครู และครูรักเด็ก ให้เด็กรักเด็ก เพื่อกระตุ้นให้นักเรียนเกิดแรงจูงใจในการเรียนรู้อย่างมั่นใจ มีอิสระในการคิดหรือทดลอง และรับรู้ความสามารถของตนเอง และรักที่จะเรียนรู้อย่างมีความสุข"
+            ],
+            p4: [
+                "สรุปบทเรียนได้กระชับ ชัดเจน ช่วยให้นักเรียนเกิดแนวคิดตรงจุดประสงค์ การเรียนรู้",
+                "สั่งงานหรือให้นักเรียนเตรียมตัวล่วงหน้าสำหรับการเรียนครั้งต่อไป เพื่อให้นักเรียนได้รับการกระตุ้นให้ศึกษา ค้นคว้า ฝึกฝนเพิ่มเติมภายหลังจบบทเรียน"
+            ],
+            p5: [
+                "ใช้วิธีการวัดผลการเรียนรู้ที่หลากหลาย เน้นสภาพจริงและตรงตามจุดประสงค์ โดยให้นักเรียนได้ประเมินตนเองหรือเพื่อนประเมินในระหว่างเรียน หรือเมื่อจบบทเรียน เพื่อเปิดโอกาสให้นักเรียนได้สะท้อนการเรียนรู้ นำเสนอความสำเร็จ หรืออธิบายข้อผิดพลาดหรือความล้มเหลวที่เกิดขึ้น",
+                "ประสิทธิภาพของการใช้เวลาในการสอน/สอนเต็มเวลา ใช้เวลาเหมาะสมกับเนื้อหา"
+            ],
+            p6: [
+                "การควบคุมอารมณ์ขณะสอนและพฤติกรรมการแสดงออกเป็นแบบอย่างที่ดี",
+                "การใช้ภาษา น้ำเสียงเหมาะสมและชัดเจนเป็นแบบอย่างที่ดี",
+                "การยอมรับความคิดเห็นของนักเรียนและให้เกียรตินักเรียน",
+                "การแต่งกายสุภาพเรียบร้อยเป็นแบบอย่างที่ดี"
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentUser = await checkAuth(['teacher', 'admin']);
+            if (currentUser) {
+                const urlParams = new URLSearchParams(window.location.search);
+                currentBookingId = parseInt(urlParams.get('booking_id')) || 0;
+                if (currentBookingId <= 0) {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่พบรหัสการจองนิเทศ', 'error').then(() => window.location.href = 'teacher_supervision.html');
+                    return;
+                }
+                document.getElementById('back-btn').href = 'supervision_evaluate.html';
+                
+                await loadEvaluationData();
+                renderAllParts();
+                calculateLiveScores();
+            }
+        });
+
+        let savedData = {};
+
+        async function loadEvaluationData() {
+            try {
+                const res = await fetch('../api/teacher/supervision_get.php');
+                const data = await res.json();
+                if (data.success && data.duties) {
+                    dutyRecord = data.duties.find(d => parseInt(d.id) === currentBookingId);
+                    if (!dutyRecord) {
+                        Swal.fire('สิทธิ์การเข้าถึง', 'คุณไม่ได้เป็นคณะกรรมการประเมินของคิวนิเทศนี้', 'error').then(() => {
+                            window.location.href = 'supervision_evaluate.html';
+                        });
+                        return;
+                    }
+                    
+                    document.getElementById('info-purpose').textContent = dutyRecord.evaluation_purpose || 'ไม่มีวิทยฐานะ';
+                    document.getElementById('info-teacher-name').textContent = dutyRecord.teacher_name;
+                    document.getElementById('info-teacher-pos').textContent = dutyRecord.teacher_position || 'ครู';
+                    document.getElementById('info-teacher-standing').textContent = dutyRecord.academic_standing || 'ไม่มีวิทยฐานะ';
+                    document.getElementById('info-teacher-dept').textContent = dutyRecord.department || '-';
+                    
+                    document.getElementById('info-subject').textContent = `${dutyRecord.subject_code} ${dutyRecord.subject_name}`;
+                    document.getElementById('info-classroom').textContent = `ชั้น ม.${dutyRecord.classroom} (ห้องสอน: ${dutyRecord.room_number})`;
+                    document.getElementById('info-topic').textContent = dutyRecord.lesson_topic || 'ยังไม่กำหนดชื่อเรื่อง';
+                    document.getElementById('info-date').textContent = dutyRecord.booking_date ? thDate(dutyRecord.booking_date) : '-';
+                    document.getElementById('info-evaluator').textContent = `${currentUser.prefix || ''}${currentUser.first_name_th} ${currentUser.last_name_th} (${dutyRecord.role_th})`;
+
+                    savedData = dutyRecord;
+                    if (savedData.class_comments) {
+                        document.getElementById('doc_comments').value = savedData.class_comments;
+                    }
+                } else {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดข้อมูลคิวนิเทศได้', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('ข้อผิดพลาด', 'เชื่อมต่อข้อมูลล้มเหลว', 'error');
+            }
+        }
+
+        let questionIndex = 1;
+
+        function renderAllParts() {
+            questionIndex = 1;
+            renderPart('p1');
+            renderPart('p2');
+            renderPart('p3');
+            renderPart('p4');
+            renderPart('p5');
+            renderPart('p6');
+        }
+
+        function renderPart(part) {
+            const container = document.getElementById(part.replace('p', 'part') + '-container');
+            container.innerHTML = '';
+
+            questionsData[part].forEach((q, idx) => {
+                const globalNum = questionIndex++;
+                const localNum = idx + 1;
+                const partNumber = part.replace('p', '');
+                const questionLabel = `${partNumber}.${localNum}`;
+                
+                const savedScore = (savedData[`class_score_${globalNum}`] !== undefined && savedData[`class_score_${globalNum}`] !== null) ? parseInt(savedData[`class_score_${globalNum}`]) : 5;
+
+                let extraTitleEvents = '';
+                if (localNum === 1) {
+                    extraTitleEvents = `onmousedown="startPress('${part}')" onmouseup="cancelPress()" onmouseleave="cancelPress()" ontouchstart="startPress('${part}')" ontouchend="cancelPress()" style="cursor: pointer; user-select: none;"`;
+                }
+
+                container.innerHTML += `
+                    <div class="question-card" id="card-${part}-${localNum}">
+                        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                            <div class="flex-grow-1" style="max-width: 80%;">
+                                <div class="fw-bold text-dark fs-6 d-inline-block" ${extraTitleEvents}>${questionLabel} ${q}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="badge-translation badge-trans-${savedScore}" id="badge-${part}-${localNum}">
+                                    ${getTranslation(savedScore)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slider-rating-wrapper mt-3">
+                            <input type="range" min="0" max="5" step="1" class="slider-range-overlay" id="range-${part}-${localNum}" value="${savedScore}" 
+                                oninput="selectScore('${part}', ${localNum}, parseInt(this.value), ${globalNum}); document.getElementById('val-${part}-${localNum}').value = this.value;">
+                            <div class="slider-track-container">
+                                <div class="slider-fill" id="fill-${part}-${localNum}" style="width: ${(savedScore / 5) * 100}%;"></div>
+                            </div>
+                            <div class="slider-nodes">
+                                ${[0,1,2,3,4,5].map(s => `
+                                    <div class="slider-node ${s === savedScore ? 'active' : ''} ${s <= savedScore ? 'filled' : ''}" id="node-${part}-${localNum}-${s}" onclick="selectScore('${part}', ${localNum}, ${s}, ${globalNum})">
+                                        <div class="node-circle"></div>
+                                        <div class="node-label">${s}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <input type="hidden" id="val-${part}-${localNum}" value="${savedScore}">
+                        <input type="hidden" id="global-${part}-${localNum}" value="${globalNum}">
+                    </div>
+                `;
+            });
+        }
+
+        function getTranslation(score) {
+            switch(parseInt(score)) {
+                case 5: return '5 ยอดเยี่ยม';
+                case 4: return '4 ดีเลิศ';
+                case 3: return '3 ดี';
+                case 2: return '2 ปานกลาง';
+                case 1: return '1 กำลังพัฒนา';
+                case 0: return '0 ไม่ปฏิบัติ';
+                default: return '-';
+            }
+        }
+
+        function selectScore(part, localNum, score, globalNum) {
+            for (let s = 0; s <= 5; s++) {
+                const node = document.getElementById(`node-${part}-${localNum}-${s}`);
+                if (node) {
+                    node.classList.remove('active');
+                    if (s <= score) node.classList.add('filled');
+                    else node.classList.remove('filled');
+                }
+            }
+            const activeNode = document.getElementById(`node-${part}-${localNum}-${score}`);
+            if (activeNode) activeNode.classList.add('active');
+
+            const fill = document.getElementById(`fill-${part}-${localNum}`);
+            if (fill) fill.style.width = (score / 5) * 100 + '%';
+
+            const badge = document.getElementById(`badge-${part}-${localNum}`);
+            if (badge) {
+                badge.className = `badge-translation badge-trans-${score}`;
+                badge.innerHTML = getTranslation(score);
+            }
+            
+            const range = document.getElementById(`range-${part}-${localNum}`);
+            if (range) range.value = score;
+
+            document.getElementById(`val-${part}-${localNum}`).value = score;
+
+            calculateLiveScores();
+        }
+
+        function setAllScores(part, score) {
+            const count = questionsData[part].length;
+            for (let i = 1; i <= count; i++) {
+                const globalInp = document.getElementById(`global-${part}-${i}`);
+                if (globalInp) {
+                    const globalNum = parseInt(globalInp.value);
+                    selectScore(part, i, score, globalNum);
+                }
+            }
+        }
+
+        function calculateLiveScores() {
+            let sum = 0;
+            let count = 31;
+            
+            // Collect all scores
+            for (const part of ['p1', 'p2', 'p3', 'p4', 'p5', 'p6']) {
+                const len = questionsData[part].length;
+                for (let i = 1; i <= len; i++) {
+                    const val = document.getElementById(`val-${part}-${i}`);
+                    if (val) {
+                        sum += parseInt(val.value);
+                    }
+                }
+            }
+
+            document.getElementById('sum-score').textContent = sum;
+            
+            let avg = (sum / count).toFixed(2);
+            document.getElementById('avg-score').textContent = avg;
+
+            const qualSpan = document.getElementById('overall-qual');
+            if (avg >= 4.21) {
+                qualSpan.textContent = "ยอดเยี่ยม";
+            } else if (avg >= 3.41) {
+                qualSpan.textContent = "ดีเลิศ";
+            } else if (avg >= 2.61) {
+                qualSpan.textContent = "ดี";
+            } else if (avg >= 1.81) {
+                qualSpan.textContent = "ปานกลาง";
+            } else {
+                qualSpan.textContent = "กำลังพัฒนา";
+            }
+        }
+
+        async function submitClassEvaluation() {
+            let payload = {
+                booking_id: currentBookingId,
+                eval_type: 'class'
+            };
+
+            for (const part of ['p1', 'p2', 'p3', 'p4', 'p5', 'p6']) {
+                const len = questionsData[part].length;
+                for (let i = 1; i <= len; i++) {
+                    const globalNum = document.getElementById(`global-${part}-${i}`).value;
+                    const score = document.getElementById(`val-${part}-${i}`).value;
+                    payload[`class_score_${globalNum}`] = score;
+                }
+            }
+
+            payload.class_comments = document.getElementById('doc_comments').value;
+
+            Swal.fire({
+                title: 'กำลังบันทึกข้อมูล...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch('../api/teacher/supervision_evaluate.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'บันทึกสำเร็จ!',
+                        text: 'ผลการประเมินการสอนถูกบันทึกเรียบร้อยแล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = 'supervision_evaluate.html';
+                    });
+                } else {
+                    Swal.fire('ข้อผิดพลาด', data.error || 'เกิดข้อผิดพลาดในการบันทึก', 'error');
+                }
+            } catch (err) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

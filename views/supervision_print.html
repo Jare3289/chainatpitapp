@@ -3,67 +3,587 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>พิมพ์รูปเล่มรายงานการนิเทศ | CNP APP</title>
+    <title>รายงานผลการนิเทศการสอน | CNP APP</title>
     <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
     
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Chart.js and TH Sarabun local fonts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/css/fonts.css">
     
     <!-- Core CSS -->
     <link rel="stylesheet" href="../public/css/style.css">
     
     <style>
-        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f4f7fa; color: #1e293b; }
-        
-        .bg-gradient-navy {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        body { 
+            font-family: 'Google Sans', 'Sarabun', sans-serif; 
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); 
+            color: #1e293b; 
+            min-height: 100vh;
         }
+        
         .text-navy { color: #1e3a8a; }
+        .text-primary-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
+        .dashboard-panel-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            border-radius: 20px 20px 0 0;
+            padding: 24px;
+            color: white;
+        }
+
+        .dashboard-panel-body {
+            background: white;
+            border-radius: 0 0 20px 20px;
+            padding: 30px;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            margin-bottom: 25px;
+        }
+
+        /* ===== DASHBOARD PANEL ===== */
         .dashboard-panel {
             background: white;
-            border-radius: 24px;
-            padding: 25px;
+            border-radius: 20px;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.01);
+            box-shadow: 0 4px 24px rgba(15,23,42,0.06);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .dashboard-panel-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            padding: 20px 28px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .dashboard-panel-header h5 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.3px;
+        }
+        .dashboard-panel-header .subtitle {
+            font-size: 0.8rem;
+            opacity: 0.75;
+            margin-top: 2px;
+        }
+        .dashboard-panel-body {
+            padding: 24px 28px;
+        }
+
+        /* Teacher info banner inside dashboard */
+        .teacher-info-banner {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            padding: 14px 20px;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .teacher-info-banner .info-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.88rem;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        .teacher-info-banner .info-chip i {
+            color: #3b82f6;
+            font-size: 0.95rem;
+        }
+        .teacher-info-banner .divider {
+            width: 1px;
+            height: 20px;
+            background: #bfdbfe;
+        }
+
+        /* KPI Cards horizontal layout */
+        .kpi-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+            border-color: #bfdbfe;
+        }
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.4rem;
+            color: #2563eb;
+        }
+        .kpi-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .kpi-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .kpi-value {
+            font-size: 1.65rem;
+            font-weight: 900;
+            color: #1e3a8a;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .kpi-card-overall {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-color: transparent;
+            color: white;
+        }
+        .kpi-card-overall::before {
+            background: linear-gradient(180deg, #60a5fa 0%, #34d399 100%);
+        }
+        .kpi-card-overall .kpi-icon {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .kpi-card-overall .kpi-label {
+            color: rgba(255,255,255,0.7);
+        }
+        .kpi-card-overall .kpi-value {
+            color: white;
+        }
+        .kpi-card-overall .kpi-ring {
+            text-align: center;
+        }
+
+        /* Navigation Sidebar (legacy — kept for compatibility) */
+        .sidebar-menu-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            position: sticky;
+            top: 24px;
+        }
+
+        .tab-btn-modern {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            padding: 14px 20px;
+            border: 1px solid transparent;
+            background: none;
+            border-radius: 14px;
+            color: #64748b;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: left;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 8px;
+        }
+        .tab-btn-modern i {
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .tab-btn-modern:hover {
+            background: #f8fafc;
+            color: #1e3a8a;
+        }
+        .tab-btn-modern:hover i {
+            transform: scale(1.1);
+        }
+        .tab-btn-modern.active {
+            background: #eff6ff;
+            color: #1e40af;
+            border-color: #dbeafe;
+        }
+
+        /* A4 Canvas styling on screen */
+        .desk-workspace {
+            background: #cbd5e1;
+            padding: 40px 10px;
+            border-radius: 24px;
+            border: 1px solid #94a3b8;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .a4-page-preview {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm 20mm 20mm 25mm;
+            box-shadow: 0 15px 35px rgba(15, 23, 42, 0.2);
+            box-sizing: border-box;
+            position: relative;
+            font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif;
+            color: #000;
+            line-height: 1.25;
+            border-radius: 4px;
+            font-size: 16pt;
+            transform-origin: top center;
+            transition: transform 0.15s ease-out;
+        }
+        #page-cover-preview {
+            padding: 20mm 20mm 18mm 20mm !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .border-bottom-dotted {
+            border-bottom: 1px dotted #000;
+        }
+
+        /* Screen Controls inputs styling */
+        .form-control-modern {
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 11px 16px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+        }
+        .form-control-modern:focus {
+            border-color: #3b82f6;
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .photo-upload-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        /* Screen controls helper classes */
+        @media screen {
+            .d-none-screen {
+                display: none !important;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+                color: #000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif !important;
+            }
+            .wrapper, .main-panel, .app-content, .container-fluid, .row, .col-lg-8, .col-lg-4 {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                flex: none !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .desk-workspace {
+                background: none !important;
+                border: none !important;
+                padding: 0 !important;
+                display: block !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+            }
+            .a4-page-preview {
+                width: 210mm !important;
+                min-height: 297mm !important;
+                padding: 25mm 20mm 20mm 25mm !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+                page-break-after: always !important;
+                display: block !important;
+                background: white !important;
+                box-sizing: border-box !important;
+                border-radius: 0 !important;
+                transform: none !important;
+                margin-bottom: 0 !important;
+            }
+            #page-cover-preview {
+                padding: 20mm 20mm 18mm 20mm !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .a4-page-preview:last-child {
+                page-break-after: avoid !important;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="wrapper">
-        <aside class="sidebar" id="mainSidebar"></aside>
+        <aside class="sidebar no-print" id="mainSidebar"></aside>
 
         <main class="main-panel d-flex flex-column min-vh-100" id="main">
             <div class="app-content page-content flex-grow-1">
                 <div class="container-fluid">
                     
                     <!-- Back Button and Header -->
-                    <div class="d-flex align-items-center gap-3 mb-4">
-                        <a href="teacher_supervision.html" class="btn btn-light rounded-circle shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
-                            <i class="bi bi-arrow-left fs-5"></i>
-                        </a>
-                        <div>
-                            <h4 class="fw-black text-navy mb-0">พิมพ์เล่มรายงานนิเทศ</h4>
-                            <div class="text-muted small">พิมพ์รายงานผลสรุปคะแนนประเมินและความคิดเห็นของกรรมการนิเทศ</div>
+                    <div class="d-flex align-items-center justify-content-between mb-4 no-print">
+                        <div class="d-flex align-items-center gap-3">
+                            <a href="teacher_supervision.html" class="btn btn-light rounded-circle shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-arrow-left fs-5"></i>
+                            </a>
+                            <div>
+                                <h4 class="fw-black text-navy mb-0">รายงานสรุปผลการนิเทศ</h4>
+                                <div class="text-muted small">บันทึกข้อความรายงานการประเมินการจัดการเรียนรู้ และแบบประเมินนิเทศ (นิเทศ 01)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-navy rounded-pill px-4 fw-black shadow" onclick="window.print()">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> สั่งพิมพ์ / บันทึกเป็น PDF (A4)
+                            </button>
                         </div>
                     </div>
 
-                    <div class="dashboard-panel text-center py-5">
-                        <div id="print-content-box">
-                            <div class="text-center py-5 text-muted small">กำลังโหลดข้อมูล...</div>
+
+                    <div class="row g-4">
+                        <!-- Preview & Dashboard Area (Full Width) -->
+                        <div class="col-lg-12">
+                            <!-- SCREEN DASHBOARD TAB -->
+                            <div id="screen-dashboard" class="no-print">
+                                <div class="dashboard-panel">
+                                    <!-- Header -->
+                                    <div class="dashboard-panel-header">
+                                        <div>
+                                            <h5><i class="bi bi-bar-chart-fill me-2"></i>แดชบอร์ดสรุปผลการประเมินการนิเทศ</h5>
+                                            <div class="subtitle">ข้อมูลสรุปคะแนนประเมินสะสมจากคณะกรรมการทั้ง 3 ท่าน</div>
+                                        </div>
+                                        <a id="btn-full-booklet" target="_blank" class="btn btn-light rounded-pill fw-bold px-4 py-2 flex-shrink-0" style="font-size: 0.88rem;">
+                                            <i class="bi bi-journal-text me-1 text-primary"></i> เล่มรายงานเต็ม
+                                        </a>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="dashboard-panel-body">
+
+                                        <!-- Teacher info banner -->
+                                        <div class="teacher-info-banner">
+                                            <div class="info-chip"><i class="bi bi-person-fill"></i><span id="banner-teacher-name">กำลังโหลด...</span></div>
+                                            <div class="divider"></div>
+                                            <div class="info-chip"><i class="bi bi-briefcase-fill"></i><span id="banner-teacher-pos">-</span></div>
+                                            <div class="divider"></div>
+                                            <div class="info-chip"><i class="bi bi-book-fill"></i><span id="banner-teacher-dept">-</span></div>
+                                            <div class="divider"></div>
+                                            <div class="info-chip"><i class="bi bi-calendar3"></i><span id="banner-booking-date">-</span></div>
+                                        </div>
+
+                                        <!-- KPI Row -->
+                                        <div class="row g-3 mb-4">
+                                            <div class="col-md-4">
+                                                <div class="kpi-card h-100">
+                                                    <div class="kpi-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+                                                    <div class="kpi-content">
+                                                        <div class="kpi-label">เฉลี่ยแผนการเรียนรู้</div>
+                                                        <div class="kpi-value" id="dash-doc-avg">-</div>
+                                                        <span class="badge bg-secondary rounded-pill" id="dash-doc-badge" style="font-size: 0.75rem;">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="kpi-card h-100">
+                                                    <div class="kpi-icon"><i class="bi bi-easel2-fill"></i></div>
+                                                    <div class="kpi-content">
+                                                        <div class="kpi-label">เฉลี่ยการสอนในห้องเรียน</div>
+                                                        <div class="kpi-value" id="dash-class-avg">-</div>
+                                                        <span class="badge bg-secondary rounded-pill" id="dash-class-badge" style="font-size: 0.75rem;">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="kpi-card kpi-card-overall h-100">
+                                                    <div class="kpi-icon"><i class="bi bi-award-fill"></i></div>
+                                                    <div class="kpi-content">
+                                                        <div class="kpi-label">คะแนนรวมเฉลี่ยสะสม</div>
+                                                        <div class="kpi-value" id="dash-overall-avg">-</div>
+                                                        <span class="badge bg-light text-primary rounded-pill" id="dash-overall-badge" style="font-size: 0.75rem;">-</span>
+                                                    </div>
+                                                    <div class="kpi-ring">
+                                                        <div class="position-relative d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; flex-shrink: 0;">
+                                                            <svg width="64" height="64" viewBox="0 0 80 80">
+                                                                <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.2)" stroke-width="6" fill="transparent"/>
+                                                                <circle id="overall-progress-ring" cx="40" cy="40" r="34" stroke="#60a5fa" stroke-width="6" fill="transparent"
+                                                                        stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transition: stroke-dashoffset 1s ease-out; transform: rotate(-90deg); transform-origin: 50% 50%;"/>
+                                                            </svg>
+                                                            <div class="position-absolute fw-bold" id="overall-progress-percent" style="font-size: 0.8rem; color: white;">0%</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chart + Comments Row -->
+                                        <div class="row g-3">
+                                            <div class="col-md-7">
+                                                <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fafbff;">
+                                                    <h6 class="fw-bold text-navy mb-3" style="font-size: 0.9rem;"><i class="bi bi-bar-chart-fill text-primary me-2"></i>เปรียบเทียบผลคะแนนผู้ประเมินแต่ละท่าน</h6>
+                                                    <div style="position: relative; height: 220px; width: 100%;">
+                                                        <canvas id="scoresComparisonChart"></canvas>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fafbff;">
+                                                    <h6 class="fw-bold text-navy mb-3" style="font-size: 0.9rem;"><i class="bi bi-chat-left-text-fill text-primary me-2"></i>ข้อเสนอแนะสำหรับการจัดกิจกรรม</h6>
+                                                    <div id="dash-comments-box" style="max-height: 220px; overflow-y: auto; font-size: 0.88rem;">
+                                                        <div class="text-center py-4 text-muted small">ไม่มีข้อมูลข้อเสนอแนะ</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                                    
+                                    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 50px; text-align: center; font-size: 16pt; line-height: 1.25;">
+                                        <div style="width: 320px; margin-left: auto;">
+                                            ลงชื่อ.......................................................<br>
+                                            ผู้รับการประเมิน<br>
+                                            ( <span class="preview-teacher-name">[ผู้รับการนิเทศ]</span> )<br>
+                                            ตำแหน่ง <span class="preview-teacher-position">[ตำแหน่ง]</span><span class="preview-teacher-standing-comma">[วิทยฐานะ]</span><br>
+                                            <span id="preview-sign-date-thai">[วันที่]</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PAGE 3: PHOTOS -->
+                                <div class="a4-page-preview d-none-screen shadow-sm" id="page-photos-preview">
+                                    <div style="text-align: center; margin-bottom: 15px; line-height: 1.25;">
+                                        <span style="font-size: 20pt; font-weight: bold; display: block;">ภาพประกอบการประเมินการจัดการเรียนรู้และการนิเทศการสอน</span>
+                                        <span style="font-size: 16pt; display: block; margin-top: 3px;">
+                                            ชื่อ-สกุลผู้รับการประเมิน <span class="preview-teacher-name" style="font-weight: bold;">[ผู้รับการนิเทศ]</span> ตำแหน่ง <span class="preview-teacher-position">[ตำแหน่ง]</span> <span class="preview-teacher-standing">[วิทยฐานะ]</span>
+                                        </span>
+                                        <span style="font-size: 16pt; display: block;">
+                                            กลุ่มสาระการเรียนรู้ <span class="preview-teacher-dept">[กลุ่มสาระ]</span> รายวิชา <span class="preview-subject-name">[วิชา]</span> รหัสวิชา <span class="preview-subject-code">[รหัสวิชา]</span> ชั้น ม.<span class="preview-classroom">[ห้องเรียน]</span>
+                                        </span>
+                                        <span style="font-size: 16pt; display: block;">
+                                            วัน/เดือน/ปีที่รับการประเมิน <span class="preview-booking-date-thai">[วันที่]</span>
+                                        </span>
+                                        <div style="border-bottom: 1px solid #000; margin-top: 8px; width: 100%;"></div>
+                                    </div>
+                                    
+                                    <div style="display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center; min-height: 180mm;">
+                                        <!-- PHOTO 1 -->
+                                        <div style="width: 100%; max-width: 550px; text-align: center;">
+                                            <div style="width: 100%; height: 230px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8fafc; overflow: hidden;" id="photo-teaching-container">
+                                                <span class="text-muted small"><i class="bi bi-image fs-1 d-block mb-2"></i>ยังไม่มีภาพถ่ายการจัดการเรียนรู้</span>
+                                            </div>
+                                            <div style="margin-top: 5px; font-size: 16pt; font-weight: bold;" id="photo-teaching-caption">
+                                                ภาพที่ 1 คำบรรยายภาพการจัดการเรียนรู้
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- PHOTO 2 -->
+                                        <div style="width: 100%; max-width: 550px; text-align: center; margin-top: 5px;">
+                                            <div style="width: 100%; height: 230px; border: 2px dashed #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #f8fafc; overflow: hidden;" id="photo-supervision-container">
+                                                <span class="text-muted small"><i class="bi bi-image-fill fs-1 d-block mb-2"></i>ยังไม่มีภาพถ่ายการนิเทศการสอน</span>
+                                            </div>
+                                            <div style="margin-top: 5px; font-size: 16pt; font-weight: bold;" id="photo-supervision-caption">
+                                                ภาพที่ 2 คำบรรยายการนิเทศการสอน
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Photo Upload Card -->
+                        <div class="col-lg-12 no-print mb-5">
+                            <div class="dashboard-panel">
+                                <div class="dashboard-panel-header" style="padding: 16px 28px;">
+                                    <div>
+                                        <h5 style="font-size: 0.95rem;"><i class="bi bi-camera-fill me-2"></i>ภาพประกอบรายงาน</h5>
+                                        <div class="subtitle">อัปโหลดภาพการจัดการเรียนรู้และภาพการนิเทศ เพื่อแนบรายงานหน้าภาพ</div>
+                                    </div>
+                                </div>
+                                <div class="dashboard-panel-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                                <div class="fw-bold text-navy mb-2" style="font-size: 0.88rem;"><i class="bi bi-image me-1 text-primary"></i>ภาพประกอบ 1: การสอน</div>
+                                                <input type="file" id="file-teaching" accept="image/*" class="form-control form-control-sm mb-2" onchange="uploadPhoto('teaching')">
+                                                <textarea class="form-control form-control-modern rounded-3" id="caption-teaching" rows="1" placeholder="คำบรรยายใต้ภาพที่ 1" oninput="updateLivePreview()" style="font-size: 0.85rem;"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                                <div class="fw-bold text-navy mb-2" style="font-size: 0.88rem;"><i class="bi bi-image-fill me-1 text-primary"></i>ภาพประกอบ 2: การนิเทศ</div>
+                                                <input type="file" id="file-supervision" accept="image/*" class="form-control form-control-sm mb-2" onchange="uploadPhoto('supervision')">
+                                                <textarea class="form-control form-control-modern rounded-3" id="caption-supervision" rows="1" placeholder="คำบรรยายใต้ภาพที่ 2" oninput="updateLivePreview()" style="font-size: 0.85rem;"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 text-end">
+                                        <button class="btn btn-navy rounded-pill fw-bold px-5 py-2" onclick="saveCaptions()">
+                                            <i class="bi bi-save-fill me-2"></i>บันทึกภาพถ่ายและคำบรรยาย
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                 </div>
             </div>
-            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4 no-print"></footer>
         </main>
     </div>
 
@@ -74,41 +594,661 @@
     <script src="../public/js/main.js"></script>
     <script>
         let currentUser = null;
+        let bookingData = null;
+        let myBookingId = null;
+        let postRecord = {
+            photo_teaching: '',
+            caption_teaching: '',
+            photo_supervision: '',
+            caption_supervision: '',
+            sign_date: ''
+        };
+
+        function resizePreview() {
+            const workspace = document.querySelector('.desk-workspace');
+            if (!workspace) return;
+            const workspaceWidth = workspace.clientWidth - 20; // 10px padding on each side
+            const targetWidth = 794; // 210mm in pixels at 96dpi (A4 width)
+            
+            document.querySelectorAll('.a4-page-preview').forEach(page => {
+                if (workspaceWidth < targetWidth) {
+                    const scale = workspaceWidth / targetWidth;
+                    page.style.transform = `scale(${scale})`;
+                    page.style.transformOrigin = 'top center';
+                    page.style.marginBottom = `-${targetWidth * 1.414 * (1 - scale)}px`;
+                } else {
+                    page.style.transform = 'none';
+                    page.style.marginBottom = '30px';
+                }
+            });
+        }
+        window.addEventListener('resize', resizePreview);
 
         document.addEventListener('DOMContentLoaded', async () => {
             currentUser = await checkAuth(['teacher', 'admin']);
             if (currentUser) {
-                await loadPrintData();
+                await loadPrintDetails();
+                resizePreview();
             }
         });
 
-        async function loadPrintData() {
+        function formatThaiDate(dateStr) {
+            if (!dateStr) return '........................................';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            const year = parseInt(parts[0]) + 543;
+            const month = parseInt(parts[1]);
+            const day = parseInt(parts[2]);
+            const months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            return `${day} ${months[month]} ${year}`;
+        }
+
+        function getQualityText(avg) {
+            avg = parseFloat(avg);
+            if (isNaN(avg) || avg <= 0) return '-';
+            if (avg >= 4.21) return 'ยอดเยี่ยม';
+            if (avg >= 3.41) return 'ดีเลิศ';
+            if (avg >= 2.61) return 'ดี';
+            if (avg >= 1.81) return 'ปานกลาง';
+            if (avg >= 1.00) return 'กำลังพัฒนา';
+            return 'ไม่ปฏิบัติ';
+        }
+
+        async function loadPrintDetails() {
             try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlBookingId = parseInt(urlParams.get('booking_id')) || 0;
+                
                 const res = await fetch('../api/teacher/supervision_get.php');
                 const data = await res.json();
-                if (data.success) {
-                    renderPrintContent(data.booking);
+                
+                if (!data.success) {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อข้อมูลได้', 'error');
+                    return;
                 }
+
+                let booking = null;
+                if (urlBookingId > 0) {
+                    if (data.booking && data.booking.id === urlBookingId) {
+                        booking = data.booking;
+                    } else {
+                        booking = (data.duties || []).find(d => d.id === urlBookingId);
+                    }
+                } else {
+                    booking = data.booking;
+                }
+
+                if (!booking) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ไม่พบคิวการนิเทศ',
+                        text: 'กรุณาดำเนินการจองคิวและรับการประเมินให้เสร็จสิ้นก่อน'
+                    });
+                    return;
+                }
+
+                bookingData = booking;
+                myBookingId = booking.id;
+
+                document.getElementById('btn-full-booklet').href = `../api/teacher/supervision_print.php?booking_id=${booking.id}`;
+
+                // Calculate scores
+                calculateAndRenderScores(data.evaluations_status || {});
+
+                // Fill data and show controls if authorized
+                const isOwner = (booking.teacher_id === data.my_teacher_id) || (currentUser.role === 'admin');
+                if (isOwner) {
+                    document.getElementById('custom-fields-form').classList.remove('d-none');
+                    // sign_date and order_no are fixed/handled automatically
+                    document.getElementById('caption-teaching').value = postRecord.caption_teaching || '';
+                    document.getElementById('caption-supervision').value = postRecord.caption_supervision || '';
+                }
+
+                // Check post records from DB booking
+                if (booking.post_teaching_record) {
+                    try {
+                        const parsed = JSON.parse(booking.post_teaching_record);
+                        if (parsed && typeof parsed === 'object') {
+                            postRecord = { ...postRecord, ...parsed };
+                            if (isOwner) {
+                                document.getElementById('caption-teaching').value = postRecord.caption_teaching || '';
+                                document.getElementById('caption-supervision').value = postRecord.caption_supervision || '';
+                            }
+                        }
+                    } catch (e) {}
+                }
+
+                updateLivePreview();
+                switchPreviewTab('dashboard');
+
             } catch (err) {
-                console.error("Error loading print metadata: ", err);
+                console.error("Error loading details: ", err);
+                Swal.fire('ข้อผิดพลาด', 'โหลดข้อมูลรายงานล้มเหลว', 'error');
             }
         }
 
-        function renderPrintContent(booking) {
-            const box = document.getElementById('print-content-box');
-            if (booking && booking.status === 'completed') {
-                box.innerHTML = `
-                    <i class="bi bi-file-earmark-pdf-fill text-primary display-2 mb-4 d-block"></i>
-                    <h4 class="fw-black text-navy mb-2">รายงานผลการนิเทศการสอนเสร็จสมบูรณ์!</h4>
-                    <p class="text-muted small mb-4">เล่มเอกสารบันทึกข้อความสรุปผลคะแนนและความเห็นจากคณะกรรมการนิเทศพร้อมพิมพ์เรียบร้อยแล้ว</p>
-                    <a href="../api/teacher/supervision_print.php?booking_id=${booking.id}" target="_blank" class="btn btn-primary rounded-pill px-5 py-3 fw-black shadow-lg"><i class="bi bi-printer-fill me-2"></i> สั่งพิมพ์เล่มรายงานนิเทศการสอน</a>
-                `;
+        function calculateDocAvg(evalData, teacherStanding) {
+            if (!evalData) return 0;
+            
+            let p1Sum = 0;
+            for (let i = 1; i <= 19; i++) {
+                p1Sum += parseInt(evalData[`unit_score_${i}`]) || 0;
+            }
+            
+            let p2Sum = 0;
+            for (let i = 1; i <= 21; i++) {
+                p2Sum += parseInt(evalData[`plan_score_${i}`]) || 0;
+            }
+            
+            let activeSubItem = 1;
+            if (teacherStanding) {
+                if (teacherStanding.includes('ชำนาญการพิเศษ')) activeSubItem = 2;
+                else if (teacherStanding.includes('เชี่ยวชาญพิเศษ')) activeSubItem = 4;
+                else if (teacherStanding.includes('เชี่ยวชาญ')) activeSubItem = 3;
+                else if (teacherStanding.includes('ชำนาญการ')) activeSubItem = 1;
+            }
+            let planScore22 = parseInt(evalData[`plan_score_22_${activeSubItem}`]) || 0;
+            
+            let docTotal = p1Sum + p2Sum + planScore22;
+            return docTotal / 41;
+        }
+
+        function calculateClassAvg(evalData) {
+            if (!evalData) return 0;
+            
+            let classSum = 0;
+            for (let i = 1; i <= 31; i++) {
+                classSum += parseInt(evalData[`class_score_${i}`]) || 0;
+            }
+            return classSum / 31;
+        }
+
+        let calculatedAverages = {
+            peerDoc: 0, peerClass: 0,
+            headDoc: 0, headClass: 0,
+            acadDoc: 0, acadClass: 0,
+            overallDoc: 0, overallClass: 0
+        };
+
+        function calculateAndRenderScores(status) {
+            let docAvgs = [];
+            let classAvgs = [];
+            const standing = bookingData.academic_standing || 'ไม่มีวิทยฐานะ';
+
+            if (status.peer && status.peer.doc_done) {
+                calculatedAverages.peerDoc = calculateDocAvg(status.peer.eval, standing);
+                docAvgs.push(calculatedAverages.peerDoc);
+                document.getElementById('table-peer-doc-avg').innerText = calculatedAverages.peerDoc.toFixed(2);
+                document.getElementById('table-peer-doc-qual').innerText = getQualityText(calculatedAverages.peerDoc);
+            }
+            if (status.peer && status.peer.class_done) {
+                calculatedAverages.peerClass = calculateClassAvg(status.peer.eval);
+                classAvgs.push(calculatedAverages.peerClass);
+                document.getElementById('table-peer-class-avg').innerText = calculatedAverages.peerClass.toFixed(2);
+                document.getElementById('table-peer-class-qual').innerText = getQualityText(calculatedAverages.peerClass);
+            }
+
+            if (status.head && status.head.doc_done) {
+                calculatedAverages.headDoc = calculateDocAvg(status.head.eval, standing);
+                docAvgs.push(calculatedAverages.headDoc);
+                document.getElementById('table-head-doc-avg').innerText = calculatedAverages.headDoc.toFixed(2);
+                document.getElementById('table-head-doc-qual').innerText = getQualityText(calculatedAverages.headDoc);
+            }
+            if (status.head && status.head.class_done) {
+                calculatedAverages.headClass = calculateClassAvg(status.head.eval);
+                classAvgs.push(calculatedAverages.headClass);
+                document.getElementById('table-head-class-avg').innerText = calculatedAverages.headClass.toFixed(2);
+                document.getElementById('table-head-class-qual').innerText = getQualityText(calculatedAverages.headClass);
+            }
+
+            if (status.academic && status.academic.doc_done) {
+                calculatedAverages.acadDoc = calculateDocAvg(status.academic.eval, standing);
+                docAvgs.push(calculatedAverages.acadDoc);
+                document.getElementById('table-acad-doc-avg').innerText = calculatedAverages.acadDoc.toFixed(2);
+                document.getElementById('table-acad-doc-qual').innerText = getQualityText(calculatedAverages.acadDoc);
+            }
+            if (status.academic && status.academic.class_done) {
+                calculatedAverages.acadClass = calculateClassAvg(status.academic.eval);
+                classAvgs.push(calculatedAverages.acadClass);
+                document.getElementById('table-acad-class-avg').innerText = calculatedAverages.acadClass.toFixed(2);
+                document.getElementById('table-acad-class-qual').innerText = getQualityText(calculatedAverages.acadClass);
+            }
+
+            calculatedAverages.overallDoc = docAvgs.length > 0 ? (docAvgs.reduce((a, b) => a + b, 0) / docAvgs.length) : 0;
+            calculatedAverages.overallClass = classAvgs.length > 0 ? (classAvgs.reduce((a, b) => a + b, 0) / classAvgs.length) : 0;
+
+            if (calculatedAverages.overallDoc > 0) {
+                document.getElementById('table-overall-doc-avg').innerText = calculatedAverages.overallDoc.toFixed(2);
+                document.getElementById('table-overall-doc-qual').innerText = getQualityText(calculatedAverages.overallDoc);
+                document.getElementById('dash-doc-avg').innerText = `${calculatedAverages.overallDoc.toFixed(2)} / 5.00`;
+                const dbg1 = document.getElementById('dash-doc-badge');
+                dbg1.innerText = getQualityText(calculatedAverages.overallDoc);
+                dbg1.className = 'badge bg-primary rounded-pill px-3 py-2';
+            }
+            if (calculatedAverages.overallClass > 0) {
+                document.getElementById('table-overall-class-avg').innerText = calculatedAverages.overallClass.toFixed(2);
+                document.getElementById('table-overall-class-qual').innerText = getQualityText(calculatedAverages.overallClass);
+                document.getElementById('dash-class-avg').innerText = `${calculatedAverages.overallClass.toFixed(2)} / 5.00`;
+                const dbg2 = document.getElementById('dash-class-badge');
+                dbg2.innerText = getQualityText(calculatedAverages.overallClass);
+                dbg2.className = 'badge bg-primary rounded-pill px-3 py-2';
+            }
+
+            const overallCumulative = (calculatedAverages.overallDoc > 0 && calculatedAverages.overallClass > 0) 
+                ? (calculatedAverages.overallDoc + calculatedAverages.overallClass) / 2
+                : (calculatedAverages.overallDoc || calculatedAverages.overallClass || 0);
+
+            if (overallCumulative > 0) {
+                document.getElementById('dash-overall-avg').innerText = `${overallCumulative.toFixed(2)} / 5.00`;
+                document.getElementById('dash-overall-badge').innerText = getQualityText(overallCumulative);
+
+                // SVG Circular Progress Ring Animation
+                const percent = (overallCumulative / 5) * 100;
+                document.getElementById('overall-progress-percent').innerText = `${percent.toFixed(0)}%`;
+                const circle = document.getElementById('overall-progress-ring');
+                if (circle) {
+                    const radius = circle.r.baseVal.value;
+                    const circumference = 2 * Math.PI * radius;
+                    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                    const offset = circumference - (percent / 100) * circumference;
+                    circle.style.strokeDashoffset = offset;
+                }
             } else {
-                box.innerHTML = `
-                    <i class="bi bi-lock-fill text-muted display-2 mb-4 d-block"></i>
-                    <h5 class="fw-bold text-muted mb-2">ปุ่มพิมพ์เอกสารจะทำงานเมื่อการนิเทศเสร็จสิ้นแล้ว</h5>
-                    <p class="text-muted small">กรุณาดำเนินการขั้นตอนการตรวจประเมิน และบันทึกหลังการสอนให้ครบถ้วนก่อน</p>
-                `;
+                document.getElementById('overall-progress-percent').innerText = '0%';
+                const circle = document.getElementById('overall-progress-ring');
+                if (circle) {
+                    const radius = circle.r.baseVal.value;
+                    const circumference = 2 * Math.PI * radius;
+                    circle.style.strokeDashoffset = circumference;
+                }
+            }
+
+            const commentsBox = document.getElementById('dash-comments-box');
+            commentsBox.innerHTML = '';
+            let hasComments = false;
+
+            const roles = ['peer', 'head', 'academic'];
+            const roleTitles = { peer: 'ครูผู้ร่วมนิเทศ (Peer)', head: 'ครูผู้นิเทศ (Head/หัวหน้ากลุ่มสาระฯ)', academic: 'ฝ่ายวิชาการ (Academic)' };
+
+            roles.forEach(role => {
+                const info = status[role];
+                if (info && info.eval && (info.eval.doc_comments || info.eval.class_comments)) {
+                    hasComments = true;
+                    commentsBox.innerHTML += `
+                        <div class="mb-3 p-3 bg-light rounded-4 border-start border-primary border-4">
+                            <strong class="text-navy small d-block mb-1">${roleTitles[role]}: ${info.name}</strong>
+                            ${info.eval.doc_comments ? `<div class="small mb-1 text-secondary"><strong>ประเมินแผน:</strong> ${info.eval.doc_comments}</div>` : ''}
+                            ${info.eval.class_comments ? `<div class="small text-secondary"><strong>นิเทศการสอน:</strong> ${info.eval.class_comments}</div>` : ''}
+                        </div>
+                    `;
+                }
+            });
+
+            if (!hasComments) {
+                commentsBox.innerHTML = '<div class="text-center py-4 text-muted small"><i class="bi bi-chat-left-dots me-2"></i>ไม่มีข้อเสนอแนะเพิ่มเติมจากคณะกรรมการ</div>';
+            }
+
+            // Render Chart.js score comparison
+            const ctx = document.getElementById('scoresComparisonChart').getContext('2d');
+            if (window.scoresChartInstance) {
+                window.scoresChartInstance.destroy();
+            }
+
+            // Create gradients
+            const docGrad = ctx.createLinearGradient(0, 0, 0, 250);
+            docGrad.addColorStop(0, 'rgba(59, 130, 246, 0.9)'); // blue
+            docGrad.addColorStop(1, 'rgba(37, 99, 235, 0.3)');
+
+            const classGrad = ctx.createLinearGradient(0, 0, 0, 250);
+            classGrad.addColorStop(0, 'rgba(139, 92, 246, 0.9)'); // violet
+            classGrad.addColorStop(1, 'rgba(109, 40, 217, 0.3)');
+            
+            window.scoresChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['ครูผู้ร่วมนิเทศ (Peer)', 'ครูผู้นิเทศ (Head)', 'กรรมการวิชาการ (Academic)'],
+                    datasets: [
+                        {
+                            label: 'คะแนนประเมินแผน (ตรวจแผน)',
+                            data: [
+                                calculatedAverages.peerDoc > 0 ? parseFloat(calculatedAverages.peerDoc.toFixed(2)) : null,
+                                calculatedAverages.headDoc > 0 ? parseFloat(calculatedAverages.headDoc.toFixed(2)) : null,
+                                calculatedAverages.acadDoc > 0 ? parseFloat(calculatedAverages.acadDoc.toFixed(2)) : null
+                            ],
+                            backgroundColor: docGrad,
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1.5,
+                            borderRadius: 8
+                        },
+                        {
+                            label: 'คะแนนนิเทศการสอน (ห้องเรียน)',
+                            data: [
+                                calculatedAverages.peerClass > 0 ? parseFloat(calculatedAverages.peerClass.toFixed(2)) : null,
+                                calculatedAverages.headClass > 0 ? parseFloat(calculatedAverages.headClass.toFixed(2)) : null,
+                                calculatedAverages.acadClass > 0 ? parseFloat(calculatedAverages.acadClass.toFixed(2)) : null
+                            ],
+                            backgroundColor: classGrad,
+                            borderColor: 'rgba(139, 92, 246, 1)',
+                            borderWidth: 1.5,
+                            borderRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                font: {
+                                    family: "'Google Sans', 'Sarabun', sans-serif",
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.6)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: "'Google Sans', 'Sarabun', sans-serif",
+                                    size: 12
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    family: "'Google Sans', 'Sarabun', sans-serif",
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            titleFont: {
+                                family: "'Google Sans', 'Sarabun', sans-serif",
+                                size: 13
+                            },
+                            bodyFont: {
+                                family: "'Google Sans', 'Sarabun', sans-serif",
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.raw !== null) {
+                                        label += context.raw + ' / 5.00';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateLivePreview() {
+            if (!bookingData) return;
+
+            const memoDateVal = postRecord.sign_date || new Date().toISOString().split('T')[0];
+            const orderNoVal = '323/2568';
+            const capTeaching = document.getElementById('caption-teaching').value;
+            const capSupervision = document.getElementById('caption-supervision').value;
+
+            // Update booklet link
+            const fullBookletBtn = document.getElementById('btn-full-booklet');
+            if (fullBookletBtn) {
+                fullBookletBtn.href = `../api/teacher/supervision_print.php?booking_id=${bookingData.id}`;
+            }
+
+            document.getElementById('preview-memo-date').innerText = formatThaiDate(memoDateVal) || '...................................................';
+            document.getElementById('preview-order-no').innerText = orderNoVal || '323/2568';
+
+            const sem = bookingData.semester;
+            const year = bookingData.year;
+            document.querySelectorAll('.preview-semester').forEach(el => el.innerText = sem);
+            document.querySelectorAll('.preview-year').forEach(el => el.innerText = year);
+
+            document.getElementById('preview-memo-subject').innerText = `รายงานการประเมินการจัดการเรียนรู้ ประจำภาคเรียนที่ ${sem} ปีการศึกษา ${year}`;
+
+            const tPrefix = bookingData.teacher_prefix || '';
+            const tFirst = bookingData.teacher_first || '';
+            const tLast = bookingData.teacher_last || '';
+            const tName = `${tPrefix}${tFirst} ${tLast}`;
+            
+            document.querySelectorAll('.preview-teacher-name').forEach(el => el.innerText = tName);
+            document.querySelectorAll('.preview-teacher-position').forEach(el => el.innerText = bookingData.teacher_position || 'ครู');
+            
+            const standing = bookingData.academic_standing && bookingData.academic_standing !== 'ไม่มีวิทยฐานะ' 
+                ? bookingData.academic_standing 
+                : '';
+            document.querySelectorAll('.preview-teacher-standing').forEach(el => el.innerText = standing || 'ไม่มีวิทยฐานะ');
+            document.querySelectorAll('.preview-teacher-standing-comma').forEach(el => el.innerText = standing ? ' ' + standing : '');
+
+            document.querySelectorAll('.preview-teacher-dept').forEach(el => el.innerText = bookingData.teacher_dept || '-');
+            
+            // Update teacher info banner in dashboard
+            const bannerName = document.getElementById('banner-teacher-name');
+            const bannerPos = document.getElementById('banner-teacher-pos');
+            const bannerDept = document.getElementById('banner-teacher-dept');
+            const bannerDate = document.getElementById('banner-booking-date');
+            if (bannerName) bannerName.textContent = tName;
+            if (bannerPos) bannerPos.textContent = (bookingData.teacher_position || 'ครู') + (standing ? ' ' + standing : '');
+            if (bannerDept) bannerDept.textContent = bookingData.teacher_dept || '-';
+            if (bannerDate) bannerDate.textContent = formatThaiDate(bookingData.booking_date) || '-';
+            
+            document.querySelectorAll('.preview-subject-name').forEach(el => el.innerText = bookingData.subject_name || '-');
+            document.querySelectorAll('.preview-subject-code').forEach(el => el.innerText = bookingData.subject_code || '-');
+            document.querySelectorAll('.preview-classroom').forEach(el => el.innerText = bookingData.classroom || '-');
+            document.querySelectorAll('.preview-booking-date-thai').forEach(el => el.innerText = formatThaiDate(bookingData.booking_date));
+
+            document.querySelectorAll('.preview-peer-name').forEach(el => el.innerText = bookingData.peer_name || '.......................................................');
+            document.querySelectorAll('.preview-head-name').forEach(el => el.innerText = bookingData.head_name || '.......................................................');
+            document.querySelectorAll('.preview-academic-name').forEach(el => el.innerText = bookingData.academic_name || '.......................................................');
+
+            const docQualText = getQualityText(calculatedAverages.overallDoc);
+            const classQualText = getQualityText(calculatedAverages.overallClass);
+            document.querySelectorAll('.preview-doc-quality').forEach(el => el.innerText = docQualText);
+            document.querySelectorAll('.preview-class-quality').forEach(el => el.innerText = classQualText);
+
+            document.getElementById('preview-sign-date-thai').innerText = formatThaiDate(postRecord.sign_date || memoDateVal);
+
+            // Photos container updates
+            const teachingContainer = document.getElementById('photo-teaching-container');
+            if (postRecord.photo_teaching) {
+                teachingContainer.innerHTML = `<img src="../${postRecord.photo_teaching}?t=${new Date().getTime()}" alt="ภาพการจัดการเรียนรู้" class="img-fluid rounded border shadow-sm" style="max-height: 100%; object-fit: contain;">`;
+            } else {
+                teachingContainer.innerHTML = '<span class="text-muted small"><i class="bi bi-image fs-1 d-block mb-2"></i>ยังไม่มีภาพถ่ายการจัดการเรียนรู้</span>';
+            }
+            document.getElementById('photo-teaching-caption').innerText = `ภาพที่ 1 ${capTeaching || 'ภาพการจัดการเรียนรู้'}`;
+
+            const supervisionContainer = document.getElementById('photo-supervision-container');
+            if (postRecord.photo_supervision) {
+                supervisionContainer.innerHTML = `<img src="../${postRecord.photo_supervision}?t=${new Date().getTime()}" alt="ภาพการนิเทศการสอน" class="img-fluid rounded border shadow-sm" style="max-height: 100%; object-fit: contain;">`;
+            } else {
+                supervisionContainer.innerHTML = '<span class="text-muted small"><i class="bi bi-image-fill fs-1 d-block mb-2"></i>ยังไม่มีภาพถ่ายการนิเทศการสอน</span>';
+            }
+            document.getElementById('photo-supervision-caption').innerText = `ภาพที่ 2 ${capSupervision || 'ภาพการนิเทศการสอน'}`;
+        }
+
+        function switchPreviewTab(tabName) {
+            document.getElementById('screen-dashboard').classList.add('d-none-screen');
+            document.getElementById('page-cover-preview').classList.add('d-none-screen');
+            document.getElementById('page-memo-preview').classList.add('d-none-screen');
+            document.getElementById('page-nithet01-preview').classList.add('d-none-screen');
+            document.getElementById('page-photos-preview').classList.add('d-none-screen');
+
+            // Reset all main tab buttons
+            document.querySelectorAll('.tab-btn-modern').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary', 'text-white');
+                btn.classList.add('btn-outline-primary');
+            });
+            // Reset all doc tab buttons
+            document.querySelectorAll('.doc-tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary', 'text-white');
+                btn.classList.add('btn-outline-primary');
+            });
+
+            // Activate the matching main tab button
+            const activeBtn = document.getElementById('btn-tab-' + tabName);
+            if (activeBtn) {
+                activeBtn.classList.add('active', 'btn-primary', 'text-white');
+                activeBtn.classList.remove('btn-outline-primary');
+            }
+            // Activate matching doc tab button (if any)
+            const activeDocBtn = document.querySelector('.doc-tab-btn[data-tab="' + tabName + '"]');
+            if (activeDocBtn) {
+                activeDocBtn.classList.add('active', 'btn-primary', 'text-white');
+                activeDocBtn.classList.remove('btn-outline-primary');
+            }
+
+            const docTabNav = document.getElementById('doc-tab-nav');
+
+            if (tabName === 'dashboard') {
+                document.getElementById('screen-dashboard').classList.remove('d-none-screen');
+                document.querySelector('.desk-workspace').classList.add('d-none-screen');
+                if (docTabNav) docTabNav.style.display = 'block';
+            } else {
+                document.querySelector('.desk-workspace').classList.remove('d-none-screen');
+                if (tabName === 'cover') document.getElementById('page-cover-preview').classList.remove('d-none-screen');
+                else if (tabName === 'memo') document.getElementById('page-memo-preview').classList.remove('d-none-screen');
+                else if (tabName === 'nithet01') document.getElementById('page-nithet01-preview').classList.remove('d-none-screen');
+                else if (tabName === 'photos') document.getElementById('page-photos-preview').classList.remove('d-none-screen');
+                if (docTabNav) docTabNav.style.display = 'block';
+
+                // Recalculate zoom on tab switch
+                setTimeout(resizePreview, 50);
+            }
+        }
+
+        async function uploadPhoto(type) {
+            const fileInput = document.getElementById('file-' + type);
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('booking_id', myBookingId);
+            formData.append('type', type);
+            formData.append('file', file);
+            formData.append('caption', document.getElementById('caption-' + type).value);
+
+            Swal.fire({
+                title: 'กำลังอัปโหลดรูปภาพ...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch('../api/teacher/supervision_upload_photos.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const d = await res.json();
+                if (d.success) {
+                    postRecord['photo_' + type] = d.photo_path;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ',
+                        text: d.message,
+                        timer: 1000,
+                        showConfirmButton: false
+                    });
+                    updateLivePreview();
+                } else {
+                    Swal.fire('ข้อผิดพลาด', d.error, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('ข้อผิดพลาด', 'การเชื่อมต่อขัดข้อง', 'error');
+            }
+        }
+
+        async function saveCaptions() {
+            const memoDate = postRecord.sign_date || new Date().toISOString().split('T')[0];
+            const captionTeaching = document.getElementById('caption-teaching').value;
+            const captionSupervision = document.getElementById('caption-supervision').value;
+
+            Swal.fire({
+                title: 'กำลังบันทึกข้อมูล...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const fd1 = new FormData();
+                fd1.append('booking_id', myBookingId);
+                fd1.append('type', 'teaching');
+                fd1.append('caption', captionTeaching);
+
+                const res1 = await fetch('../api/teacher/supervision_upload_photos.php', { method: 'POST', body: fd1 });
+                const d1 = await res1.json();
+
+                const fd2 = new FormData();
+                fd2.append('booking_id', myBookingId);
+                fd2.append('type', 'supervision');
+                fd2.append('caption', captionSupervision);
+
+                const res2 = await fetch('../api/teacher/supervision_upload_photos.php', { method: 'POST', body: fd2 });
+                const d2 = await res2.json();
+
+                if (d1.success && d2.success) {
+                    postRecord.caption_teaching = captionTeaching;
+                    postRecord.caption_supervision = captionSupervision;
+                    postRecord.sign_date = memoDate;
+
+                    const payload = {
+                        knowledge: postRecord.knowledge || '',
+                        characteristics: postRecord.characteristics || '',
+                        competencies: postRecord.competencies || '',
+                        problems: postRecord.problems || '',
+                        solutions: postRecord.solutions || '',
+                        sign_date: memoDate,
+                        photo_teaching: postRecord.photo_teaching || '',
+                        caption_teaching: captionTeaching,
+                        photo_supervision: postRecord.photo_supervision || '',
+                        caption_supervision: captionSupervision
+                    };
+
+                    const updateRes = await fetch('../api/teacher/supervision_post_teach.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ booking_id: myBookingId, post_teaching_record: JSON.stringify(payload) })
+                    });
+                    const updateData = await updateRes.json();
+
+                    if (updateData.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'บันทึกสำเร็จ',
+                            text: 'อัปเดตข้อมูลบันทึกข้อความและคำบรรยายเรียบร้อยแล้ว',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        updateLivePreview();
+                    } else {
+                        Swal.fire('ข้อผิดพลาด', updateData.error, 'error');
+                    }
+                } else {
+                    Swal.fire('ข้อผิดพลาด', d1.error || d2.error, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
             }
         }
     </script>

@@ -99,7 +99,7 @@
                                     <input type="hidden" name="booking_id" class="booking-id-input">
                                     <input type="hidden" name="doc_type" value="doc_subject_structure">
                                     <div class="file-upload-wrapper mb-2" id="wrapper-doc_subject_structure">
-                                        <input type="file" name="file" accept=".pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_subject_structure')">
+                                        <input type="file" name="file" accept="application/pdf, .pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_subject_structure')">
                                         <i class="bi bi-file-earmark-pdf fs-1 text-muted mb-2 d-block"></i>
                                         <div class="small fw-bold text-secondary" id="filename-doc_subject_structure">คลิกเพื่อเลือกไฟล์ PDF</div>
                                     </div>
@@ -121,7 +121,7 @@
                                     <input type="hidden" name="booking_id" class="booking-id-input">
                                     <input type="hidden" name="doc_type" value="doc_unit_structure">
                                     <div class="file-upload-wrapper mb-2" id="wrapper-doc_unit_structure">
-                                        <input type="file" name="file" accept=".pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_unit_structure')">
+                                        <input type="file" name="file" accept="application/pdf, .pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_unit_structure')">
                                         <i class="bi bi-file-earmark-pdf fs-1 text-muted mb-2 d-block"></i>
                                         <div class="small fw-bold text-secondary" id="filename-doc_unit_structure">คลิกเพื่อเลือกไฟล์ PDF</div>
                                     </div>
@@ -141,7 +141,7 @@
                                     <input type="hidden" name="booking_id" class="booking-id-input">
                                     <input type="hidden" name="doc_type" value="doc_unit_plan">
                                     <div class="file-upload-wrapper mb-2" id="wrapper-doc_unit_plan">
-                                        <input type="file" name="file" accept=".pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_unit_plan')">
+                                        <input type="file" name="file" accept="application/pdf, .pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_unit_plan')">
                                         <i class="bi bi-file-earmark-pdf fs-1 text-muted mb-2 d-block"></i>
                                         <div class="small fw-bold text-secondary" id="filename-doc_unit_plan">คลิกเพื่อเลือกไฟล์ PDF</div>
                                     </div>
@@ -161,7 +161,7 @@
                                     <input type="hidden" name="booking_id" class="booking-id-input">
                                     <input type="hidden" name="doc_type" value="doc_lesson_plan">
                                     <div class="file-upload-wrapper mb-2" id="wrapper-doc_lesson_plan">
-                                        <input type="file" name="file" accept=".pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_lesson_plan')">
+                                        <input type="file" name="file" accept="application/pdf, .pdf" class="file-upload-input" onchange="fileSelected(this, 'doc_lesson_plan')">
                                         <i class="bi bi-file-earmark-pdf fs-1 text-muted mb-2 d-block"></i>
                                         <div class="small fw-bold text-secondary" id="filename-doc_lesson_plan">คลิกเพื่อเลือกไฟล์ PDF</div>
                                     </div>
@@ -366,7 +366,7 @@
             const file = input.files[0];
             const label = document.getElementById('filename-' + docType);
             if (file) {
-                if (file.type !== 'application/pdf') {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
                     Swal.fire('ข้อผิดพลาด', 'กรุณาอัปโหลดไฟล์ PDF เท่านั้น', 'error');
                     input.value = '';
                     delete selectedFiles[docType];
@@ -418,23 +418,77 @@
             const btn = document.getElementById('btn-batch-upload');
             const originalHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>กำลังอัปโหลด...';
+
+            // Show SweetAlert2 with progress bar
+            Swal.fire({
+                title: 'กำลังอัปโหลดเอกสาร...',
+                html: `
+                    <div class="mb-2 small fw-bold text-muted" id="upload-status-text">กำลังเตรียมการอัปโหลด...</div>
+                    <div class="progress" style="height: 20px;">
+                        <div id="upload-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+
+            const totalFiles = filesToUpload.length;
+            let currentFileIndex = 0;
 
             for (const key of filesToUpload) {
+                currentFileIndex++;
+                const file = selectedFiles[key];
+                document.getElementById('upload-status-text').innerText = `กำลังอัปโหลดไฟล์ที่ ${currentFileIndex}/${totalFiles} (${file.name})`;
+                
                 const formData = new FormData();
                 formData.append('booking_id', currentBookingId);
                 formData.append('doc_type', key);
-                formData.append('file', selectedFiles[key]);
+                formData.append('file', file);
+                
                 try {
-                    const res = await fetch('../api/teacher/supervision_upload_docs.php', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (!data.success) throw new Error(data.error);
+                    await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('POST', '../api/teacher/supervision_upload_docs.php', true);
+                        
+                        xhr.upload.onprogress = (e) => {
+                            if (e.lengthComputable) {
+                                const fileProgress = e.loaded / e.total;
+                                const overallProgress = ((currentFileIndex - 1) + fileProgress) / totalFiles * 100;
+                                const percent = Math.round(overallProgress);
+                                const pb = document.getElementById('upload-progress-bar');
+                                if (pb) {
+                                    pb.style.width = percent + '%';
+                                    pb.innerText = percent + '%';
+                                    pb.setAttribute('aria-valuenow', percent);
+                                }
+                            }
+                        };
+                        
+                        xhr.onload = () => {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                try {
+                                    const res = JSON.parse(xhr.responseText);
+                                    if (res.success) resolve(res);
+                                    else reject(new Error(res.error || 'การอัปโหลดล้มเหลว'));
+                                } catch(err) {
+                                    reject(new Error('เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง'));
+                                }
+                            } else {
+                                reject(new Error('เซิร์ฟเวอร์ขัดข้อง (' + xhr.status + ')'));
+                            }
+                        };
+                        
+                        xhr.onerror = () => reject(new Error('เชื่อมต่อเครือข่ายล้มเหลว'));
+                        xhr.send(formData);
+                    });
                 } catch (err) {
-                    Swal.fire('ข้อผิดพลาด', err.message || 'การอัปโหลดขัดข้อง', 'error');
+                    Swal.fire('ข้อผิดพลาด', `อัปโหลดไฟล์ที่ ${currentFileIndex} ล้มเหลว: ${err.message}`, 'error');
                     btn.disabled = false; btn.innerHTML = originalHtml; return;
                 }
             }
-            Swal.fire({ icon: 'success', title: 'อัปโหลดสำเร็จ', timer: 1500, showConfirmButton: false });
+            
+            Swal.fire({ icon: 'success', title: 'อัปโหลดเอกสารสำเร็จ', timer: 1500, showConfirmButton: false });
             selectedFiles = {}; isEditing = false; await loadDocs();
         }
 

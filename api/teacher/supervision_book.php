@@ -140,7 +140,7 @@ try {
             exit;
         }
 
-        if ($existing['status'] !== 'pending') {
+        if ($existing['status'] !== 'pending' && $existing['status'] !== 'approved') {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'ไม่สามารถแก้ไขได้เนื่องจากคิวถูกดำเนินการไปแล้ว']);
             exit;
@@ -166,7 +166,7 @@ try {
             (teacher_id, teacher_position, academic_standing, evaluation_purpose, 
             semester, year, subject_code, subject_name, classroom, room_number, lesson_topic, 
             booking_date, booking_period, peer_teacher_id, head_teacher_id, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')");
         
         $stmt->execute([
             $teacher_id, $teacher_position, $academic_standing, $evaluation_purpose,
@@ -175,7 +175,7 @@ try {
         ]);
 
         $booking_id = $pdo->lastInsertId();
-        $success_message = 'จองคิวนิเทศเรียบร้อยแล้ว (รอคณะกรรมการวิชาการอนุมัติ)';
+        $success_message = 'จองคิวนิเทศเรียบร้อยแล้ว (สามารถอัปโหลดเอกสารได้ทันที)';
     }
 
     // Create notifications

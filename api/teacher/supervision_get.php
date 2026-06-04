@@ -41,10 +41,12 @@ try {
 
     // 2. Fetch my booking
     $stmt = $pdo->prepare("SELECT b.*, 
+        t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.peer_teacher_id) as peer_name,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.head_teacher_id) as head_name,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name
         FROM supervision_bookings b 
+        JOIN teachers t ON b.teacher_id = t.id
         WHERE b.teacher_id = ? AND b.semester = ? AND b.year = ? AND b.status != 'cancelled'
         ORDER BY b.id DESC LIMIT 1");
     $stmt->execute([$teacher_id, $semester, $year]);
@@ -150,6 +152,13 @@ try {
         e.plan_score_11, e.plan_score_12, e.plan_score_13, e.plan_score_14, e.plan_score_15,
         e.plan_score_16, e.plan_score_17, e.plan_score_18, e.plan_score_19, e.plan_score_20,
         e.plan_score_21, e.plan_score_22_1, e.plan_score_22_2, e.plan_score_22_3, e.plan_score_22_4,
+        e.class_score_1, e.class_score_2, e.class_score_3, e.class_score_4, e.class_score_5,
+        e.class_score_6, e.class_score_7, e.class_score_8, e.class_score_9, e.class_score_10,
+        e.class_score_11, e.class_score_12, e.class_score_13, e.class_score_14, e.class_score_15,
+        e.class_score_16, e.class_score_17, e.class_score_18, e.class_score_19, e.class_score_20,
+        e.class_score_21, e.class_score_22, e.class_score_23, e.class_score_24, e.class_score_25,
+        e.class_score_26, e.class_score_27, e.class_score_28, e.class_score_29, e.class_score_30,
+        e.class_score_31,
         e.unit_integration, e.plan_integration
         FROM supervision_bookings b
         JOIN teachers t ON b.teacher_id = t.id
@@ -247,6 +256,9 @@ try {
         }
         for ($i = 1; $i <= 4; $i++) {
             $duty_item["plan_score_22_$i"] = $d["plan_score_22_$i"] !== null ? (int)$d["plan_score_22_$i"] : null;
+        }
+        for ($i = 1; $i <= 31; $i++) {
+            $duty_item["class_score_$i"] = $d["class_score_$i"] !== null ? (int)$d["class_score_$i"] : null;
         }
 
         $duties[] = $duty_item;

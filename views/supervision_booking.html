@@ -204,17 +204,19 @@
                                                 </h6>
                                                 <div class="row g-3">
                                                     <div class="col-md-6">
-                                                        <label class="form-label small fw-bold text-muted">ครูผู้ร่วมนิเทศ (Peer)</label>
-                                                        <select class="form-select border-0 bg-light py-2" id="peer_teacher_id" required disabled>
-                                                            <option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>
-                                                        </select>
+                                                        <label class="form-label small fw-bold text-muted mb-2 d-block">ครูผู้ร่วมนิเทศ (Peer)</label>
+                                                        <div id="peer_teacher_container" class="d-flex flex-wrap gap-2">
+                                                            <div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>
+                                                        </div>
+                                                        <input type="hidden" id="peer_teacher_id" required>
                                                         <div class="form-text text-primary small mt-1" id="peer_help_text"><i class="bi bi-info-circle"></i> เลือกวันที่และคาบเรียนเพื่อดูครูที่ว่าง</div>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <label class="form-label small fw-bold text-muted">ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</label>
-                                                        <select class="form-select border-0 bg-light py-2" id="head_teacher_id" required disabled>
-                                                            <option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>
-                                                        </select>
+                                                        <label class="form-label small fw-bold text-muted mb-2 d-block">ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</label>
+                                                        <div id="head_teacher_container" class="d-flex flex-wrap gap-2">
+                                                            <div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>
+                                                        </div>
+                                                        <input type="hidden" id="head_teacher_id" required>
                                                     </div>
                                                 </div>
                                             </div>
@@ -512,6 +514,7 @@
                         const id = 'slot_' + index;
                         // slot contains period, subject_code, subject_name, class_name, room_location
                         const subjectCode = slot.subject_code || '';
+                        if (!subjectCode || !/\d{5}/.test(subjectCode)) return; // Filter out subjects without 5-digit code
                         const subjectName = slot.subject_name || '';
                         const className = slot.class_name ? `ม.${slot.class_name}` : '';
                         const roomLoc = slot.room_location || '';
@@ -560,9 +563,9 @@
             const date = document.getElementById('booking_date').value;
             const period = document.getElementById('booking_period').value;
 
-            const peerDropdown = document.getElementById('peer_teacher_id');
-            const headDropdown = document.getElementById('head_teacher_id');
             const helpText = document.getElementById('peer_help_text');
+            const peerContainer = document.getElementById('peer_teacher_container');
+            const headContainer = document.getElementById('head_teacher_container');
 
             const dateHelp = document.getElementById('booking_date_help');
             if(dateHelp) dateHelp.innerHTML = '';
@@ -570,17 +573,15 @@
             if(submitBtn) submitBtn.disabled = false;
 
             if (!date || !period) {
-                peerDropdown.disabled = true;
-                headDropdown.disabled = true;
-                peerDropdown.innerHTML = '<option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>';
-                headDropdown.innerHTML = '<option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>';
+                peerContainer.innerHTML = '<div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>';
+                headContainer.innerHTML = '<div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>';
+                document.getElementById('peer_teacher_id').value = '';
+                document.getElementById('head_teacher_id').value = '';
                 helpText.innerHTML = '<i class="bi bi-info-circle"></i> เลือกวันที่และคาบเรียนเพื่อดูครูที่ว่าง';
                 helpText.className = 'form-text text-primary small mt-1';
                 return;
             }
 
-            peerDropdown.disabled = true;
-            headDropdown.disabled = true;
             helpText.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังตรวจสอบตารางสอน...';
             helpText.className = 'form-text text-warning small mt-1';
 
@@ -604,29 +605,37 @@
                         if(dateHelp) dateHelp.innerHTML = `<span class="text-primary"><i class="bi bi-info-circle"></i> จำนวนคิวโรงเรียนวันนี้: ${totalSchool}/5</span>`;
                     }
 
-                    peerDropdown.innerHTML = '<option value="">เลือกอาจารย์ผู้ร่วมนิเทศ (Peer)...</option>';
+                    peerContainer.innerHTML = '';
+                    let peerCount = 0;
                     data.teachers.forEach(t => {
-                        let opt = new Option(t.full_name + (t.is_busy ? ' (ไม่ว่าง/มีสอน)' : ''), t.id);
-                        if (t.is_busy) {
-                            opt.disabled = true;
-                            opt.className = 'text-muted';
-                        }
-                        peerDropdown.appendChild(opt);
+                        if (t.is_busy) return;
+                        peerCount++;
+                        const id = 'peer_' + t.id;
+                        peerContainer.innerHTML += `
+                            <div>
+                                <input type="radio" class="btn-check" name="peer_teacher_radio" id="${id}" value="${t.id}" onchange="document.getElementById('peer_teacher_id').value=this.value">
+                                <label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="${id}">${t.full_name}</label>
+                            </div>
+                        `;
                     });
+                    if (peerCount === 0) peerContainer.innerHTML = '<div class="text-muted small py-2">ไม่มีครูที่ว่างในคาบนี้</div>';
 
-                    headDropdown.innerHTML = '<option value="">เลือกหัวหน้า/รองกลุ่มสาระ...</option>';
+                    headContainer.innerHTML = '';
+                    let headCount = 0;
                     data.department_teachers.forEach(t => {
-                        let opt = new Option(t.full_name + (t.is_busy ? ' (ไม่ว่าง/มีสอน)' : ''), t.id);
-                        if (t.is_busy) {
-                            opt.disabled = true;
-                            opt.className = 'text-muted';
-                        }
-                        headDropdown.appendChild(opt);
+                        if (t.is_busy) return;
+                        headCount++;
+                        const id = 'head_' + t.id;
+                        headContainer.innerHTML += `
+                            <div>
+                                <input type="radio" class="btn-check" name="head_teacher_radio" id="${id}" value="${t.id}" onchange="document.getElementById('head_teacher_id').value=this.value">
+                                <label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="${id}">${t.full_name}</label>
+                            </div>
+                        `;
                     });
+                    if (headCount === 0) headContainer.innerHTML = '<div class="text-muted small py-2">ไม่มีครูที่ว่างในคาบนี้</div>';
 
-                    peerDropdown.disabled = false;
-                    headDropdown.disabled = false;
-                    helpText.innerHTML = `<i class="bi bi-check-circle"></i> แสดงรายชื่อครู (${data.teachers.length} คน)`;
+                    helpText.innerHTML = `<i class="bi bi-check-circle"></i> แสดงรายชื่อครู (Peer ว่าง ${peerCount} คน)`;
                     helpText.className = 'form-text text-success small mt-1';
                 } else {
                     helpText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ตรวจสอบข้อมูลไม่สำเร็จ';
@@ -675,7 +684,7 @@
                             <tr><td class="text-muted fw-bold">กรรมการวิชาการ:</td><td>${booking.academic_name || 'รอมอบหมาย'}</td></tr>
                         </table>
                     </div>
-                    ${booking.status === 'pending' ? `
+                    ${(booking.status === 'pending' || booking.status === 'approved') ? `
                         <div class="row g-2 mt-4">
                             <div class="col-6">
                                 <button type="button" class="btn btn-outline-primary w-100 rounded-pill fw-bold" onclick="window.editBooking()"><i class="bi bi-pencil-square"></i> แก้ไขการจอง</button>
@@ -721,6 +730,7 @@
             const missing = [];
             if (!data.teacher_position) missing.push("ตำแหน่ง");
             if (!data.academic_standing) missing.push("วิทยฐานะ");
+            if (!data.evaluation_purpose) missing.push("สำหรับครูผู้รับการประเมินเพื่อ");
             if (!data.subject_name) missing.push("รายวิชา (จากตารางสอน)");
             if (!data.lesson_topic) missing.push("เรื่องที่จะสอน / หัวข้อการประเมิน");
             if (!data.booking_date) missing.push("วันที่นัดหมาย");
@@ -833,22 +843,21 @@
             }
             // For evaluators
             if (booking.peer_teacher_id) {
-                // To safely set these, we need to add them as options if they aren't there
-                const peerSel = document.getElementById('peer_teacher_id');
-                if (peerSel.options.length <= 1) {
-                    peerSel.innerHTML = `<option value="${booking.peer_teacher_id}" selected>${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</option>`;
-                    peerSel.disabled = false;
-                } else {
-                    peerSel.value = booking.peer_teacher_id;
+                document.getElementById('peer_teacher_id').value = booking.peer_teacher_id;
+                const r = document.querySelector(`input[name="peer_teacher_radio"][value="${booking.peer_teacher_id}"]`);
+                if (r) r.checked = true;
+                else {
+                    const c = document.getElementById('peer_teacher_container');
+                    c.innerHTML = `<div><input type="radio" class="btn-check" name="peer_teacher_radio" id="peer_old" value="${booking.peer_teacher_id}" checked onchange="document.getElementById('peer_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="peer_old">${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</label></div>`;
                 }
             }
             if (booking.head_teacher_id) {
-                const headSel = document.getElementById('head_teacher_id');
-                if (headSel.options.length <= 1) {
-                    headSel.innerHTML = `<option value="${booking.head_teacher_id}" selected>${booking.head_name || 'ครูผู้นิเทศเดิม'}</option>`;
-                    headSel.disabled = false;
-                } else {
-                    headSel.value = booking.head_teacher_id;
+                document.getElementById('head_teacher_id').value = booking.head_teacher_id;
+                const r = document.querySelector(`input[name="head_teacher_radio"][value="${booking.head_teacher_id}"]`);
+                if (r) r.checked = true;
+                else {
+                    const c = document.getElementById('head_teacher_container');
+                    c.innerHTML = `<div><input type="radio" class="btn-check" name="head_teacher_radio" id="head_old" value="${booking.head_teacher_id}" checked onchange="document.getElementById('head_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="head_old">${booking.head_name || 'ครูผู้นิเทศเดิม'}</label></div>`;
                 }
             }
             if (booking.teacher_position) {

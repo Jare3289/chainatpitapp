@@ -215,6 +215,17 @@
             }
         }
 
+        function getQualityText(avg) {
+            avg = parseFloat(avg);
+            if (isNaN(avg)) return '-';
+            if (avg >= 4.21) return 'ยอดเยี่ยม';
+            if (avg >= 3.41) return 'ดีเลิศ';
+            if (avg >= 2.61) return 'ดี';
+            if (avg >= 1.81) return 'ปานกลาง';
+            if (avg >= 1.00) return 'กำลังพัฒนา';
+            return 'ไม่ปฏิบัติ';
+        }
+
         function renderMyEvaluations(booking) {
             const resultsBox = document.getElementById('my-eval-results-box');
 
@@ -231,20 +242,45 @@
 
                             if (info.eval && (info.doc_done || info.class_done)) {
                                 badgeHtml = '<span class="badge bg-success bg-opacity-10 text-success border rounded-pill">ลงผลแล้ว</span>';
-                                let docSum = 0;
-                                let classSum = 0;
+                                
+                                let docAvgHtml = '-';
+                                let classAvgHtml = '-';
                                 
                                 if (info.doc_done) {
-                                    docSum = info.eval.doc_score_1 + info.eval.doc_score_2 + info.eval.doc_score_3 + info.eval.doc_score_4 + info.eval.doc_score_5;
+                                    let p1Sum = 0;
+                                    for (let i = 1; i <= 19; i++) {
+                                        p1Sum += parseInt(info.eval[`unit_score_${i}`]) || 0;
+                                    }
+                                    let p2Sum = 0;
+                                    for (let i = 1; i <= 21; i++) {
+                                        p2Sum += parseInt(info.eval[`plan_score_${i}`]) || 0;
+                                    }
+                                    let teacherStanding = booking.academic_standing || 'ไม่มีวิทยฐานะ';
+                                    let activeSubItem = 1;
+                                    if (teacherStanding.includes('ชำนาญการพิเศษ')) activeSubItem = 2;
+                                    else if (teacherStanding.includes('เชี่ยวชาญพิเศษ')) activeSubItem = 4;
+                                    else if (teacherStanding.includes('เชี่ยวชาญ')) activeSubItem = 3;
+                                    else if (teacherStanding.includes('ชำนาญการ')) activeSubItem = 1;
+
+                                    let planScore22 = parseInt(info.eval[`plan_score_22_${activeSubItem}`]) || 0;
+                                    let docTotal = p1Sum + p2Sum + planScore22;
+                                    let docAvg = docTotal / 41;
+                                    docAvgHtml = `${docAvg.toFixed(2)} (${getQualityText(docAvg)})`;
                                 }
+                                
                                 if (info.class_done) {
-                                    for(let i=1;i<=10;i++) classSum += info.eval[`class_score_${i}`];
+                                    let classSum = 0;
+                                    for (let i = 1; i <= 31; i++) {
+                                        classSum += parseInt(info.eval[`class_score_${i}`]) || 0;
+                                    }
+                                    let classAvg = classSum / 31;
+                                    classAvgHtml = `${classAvg.toFixed(2)} (${getQualityText(classAvg)})`;
                                 }
 
                                 detailsHtml = `
                                     <div class="row g-2 mt-2 pt-2 border-top text-muted" style="font-size:0.75rem;">
-                                        <div class="col-6"><strong>ตรวจแผน:</strong> ${info.doc_done ? `${docSum}/25` : '-'}</div>
-                                        <div class="col-6"><strong>นิเทศห้องเรียน:</strong> ${info.class_done ? `${classSum}/50` : '-'}</div>
+                                        <div class="col-6"><strong>ตรวจแผน:</strong> <span class="fw-bold text-dark">${docAvgHtml}</span></div>
+                                        <div class="col-6"><strong>นิเทศห้องเรียน:</strong> <span class="fw-bold text-dark">${classAvgHtml}</span></div>
                                         ${info.eval.doc_comments ? `<div class="col-12 mt-1"><em>"คอมเมนต์แผน: ${info.eval.doc_comments}"</em></div>` : ''}
                                         ${info.eval.class_comments ? `<div class="col-12 mt-1"><em>"คอมเมนต์สอน: ${info.eval.class_comments}"</em></div>` : ''}
                                     </div>
@@ -307,9 +343,9 @@
                                             </a>
                                         `}
                                         
-                                        <button class="btn btn-sm ${d.class_done ? 'btn-outline-success' : 'btn-primary'} rounded-pill fw-bold" style="font-size:0.75rem;" onclick="openEvaluationModal(${d.id}, 'class', '${d.teacher_name}')">
+                                        <a href="supervision_evaluate_class.html?booking_id=${d.id}" class="btn btn-sm ${d.class_done ? 'btn-outline-success' : 'btn-primary'} rounded-pill fw-bold shadow-sm" style="font-size:0.75rem;">
                                             <i class="bi bi-eye"></i> ${d.class_done ? 'ประเมินสอนแล้ว' : 'ประเมินในห้องเรียน'}
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             `;

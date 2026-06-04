@@ -56,14 +56,14 @@ try {
     
     if (!empty($my_dept)) {
         if ($my_sub_dept === 'คอมพิวเตอร์และเทคโนโลยี') {
-            $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department, department_position FROM teachers WHERE sub_department = ? ORDER BY first_name_th ASC");
+            $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department, department_position, position FROM teachers WHERE sub_department = ? ORDER BY first_name_th ASC");
             $stmt->execute([$my_sub_dept]);
         } else {
             if ($my_dept === 'วิทยาศาสตร์และเทคโนโลยี') {
-                $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department, department_position FROM teachers WHERE department = ? AND (sub_department != 'คอมพิวเตอร์และเทคโนโลยี' OR sub_department IS NULL) ORDER BY first_name_th ASC");
+                $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department, department_position, position FROM teachers WHERE department = ? AND (sub_department != 'คอมพิวเตอร์และเทคโนโลยี' OR sub_department IS NULL) ORDER BY first_name_th ASC");
                 $stmt->execute([$my_dept]);
             } else {
-                $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department, department_position FROM teachers WHERE department = ? ORDER BY first_name_th ASC");
+                $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department, department_position, position FROM teachers WHERE department = ? ORDER BY first_name_th ASC");
                 $stmt->execute([$my_dept]);
             }
         }
@@ -77,8 +77,10 @@ try {
             $head_counts[$row['head_teacher_id']] = (int)$row['count'];
         }
 
+        $allowed_positions = ['ครู', 'ครูผู้ช่วย', 'ครูอัตราจ้าง'];
         foreach ($dept_teachers as $t) {
             if ($t['id'] == $my_teacher_id) continue;
+            if (!in_array($t['position'], $allowed_positions)) continue;
             
             $is_busy = in_array($t['id'], $busy_teacher_ids);
             $full_name_base = trim(($t['prefix'] ?? '') . $t['first_name_th'] . ' ' . $t['last_name_th']);

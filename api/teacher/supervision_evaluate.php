@@ -174,23 +174,25 @@ try {
         $msg = 'บันทึกการประเมินแผนการจัดการเรียนรู้ (ตรวจแผน) เรียบร้อยแล้ว';
 
     } elseif ($eval_type === 'class') {
-        // Retrieve and validate classroom scores (1-5 for each of 10 items)
+        // Retrieve and validate classroom scores (0-5 for each of 31 items)
         $scores = [];
-        for ($i = 1; $i <= 10; $i++) {
+        $update_cols = [];
+        for ($i = 1; $i <= 31; $i++) {
             $scores[$i] = isset($data["class_score_$i"]) ? (int)$data["class_score_$i"] : 0;
-            if ($scores[$i] < 1 || $scores[$i] > 5) {
+            if ($scores[$i] < 0 || $scores[$i] > 5) {
                 http_response_code(400);
-                echo json_encode(['success' => false, 'error' => "คะแนนข้อที่ $i ต้องอยู่ระหว่าง 1 - 5 คะแนน"]);
+                echo json_encode(['success' => false, 'error' => "คะแนนข้อที่ $i ต้องอยู่ระหว่าง 0 - 5 คะแนน"]);
                 exit;
             }
+            $update_cols[] = "class_score_$i = ?";
         }
         $class_comments = isset($data['class_comments']) ? trim($data['class_comments']) : '';
 
-        $stmt_update = $pdo->prepare("UPDATE supervision_evaluations SET 
-            class_score_1 = ?, class_score_2 = ?, class_score_3 = ?, class_score_4 = ?, class_score_5 = ?,
-            class_score_6 = ?, class_score_7 = ?, class_score_8 = ?, class_score_9 = ?, class_score_10 = ?,
-            class_comments = ?, class_evaluated_at = CURRENT_TIMESTAMP
-            WHERE booking_id = ? AND evaluator_teacher_id = ?");
+        $update_cols[] = "class_comments = ?";
+        $update_cols[] = "class_evaluated_at = CURRENT_TIMESTAMP";
+
+        $query_str = "UPDATE supervision_evaluations SET " . implode(", ", $update_cols) . " WHERE booking_id = ? AND evaluator_teacher_id = ?";
+        $stmt_update = $pdo->prepare($query_str);
         
         $params = array_values($scores);
         $params[] = $class_comments;
