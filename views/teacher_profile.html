@@ -80,7 +80,7 @@
         #profileForm.view-mode table tbody td:last-child { display: none; }
         #profileForm.view-mode .sig-action-btn { display: none !important; }
         #profileForm.view-mode .change-photo-btn { display: none !important; }
-        /* ซ่อน "-ไม่มีวิทยฐานะ-" ในโหมดดู — แสดงเฉพาะเวลาแก้ไข */
+        /* ซ่อน "ไม่มีวิทยฐานะ" ในโหมดดู — แสดงเฉพาะเวลาแก้ไข */
         #profileForm.view-mode label[for="standing_none"] { display: none !important; }
 
         /* Signature */
@@ -287,7 +287,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label">วิทยฐานะ</label>
                                         <div class="btn-group-modern">
-                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_none" value="-ไม่มีวิทยฐานะ-"><label class="btn btn-outline-primary" for="standing_none">-ไม่มีวิทยฐานะ-</label>
+                                            <input type="radio" class="btn-check" name="academic_standing" id="standing_none" value="ไม่มีวิทยฐานะ"><label class="btn btn-outline-primary" for="standing_none">ไม่มีวิทยฐานะ</label>
                                             <input type="radio" class="btn-check" name="academic_standing" id="standing_ck" value="ชำนาญการ"><label class="btn btn-outline-primary" for="standing_ck">ชำนาญการ</label>
                                             <input type="radio" class="btn-check" name="academic_standing" id="standing_ckp" value="ชำนาญการพิเศษ"><label class="btn btn-outline-primary" for="standing_ckp">ชำนาญการพิเศษ</label>
                                             <input type="radio" class="btn-check" name="academic_standing" id="standing_cx" value="เชี่ยวชาญ"><label class="btn btn-outline-primary" for="standing_cx">เชี่ยวชาญ</label>
@@ -547,9 +547,9 @@
             // Badge
             document.getElementById('displayNameTH').innerText = `${data.prefix || ''}${data.first_name_th || ''} ${data.last_name_th || ''}`.trim() || 'ไม่มีชื่อ';
             document.getElementById('displayNameEN').innerText = `${data.first_name_en || ''} ${data.last_name_en || ''}`.trim().toUpperCase() || 'NAME SURNAME';
-            // กรองค่า "-ไม่มีวิทยฐานะ-" (ค่าที่เริ่มต้นด้วย "-") ออกจาก badge
+            // กรองค่า "ไม่มีวิทยฐานะ" ออกจาก badge
             const posArr = [data.position, data.academic_standing]
-                .filter(v => v && !String(v).startsWith('-'));
+                .filter(v => v && v !== 'ไม่มีวิทยฐานะ');
             document.getElementById('displayPositionInfo').innerText = posArr.join(' • ') || (data.position || 'ครู');
             if (data.photo) document.getElementById('displayAvatar').src = '../' + data.photo;
 

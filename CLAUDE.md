@@ -372,3 +372,4 @@ For deeper dives, consult:
 - **No external API calls:** All data is local to the database
 - **Color scheme:** Navy blue (#1e3c72) primary, with house color theming
 - **Thai date format:** All dates displayed as Thai Buddhist Era (e.g., "16 พฤษภาคม 2569")
+Database Error (Local): SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost' (using password: YES)

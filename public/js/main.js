@@ -367,8 +367,20 @@ function renderSidebar(role, user, settings = {}) {
             html += _navItem('admin_students.html', 'bi bi-people-fill', 'นักเรียนที่ปรึกษา', a('admin_students.html'));
         }
         html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
-        const supervisionUrl = (role === 'admin') ? 'supervision.html' : 'teacher_supervision.html';
-        html += _navItem(supervisionUrl, 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a(supervisionUrl));
+        if (role === 'admin') {
+            html += _navItem('supervision.html', 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a('supervision.html'));
+        } else if (role === 'teacher') {
+            const supervisionItems = [
+                { href: 'teacher_supervision.html', icon: 'bi bi-house-door', label: 'ภาพรวมนิเทศ', active: a('teacher_supervision.html') },
+                { href: 'supervision_booking.html', icon: 'bi bi-calendar-check', label: 'จองคิวนิเทศ', active: a('supervision_booking.html') },
+                { href: 'supervision_docs.html', icon: 'bi bi-file-earmark-pdf', label: 'เอกสารนิเทศ', active: a('supervision_docs.html') },
+                { href: 'supervision_evaluate.html', icon: 'bi bi-star', label: 'การประเมินผล', active: a('supervision_evaluate.html') },
+                { href: 'supervision_post_teach.html', icon: 'bi bi-pencil-square', label: 'บันทึกหลังแผน', active: a('supervision_post_teach.html') },
+                { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
+            ];
+            const isSupervisionActive = ['teacher_supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html'].some(x => a(x));
+            html += _navGroup('bi bi-person-video3 text-primary', 'นิเทศการสอน', supervisionItems, isSupervisionActive);
+        }
 
         const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
         let psItems = [];
@@ -900,12 +912,14 @@ async function fetchNotifications() {
 
             // Check if there is an unread urgent attendance reminder for teacher
             if (window._cnpRole === 'teacher') {
-                const hasUrgentReminder = json.data.some(n => 
+                const urgentNoti = json.data.find(n => 
                     (n.is_read == 0 || n.is_read === '0') && 
                     n.title && n.title.includes('เตือนให้เช็คชื่อโฮมรูมประจำวัน')
                 );
 
-                if (hasUrgentReminder) {
+                if (urgentNoti) {
+                    markAsRead(urgentNoti.id); // Mark as read immediately to prevent spam
+                    
                     const currentPage = window.location.pathname.split('/').pop();
                     const triggerAlert = () => {
                         if (currentPage !== 'attendance_daily.html') {
@@ -1102,10 +1116,11 @@ function updateSidebarActionDots(items) {
 
     if (!items || items.length === 0) return;
 
-    const hasPsPending = items.some(n => n.id === 'alert_ps_pending');
-    const hasDailyNotChecked = items.some(n => n.id === 'alert_not_checked');
-    const hasMyPsPending = items.some(n => n.id === 'alert_my_ps_pending');
-    const hasTodayAttendance = items.some(n => n.id === 'alert_today_attendance');
+    const isUnread = n => (n.is_read == 0 || n.is_read === '0');
+    const hasPsPending = items.some(n => n.id === 'alert_ps_pending' && isUnread(n));
+    const hasDailyNotChecked = items.some(n => n.id === 'alert_not_checked' && isUnread(n));
+    const hasMyPsPending = items.some(n => n.id === 'alert_my_ps_pending' && isUnread(n));
+    const hasTodayAttendance = items.some(n => n.id === 'alert_today_attendance' && isUnread(n));
 
     const dotHtml = `<span class="sidebar-action-dot bg-danger ms-2" style="width: 8px; height: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.4); animation: pulse-dot 1.5s infinite;"></span>`;
     

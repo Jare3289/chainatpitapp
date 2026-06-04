@@ -50,7 +50,7 @@ $method = $_SERVER['REQUEST_METHOD'];
             echo json_encode(['success' => true, 'data' => $teachers]);
         }
     } catch (PDOException $e) {
-        error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => 'ระบบขัดข้องชั่วคราว']);
+        error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => $e->getMessage()]);
     }
 } elseif ($method === 'POST') {
     // Check if it's a JSON request or FormData
@@ -111,6 +111,12 @@ $method = $_SERVER['REQUEST_METHOD'];
                 if ($field === 'phone' && strlen((string)$val) >= 8 && substr((string)$val, 0, 1) !== '0') {
                     $val = '0' . $val;
                 }
+                
+                // MySQL strict mode fixes: convert empty string to NULL for date and int fields
+                if ($val === '' && in_array($field, ['birth_date', 'appointment_date', 'retirement_year', 'weight', 'height'])) {
+                    $val = null;
+                }
+                
                 $params[] = $val;
             }
             
@@ -180,6 +186,12 @@ $method = $_SERVER['REQUEST_METHOD'];
                 if ($field === 'phone' && strlen((string)$val) >= 8 && substr((string)$val, 0, 1) !== '0') {
                     $val = '0' . $val;
                 }
+                
+                // MySQL strict mode fixes: convert empty string to NULL for date and int fields
+                if ($val === '' && in_array($field, ['birth_date', 'appointment_date', 'retirement_year', 'weight', 'height'])) {
+                    $val = null;
+                }
+                
                 $insertCols[] = "`$field`";
                 $params[] = $val;
                 $placeholders[] = '?';
@@ -210,7 +222,7 @@ $method = $_SERVER['REQUEST_METHOD'];
         }
     } catch (Exception $e) {
         if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-        error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => 'ระบบขัดข้องชั่วคราว']);
+        error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['error' => $e->getMessage()]);
     }
 } elseif ($method === 'DELETE') {
     $id = $_GET['id'] ?? null;
