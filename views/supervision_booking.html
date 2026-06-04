@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>จองคิวนิเทศการสอน | CNP APP</title>
+    <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../public/css/style.css">
+    
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f4f7fa; color: #1e293b; }
+        
+        .bg-gradient-navy {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+        }
+        .text-navy { color: #1e3a8a; }
+
+        .dashboard-panel {
+            background: white;
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.01);
+            margin-bottom: 20px;
+        }
+
+        .calendar-badge {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin-bottom: 15px;
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dropdown-style {
+            background-color: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 15px; font-weight: 500; width: 100%; outline: none; transition: all 0.2s;
+        }
+        .dropdown-style:focus { background-color: #ffffff; border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.05); }
+        input[type="date"].dropdown-style { color-scheme: light; min-height: 45px; }
+        
+        /* Radio Toggle Group */
+        .btn-group-modern { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; width: fit-content; flex-wrap: wrap; }
+        .btn-group-modern .btn { border: none; border-radius: 9px !important; font-weight: 700; font-size: 0.8rem; padding: 8px 14px; color: #64748b; background: transparent; transition: 0.2s; }
+        .btn-check:checked + .btn-outline-primary { background: #1e3a8a !important; color: white !important; border-color: #1e3a8a !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <aside class="sidebar" id="mainSidebar"></aside>
+
+        <main class="main-panel d-flex flex-column min-vh-100" id="main">
+            <div class="app-content page-content flex-grow-1">
+                <div class="container-fluid">
+                    
+                    <!-- Back Button and Header -->
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <a href="teacher_supervision.html" class="btn btn-light rounded-circle shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-arrow-left fs-5"></i>
+                        </a>
+                        <div>
+                            <h4 class="fw-black text-navy mb-0">จองคิวนิเทศการสอน</h4>
+                            <div class="text-muted small">แบบฟอร์มขอวันจัดกิจกรรมการนิเทศการจัดการเรียนรู้</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Booking Form Column -->
+                        <div class="col-lg-8" id="booking-form-col">
+                            <div class="dashboard-panel">
+                                <h5 class="fw-black text-navy mb-4"><i class="bi bi-calendar-plus me-2 text-primary"></i>กรอกข้อมูลการจองคิว</h5>
+                                
+                                <div class="calendar-badge" id="calendar-allowed-badge">
+                                    <i class="bi bi-calendar-event fs-4"></i>
+                                    <div class="small">
+                                        <strong>ปฏิทินช่วงการนิเทศของคุณ:</strong> <span id="my-allowed-dates-text">กำลังโหลด...</span>
+                                    </div>
+                                </div>
+
+                                <form id="bookingForm" class="row g-4">
+                                    <!-- SECTION 1 -->
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm rounded-4">
+                                            <div class="card-body p-4">
+                                                <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-person-badge-fill text-primary"></i> ข้อมูลผู้รับการนิเทศ
+                                                </h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold text-muted">ผู้รับการนิเทศ</label>
+                                                        <input type="text" class="form-control border-0 bg-light text-muted" id="requester_name" readonly>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold text-muted">กลุ่มสาระการเรียนรู้</label>
+                                                        <input type="text" class="form-control border-0 bg-light text-muted" id="requester_department" readonly>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold text-muted mb-2 d-block">ตำแหน่ง</label>
+                                                        <div class="btn-group-modern">
+                                                            <input type="radio" class="btn-check" name="teacher_position" id="pos_kru" value="ครู" checked>
+                                                            <label class="btn btn-outline-primary" for="pos_kru">ครู</label>
+                                                            <input type="radio" class="btn-check" name="teacher_position" id="pos_asst" value="ครูผู้ช่วย">
+                                                            <label class="btn btn-outline-primary" for="pos_asst">ครูผู้ช่วย</label>
+                                                            <input type="radio" class="btn-check" name="teacher_position" id="pos_temp" value="ครูอัตราจั้ง">
+                                                            <label class="btn btn-outline-primary" for="pos_temp">ครูอัตราจั้ง</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold text-muted mb-2 d-block">วิทยฐานะ</label>
+                                                        <div class="btn-group-modern">
+                                                            <input type="radio" class="btn-check" name="academic_standing" id="acad_none" value="ไม่มีวิทยฐานะ" checked>
+                                                            <label class="btn btn-outline-primary" for="acad_none">ไม่มีวิทยฐานะ</label>
+                                                            <input type="radio" class="btn-check" name="academic_standing" id="acad_chamnan" value="ชำนาญการ">
+                                                            <label class="btn btn-outline-primary" for="acad_chamnan">ชำนาญการ</label>
+                                                            <input type="radio" class="btn-check" name="academic_standing" id="acad_chamnan_p" value="ชำนาญการพิเศษ">
+                                                            <label class="btn btn-outline-primary" for="acad_chamnan_p">ชำนาญการพิเศษ</label>
+                                                            <input type="radio" class="btn-check" name="academic_standing" id="acad_chewchan" value="เชี่ยวชาญ">
+                                                            <label class="btn btn-outline-primary" for="acad_chewchan">เชี่ยวชาญ</label>
+                                                            <input type="radio" class="btn-check" name="academic_standing" id="acad_chewchan_p" value="เชี่ยวชาญพิเศษ">
+                                                            <label class="btn btn-outline-primary" for="acad_chewchan_p">เชี่ยวชาญพิเศษ</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-label small fw-bold text-muted">สำหรับครูผู้รับการประเมินเพื่อ</label>
+                                                        <select class="form-select border-0 bg-light" id="evaluation_purpose" required>
+                                                            <option value="ไม่มีวิทยฐานะ">ไม่มีวิทยฐานะ</option>
+                                                            <option value="คงวิทยฐานะชำนาญการ">คงวิทยฐานะชำนาญการ</option>
+                                                            <option value="ขอมีวิทยฐานะชำนาญการ">ขอมีวิทยฐานะชำนาญการ</option>
+                                                            <option value="ขอเลื่อนวิทยฐานะเป็นชำนาญการพิเศษ">ขอเลื่อนวิทยฐานะเป็นชำนาญการพิเศษ</option>
+                                                            <option value="คงวิทยฐานะชำนาญการพิเศษ">คงวิทยฐานะชำนาญการพิเศษ</option>
+                                                            <option value="ขอมีวิทยฐานะเชี่ยวชาญ">ขอมีวิทยฐานะเชี่ยวชาญ</option>
+                                                            <option value="คงวิทยฐานะเชี่ยวชาญ">คงวิทยฐานะเชี่ยวชาญ</option>
+                                                            <option value="ประเมินครูอย่างเข้ม">ประเมินครูอย่างเข้ม</option>
+                                                            <option value="ประเมินครูอัตราจ้าง">ประเมินครูอัตราจ้าง</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SECTION 2 -->
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm rounded-4">
+                                            <div class="card-body p-4">
+                                                <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-journal-bookmark-fill text-primary"></i> เลือกรายวิชา / ห้อง / วันที่
+                                                </h6>
+                                                <div class="row g-4">
+                                                    <div class="col-12">
+                                                        <label class="text-muted small fw-bold mb-2 d-block">1. เลือกวันที่นัดหมาย (วันที่ระบุไว้ในปฏิทิน)</label>
+                                                        <div id="booking_date_container" class="row g-2">
+                                                            <div class="text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังโหลดวันที่...</div>
+                                                        </div>
+                                                        <input type="hidden" id="booking_date" required>
+                                                        <div id="booking_date_help" class="form-text small mt-2"></div>
+                                                    </div>
+
+                                                    <div class="col-12 mt-4" id="timetable_section" style="display:none;">
+                                                        <label class="text-muted small fw-bold mb-2 d-block">2. เลือกคาบเรียนจากตารางสอน</label>
+                                                        <div id="timetable_container" class="row g-3">
+                                                            <!-- Generated by JS -->
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Hidden Manual Inputs -->
+                                                    <div style="display:none;">
+                                                        <input type="hidden" id="subject_code" onchange="onSubjectChange()" required>
+                                                        <input type="hidden" id="subject_name" required>
+                                                        <input type="hidden" id="classroom" onchange="onClassChange()" required>
+                                                        <input type="hidden" id="room_number" required>
+                                                        <input type="hidden" id="booking_period" required>
+                                                    </div>
+
+                                                    <div class="col-12 mt-4">
+                                                        <label class="text-muted small fw-bold mb-2 d-block">เรื่องที่จะสอน / หัวข้อการประเมิน <span class="text-danger">*</span></label>
+                                                        <input type="text" id="lesson_topic" class="form-control border-0 bg-light py-2 shadow-sm" placeholder="ระบุชื่อเรื่อง หรือหัวข้อที่จะจัดการเรียนการสอนในคาบนี้" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SECTION 3 -->
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm rounded-4">
+                                            <div class="card-body p-4">
+                                                <h6 class="fw-bold text-navy mb-3 d-flex align-items-center gap-2">
+                                                    <i class="bi bi-people-fill text-primary"></i> คณะกรรมการนิเทศ
+                                                </h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold text-muted">ครูผู้ร่วมนิเทศ (Peer)</label>
+                                                        <select class="form-select border-0 bg-light py-2" id="peer_teacher_id" required disabled>
+                                                            <option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>
+                                                        </select>
+                                                        <div class="form-text text-primary small mt-1" id="peer_help_text"><i class="bi bi-info-circle"></i> เลือกวันที่และคาบเรียนเพื่อดูครูที่ว่าง</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label small fw-bold text-muted">ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</label>
+                                                        <select class="form-select border-0 bg-light py-2" id="head_teacher_id" required disabled>
+                                                            <option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 mt-2 text-end">
+                                        <input type="hidden" id="booking_id" value="">
+                                        <button type="button" class="btn btn-navy rounded-pill fw-black px-5 py-3 shadow-sm" onclick="submitBooking()"><i class="bi bi-send-fill me-2"></i> ส่งคำจองคิวนิเทศ</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Status Column -->
+                        <div class="col-lg-4">
+                            <!-- Booking Status -->
+                            <div class="dashboard-panel">
+                                <h5 class="fw-black text-navy mb-4"><i class="bi bi-info-circle me-2 text-warning"></i>สถานะการจองคิวของคุณ</h5>
+                                <div id="booking-status-box">
+                                    <div class="text-center py-5 text-muted small">กำลังโหลดสถานะการจอง...</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Evaluation Duties -->
+                            <div class="dashboard-panel mt-4" id="duties-panel" style="display:none;">
+                                <h5 class="fw-black text-navy mb-4"><i class="bi bi-person-badge me-2 text-primary"></i>ภาระงานประเมินของคุณ</h5>
+                                <div id="duties-box">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    <script>
+        let currentUser = null;
+        let mySubjects = [];
+
+        // Allowed date schedules based on department / sub_department
+        const supervisionSchedules = {
+            'คอมพิวเตอร์และเทคโนโลยี': '15 - 16 มิถุนายน 2569 (2 วัน)',
+            'วิทยาศาสตร์และเทคโนโลยี': '19, 21, 24, 25, 26 สิงหาคม 2569 (5 วัน)',
+            'สุขศึกษาและพลศึกษา': '17 - 18 มิถุนายน 2569 (2 วัน)',
+            'แนะแนว': '18 - 19 มิถุนายน 2569 (2 วัน)',
+            'ศิลปะ': '22 - 23 มิถุนายน 2569 (2 วัน)',
+            'ภาษาต่างประเทศ': '24, 25, 29, 30 มิถุนายน และ 1 กรกฎาคม 2569 (5 วัน)',
+            'การงานอาชีพ': '2 - 3 กรกฎาคม 2569 (2 วัน)',
+            'ภาษาไทย': '6 - 9 กรกฎาคม 2569 (4 วัน)',
+            'คณิตศาสตร์': '20, 21, 22, 23, 27 กรกฎาคม 2569 (5 วัน)',
+            'สังคมศึกษาศาสนาและวัฒนธรรม': '10, 11, 13, 14, 17 สิงหาคม 2569 (5 วัน)',
+            'สังคมศึกษา ศาสนา และวัฒนธรรม': '10, 11, 13, 14, 17 สิงหาคม 2569 (5 วัน)'
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            currentUser = await checkAuth(['teacher', 'admin']);
+            if (currentUser) {
+                await loadSubjects();
+                await loadBookingData();
+                await initializeTeacherInfo();
+
+                // Generate period buttons
+                const periodContainer = document.getElementById('booking_period_container');
+                periodContainer.innerHTML = '';
+                for (let i = 1; i <= 9; i++) {
+                    const id = 'period_' + i;
+                    periodContainer.innerHTML += `
+                        <input type="radio" class="btn-check" name="booking_period_radio" id="${id}" value="${i}" onchange="selectPeriod(this)">
+                        <label class="btn btn-outline-primary px-3 py-2" for="${id}">คาบ ${i}</label>
+                    `;
+                }
+            }
+        });
+
+        function selectPeriod(radio) {
+            document.getElementById('booking_period').value = radio.value;
+            checkAvailableTeachers();
+        }
+
+        async function loadBookingData() {
+            try {
+                const res = await fetch('../api/teacher/supervision_get.php');
+                const data = await res.json();
+                if (data.success) {
+                    renderBookingStatus(data.booking);
+                    if (data.duties && data.duties.length > 0) {
+                        renderDuties(data.duties);
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading booking details: ", err);
+            }
+        }
+
+        function renderDuties(duties) {
+            const panel = document.getElementById('duties-panel');
+            const box = document.getElementById('duties-box');
+            panel.style.display = 'block';
+            box.innerHTML = '';
+
+            duties.forEach(d => {
+                const badgeClass = d.status === 'completed' ? 'bg-success' : 'bg-primary';
+                const html = `
+                    <div class="card border-0 shadow-sm rounded-4 mb-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <img src="${d.teacher_photo ? '../public/uploads/profiles/' + d.teacher_photo : '../public/images/default-avatar.png'}" class="rounded-circle me-2 object-fit-cover" width="32" height="32">
+                                <div>
+                                    <div class="fw-bold small text-navy">${d.teacher_name}</div>
+                                    <div class="text-muted" style="font-size:0.7rem;">${d.department || ''}</div>
+                                </div>
+                            </div>
+                            <div class="small fw-bold text-dark mt-2 mb-1">${d.subject_code || ''} ${d.subject_name || ''}</div>
+                            <div class="text-muted mb-2" style="font-size:0.75rem;">
+                                <div><i class="bi bi-calendar-event"></i> ${thDate(d.booking_date)} (คาบ ${d.booking_period})</div>
+                                <div><i class="bi bi-person-video3"></i> ม.${d.classroom} | ห้อง ${d.room_number}</div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.replace('bg-','')} border border-${badgeClass.replace('bg-','')}">${d.role_th}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                box.innerHTML += html;
+            });
+        }
+
+        async function loadSubjects() {
+            try {
+                const url = '../api/teacher/get-subjects.php';
+                const r = await fetch(url);
+                const j = await r.json();
+                mySubjects = j.my_subjects || [];
+                
+                const container = document.getElementById('subject_code_container');
+                container.innerHTML = '';
+
+                if (mySubjects.length > 0) {
+                    mySubjects.forEach(s => {
+                        const id = 'subj_' + s.subject_code;
+                        const btn = `
+                            <input type="radio" class="btn-check" name="subject_code_radio" id="${id}" value="${s.subject_code}" data-name="${s.subject_name || ''}" data-rooms="${s.room || ''}" onchange="selectSubject(this)">
+                            <label class="btn btn-outline-primary text-start" for="${id}">
+                                <div class="fw-bold">${s.subject_code}</div>
+                                <div class="small" style="font-size:0.75rem;">${s.subject_name || ''}</div>
+                            </label>
+                        `;
+                        container.innerHTML += btn;
+                    });
+                } else {
+                    container.innerHTML = '<div class="text-muted small">ไม่มีข้อมูลรายวิชา</div>';
+                }
+            } catch (e) {
+                console.error("Error loading subjects: ", e);
+            }
+        }
+
+        function selectSubject(radio) {
+            document.getElementById('subject_code').value = radio.value;
+            onSubjectChange(radio);
+        }
+
+        function onSubjectChange(radio) {
+            const classContainer = document.getElementById('classroom_container');
+            const classSection = document.getElementById('classroom_section');
+            classContainer.innerHTML = '';
+            document.getElementById('classroom').value = '';
+            document.getElementById('room_number').value = '';
+            
+            if (radio && radio.value) {
+                document.getElementById('subject_name').value = radio.dataset.name || '';
+                
+                const rooms = radio.dataset.rooms || '';
+                if (rooms) {
+                    classSection.style.display = 'block';
+                    const roomList = rooms.split(',').map(r => r.trim()).filter(r => r !== '');
+                    roomList.forEach(rm => {
+                        const id = 'room_' + rm.replace(/\//g, '_');
+                        const btn = `
+                            <input type="radio" class="btn-check" name="classroom_radio" id="${id}" value="${rm}" onchange="selectClass(this)">
+                            <label class="btn btn-outline-primary" for="${id}">ม.${rm}</label>
+                        `;
+                        classContainer.innerHTML += btn;
+                    });
+                } else {
+                    classSection.style.display = 'none';
+                }
+            } else {
+                document.getElementById('subject_name').value = '';
+                classSection.style.display = 'none';
+            }
+            checkAvailableTeachers();
+        }
+
+        function selectClass(radio) {
+            document.getElementById('classroom').value = radio.value;
+            document.getElementById('room_number').value = radio.value;
+            checkAvailableTeachers();
+        }
+
+        async function initializeTeacherInfo() {
+            try {
+                // Fetch info without date/period to get department name and allowed dates
+                const res = await fetch('../api/teacher/supervision_get_teachers.php');
+                const data = await res.json();
+                if (data.success) {
+                    let key = data.my_sub_department === 'คอมพิวเตอร์และเทคโนโลยี' ? 'คอมพิวเตอร์และเทคโนโลยี' : data.my_department;
+                    document.getElementById('my-allowed-dates-text').textContent = supervisionSchedules[key] || 'ไม่ระบุช่วงเวลา';
+                    document.getElementById('requester_department').value = data.my_department || 'ไม่ระบุกลุ่มสาระ';
+                    if (data.my_full_name) {
+                        document.getElementById('requester_name').value = data.my_full_name;
+                    } else {
+                        document.getElementById('requester_name').value = currentUser.fullName || currentUser.username;
+                    }
+                    
+                    const dateContainer = document.getElementById('booking_date_container');
+                    dateContainer.innerHTML = '';
+                    if (data.allowed_dates_info && Array.isArray(data.allowed_dates_info)) {
+                        data.allowed_dates_info.forEach((info, index) => {
+                            const remaining = info.max - info.count;
+                            const isFull = remaining <= 0;
+                            const id = 'date_' + index;
+                            
+                            const badgeClass = isFull ? 'bg-danger' : (remaining <= 2 ? 'bg-warning text-dark' : 'bg-success');
+                            const badgeText = isFull ? 'เต็ม' : `ว่าง ${remaining}`;
+                            const disabledAttr = isFull ? 'disabled' : '';
+                            const btnClass = isFull ? 'btn-outline-secondary opacity-50' : 'btn-outline-primary bg-white';
+                            
+                            const btn = `
+                                <div class="col-6 col-md-4">
+                                    <input type="radio" class="btn-check" name="booking_date_radio" id="${id}" value="${info.date}" onchange="selectDate(this)" ${disabledAttr}>
+                                    <label class="btn ${btnClass} w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100" for="${id}">
+                                        <div class="small fw-bold mb-1" style="font-size:0.85rem;">${thDate(info.date).split(' ')[0]} ${thDate(info.date).split(' ')[1]}</div>
+                                        <div style="font-size: 0.7rem;" class="text-muted">${thDate(info.date).split(' ').slice(2).join(' ')}</div>
+                                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill ${badgeClass}" style="font-size:0.65rem;">
+                                            ${badgeText}
+                                        </span>
+                                    </label>
+                                </div>
+                            `;
+                            dateContainer.innerHTML += btn;
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading teacher info: ", err);
+            }
+        }
+
+        function selectDate(radio) {
+            document.getElementById('booking_date').value = radio.value;
+            // Also determine day of week and load timetable
+            const d = new Date(radio.value);
+            const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay(); // 1=Mon, 7=Sun
+            loadTimetable(dayOfWeek);
+            
+            checkAvailableTeachers();
+        }
+
+        async function loadTimetable(dayOfWeek) {
+            const container = document.getElementById('timetable_container');
+            const section = document.getElementById('timetable_section');
+            section.style.display = 'block';
+            container.innerHTML = '<div class="col-12 text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังโหลดตารางสอน...</div>';
+            
+            try {
+                const res = await fetch(`../api/teacher/get-timetable-by-day.php?day=${dayOfWeek}`);
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error("Non-JSON response from API: ", text);
+                    throw new Error("Invalid JSON response");
+                }
+                
+                if (data.success) {
+                    container.innerHTML = '';
+                    if (!data.schedule || data.schedule.length === 0) {
+                        container.innerHTML = '<div class="col-12 text-muted small"><i class="bi bi-info-circle me-1"></i>ไม่มีตารางสอนในวันนี้ (หากต้องการจอง กรุณาติดต่อผู้ดูแลระบบ)</div>';
+                        return;
+                    }
+                    
+                    data.schedule.forEach((slot, index) => {
+                        const id = 'slot_' + index;
+                        // slot contains period, subject_code, subject_name, class_name, room_location
+                        const subjectCode = slot.subject_code || '';
+                        const subjectName = slot.subject_name || '';
+                        const className = slot.class_name ? `ม.${slot.class_name}` : '';
+                        const roomLoc = slot.room_location || '';
+                        
+                        const classRoomHtml = className || roomLoc ? `<div style="font-size: 0.75rem;" class="text-muted"><i class="bi bi-person-video3"></i> ${className} | <i class="bi bi-geo-alt"></i> ${roomLoc}</div>` : '';
+                        
+                        const btn = `
+                            <div class="col-6 col-md-4">
+                                <input type="radio" class="btn-check" name="timetable_slot" id="${id}" value="${index}" onchange="selectTimetableSlot(this)">
+                                <label class="btn btn-outline-primary bg-white w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100" for="${id}">
+                                    <div class="fw-bold text-navy mb-1" style="font-size:0.9rem;">คาบที่ ${slot.period}</div>
+                                    <div class="small text-dark fw-bold text-truncate">${subjectCode} ${subjectName}</div>
+                                    ${classRoomHtml}
+                                </label>
+                            </div>
+                        `;
+                        container.innerHTML += btn;
+                    });
+                    
+                    // Store schedule in a global variable for easy access
+                    window.currentDaySchedule = data.schedule;
+                } else {
+                    container.innerHTML = `<div class="col-12 text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>${data.error}</div>`;
+                }
+            } catch (err) {
+                console.error("Error loading timetable: ", err);
+                container.innerHTML = '<div class="col-12 text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>ไม่สามารถโหลดตารางสอนได้</div>';
+            }
+        }
+
+        function selectTimetableSlot(radio) {
+            const index = radio.value;
+            const slot = window.currentDaySchedule[index];
+            if (slot) {
+                document.getElementById('subject_code').value = slot.subject_code || '';
+                document.getElementById('subject_name').value = slot.subject_name || '';
+                document.getElementById('classroom').value = slot.class_name || '';
+                document.getElementById('room_number').value = slot.room_location || '';
+                document.getElementById('booking_period').value = slot.period;
+                
+                checkAvailableTeachers();
+            }
+        }
+
+        async function checkAvailableTeachers() {
+            const date = document.getElementById('booking_date').value;
+            const period = document.getElementById('booking_period').value;
+
+            const peerDropdown = document.getElementById('peer_teacher_id');
+            const headDropdown = document.getElementById('head_teacher_id');
+            const helpText = document.getElementById('peer_help_text');
+
+            const dateHelp = document.getElementById('booking_date_help');
+            if(dateHelp) dateHelp.innerHTML = '';
+            const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
+            if(submitBtn) submitBtn.disabled = false;
+
+            if (!date || !period) {
+                peerDropdown.disabled = true;
+                headDropdown.disabled = true;
+                peerDropdown.innerHTML = '<option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>';
+                headDropdown.innerHTML = '<option value="">กรุณาเลือกวันที่และคาบเรียนก่อน...</option>';
+                helpText.innerHTML = '<i class="bi bi-info-circle"></i> เลือกวันที่และคาบเรียนเพื่อดูครูที่ว่าง';
+                helpText.className = 'form-text text-primary small mt-1';
+                return;
+            }
+
+            peerDropdown.disabled = true;
+            headDropdown.disabled = true;
+            helpText.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังตรวจสอบตารางสอน...';
+            helpText.className = 'form-text text-warning small mt-1';
+
+            try {
+                const res = await fetch(`../api/teacher/supervision_get_available_teachers.php?date=${date}&period=${period}`);
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error("Non-JSON response from API: ", text);
+                    throw new Error("Invalid JSON response");
+                }
+                
+                if (data.success) {
+                    const totalSchool = data.total_school_bookings || 0;
+                    if (totalSchool >= 5) {
+                        if(dateHelp) dateHelp.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> วันนี้มีคิวจองเต็มแล้ว (${totalSchool}/5) กรุณาเลือกวันอื่น</span>`;
+                        if(submitBtn) submitBtn.disabled = true;
+                    } else {
+                        if(dateHelp) dateHelp.innerHTML = `<span class="text-primary"><i class="bi bi-info-circle"></i> จำนวนคิวโรงเรียนวันนี้: ${totalSchool}/5</span>`;
+                    }
+
+                    peerDropdown.innerHTML = '<option value="">เลือกอาจารย์ผู้ร่วมนิเทศ (Peer)...</option>';
+                    data.teachers.forEach(t => {
+                        let opt = new Option(t.full_name + (t.is_busy ? ' (ไม่ว่าง/มีสอน)' : ''), t.id);
+                        if (t.is_busy) {
+                            opt.disabled = true;
+                            opt.className = 'text-muted';
+                        }
+                        peerDropdown.appendChild(opt);
+                    });
+
+                    headDropdown.innerHTML = '<option value="">เลือกหัวหน้า/รองกลุ่มสาระ...</option>';
+                    data.department_teachers.forEach(t => {
+                        let opt = new Option(t.full_name + (t.is_busy ? ' (ไม่ว่าง/มีสอน)' : ''), t.id);
+                        if (t.is_busy) {
+                            opt.disabled = true;
+                            opt.className = 'text-muted';
+                        }
+                        headDropdown.appendChild(opt);
+                    });
+
+                    peerDropdown.disabled = false;
+                    headDropdown.disabled = false;
+                    helpText.innerHTML = `<i class="bi bi-check-circle"></i> แสดงรายชื่อครู (${data.teachers.length} คน)`;
+                    helpText.className = 'form-text text-success small mt-1';
+                } else {
+                    helpText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ตรวจสอบข้อมูลไม่สำเร็จ';
+                    helpText.className = 'form-text text-danger small mt-1';
+                }
+            } catch (err) {
+                console.error("Error loading available teachers: ", err);
+                helpText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ขัดข้องในการเชื่อมต่อ';
+                helpText.className = 'form-text text-danger small mt-1';
+            }
+        }
+
+        function renderBookingStatus(booking) {
+            const statusBox = document.getElementById('booking-status-box');
+            const formCol = document.getElementById('booking-form-col');
+
+            if (booking) {
+                window.currentMyBooking = booking;
+                formCol.style.display = 'none';
+                
+                let badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
+                let statusText = '⏳ รออนุมัติโดยคณะกรรมการวิชาการ';
+                if (booking.status === 'approved' || booking.status === 'doc_submitted') {
+                    badgeClass = 'bg-success bg-opacity-10 text-success border-success';
+                    statusText = '✅ อนุมัติคิวนิเทศเรียบร้อย';
+                } else if (booking.status === 'completed') {
+                    badgeClass = 'bg-primary bg-opacity-10 text-primary border-primary';
+                    statusText = '✨ เสร็จสิ้นกระบวนการทั้งหมด';
+                }
+
+                statusBox.innerHTML = `
+                    <div class="alert ${badgeClass} border text-center rounded-4 mb-4 fw-bold p-3">
+                        ${statusText}
+                    </div>
+                    <div class="p-3 bg-light rounded-4 small">
+                        <table class="table table-borderless mb-0">
+                            <tr><td class="text-muted fw-bold">รหัสวิชา:</td><td>${booking.subject_code}</td></tr>
+                            <tr><td class="text-muted fw-bold">ชื่อวิชา:</td><td>${booking.subject_name}</td></tr>
+                            <tr><td class="text-muted fw-bold">ระดับชั้น:</td><td>ม. ${booking.classroom}</td></tr>
+                            <tr><td class="text-muted fw-bold">ห้องที่สอน:</td><td>ห้อง ${booking.room_number}</td></tr>
+                            <tr><td class="text-muted fw-bold">เรื่องที่จะสอน:</td><td>${booking.lesson_topic || '-'}</td></tr>
+                            <tr><td class="text-muted fw-bold">วันที่นิเทศ:</td><td>${thDate(booking.booking_date)}</td></tr>
+                            <tr><td class="text-muted fw-bold">คาบเรียน:</td><td>คาบที่ ${booking.booking_period}</td></tr>
+                            <tr><td class="text-muted fw-bold">ครูผู้ร่วมนิเทศ:</td><td>${booking.peer_name || '-'}</td></tr>
+                            <tr><td class="text-muted fw-bold">ครูผู้นิเทศ:</td><td>${booking.head_name || '-'}</td></tr>
+                            <tr><td class="text-muted fw-bold">กรรมการวิชาการ:</td><td>${booking.academic_name || 'รอมอบหมาย'}</td></tr>
+                        </table>
+                    </div>
+                    ${booking.status === 'pending' ? `
+                        <div class="row g-2 mt-4">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-primary w-100 rounded-pill fw-bold" onclick="window.editBooking()"><i class="bi bi-pencil-square"></i> แก้ไขการจอง</button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-danger w-100 rounded-pill fw-bold" onclick="window.cancelBooking(${booking.id})"><i class="bi bi-trash"></i> ยกเลิกคิวนี้</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+            } else {
+                formCol.style.display = 'block';
+                document.getElementById('booking_id').value = '';
+                statusBox.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-calendar-event text-muted display-4 mb-3 d-block"></i>
+                        <div class="text-muted small">คุณยังไม่มีประวัติการจองคิวนิเทศในภาคเรียนนี้</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function submitBooking() {
+            const teacher_position_elem = document.querySelector('input[name="teacher_position"]:checked') || document.getElementById('teacher_position');
+            const academic_standing_elem = document.querySelector('input[name="academic_standing"]:checked') || document.getElementById('academic_standing');
+
+            const data = {
+                booking_id: document.getElementById('booking_id').value,
+                teacher_position: teacher_position_elem ? teacher_position_elem.value : '',
+                academic_standing: academic_standing_elem ? academic_standing_elem.value : '',
+                evaluation_purpose: document.getElementById('evaluation_purpose').value,
+                subject_code: document.getElementById('subject_code').value,
+                subject_name: document.getElementById('subject_name').value,
+                classroom: document.getElementById('classroom').value,
+                room_number: document.getElementById('room_number').value,
+                lesson_topic: document.getElementById('lesson_topic').value,
+                booking_date: document.getElementById('booking_date').value,
+                booking_period: document.getElementById('booking_period').value,
+                peer_teacher_id: document.getElementById('peer_teacher_id').value,
+                head_teacher_id: document.getElementById('head_teacher_id').value
+            };
+
+            const missing = [];
+            if (!data.teacher_position) missing.push("ตำแหน่ง");
+            if (!data.academic_standing) missing.push("วิทยฐานะ");
+            if (!data.subject_name) missing.push("รายวิชา (จากตารางสอน)");
+            if (!data.lesson_topic) missing.push("เรื่องที่จะสอน / หัวข้อการประเมิน");
+            if (!data.booking_date) missing.push("วันที่นัดหมาย");
+            if (!data.booking_period) missing.push("คาบเรียน");
+            if (!data.peer_teacher_id) missing.push("ครูผู้ร่วมนิเทศ (Peer)");
+            if (!data.head_teacher_id) missing.push("ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)");
+
+            if (missing.length > 0) {
+                Swal.fire({ 
+                    icon: 'warning', 
+                    title: 'กรุณากรอกข้อมูลให้ครบถ้วน', 
+                    html: '<div class="text-start small"><b>ข้อมูลที่ขาดหาย:</b><br>- ' + missing.join('<br>- ') + '</div>',
+                    confirmButtonColor: '#1e3a8a' 
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'กำลังจองคิว...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const res = await fetch('../api/teacher/supervision_book.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    Swal.fire({ icon: 'success', title: 'จองสำเร็จ!', text: result.message, confirmButtonColor: '#1e3a8a' }).then(() => {
+                        window.location.href = 'teacher_supervision.html';
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'ไม่สามารถจองได้', text: result.error, confirmButtonColor: '#1e3a8a' });
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'เชื่อมต่อขัดข้อง' });
+            }
+        }
+
+        async function cancelBooking(id) {
+            const confirm = await Swal.fire({
+                title: 'ยกเลิกการจองคิวนี้?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ยืนยันยกเลิก',
+                cancelButtonText: 'ปิด'
+            });
+            if (!confirm.isConfirmed) return;
+
+            try {
+                const res = await fetch(`../api/teacher/supervision_cancel.php?id=${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const d = await res.json();
+                if (d.success) {
+                    Swal.fire({ icon: 'success', title: 'ยกเลิกสำเร็จ', timer: 1500, showConfirmButton: false });
+                    loadBookingData();
+                } else {
+                    Swal.fire('ผิดพลาด', d.error || 'ไม่สามารถยกเลิกได้', 'error');
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'ขัดข้อง' });
+            }
+        }
+
+        function editBooking() {
+            try {
+                const booking = window.currentMyBooking;
+                if (!booking) {
+                    Swal.fire('Error', 'No booking data found', 'error');
+                    return;
+                }
+
+                const formCol = document.getElementById('booking-form-col');
+                if (!formCol) {
+                    Swal.fire('Error', 'form col not found', 'error');
+                    return;
+                }
+                formCol.style.display = 'block';
+                document.getElementById('booking_id').value = booking.id;
+            
+            if (booking.evaluation_purpose) {
+                document.getElementById('evaluation_purpose').value = booking.evaluation_purpose;
+            }
+            if (booking.lesson_topic) {
+                document.getElementById('lesson_topic').value = booking.lesson_topic;
+            }
+            if (booking.booking_date) {
+                document.getElementById('booking_date').value = booking.booking_date;
+            }
+            if (booking.booking_period) {
+                document.getElementById('booking_period').value = booking.booking_period;
+            }
+            if (booking.subject_code) {
+                document.getElementById('subject_code').value = booking.subject_code;
+            }
+            if (booking.subject_name) {
+                document.getElementById('subject_name').value = booking.subject_name;
+            }
+            if (booking.classroom) {
+                document.getElementById('classroom').value = booking.classroom;
+            }
+            if (booking.room_number) {
+                document.getElementById('room_number').value = booking.room_number;
+            }
+            // For evaluators
+            if (booking.peer_teacher_id) {
+                // To safely set these, we need to add them as options if they aren't there
+                const peerSel = document.getElementById('peer_teacher_id');
+                if (peerSel.options.length <= 1) {
+                    peerSel.innerHTML = `<option value="${booking.peer_teacher_id}" selected>${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</option>`;
+                    peerSel.disabled = false;
+                } else {
+                    peerSel.value = booking.peer_teacher_id;
+                }
+            }
+            if (booking.head_teacher_id) {
+                const headSel = document.getElementById('head_teacher_id');
+                if (headSel.options.length <= 1) {
+                    headSel.innerHTML = `<option value="${booking.head_teacher_id}" selected>${booking.head_name || 'ครูผู้นิเทศเดิม'}</option>`;
+                    headSel.disabled = false;
+                } else {
+                    headSel.value = booking.head_teacher_id;
+                }
+            }
+            if (booking.teacher_position) {
+                const r = document.querySelector(`input[name="teacher_position"][value="${booking.teacher_position}"]`);
+                if (r) r.checked = true;
+            }
+            if (booking.academic_standing) {
+                const r = document.querySelector(`input[name="academic_standing"][value="${booking.academic_standing}"]`);
+                if (r) r.checked = true;
+            }
+            
+            document.getElementById('booking-form-col').scrollIntoView({ behavior: 'smooth' });
+            
+            const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="bi bi-save-fill me-2"></i> บันทึกการแก้ไข';
+            }
+            
+            Swal.fire({
+                icon: 'info',
+                title: 'โหมดแก้ไขการจอง',
+                text: 'กรุณาเลือกวันที่ คาบเรียน และเรื่องที่จะสอนใหม่ จากนั้นกด "บันทึกการแก้ไข"',
+                confirmButtonColor: '#1e3a8a'
+            });
+            } catch (err) {
+                Swal.fire('Error in editBooking', err.message, 'error');
+                console.error(err);
+            }
+        }
+
+    </script>
+</body>
+
+</html>

@@ -80,24 +80,35 @@ function handleGet($pdo, $user_id) {
             // ยังไม่เช็คชื่อโฮมรูมวันนี้
             if ($room && $varsR) {
                 $today  = date('Y-m-d');
-                $phR2   = implode(',', array_fill(0, count($varsR), '?'));
-                $stmtChk = $pdo->prepare("SELECT COUNT(*) FROM attendance WHERE date = ? AND class_name IN ($phR2) AND type = 'daily'");
-                $stmtChk->execute(array_merge([$today], $varsR));
-                $todayChecked = (int) $stmtChk->fetchColumn();
+                
+                // ตรวจสอบวันหยุดเสาร์-อาทิตย์ และวันหยุดพิเศษ
+                $dayOfWeek = (int)date('N');
+                $isWeekend = ($dayOfWeek === 6 || $dayOfWeek === 7);
+                $stmtHoliday = $pdo->prepare("SELECT COUNT(*) FROM academic_days WHERE date_val = ? AND day_type = 'วันหยุด'");
+                $stmtHoliday->execute([$today]);
+                $isHoliday = ((int)$stmtHoliday->fetchColumn() > 0);
 
-                $hour = (int) date('G');
-                if ($todayChecked === 0 && $hour >= 8 && $hour < 18) {
-                    $actions[] = [
-                        'id' => 'alert_not_checked',
-                        'type' => 'action',
-                        'title' => 'ยังไม่ได้เช็คชื่อวันนี้',
-                        'message' => "ห้อง {$room} ยังไม่มีการเช็คชื่อวันนี้ — กดเพื่อเช็คชื่อ",
-                        'link' => 'attendance_daily.html?class_name=' . urlencode($room),
-                        'icon' => 'bi-clipboard-x-fill',
-                        'color' => '#ef4444',
-                        'is_read' => 0,
-                        'created_at' => date('Y-m-d H:i:s')
-                    ];
+                // ข้ามการแจ้งเตือนถ้าเป็นวันหยุด
+                if (!$isWeekend && !$isHoliday) {
+                    $phR2   = implode(',', array_fill(0, count($varsR), '?'));
+                    $stmtChk = $pdo->prepare("SELECT COUNT(*) FROM attendance WHERE date = ? AND class_name IN ($phR2) AND type = 'daily'");
+                    $stmtChk->execute(array_merge([$today], $varsR));
+                    $todayChecked = (int) $stmtChk->fetchColumn();
+
+                    $hour = (int) date('G');
+                    if ($todayChecked === 0 && $hour >= 8 && $hour < 18) {
+                        $actions[] = [
+                            'id' => 'alert_not_checked',
+                            'type' => 'action',
+                            'title' => 'ยังไม่ได้เช็คชื่อวันนี้',
+                            'message' => "ห้อง {$room} ยังไม่มีการเช็คชื่อวันนี้ — กดเพื่อเช็คชื่อ",
+                            'link' => 'attendance_daily.html?class_name=' . urlencode($room),
+                            'icon' => 'bi-clipboard-x-fill',
+                            'color' => '#ef4444',
+                            'is_read' => 0,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ];
+                    }
                 }
             }
         }

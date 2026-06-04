@@ -742,7 +742,12 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-floating">
-                                            <input type="text" id="f_department_position" class="form-control border-0 bg-white" placeholder=" ">
+                                            <select id="f_department_position" class="form-select border-0 bg-white">
+                                                <option value="">-- ไม่ระบุ --</option>
+                                                <option value="หัวหน้ากลุ่มสาระการเรียนรู้">หัวหน้ากลุ่มสาระการเรียนรู้</option>
+                                                <option value="รองหัวหน้ากลุ่มสาระการเรียนรู้">รองหัวหน้ากลุ่มสาระการเรียนรู้</option>
+                                                <option value="ครูผู้สอน">ครูผู้สอน</option>
+                                            </select>
                                             <label for="f_department_position">ตำแหน่งงานในกลุ่มสาระ</label>
                                         </div>
                                     </div>
@@ -913,6 +918,56 @@ async function loadTeachers() {
         const data = await res.json();
         if (data.success) { 
             allTeachers = data.data || [];
+            
+            // เรียงลำดับตาม: 1.หัวหน้า/รองหัวหน้า 2.ตำแหน่ง 3.วิทยฐานะ 4.รหัสประจำตัวครู
+            allTeachers.sort((a, b) => {
+                // 1. เรียงตามตำแหน่งในกลุ่มสาระ (หัวหน้าขึ้นก่อน)
+                const getDeptPosWeight = (t) => {
+                    const dp = t.department_position || '';
+                    if (dp.includes('รองหัวหน้า')) return 2;
+                    if (dp.includes('หัวหน้า')) return 1;
+                    return 3;
+                };
+                const dpA = getDeptPosWeight(a);
+                const dpB = getDeptPosWeight(b);
+                if (dpA !== dpB) return dpA - dpB;
+
+                // 2. เรียงตามตำแหน่ง (Position)
+                const getPositionWeight = (t) => {
+                    const pos = t.position || '';
+                    if (pos.includes('ผู้อำนวยการ') && !pos.includes('รอง')) return 1;
+                    if (pos.includes('รองผู้อำนวยการ')) return 2;
+                    if (pos === 'ครู' || pos.includes('ครู คศ')) return 3;
+                    if (pos.includes('ครูผู้ช่วย')) return 4;
+                    if (pos.includes('พนักงานราชการ')) return 5;
+                    if (pos.includes('อัตราจ้าง')) return 6;
+                    if (pos.includes('นักศึกษาฝึกสอน') || pos.includes('ฝึกประสบการณ์')) return 7;
+                    return 99;
+                };
+                const posA = getPositionWeight(a);
+                const posB = getPositionWeight(b);
+                if (posA !== posB) return posA - posB;
+
+                // 3. เรียงตามวิทยฐานะ (Academic Standing)
+                const getAcademicWeight = (t) => {
+                    const ac = t.academic_standing || '';
+                    if (ac.includes('เชี่ยวชาญพิเศษ')) return 1;
+                    if (ac.includes('เชี่ยวชาญ')) return 2;
+                    if (ac.includes('ชำนาญการพิเศษ')) return 3;
+                    if (ac.includes('ชำนาญการ')) return 4;
+                    if (ac.includes('ไม่มีวิทยฐานะ')) return 5;
+                    return 99;
+                };
+                const acA = getAcademicWeight(a);
+                const acB = getAcademicWeight(b);
+                if (acA !== acB) return acA - acB;
+                
+                // 4. ถ้าน้ำหนักเท่ากันหมด ให้เรียงตามรหัสประจำตัวครู
+                const idA = String(a.teacher_id || '');
+                const idB = String(b.teacher_id || '');
+                return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
             filteredTeachers = [...allTeachers];
             
             populateFilters();
