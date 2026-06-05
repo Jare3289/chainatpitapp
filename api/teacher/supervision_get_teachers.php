@@ -18,22 +18,44 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'ad
 $user_id = $_SESSION['user_id'];
 
 try {
-    // 1. Get logged-in teacher's info (especially department)
-    $stmt = $pdo->prepare("SELECT id, department, sub_department, prefix, first_name_th, last_name_th FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
+    $booking_id = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
 
-    if (!$me) {
-        // Try mapping by username if user_id mapping is empty
-        $stmt = $pdo->prepare("SELECT id, department, sub_department, prefix, first_name_th, last_name_th FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    $my_dept = '';
+    $my_sub_dept = '';
+    $my_teacher_id = 0;
+    $my_full_name = '';
+
+    if ($_SESSION['role'] === 'admin' && $booking_id > 0) {
+        $stmt_bk = $pdo->prepare("SELECT b.teacher_id, t.department, t.sub_department, t.prefix, t.first_name_th, t.last_name_th 
+            FROM supervision_bookings b 
+            JOIN teachers t ON b.teacher_id = t.id 
+            WHERE b.id = ?");
+        $stmt_bk->execute([$booking_id]);
+        $bk_info = $stmt_bk->fetch(PDO::FETCH_ASSOC);
+        if ($bk_info) {
+            $my_dept = $bk_info['department'];
+            $my_sub_dept = $bk_info['sub_department'];
+            $my_teacher_id = (int)$bk_info['teacher_id'];
+            $my_full_name = trim(($bk_info['prefix'] ?? '') . ($bk_info['first_name_th'] ?? '') . ' ' . ($bk_info['last_name_th'] ?? ''));
+        }
+    } else {
+        // 1. Get logged-in teacher's info (especially department)
+        $stmt = $pdo->prepare("SELECT id, department, sub_department, prefix, first_name_th, last_name_th FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    $my_dept = $me ? $me['department'] : '';
-    $my_sub_dept = $me ? $me['sub_department'] : '';
-    $my_teacher_id = $me ? $me['id'] : 0;
-    $my_full_name = $me ? trim(($me['prefix'] ?? '') . ($me['first_name_th'] ?? '') . ' ' . ($me['last_name_th'] ?? '')) : '';
+        if (!$me) {
+            // Try mapping by username if user_id mapping is empty
+            $stmt = $pdo->prepare("SELECT id, department, sub_department, prefix, first_name_th, last_name_th FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        $my_dept = $me ? $me['department'] : '';
+        $my_sub_dept = $me ? $me['sub_department'] : '';
+        $my_teacher_id = $me ? $me['id'] : 0;
+        $my_full_name = $me ? trim(($me['prefix'] ?? '') . ($me['first_name_th'] ?? '') . ' ' . ($me['last_name_th'] ?? '')) : '';
+    }
 
     // 2. Fetch all teachers (for Peer selection)
     $stmt = $pdo->query("SELECT id, prefix, first_name_th, last_name_th, department, sub_department FROM teachers ORDER BY first_name_th ASC");

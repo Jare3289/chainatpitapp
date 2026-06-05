@@ -33,26 +33,11 @@ if ($booking_id <= 0 || ($eval_type !== 'doc' && $eval_type !== 'class')) {
 }
 
 try {
-    // 1. Get evaluator's teacher ID
-    $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $evaluator_id = 0;
+    $role = '';
 
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
-        $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
-        exit;
-    }
-
-    $evaluator_id = $me['id'];
-
-    // 2. Verify that logged-in teacher is a supervisor for this booking
+    // Fetch booking first
     $stmt = $pdo->prepare("SELECT * FROM supervision_bookings WHERE id = ?");
     $stmt->execute([$booking_id]);
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -63,19 +48,60 @@ try {
         exit;
     }
 
-    $role = '';
-    if ((int)$booking['peer_teacher_id'] === $evaluator_id) {
-        $role = 'peer';
-    } elseif ((int)$booking['head_teacher_id'] === $evaluator_id) {
-        $role = 'head';
-    } elseif ($booking['academic_teacher_id'] && (int)$booking['academic_teacher_id'] === $evaluator_id) {
-        $role = 'academic';
-    }
+    if ($is_admin) {
+        $admin_role_param = isset($data['role']) ? trim($data['role']) : '';
+        if (!in_array($admin_role_param, ['peer', 'head', 'academic'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'แอดมินต้องระบุพารามิเตอร์บทบาทผู้ประเมิน (role) ในการลงประเมิน']);
+            exit;
+        }
+        $role = $admin_role_param;
+        if ($role === 'peer') {
+            $evaluator_id = $booking['peer_teacher_id'];
+        } elseif ($role === 'head') {
+            $evaluator_id = $booking['head_teacher_id'];
+        } elseif ($role === 'academic') {
+            $evaluator_id = $booking['academic_teacher_id'];
+        }
+        
+        if (!$evaluator_id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'ยังไม่มีการระบุคณะกรรมการสำหรับตำแหน่งผู้ประเมินนี้ ไม่สามารถทำการลงคะแนนได้']);
+            exit;
+        }
+    } else {
+        // 1. Get evaluator's teacher ID
+        $stmt_me = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+        $stmt_me->execute([$user_id]);
+        $me = $stmt_me->fetch(PDO::FETCH_ASSOC);
 
-    if (empty($role)) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'คุณไม่ได้เป็นคณะกรรมการประเมินสำหรับการจองนี้']);
-        exit;
+        if (!$me) {
+            $stmt_me = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt_me->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt_me->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
+            exit;
+        }
+
+        $evaluator_id = $me['id'];
+
+        if ((int)$booking['peer_teacher_id'] === $evaluator_id) {
+            $role = 'peer';
+        } elseif ((int)$booking['head_teacher_id'] === $evaluator_id) {
+            $role = 'head';
+        } elseif ($booking['academic_teacher_id'] && (int)$booking['academic_teacher_id'] === $evaluator_id) {
+            $role = 'academic';
+        }
+
+        if (empty($role)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'คุณไม่ได้เป็นคณะกรรมการประเมินสำหรับการจองนี้']);
+            exit;
+        }
     }
 
     // 3. Upsert evaluation record

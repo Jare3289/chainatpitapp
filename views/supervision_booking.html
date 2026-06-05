@@ -306,9 +306,16 @@
             checkAvailableTeachers();
         }
 
+        function getUrlBookingId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return parseInt(urlParams.get('booking_id')) || 0;
+        }
+
         async function loadBookingData() {
             try {
-                const res = await fetch('../api/teacher/supervision_get.php');
+                const bookingId = getUrlBookingId();
+                const url = bookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${bookingId}` : '../api/teacher/supervision_get.php';
+                const res = await fetch(url);
                 const data = await res.json();
                 if (data.success) {
                     renderBookingStatus(data.booking);
@@ -430,7 +437,9 @@
         async function initializeTeacherInfo() {
             try {
                 // Fetch info without date/period to get department name and allowed dates
-                const res = await fetch('../api/teacher/supervision_get_teachers.php');
+                const bookingId = getUrlBookingId();
+                const url = bookingId > 0 ? `../api/teacher/supervision_get_teachers.php?booking_id=${bookingId}` : '../api/teacher/supervision_get_teachers.php';
+                const res = await fetch(url);
                 const data = await res.json();
                 if (data.success) {
                     let key = data.my_sub_department === 'คอมพิวเตอร์และเทคโนโลยี' ? 'คอมพิวเตอร์และเทคโนโลยี' : data.my_department;
@@ -493,7 +502,9 @@
             container.innerHTML = '<div class="col-12 text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังโหลดตารางสอน...</div>';
             
             try {
-                const res = await fetch(`../api/teacher/get-timetable-by-day.php?day=${dayOfWeek}`);
+                const bookingId = getUrlBookingId();
+                const url = `../api/teacher/get-timetable-by-day.php?day=${dayOfWeek}` + (bookingId > 0 ? `&booking_id=${bookingId}` : '');
+                const res = await fetch(url);
                 const text = await res.text();
                 let data;
                 try {
@@ -586,7 +597,9 @@
             helpText.className = 'form-text text-warning small mt-1';
 
             try {
-                const res = await fetch(`../api/teacher/supervision_get_available_teachers.php?date=${date}&period=${period}`);
+                const bookingId = getUrlBookingId();
+                const url = `../api/teacher/supervision_get_available_teachers.php?date=${date}&period=${period}` + (bookingId > 0 ? `&booking_id=${bookingId}` : '');
+                const res = await fetch(url);
                 const text = await res.text();
                 let data;
                 try {
@@ -684,7 +697,7 @@
                             <tr><td class="text-muted fw-bold">กรรมการวิชาการ:</td><td>${booking.academic_name || 'รอมอบหมาย'}</td></tr>
                         </table>
                     </div>
-                    ${(booking.status === 'pending' || booking.status === 'approved') ? `
+                    ${(booking.status === 'pending' || booking.status === 'approved' || currentUser.role === 'admin') ? `
                         <div class="row g-2 mt-4">
                             <div class="col-6">
                                 <button type="button" class="btn btn-outline-primary w-100 rounded-pill fw-bold" onclick="window.editBooking()"><i class="bi bi-pencil-square"></i> แก้ไขการจอง</button>
@@ -763,7 +776,7 @@
                 const result = await res.json();
                 if (result.success) {
                     Swal.fire({ icon: 'success', title: 'จองสำเร็จ!', text: result.message, confirmButtonColor: '#1e3a8a' }).then(() => {
-                        window.location.href = 'teacher_supervision.html';
+                        window.location.href = currentUser.role === 'admin' ? 'supervision.html' : 'teacher_supervision.html';
                     });
                 } else {
                     Swal.fire({ icon: 'error', title: 'ไม่สามารถจองได้', text: result.error, confirmButtonColor: '#1e3a8a' });

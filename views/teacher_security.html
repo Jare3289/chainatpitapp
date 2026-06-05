@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ตั้งค่าความปลอดภัย | CNP APP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        :root {
+            --house-color: #0f172a;
+        }
+
+        body {
+            font-family: 'Google Sans', sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        .text-navy {
+            color: #0f172a !important;
+        }
+
+        .bg-navy {
+            background-color: #0f172a !important;
+        }
+
+        .card-modern {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+            background: white;
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .section-title .icon-box {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f1f5f9;
+            border-radius: 10px;
+            color: var(--house-color);
+            font-size: 1.15rem;
+        }
+
+        .form-label {
+            font-weight: 700;
+            color: #475569;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: var(--house-color);
+            box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.06);
+            outline: none;
+        }
+
+        .btn-navy {
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-navy:hover {
+            background: #1e293b;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+
+        .input-group-text {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            color: #64748b;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .input-group .input-group-text {
+            border-right: none;
+            border-top-left-radius: 12px !important;
+            border-bottom-left-radius: 12px !important;
+        }
+
+        .input-group .form-control {
+            border-top-right-radius: 12px !important;
+            border-bottom-right-radius: 12px !important;
+        }
+
+        .badge-premium {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="app-main main-panel d-flex flex-column min-vh-100" id="main">
+            <div class="app-content page-content py-4">
+                <div class="container-fluid" style="max-width: 900px;">
+
+                    <!-- Header -->
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <h4 class="fw-black text-navy mb-1">ตั้งค่าความปลอดภัยบัญชี</h4>
+                            <p class="text-muted small mb-0">จัดการชื่อผู้ใช้และเปลี่ยนรหัสผ่านเพื่อความปลอดภัย</p>
+                        </div>
+                    </div>
+
+                    <form id="securityForm" onsubmit="saveSecuritySettings(event)">
+                        <div class="row g-4">
+                            <!-- Left: Settings Form -->
+                            <div class="col-12">
+                                <div class="card-modern p-4">
+                                    <div class="section-title">
+                                        <span class="icon-box"><i class="bi bi-person-fill-gear"></i></span>
+                                        ข้อมูลบัญชีผู้ใช้
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">ชื่อผู้ใช้ปัจจุบัน (Username)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                                <input type="text" id="displayUsername" class="form-control" readonly disabled style="background:#f8fafc; color:#64748b;">
+                                            </div>
+                                            <span class="small text-muted mt-1 d-block"><i class="bi bi-info-circle me-1"></i>ชื่อผู้ใช้ใช้สำหรับเข้าสู่ระบบ CNP APP</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-modern p-4">
+                                    <div class="section-title">
+                                        <span class="icon-box"><i class="bi bi-shield-lock-fill"></i></span>
+                                        เปลี่ยนรหัสผ่าน
+                                    </div>
+                                    
+                                    <div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: 12px; background: #f0fdf4; border-left: 4px solid #16a34a !important; color: #14532d;">
+                                        <div class="d-flex gap-2">
+                                            <i class="bi bi-info-circle-fill fs-5 text-success"></i>
+                                            <span class="small">หากไม่ต้องการเปลี่ยนรหัสผ่านใหม่ กรุณาเว้นว่างช่องด้านล่างนี้ไว้ได้เลยค่ะ</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">รหัสผ่านใหม่ (New Password)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                                <input type="password" name="password" id="newPassword" class="form-control" autocomplete="new-password" placeholder="อย่างน้อย 6 ตัวอักษร">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">ยืนยันรหัสผ่านใหม่ (Confirm Password)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                                                <input type="password" id="confirmPassword" class="form-control" autocomplete="new-password" placeholder="ระบุรหัสผ่านอีกครั้ง">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-2 justify-content-end align-items-center mt-3">
+                                    <button type="button" class="btn btn-light border rounded-pill px-4 py-2.5 fw-bold" onclick="window.history.back()">
+                                        <i class="bi bi-arrow-left me-1"></i>ย้อนกลับ
+                                    </button>
+                                    <button type="submit" class="btn btn-navy rounded-pill">
+                                        <i class="bi bi-save2-fill me-2"></i>บันทึกความปลอดภัย
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+
+    <script>
+        let teacherData = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('teacher');
+            if (user) {
+                await fetchTeacherProfile();
+            }
+        });
+
+        async function fetchTeacherProfile() {
+            try {
+                const res = await fetch('../api/teacher/profile.php');
+                const result = await res.json();
+                if (result.success) {
+                    teacherData = result.data;
+                    document.getElementById('displayUsername').value = teacherData.email || teacherData.username || '';
+                    if (teacherData.faculty) {
+                        updateBadgeColor(teacherData.faculty);
+                    }
+                } else {
+                    Swal.fire('ดึงข้อมูลล้มเหลว', result.error || 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้', 'warning');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('ผิดพลาด', 'ไม่สามารถเชื่อมต่อระบบดึงข้อมูลได้', 'error');
+            }
+        }
+
+        function updateBadgeColor(f) {
+            const colors = { 'ขุนสรรค์': '#db2777', 'ขุนศรี': '#dc2626', 'เจ้ายี่': '#16a34a', 'ธรรมจักร': '#ca8a04' };
+            const c = colors[f] || '#0f172a';
+            document.documentElement.style.setProperty('--house-color', c);
+        }
+
+        async function saveSecuritySettings(e) {
+            e.preventDefault();
+
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Password Validation
+            if (password) {
+                if (password.length < 6) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'รหัสผ่านสั้นเกินไป',
+                        text: 'รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 6 ตัวอักษรค่ะ',
+                        confirmButtonText: 'ตกลง'
+                    });
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'รหัสผ่านไม่ตรงกัน',
+                        text: 'การยืนยันรหัสผ่านใหม่ไม่ตรงกัน กรุณาตรวจสอบอีกครั้งค่ะ',
+                        confirmButtonText: 'ตกลง'
+                    });
+                    return;
+                }
+            } else {
+                // If password input is empty, no changes will be sent since we only have username/password update
+                Swal.fire({
+                    icon: 'info',
+                    title: 'ไม่มีการเปลี่ยนแปลง',
+                    text: 'กรุณากรอกรหัสผ่านใหม่หากต้องการทำการอัปเดตค่ะ',
+                    confirmButtonText: 'ตกลง'
+                });
+                return;
+            }
+
+            const data = {
+                username: teacherData.username || teacherData.email,
+                password: password
+            };
+
+            Swal.fire({
+                title: 'กำลังอัปเดตรหัสผ่าน...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res = await fetch('../api/teacher/profile.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ!',
+                        text: result.message || 'เปลี่ยนรหัสผ่านเรียบร้อยแล้วค่ะ',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    // Clear inputs
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกได้', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('ผิดพลาด', 'ระบบขัดข้อง กรุณาลองใหม่อีกครั้งค่ะ', 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>

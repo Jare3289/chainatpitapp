@@ -9,7 +9,7 @@ require_once '../../inc/security.php';
 require_once '../../inc/supervision_schedule.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -47,26 +47,51 @@ if (empty($subject_name) || empty($lesson_topic) || empty($booking_date) || $boo
 }
 
 try {
-    // 1. Get Evaluatee details
-    $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $me = null;
+    $teacher_id = 0;
+    $my_dept = '';
+    $my_sub_dept = '';
 
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    if ($is_admin) {
+        if ($booking_id > 0) {
+            $stmt = $pdo->prepare("SELECT teacher_id FROM supervision_bookings WHERE id = ?");
+            $stmt->execute([$booking_id]);
+            $teacher_id = (int)$stmt->fetchColumn();
+        } else {
+            $teacher_id = isset($data['teacher_id']) ? (int)$data['teacher_id'] : 0;
+        }
+
+        if ($teacher_id > 0) {
+            $stmt_t = $pdo->prepare("SELECT department, sub_department FROM teachers WHERE id = ?");
+            $stmt_t->execute([$teacher_id]);
+            $t_rec = $stmt_t->fetch(PDO::FETCH_ASSOC);
+            if ($t_rec) {
+                $my_dept = $t_rec['department'];
+                $my_sub_dept = $t_rec['sub_department'];
+            }
+        }
+    } else {
+        $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'ไม่พบข้อมูลอาจารย์ในระบบ']);
-        exit;
-    }
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-    $teacher_id = $me['id'];
-    $my_dept = $me['department'];
-    $my_sub_dept = $me['sub_department'];
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ไม่พบข้อมูลอาจารย์ในระบบ']);
+            exit;
+        }
+
+        $teacher_id = $me['id'];
+        $my_dept = $me['department'];
+        $my_sub_dept = $me['sub_department'];
+    }
 
     // 2. Check if already booked for this semester
     $sql_check_dup = "SELECT id FROM supervision_bookings WHERE teacher_id = ? AND semester = ? AND year = ? AND status != 'cancelled'";
@@ -102,7 +127,7 @@ try {
     }
 
     $allowed_dates = $supervision_schedules[$schedule_key]['dates'];
-    if (!in_array($booking_date, $allowed_dates)) {
+    if (!in_array($booking_date, $allowed_dates) && !$is_admin) {
         // Format Thai Dates for error message
         $formatted_dates = array_map(function($d) {
             $parts = explode('-', $d);
@@ -119,19 +144,24 @@ try {
     }
 
     // 4. Check school daily limit (max 5 bookings total across the school)
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM supervision_bookings WHERE booking_date = ? AND status != 'cancelled'");
-    $stmt->execute([$booking_date]);
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM supervision_bookings WHERE booking_date = ? AND status != 'cancelled' AND id != ?");
+    $stmt->execute([$booking_date, $booking_id]);
     $daily_count = $stmt->fetchColumn();
 
-    if ($daily_count >= 5) {
+    if ($daily_count >= 5 && !$is_admin) {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'ไม่สามารถจองได้ เนื่องจากคิวการนิเทศในวันที่เลือกเต็มแล้ว']);
         exit;
     }
 
     if ($booking_id > 0) {
-        $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
-        $stmt_check->execute([$booking_id, $teacher_id]);
+        if ($is_admin) {
+            $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ?");
+            $stmt_check->execute([$booking_id]);
+        } else {
+            $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+            $stmt_check->execute([$booking_id, $teacher_id]);
+        }
         $existing = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
         if (!$existing) {
@@ -140,7 +170,7 @@ try {
             exit;
         }
 
-        if ($existing['status'] !== 'pending' && $existing['status'] !== 'approved') {
+        if ($existing['status'] !== 'pending' && $existing['status'] !== 'approved' && !$is_admin) {
             http_response_code(403);
             echo json_encode(['success' => false, 'error' => 'ไม่สามารถแก้ไขได้เนื่องจากคิวถูกดำเนินการไปแล้ว']);
             exit;
@@ -214,14 +244,24 @@ try {
             cnp_notify($pdo, (int)$head_user_id, 'คำเชิญเป็นกรรมการนิเทศ 📋', $msg, 'teacher_supervision.html', 'bi-person-badge-fill', '#3b82f6', 'supervision');
         }
 
-        // Notify evaluatee (myself)
+        // Notify evaluatee
+        $stmt_user->execute([$teacher_id]);
+        $evaluatee_user_id = $stmt_user->fetchColumn();
+
         $action_type_th = ($data['booking_id'] ?? 0) > 0 ? 'แก้ไข' : 'จอง';
         $msg_eval = "การ{$action_type_th}คิวนิเทศรายวิชา $subject_name ($subject_code) สำหรับห้อง $classroom วันที่ $thai_date คาบที่ $booking_period สำเร็จแล้ว";
-        cnp_notify($pdo, (int)$user_id, "{$action_type_th}คิวนิเทศสำเร็จ 🎉", $msg_eval, 'teacher_supervision.html', 'bi-calendar-check-fill', '#10b981', 'supervision');
+
+        if ($evaluatee_user_id) {
+            cnp_notify($pdo, (int)$evaluatee_user_id, "{$action_type_th}คิวนิเทศสำเร็จ 🎉", $msg_eval, 'teacher_supervision.html', 'bi-calendar-check-fill', '#10b981', 'supervision');
+        }
+
+        if ($is_admin) {
+            cnp_notify($pdo, (int)$user_id, "ดำเนินการ{$action_type_th}คิวนิเทศสำเร็จ 🎉", "ท่านได้ทำการ{$action_type_th}คิวนิเทศให้ อ. " . $my_full_name, 'supervision.html', 'bi-check-circle-fill', '#10b981', 'supervision');
+        }
 
         // If updating an existing booking, notify peer and head about the modification details
         if (($data['booking_id'] ?? 0) > 0) {
-            $msg_update = "อ. {$my_full_name} ได้อัปเดตรายละเอียดการจองคิวนิเทศในวันที่ $thai_date คาบที่ $booking_period";
+            $msg_update = "รายละเอียดคิวนิเทศในวันที่ $thai_date คาบที่ $booking_period ได้รับการอัปเดต";
             if ($peer_user_id) {
                 cnp_notify($pdo, (int)$peer_user_id, 'อัปเดตคิวนิเทศ 📝', $msg_update, 'teacher_supervision.html', 'bi-pencil-square', '#eab308', 'supervision');
             }

@@ -375,7 +375,16 @@ function renderSidebar(role, user, settings = {}) {
             }
             html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
             if (role === 'admin') {
-                html += _navItem('supervision.html', 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a('supervision.html'));
+                const supervisionItems = [
+                    { href: 'supervision.html', icon: 'bi bi-house-door', label: 'ภาพรวมนิเทศ', active: a('supervision.html') },
+                    { href: 'supervision_booking.html', icon: 'bi bi-calendar-check', label: 'จองคิวนิเทศ', active: a('supervision_booking.html') },
+                    { href: 'supervision_docs.html', icon: 'bi bi-file-earmark-pdf', label: 'เอกสารนิเทศ', active: a('supervision_docs.html') },
+                    { href: 'supervision_evaluate.html', icon: 'bi bi-star', label: 'การประเมินผล', active: a('supervision_evaluate.html') },
+                    { href: 'supervision_post_teach.html', icon: 'bi bi-pencil-square', label: 'บันทึกหลังแผน', active: a('supervision_post_teach.html') },
+                    { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
+                ];
+                const isSupervisionActive = ['supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html'].some(x => a(x));
+                html += _navGroup('bi bi-person-video3 text-primary', 'นิเทศการสอน', supervisionItems, isSupervisionActive);
             } else if (role === 'teacher') {
                 const supervisionItems = [
                     { href: 'teacher_supervision.html', icon: 'bi bi-house-door', label: 'ภาพรวมนิเทศ', active: a('teacher_supervision.html') },
@@ -416,6 +425,9 @@ function renderSidebar(role, user, settings = {}) {
         html += `<li class="nav-header mt-4">บัญชีผู้ใช้</li>`;
         let profileUrl = role === 'admin' ? 'admin_profile.html' : role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html';
         html += _navItem(profileUrl, 'bi bi-person-circle', 'โปรไฟล์ส่วนตัว', a(profileUrl));
+        if (role === 'teacher') {
+            html += _navItem('teacher_security.html', 'bi bi-shield-lock', 'ตั้งค่าความปลอดภัย', a('teacher_security.html'));
+        }
         html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
     }
     html += `</ul></nav></div>`;
@@ -530,7 +542,7 @@ async function checkAuth(expectedRole) {
             }
         } else if (data.user.role === 'teacher' && !data.user.is_profile_complete) {
             const currentPage = window.location.pathname.split('/').pop() || 'teacher_dashboard.html';
-            if (currentPage !== 'teacher_profile.html') {
+            if (currentPage !== 'teacher_profile.html' && currentPage !== 'teacher_security.html') {
                 if (typeof Swal === 'undefined') {
                     await new Promise((resolve) => {
                         const link = document.createElement('link');
@@ -579,6 +591,10 @@ async function checkAuth(expectedRole) {
                     });
                 }
             }
+        }
+
+        if (data.user && data.user.role === 'admin') {
+            setTimeout(initAdminBookingSelector, 100);
         }
 
         return data.user;
@@ -1494,4 +1510,69 @@ function filterModalNotifications(type) {
 
 setInterval(fetchNotifications, 60000 * 2); 
 setTimeout(fetchNotifications, 1000);   
+
+async function initAdminBookingSelector() {
+    const role = window._cnpRole;
+    if (role !== 'admin') return;
+
+    const container = document.querySelector('.container-fluid');
+    if (!container) return;
+
+    const path = window.location.pathname.split('/').pop();
+    const supervisionPages = [
+        'supervision_booking.html',
+        'supervision_docs.html',
+        'supervision_evaluate.html',
+        'supervision_post_teach.html',
+        'supervision_print.html',
+        'supervision_evaluate_doc.html',
+        'supervision_evaluate_class.html'
+    ];
+    if (!supervisionPages.includes(path)) return;
+
+    const backBtn = document.querySelector('a[href="teacher_supervision.html"]');
+    if (backBtn) {
+        backBtn.setAttribute('href', 'supervision.html');
+    }
+
+    try {
+        const res = await fetch('../api/admin/supervision_admin.php?action=get_bookings');
+        const data = await res.json();
+        if (!data.success || !data.bookings) return;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentBookingId = parseInt(urlParams.get('booking_id')) || 0;
+
+        const wrapperDiv = document.createElement('div');
+        wrapperDiv.id = 'admin-booking-selector-container';
+        wrapperDiv.className = 'card border-0 shadow-sm rounded-4 mb-4 no-print';
+        
+        let optionsHtml = '<option value="">-- เลือกรายการคิวนิเทศของครู --</option>';
+        data.bookings.forEach(b => {
+            const activeMark = (b.id === currentBookingId) ? 'selected' : '';
+            optionsHtml += `<option value="${b.id}" ${activeMark}>${b.teacher_name} - ${b.subject_code} ${b.subject_name} (ม.${b.classroom} คาบ ${b.booking_period}) [${b.status}]</option>`;
+        });
+
+        wrapperDiv.innerHTML = `
+            <div class="card-body p-3 rounded-4 border border-primary border-opacity-25 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background-color: #ebf5ff;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-lock-fill text-primary fs-4"></i>
+                    <div>
+                        <div class="fw-bold small text-navy">ผู้บริหาร / ผู้ดูแลระบบ</div>
+                        <div class="text-muted" style="font-size: 0.72rem;">เข้าถึงข้อมูลและแก้ไขสิทธิ์สำหรับคิวนิเทศนี้</div>
+                    </div>
+                </div>
+                <div style="min-width: 300px; max-width: 100%;">
+                    <select id="admin-booking-select" class="form-select border-primary" style="border-radius: 10px; font-size: 0.85rem;" onchange="window.location.search = this.value ? '?booking_id=' + this.value : ''">
+                        ${optionsHtml}
+                    </select>
+                </div>
+            </div>
+        `;
+        
+        container.insertBefore(wrapperDiv, container.firstChild);
+    } catch (err) {
+        console.error("Error creating admin selector:", err);
+    }
+}
 

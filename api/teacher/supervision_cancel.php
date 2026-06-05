@@ -8,7 +8,7 @@ require_once '../../config.php';
 require_once '../../inc/security.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -32,33 +32,47 @@ if ($booking_id <= 0) {
 }
 
 try {
-    // 1. Get teacher id
-    $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $teacher_id = 0;
+    
+    if (!$is_admin) {
+        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
-        exit;
-    }
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-    $teacher_id = $me['id'];
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
+            exit;
+        }
+
+        $teacher_id = $me['id'];
+    }
 
     // 2. Verify ownership and status
-    $stmt = $pdo->prepare("SELECT status, subject_code, subject_name, booking_date, peer_teacher_id, head_teacher_id, academic_teacher_id,
-        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
-        (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
-        (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
-        (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user
-        FROM supervision_bookings b WHERE b.id = ? AND b.teacher_id = ?");
-    $stmt->execute([$booking_id, $teacher_id]);
+    if ($is_admin) {
+        $stmt = $pdo->prepare("SELECT status, subject_code, subject_name, booking_date, peer_teacher_id, head_teacher_id, academic_teacher_id, teacher_id,
+            (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
+            (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
+            (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
+            (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user
+            FROM supervision_bookings b WHERE b.id = ?");
+        $stmt->execute([$booking_id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT status, subject_code, subject_name, booking_date, peer_teacher_id, head_teacher_id, academic_teacher_id, teacher_id,
+            (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
+            (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
+            (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
+            (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user
+            FROM supervision_bookings b WHERE b.id = ? AND b.teacher_id = ?");
+        $stmt->execute([$booking_id, $teacher_id]);
+    }
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$booking) {
@@ -91,12 +105,27 @@ try {
             $thai_date = "$d {$months[$m]} $y";
         }
 
-        // Notify evaluatee (myself)
+        // Get evaluatee user id
+        $stmt_bk_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
+        $stmt_bk_user->execute([$booking['teacher_id']]);
+        $evaluatee_user_id = $stmt_bk_user->fetchColumn();
+
         $msg_eval = "การยกเลิกจองคิวนิเทศรายวิชา " . $booking['subject_name'] . " (" . $booking['subject_code'] . ") ในวันที่ $thai_date สำเร็จแล้ว";
-        cnp_notify($pdo, (int)$user_id, 'ยกเลิกคิวนิเทศสำเร็จ ❌', $msg_eval, 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
+
+        if ($evaluatee_user_id) {
+            if ($is_admin) {
+                cnp_notify($pdo, (int)$evaluatee_user_id, 'คิวนิเทศถูกยกเลิก ⚠️', "คิวนิเทศของคุณวิชา " . $booking['subject_name'] . " ได้ถูกยกเลิกโดยผู้บริหาร/ผู้ดูแลระบบ", 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
+            } else {
+                cnp_notify($pdo, (int)$evaluatee_user_id, 'ยกเลิกคิวนิเทศสำเร็จ ❌', $msg_eval, 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
+            }
+        }
+
+        if ($is_admin) {
+            cnp_notify($pdo, (int)$user_id, 'ยกเลิกคิวนิเทศสำเร็จ ❌', $msg_eval, 'supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
+        }
 
         // Notify committee
-        $msg_comm = "อ. " . $booking['t_name'] . " ได้ยกเลิกจองคิวนิเทศในวันที่ $thai_date วิชา " . $booking['subject_name'];
+        $msg_comm = "คิวนิเทศของ อ. " . $booking['t_name'] . " ในวันที่ $thai_date วิชา " . $booking['subject_name'] . " ถูกยกเลิก";
         if (!empty($booking['peer_user'])) {
             cnp_notify($pdo, (int)$booking['peer_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
         }

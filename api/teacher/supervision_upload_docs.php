@@ -8,7 +8,7 @@ require_once '../../config.php';
 require_once '../../inc/security.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -32,28 +32,37 @@ if ($booking_id <= 0 || !in_array($doc_type, $allowed_doc_types)) {
 }
 
 try {
-    // 1. Get my teacher id
-    $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $teacher_id = 0;
+    
+    if (!$is_admin) {
+        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
-        exit;
-    }
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-    $teacher_id = $me['id'];
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
+            exit;
+        }
+
+        $teacher_id = $me['id'];
+    }
 
     // 2. Validate booking ownership and status
-    $stmt = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
-    $stmt->execute([$booking_id, $teacher_id]);
+    if ($is_admin) {
+        $stmt = $pdo->prepare("SELECT id, status, teacher_id FROM supervision_bookings WHERE id = ?");
+        $stmt->execute([$booking_id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT id, status, teacher_id FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+        $stmt->execute([$booking_id, $teacher_id]);
+    }
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$booking) {
@@ -164,26 +173,50 @@ try {
             $comm = $stmt_comm->fetch(PDO::FETCH_ASSOC);
 
             if ($comm) {
+                // Get evaluatee user id
+                $stmt_bk_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
+                $stmt_bk_user->execute([$booking['teacher_id']]);
+                $evaluatee_user_id = $stmt_bk_user->fetchColumn();
+
                 if ($all_uploaded) {
                     // Notify evaluatee
                     $msg_eval = "คุณได้อัปโหลดเอกสารประกอบการนิเทศครบถ้วนทั้ง 4 ฉบับสำหรับรายวิชา " . $comm['subject_name'] . " (" . $comm['subject_code'] . ") เรียบร้อยแล้ว";
-                    cnp_notify($pdo, (int)$user_id, 'ส่งเอกสารประกอบการนิเทศครบถ้วน 📄', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-check-fill', '#10b981', 'supervision');
+                    if ($evaluatee_user_id) {
+                        if ($is_admin) {
+                            cnp_notify($pdo, (int)$evaluatee_user_id, 'ผู้ดูแลระบบได้อัปโหลดเอกสารให้ท่าน 📄', "ผู้ดูแลระบบได้อัปโหลดเอกสารประกอบการนิเทศครบถ้วนแล้วสำหรับวิชา " . $comm['subject_name'], 'teacher_supervision.html', 'bi-file-earmark-check-fill', '#10b981', 'supervision');
+                        } else {
+                            cnp_notify($pdo, (int)$evaluatee_user_id, 'ส่งเอกสารประกอบการนิเทศครบถ้วน 📄', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-check-fill', '#10b981', 'supervision');
+                        }
+                    }
+
+                    if ($is_admin) {
+                        cnp_notify($pdo, (int)$user_id, 'อัปโหลดเอกสารสำเร็จ 📄', "อัปโหลดเอกสารให้ อ. " . $comm['t_name'] . " สำเร็จ", 'supervision.html', 'bi-check-circle-fill', '#10b981', 'supervision');
+                    }
 
                     // Notify committee members
-                    $msg_comm = "อ. " . $comm['t_name'] . " ได้อัปโหลดเอกสารประกอบการนิเทศครบถ้วนแล้วในวิชา " . $comm['subject_name'] . " กรุณาเข้าประเมินแผนการจัดกิจกรรม";
+                    $msg_comm_details = "อ. " . $comm['t_name'] . " ได้อัปโหลดเอกสารประกอบการนิเทศครบถ้วนแล้วในวิชา " . $comm['subject_name'] . " กรุณาเข้าประเมินแผนการจัดกิจกรรม";
                     if (!empty($comm['peer_user'])) {
-                        cnp_notify($pdo, (int)$comm['peer_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
+                        cnp_notify($pdo, (int)$comm['peer_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm_details, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
                     }
                     if (!empty($comm['head_user'])) {
-                        cnp_notify($pdo, (int)$comm['head_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
+                        cnp_notify($pdo, (int)$comm['head_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm_details, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
                     }
                     if (!empty($comm['ac_user'])) {
-                        cnp_notify($pdo, (int)$comm['ac_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
+                        cnp_notify($pdo, (int)$comm['ac_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm_details, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
                     }
                 } else {
                     // Notify evaluatee about individual upload success
                     $msg_eval = "คุณได้อัปโหลดไฟล์เอกสาร \"" . $doc_name_th . "\" เรียบร้อยแล้ว กรุณาอัปโหลดเอกสารข้ออื่น ๆ ให้ครบถ้วน";
-                    cnp_notify($pdo, (int)$user_id, 'อัปโหลดเอกสารสำเร็จ 📤', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-arrow-up', '#eab308', 'supervision');
+                    if ($evaluatee_user_id) {
+                        if ($is_admin) {
+                            cnp_notify($pdo, (int)$evaluatee_user_id, 'ผู้ดูแลระบบได้อัปโหลดเอกสารให้ท่าน 📤', "ผู้ดูแลระบบได้อัปโหลดไฟล์เอกสาร \"" . $doc_name_th . "\" เรียบร้อยแล้ว", 'teacher_supervision.html', 'bi-file-earmark-arrow-up', '#eab308', 'supervision');
+                        } else {
+                            cnp_notify($pdo, (int)$evaluatee_user_id, 'อัปโหลดเอกสารสำเร็จ 📤', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-arrow-up', '#eab308', 'supervision');
+                        }
+                    }
+                    if ($is_admin) {
+                        cnp_notify($pdo, (int)$user_id, 'อัปโหลดเอกสารสำเร็จ 📤', "อัปโหลดเอกสาร \"" . $doc_name_th . "\" ให้ อ. " . $comm['t_name'] . " สำเร็จ", 'supervision.html', 'bi-file-earmark-arrow-up', '#eab308', 'supervision');
+                    }
                 }
             }
         } catch (Exception $ex) {}

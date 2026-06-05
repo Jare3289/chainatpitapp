@@ -1152,7 +1152,8 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const urlBookingId = parseInt(urlParams.get('booking_id')) || 0;
                 
-                const res = await fetch('../api/teacher/supervision_get.php');
+                const url = urlBookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${urlBookingId}` : '../api/teacher/supervision_get.php';
+                const res = await fetch(url);
                 const data = await res.json();
                 
                 if (!data.success) {

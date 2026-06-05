@@ -8,7 +8,7 @@ require_once '../../config.php';
 require_once '../../inc/security.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -33,28 +33,37 @@ if ($booking_id <= 0 || empty($post_teaching_record)) {
 }
 
 try {
-    // 1. Get my teacher id
-    $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $teacher_id = 0;
+    
+    if (!$is_admin) {
+        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
-        exit;
-    }
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-    $teacher_id = $me['id'];
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
+            exit;
+        }
+
+        $teacher_id = $me['id'];
+    }
 
     // 2. Validate booking ownership
-    $stmt = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
-    $stmt->execute([$booking_id, $teacher_id]);
+    if ($is_admin) {
+        $stmt = $pdo->prepare("SELECT id, status, teacher_id FROM supervision_bookings WHERE id = ?");
+        $stmt->execute([$booking_id]);
+    } else {
+        $stmt = $pdo->prepare("SELECT id, status, teacher_id FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+        $stmt->execute([$booking_id, $teacher_id]);
+    }
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$booking) {
@@ -81,9 +90,24 @@ try {
         $bk_info = $stmt_bk->fetch();
 
         if ($bk_info) {
+            // Get target evaluatee teacher's user_id
+            $stmt_bk_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
+            $stmt_bk_user->execute([$booking['teacher_id']]);
+            $evaluatee_user_id = $stmt_bk_user->fetchColumn();
+
             // Notify evaluatee
             $msg_eval = "บันทึกหลังการจัดกิจกรรมการเรียนรู้วิชา " . $bk_info['subject_name'] . " (" . $bk_info['subject_code'] . ") เรียบร้อยแล้ว ขณะนี้กระบวนการนิเทศของท่านเสร็จสิ้นสมบูรณ์ ท่านสามารถดาวน์โหลดเล่มรายงานได้ทันที";
-            cnp_notify($pdo, (int)$user_id, 'บันทึกหลังสอนเสร็จสิ้น/กระบวนการนิเทศสมบูรณ์ 🎓', $msg_eval, 'teacher_supervision.html', 'bi-mortarboard-fill', '#10b981', 'supervision');
+            if ($evaluatee_user_id) {
+                if ($is_admin) {
+                    cnp_notify($pdo, (int)$evaluatee_user_id, 'บันทึกหลังสอนได้รับการอัปเดต 🎓', "บันทึกหลังแผนการสอนของคุณได้รับการอัปเดตโดยผู้ดูแลระบบ ขณะนี้กระบวนการเสร็จสิ้นแล้ว", 'teacher_supervision.html', 'bi-mortarboard-fill', '#10b981', 'supervision');
+                } else {
+                    cnp_notify($pdo, (int)$evaluatee_user_id, 'บันทึกหลังสอนเสร็จสิ้น/กระบวนการนิเทศสมบูรณ์ 🎓', $msg_eval, 'teacher_supervision.html', 'bi-mortarboard-fill', '#10b981', 'supervision');
+                }
+            }
+
+            if ($is_admin) {
+                cnp_notify($pdo, (int)$user_id, 'บันทึกหลังสอนเสร็จสิ้น 🎓', "ท่านได้ทำการบันทึกหลังสอนเรียบร้อยแล้ว", 'supervision.html', 'bi-check-circle-fill', '#10b981', 'supervision');
+            }
 
             // Notify committee
             $msg_comm = "อ. " . $bk_info['t_name'] . " ได้กรอกบันทึกหลังการจัดกิจกรรมการเรียนรู้วิชา " . $bk_info['subject_name'] . " แล้ว กระบวนการนิเทศเสร็จสมบูรณ์เรียบร้อย";

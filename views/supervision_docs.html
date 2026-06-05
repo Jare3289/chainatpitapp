@@ -207,7 +207,17 @@
 
         async function loadBookingAndDetermineRole() {
             try {
-                const res = await fetch('../api/teacher/supervision_get.php');
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlBookingId = parseInt(urlParams.get('booking_id')) || 0;
+
+                if (currentUser.role === 'admin' && urlBookingId === 0) {
+                    document.getElementById('no-booking-alert').innerHTML = '<i class="bi bi-info-circle me-2"></i> กรุณาเลือกรายการคิวนิเทศจากแถบด้านบนเพื่อเริ่มตรวจสอบและจัดการเอกสาร';
+                    document.getElementById('no-booking-alert').classList.remove('d-none');
+                    return;
+                }
+
+                const url = urlBookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${urlBookingId}` : '../api/teacher/supervision_get.php';
+                const res = await fetch(url);
                 const data = await res.json();
                 
                 if (!data.success) {
@@ -219,11 +229,14 @@
                 myBooking = data.booking;
                 const duties = data.duties || [];
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const urlBookingId = parseInt(urlParams.get('booking_id')) || 0;
-
                 if (urlBookingId > 0) {
-                    if (myBooking && myBooking.id === urlBookingId) {
+                    if (currentUser.role === 'admin') {
+                        isOwner = true;
+                        isEvaluator = true;
+                        evaluatorRole = 'academic';
+                        dutyBooking = data.booking;
+                        currentBookingId = urlBookingId;
+                    } else if (myBooking && myBooking.id === urlBookingId) {
                         isOwner = true;
                         currentBookingId = urlBookingId;
                     } else {
@@ -249,7 +262,7 @@
                 }
 
                 const activeBooking = isOwner ? myBooking : dutyBooking;
-                if (isOwner && activeBooking.status === 'pending') {
+                if (isOwner && activeBooking.status === 'pending' && currentUser.role !== 'admin') {
                     document.getElementById('no-booking-alert').innerHTML = '<i class="bi bi-hourglass-split me-2"></i> คิวนิเทศของคุณกำลังรออนุมัติจากกรรมการวิชาการ ยังไม่สามารถอัปโหลดเอกสารได้';
                     document.getElementById('no-booking-alert').classList.remove('d-none');
                     return;
@@ -401,11 +414,27 @@
                     container.innerHTML += `<button class="btn btn-warning rounded-pill px-5 py-3 fw-bold text-dark shadow-sm" onclick="startEditing()"><i class="bi bi-pencil-square me-2 fs-5"></i> แก้ไขเอกสาร</button>`;
                 }
             } else if (isEvaluator) {
-                container.innerHTML += `
-                    <a href="supervision_evaluate_doc.html?booking_id=${currentBookingId}" class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow-lg">
-                        <i class="bi bi-clipboard-check-fill me-2 fs-5"></i> ประเมินเอกสาร
-                    </a>
-                `;
+                if (currentUser.role === 'admin') {
+                    container.innerHTML += `
+                        <div class="d-flex gap-2 flex-wrap justify-content-center">
+                            <a href="supervision_evaluate_doc.html?booking_id=${currentBookingId}&role=peer" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark shadow-sm">
+                                <i class="bi bi-clipboard-check-fill me-1"></i> ประเมินแผน (Peer)
+                            </a>
+                            <a href="supervision_evaluate_doc.html?booking_id=${currentBookingId}&role=head" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+                                <i class="bi bi-clipboard-check-fill me-1"></i> ประเมินแผน (Head)
+                            </a>
+                            <a href="supervision_evaluate_doc.html?booking_id=${currentBookingId}&role=academic" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm">
+                                <i class="bi bi-clipboard-check-fill me-1"></i> ประเมินแผน (Academic)
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <a href="supervision_evaluate_doc.html?booking_id=${currentBookingId}" class="btn btn-success rounded-pill px-5 py-3 fw-bold shadow-lg">
+                            <i class="bi bi-clipboard-check-fill me-2 fs-5"></i> ประเมินเอกสาร
+                        </a>
+                    `;
+                }
             }
         }
 
