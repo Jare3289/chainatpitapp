@@ -72,6 +72,42 @@ try {
             }
         }
         $booking['dept_head_name'] = $dept_head_name;
+        
+        // Fetch department head name
+        $dept_head_name = '.......................................................';
+        if (!empty($booking['teacher_dept'])) {
+            $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+            $stmt_dept->execute([$booking['teacher_dept']]);
+            $dept_row = $stmt_dept->fetch();
+            if ($dept_row && !empty($dept_row['head_name'])) {
+                $dept_head_name = $dept_row['head_name'];
+            }
+        }
+        $booking['dept_head_name'] = $dept_head_name;
+        
+        // Fetch department head name
+        $dept_head_name = '.......................................................';
+        if (!empty($booking['teacher_dept'])) {
+            $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+            $stmt_dept->execute([$booking['teacher_dept']]);
+            $dept_row = $stmt_dept->fetch();
+            if ($dept_row && !empty($dept_row['head_name'])) {
+                $dept_head_name = $dept_row['head_name'];
+            }
+        }
+        $booking['dept_head_name'] = $dept_head_name;
+        
+        // Fetch department head name
+        $dept_head_name = '.......................................................';
+        if (!empty($booking['teacher_dept'])) {
+            $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+            $stmt_dept->execute([$booking['teacher_dept']]);
+            $dept_row = $stmt_dept->fetch();
+            if ($dept_row && !empty($dept_row['head_name'])) {
+                $dept_head_name = $dept_row['head_name'];
+            }
+        }
+        $booking['dept_head_name'] = $dept_head_name;
 
         // Fetch evaluations for my booking
         $stmt_evals = $pdo->prepare("SELECT e.*, 
