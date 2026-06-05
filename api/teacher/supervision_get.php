@@ -39,12 +39,14 @@ try {
 
     $teacher_id = $me['id'];
 
-    // 2. Fetch my booking
     $stmt = $pdo->prepare("SELECT b.*, 
-        t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept,
+        t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept, t.signature as teacher_signature,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.peer_teacher_id) as peer_name,
+        (SELECT signature FROM teachers WHERE id = b.peer_teacher_id) as peer_signature,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.head_teacher_id) as head_name,
-        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name
+        (SELECT signature FROM teachers WHERE id = b.head_teacher_id) as head_signature,
+        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name,
+        (SELECT signature FROM teachers WHERE id = b.academic_teacher_id) as academic_signature
         FROM supervision_bookings b 
         JOIN teachers t ON b.teacher_id = t.id
         WHERE b.teacher_id = ? AND b.semester = ? AND b.year = ? AND b.status != 'cancelled'
@@ -58,6 +60,18 @@ try {
 
     if ($booking) {
         $booking_id = $booking['id'];
+        
+        // Fetch department head name
+        $dept_head_name = '.......................................................';
+        if (!empty($booking['teacher_dept'])) {
+            $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+            $stmt_dept->execute([$booking['teacher_dept']]);
+            $dept_row = $stmt_dept->fetch();
+            if ($dept_row && !empty($dept_row['head_name'])) {
+                $dept_head_name = $dept_row['head_name'];
+            }
+        }
+        $booking['dept_head_name'] = $dept_head_name;
 
         // Fetch evaluations for my booking
         $stmt_evals = $pdo->prepare("SELECT e.*, 
