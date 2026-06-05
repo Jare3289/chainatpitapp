@@ -246,6 +246,9 @@ try {
             font-size: 16pt;
             line-height: 1.25;
         }
+        .table-eval, .table-eval th, .table-eval td {
+            border-color: #94a3b8 !important;
+        }
         .table-eval th {
             background-color: #f8fafc !important;
             font-weight: 700;
@@ -600,91 +603,89 @@ try {
         $overall_percent = ($overall_avg / 5) * 100;
         ?>
 
-        <div style="margin-bottom: 6px; text-align: right; font-size: 13pt; color: #64748b; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif;">(คะแนนเต็ม 5 คะแนน)</div>
-        <div class="row g-3 text-center mb-4">
-            <div class="col-4">
-                <div class="card border-0 rounded-3" style="background: #f1f5f9; padding: 12px 8px;">
-                    <div style="font-size: 13pt; color: #64748b; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; line-height: 1.3; margin-bottom: 4px;">คะแนนเฉลี่ยตรวจแผน<br>(เอกสาร)</div>
-                    <div style="font-size: 28pt; font-weight: bold; color: #1e3a8a; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; line-height: 1;"><?php echo number_format($avg_doc, 2); ?></div>
-                    <div style="font-size: 13pt; color: #16a34a; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; margin-top: 3px;"><?php echo number_format($percent_doc, 1); ?>%</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 rounded-3" style="background: #f1f5f9; padding: 12px 8px;">
-                    <div style="font-size: 13pt; color: #64748b; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; line-height: 1.3; margin-bottom: 4px;">คะแนนเฉลี่ยการสอน<br>(ห้องเรียน)</div>
-                    <div style="font-size: 28pt; font-weight: bold; color: #1e3a8a; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; line-height: 1;"><?php echo number_format($avg_class, 2); ?></div>
-                    <div style="font-size: 13pt; color: #16a34a; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; margin-top: 3px;"><?php echo number_format($percent_class, 1); ?>%</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card border-0 rounded-3" style="background: #eff6ff; padding: 12px 8px;">
-                    <div style="font-size: 13pt; color: #3b82f6; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; line-height: 1.3; margin-bottom: 4px;">คะแนนรวม<br>เฉลี่ยสะสม</div>
-                    <div style="font-size: 28pt; font-weight: bold; color: #2563eb; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; line-height: 1;"><?php echo number_format($overall_avg, 2); ?></div>
-                    <div style="font-size: 13pt; color: #3b82f6; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; margin-top: 3px;"><?php echo number_format($overall_percent, 1); ?>%</div>
-                </div>
-            </div>
-        </div>
+        <?php
+        $p_doc_avg = 0; $h_doc_avg = 0; $a_doc_avg = 0;
+        $p_class_avg = 0; $h_class_avg = 0; $a_class_avg = 0;
 
-        <table class="table table-bordered table-eval text-center align-middle" style="font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; font-size: 15pt;">
-            <thead class="table-light">
-                <tr>
-                    <th style="text-align: left;">องค์ประกอบการประเมิน</th>
-                    <th>คะแนนเต็ม</th>
-                    <th>Peer</th>
-                    <th>Head</th>
-                    <th>Academic</th>
-                    <th>เฉลี่ย</th>
+        if ($peer_eval) {
+            $p_doc_scores = [];
+            for($i=1;$i<=5;$i++) { if($peer_eval["doc_score_$i"]>0) $p_doc_scores[] = $peer_eval["doc_score_$i"]; }
+            $p_doc_avg = count($p_doc_scores) > 0 ? array_sum($p_doc_scores) / count($p_doc_scores) : 0;
+            
+            $p_class_scores = [];
+            for($i=1;$i<=10;$i++) { if($peer_eval["class_score_$i"]>0) $p_class_scores[] = $peer_eval["class_score_$i"]; }
+            $p_class_avg = count($p_class_scores) > 0 ? array_sum($p_class_scores) / count($p_class_scores) : 0;
+        }
+        if ($head_eval) {
+            $h_doc_scores = [];
+            for($i=1;$i<=5;$i++) { if($head_eval["doc_score_$i"]>0) $h_doc_scores[] = $head_eval["doc_score_$i"]; }
+            $h_doc_avg = count($h_doc_scores) > 0 ? array_sum($h_doc_scores) / count($h_doc_scores) : 0;
+            
+            $h_class_scores = [];
+            for($i=1;$i<=10;$i++) { if($head_eval["class_score_$i"]>0) $h_class_scores[] = $head_eval["class_score_$i"]; }
+            $h_class_avg = count($h_class_scores) > 0 ? array_sum($h_class_scores) / count($h_class_scores) : 0;
+        }
+        if ($academic_eval) {
+            $a_doc_scores = [];
+            for($i=1;$i<=5;$i++) { if($academic_eval["doc_score_$i"]>0) $a_doc_scores[] = $academic_eval["doc_score_$i"]; }
+            $a_doc_avg = count($a_doc_scores) > 0 ? array_sum($a_doc_scores) / count($a_doc_scores) : 0;
+            
+            $a_class_scores = [];
+            for($i=1;$i<=10;$i++) { if($academic_eval["class_score_$i"]>0) $a_class_scores[] = $academic_eval["class_score_$i"]; }
+            $a_class_avg = count($a_class_scores) > 0 ? array_sum($a_class_scores) / count($a_class_scores) : 0;
+        }
+        ?>
+
+        <div style="border: 1px solid #94a3b8; border-radius: 8px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; border-style: hidden; text-align: center; vertical-align: middle; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif;">
+                <tbody>
+                    <tr>
+                        <td rowspan="3" style="border: 1px solid #94a3b8; width: 35%; vertical-align: middle; background-color: #f8f9fa;">
+                            <div style="font-size: 16pt; font-weight: bold;">ผู้รับการประเมิน</div>
+                        </td>
+                        <td colspan="4" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">รวมผลการประเมิน</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">แผนหน่วยการเรียนรู้และ<br>แผนการจัดการเรียนรู้</td>
+                        <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">ผลการนิเทศการจัดการเรียนรู้</td>
+                    </tr>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
                 </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="text-start fw-bold">1. การประเมินแผนการจัดการเรียนรู้ (ตรวจแผน)</td>
-                    <td>25</td>
-                    <td>
-                        <?php 
-                        $p_doc = $peer_eval ? ($peer_eval['doc_score_1']+$peer_eval['doc_score_2']+$peer_eval['doc_score_3']+$peer_eval['doc_score_4']+$peer_eval['doc_score_5']) : 0;
-                        echo $p_doc > 0 ? $p_doc : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $h_doc = $head_eval ? ($head_eval['doc_score_1']+$head_eval['doc_score_2']+$head_eval['doc_score_3']+$head_eval['doc_score_4']+$head_eval['doc_score_5']) : 0;
-                        echo $h_doc > 0 ? $h_doc : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $a_doc = $academic_eval ? ($academic_eval['doc_score_1']+$academic_eval['doc_score_2']+$academic_eval['doc_score_3']+$academic_eval['doc_score_4']+$academic_eval['doc_score_5']) : 0;
-                        echo $a_doc > 0 ? $a_doc : '-';
-                        ?>
-                    </td>
-                    <td class="fw-bold text-navy"><?php echo number_format(calculate_average(array_filter([$p_doc, $h_doc, $a_doc])), 2); ?></td>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ครูผู้ร่วมนิเทศ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_doc_avg > 0 ? number_format($p_doc_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_doc_avg > 0 ? get_quality_text_php($p_doc_avg) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_class_avg > 0 ? number_format($p_class_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_class_avg > 0 ? get_quality_text_php($p_class_avg) : '-'; ?></td>
                 </tr>
-                <tr>
-                    <td class="text-start fw-bold">2. การประเมินจัดกิจกรรมการเรียนรู้ (ห้องเรียน)</td>
-                    <td>50</td>
-                    <td>
-                        <?php 
-                        $p_class = 0; if ($peer_eval) { for($i=1;$i<=10;$i++) $p_class += $peer_eval["class_score_$i"]; }
-                        echo $p_class > 0 ? $p_class : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $h_class = 0; if ($head_eval) { for($i=1;$i<=10;$i++) $h_class += $head_eval["class_score_$i"]; }
-                        echo $h_class > 0 ? $h_class : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $a_class = 0; if ($academic_eval) { for($i=1;$i<=10;$i++) $a_class += $academic_eval["class_score_$i"]; }
-                        echo $a_class > 0 ? $a_class : '-';
-                        ?>
-                    </td>
-                    <td class="fw-bold text-navy"><?php echo number_format(calculate_average(array_filter([$p_class, $h_class, $a_class])), 2); ?></td>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ผู้นิเทศ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_doc_avg > 0 ? number_format($h_doc_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_doc_avg > 0 ? get_quality_text_php($h_doc_avg) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_class_avg > 0 ? number_format($h_class_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_class_avg > 0 ? get_quality_text_php($h_class_avg) : '-'; ?></td>
+                </tr>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">คณะกรรมการนิเทศ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_doc_avg > 0 ? number_format($a_doc_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_doc_avg > 0 ? get_quality_text_php($a_doc_avg) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_class_avg > 0 ? number_format($a_class_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_class_avg > 0 ? get_quality_text_php($a_class_avg) : '-'; ?></td>
+                </tr>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 15px; text-align: right;">รวมผลและระดับคุณภาพ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_doc > 0 ? number_format($avg_doc, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_doc > 0 ? get_quality_text_php($avg_doc) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_class > 0 ? number_format($avg_class, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_class > 0 ? get_quality_text_php($avg_class) : '-'; ?></td>
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 
     <!-- PAGE 4: DOCUMENT SCORE DETAIL -->

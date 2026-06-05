@@ -368,6 +368,10 @@
                 page-break-after: avoid !important;
             }
         }
+        
+        .table-eval, .table-eval th, .table-eval td {
+            border-color: #94a3b8 !important;
+        }
     </style>
 </head>
 
@@ -732,51 +736,56 @@
 
                                         <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 2: สรุปผลคะแนนการประเมิน</h5>
                                         
-                                        <table class="table table-bordered table-eval text-center align-middle" style="font-family: 'TH Sarabun New', sans-serif; font-size: 16pt; line-height: 1.35;">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th rowspan="2" class="align-middle">องค์ประกอบการประเมิน</th>
-                                                    <th colspan="2">ครูผู้ร่วมนิเทศ (Peer)</th>
-                                                    <th colspan="2">ครูผู้นิเทศ (Head)</th>
-                                                    <th colspan="2">กรรมการวิชาการ (Academic)</th>
-                                                    <th colspan="2">คะแนนเฉลี่ยรวม</th>
-                                                </tr>
-                                                <tr>
-                                                    <th>คะแนน</th>
-                                                    <th>ระดับ</th>
-                                                    <th>คะแนน</th>
-                                                    <th>ระดับ</th>
-                                                    <th>คะแนน</th>
-                                                    <th>ระดับ</th>
-                                                    <th>คะแนน</th>
-                                                    <th>ระดับ</th>
-                                                </tr>
-                                            </thead>
+                                        <div style="border: 1px solid #94a3b8; border-radius: 8px; overflow: hidden;">
+                                        <table style="width: 100%; border-collapse: collapse; border-style: hidden; text-align: center; vertical-align: middle; font-family: 'TH Sarabun New', sans-serif;">
                                             <tbody>
                                                 <tr>
-                                                    <td class="text-start fw-bold">1. การประเมินแผนการจัดการเรียนรู้ (ตรวจแผน)</td>
-                                                    <td id="table-peer-doc-avg">-</td>
-                                                    <td id="table-peer-doc-qual">-</td>
-                                                    <td id="table-head-doc-avg">-</td>
-                                                    <td id="table-head-doc-qual">-</td>
-                                                    <td id="table-acad-doc-avg">-</td>
-                                                    <td id="table-acad-doc-qual">-</td>
-                                                    <td id="table-overall-doc-avg" class="fw-bold text-navy">-</td>
-                                                    <td id="table-overall-doc-qual" class="fw-bold text-navy">-</td>
+                                                    <td rowspan="3" style="border: 1px solid #94a3b8; width: 35%; vertical-align: middle; background-color: #f8f9fa;">
+                                                        <div style="font-size: 16pt; font-weight: bold;">ผู้รับการประเมิน</div>
+                                                    </td>
+                                                    <td colspan="4" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">รวมผลการประเมิน</td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="text-start fw-bold">2. การประเมินจัดกิจกรรมการเรียนรู้ (ห้องเรียน)</td>
-                                                    <td id="table-peer-class-avg">-</td>
-                                                    <td id="table-peer-class-qual">-</td>
-                                                    <td id="table-head-class-avg">-</td>
-                                                    <td id="table-head-class-qual">-</td>
-                                                    <td id="table-acad-class-avg">-</td>
-                                                    <td id="table-acad-class-qual">-</td>
-                                                    <td id="table-overall-class-avg" class="fw-bold text-navy">-</td>
-                                                    <td id="table-overall-class-qual" class="fw-bold text-navy">-</td>
+                                                    <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">แผนหน่วยการเรียนรู้และ<br>แผนการจัดการเรียนรู้</td>
+                                                    <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">ผลการนิเทศการจัดการเรียนรู้</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ครูผู้ร่วมนิเทศ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-class-qual">-</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ผู้นิเทศ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-class-qual">-</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">คณะกรรมการนิเทศ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-class-qual">-</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 15px; text-align: right;">รวมผลและระดับคุณภาพ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-class-qual">-</td>
                                                 </tr>
                                             </tbody>
                                         </table>
+                                        </div>
                                         
                                         <div style="margin-top: 40px; text-align: center; font-size: 16pt;">
                                             <div style="width: 320px; margin-left: auto;">
