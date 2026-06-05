@@ -67,6 +67,38 @@ try {
     $stmt_update = $pdo->prepare("UPDATE supervision_bookings SET post_teaching_record = ?, status = 'completed' WHERE id = ?");
     $stmt_update->execute([$post_teaching_record, $booking_id]);
 
+    // Send notifications
+    try {
+        require_once '../../inc/notifications.php';
+        
+        $stmt_bk = $pdo->prepare("SELECT peer_teacher_id, head_teacher_id, academic_teacher_id, subject_code, subject_name,
+            (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
+            (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
+            (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user,
+            (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name
+            FROM supervision_bookings b WHERE b.id = ?");
+        $stmt_bk->execute([$booking_id]);
+        $bk_info = $stmt_bk->fetch();
+
+        if ($bk_info) {
+            // Notify evaluatee
+            $msg_eval = "บันทึกหลังการจัดกิจกรรมการเรียนรู้วิชา " . $bk_info['subject_name'] . " (" . $bk_info['subject_code'] . ") เรียบร้อยแล้ว ขณะนี้กระบวนการนิเทศของท่านเสร็จสิ้นสมบูรณ์ ท่านสามารถดาวน์โหลดเล่มรายงานได้ทันที";
+            cnp_notify($pdo, (int)$user_id, 'บันทึกหลังสอนเสร็จสิ้น/กระบวนการนิเทศสมบูรณ์ 🎓', $msg_eval, 'teacher_supervision.html', 'bi-mortarboard-fill', '#10b981', 'supervision');
+
+            // Notify committee
+            $msg_comm = "อ. " . $bk_info['t_name'] . " ได้กรอกบันทึกหลังการจัดกิจกรรมการเรียนรู้วิชา " . $bk_info['subject_name'] . " แล้ว กระบวนการนิเทศเสร็จสมบูรณ์เรียบร้อย";
+            if (!empty($bk_info['peer_user'])) {
+                cnp_notify($pdo, (int)$bk_info['peer_user'], 'กระบวนการนิเทศเสร็จสมบูรณ์ 🏁', $msg_comm, 'teacher_supervision.html', 'bi-clipboard-check-fill', '#10b981', 'supervision');
+            }
+            if (!empty($bk_info['head_user'])) {
+                cnp_notify($pdo, (int)$bk_info['head_user'], 'กระบวนการนิเทศเสร็จสมบูรณ์ 🏁', $msg_comm, 'teacher_supervision.html', 'bi-clipboard-check-fill', '#10b981', 'supervision');
+            }
+            if (!empty($bk_info['ac_user'])) {
+                cnp_notify($pdo, (int)$bk_info['ac_user'], 'กระบวนการนิเทศเสร็จสมบูรณ์ 🏁', $msg_comm, 'teacher_supervision.html', 'bi-clipboard-check-fill', '#10b981', 'supervision');
+            }
+        }
+    } catch (Exception $ex) {}
+
     echo json_encode([
         'success' => true,
         'message' => 'บันทึกหลังการจัดการเรียนรู้เรียบร้อยแล้ว ท่านสามารถเข้าดาวน์โหลด/พิมพ์รูปเล่มเอกสารนิเทศได้ทันที'

@@ -52,7 +52,12 @@ try {
     $teacher_id = $me['id'];
 
     // 2. Verify ownership and status
-    $stmt = $pdo->prepare("SELECT status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+    $stmt = $pdo->prepare("SELECT status, subject_code, subject_name, booking_date, peer_teacher_id, head_teacher_id, academic_teacher_id,
+        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
+        (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
+        (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
+        (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user
+        FROM supervision_bookings b WHERE b.id = ? AND b.teacher_id = ?");
     $stmt->execute([$booking_id, $teacher_id]);
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -62,7 +67,7 @@ try {
         exit;
     }
 
-    if ($booking['status'] !== 'pending') {
+    if ($booking['status'] !== 'pending' && $booking['status'] !== 'approved') {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'ไม่สามารถยกเลิกได้ เนื่องจากคิวถูกดำเนินการไปแล้ว']);
         exit;
@@ -72,9 +77,41 @@ try {
     $stmt = $pdo->prepare("UPDATE supervision_bookings SET status = 'cancelled' WHERE id = ?");
     $stmt->execute([$booking_id]);
 
+    // Send notifications
+    try {
+        require_once '../../inc/notifications.php';
+        
+        $parts = explode('-', $booking['booking_date']);
+        $thai_date = $booking['booking_date'];
+        if (count($parts) === 3) {
+            $y = (int)$parts[0] + 543;
+            $m = (int)$parts[1];
+            $d = (int)$parts[2];
+            $months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            $thai_date = "$d {$months[$m]} $y";
+        }
+
+        // Notify evaluatee (myself)
+        $msg_eval = "การยกเลิกจองคิวนิเทศรายวิชา " . $booking['subject_name'] . " (" . $booking['subject_code'] . ") ในวันที่ $thai_date สำเร็จแล้ว";
+        cnp_notify($pdo, (int)$user_id, 'ยกเลิกคิวนิเทศสำเร็จ ❌', $msg_eval, 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
+
+        // Notify committee
+        $msg_comm = "อ. " . $booking['t_name'] . " ได้ยกเลิกจองคิวนิเทศในวันที่ $thai_date วิชา " . $booking['subject_name'];
+        if (!empty($booking['peer_user'])) {
+            cnp_notify($pdo, (int)$booking['peer_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
+        }
+        if (!empty($booking['head_user'])) {
+            cnp_notify($pdo, (int)$booking['head_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
+        }
+        if (!empty($booking['ac_user'])) {
+            cnp_notify($pdo, (int)$booking['ac_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
+        }
+    } catch (Exception $ex) {}
+
     echo json_encode(['success' => true, 'message' => 'ยกเลิกการจองคิวสำเร็จ']);
 
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Database error']);
 }
+?>

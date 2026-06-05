@@ -180,24 +180,54 @@ try {
 
     // Create notifications
     try {
+        require_once '../../inc/notifications.php';
+        
+        $stmt_me_name = $pdo->prepare("SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+        $stmt_me_name->execute([$teacher_id]);
+        $my_full_name = $stmt_me_name->fetchColumn() ?: $_SESSION['username'];
+
+        $parts = explode('-', $booking_date);
+        $thai_date = $booking_date;
+        if (count($parts) === 3) {
+            $y = (int)$parts[0] + 543;
+            $m = (int)$parts[1];
+            $d = (int)$parts[2];
+            $months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            $thai_date = "$d {$months[$m]} $y";
+        }
+
         $stmt_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
         
         // Notify peer
         $stmt_user->execute([$peer_teacher_id]);
         $peer_user_id = $stmt_user->fetchColumn();
         if ($peer_user_id) {
-            $msg = "คุณได้รับการเลือกให้เป็นครูผู้ร่วมนิเทศ โดย อ. " . $_SESSION['username'] . " ในวันที่ " . $booking_date;
-            $pdo->prepare("INSERT INTO notifications (user_id, title, message, status) VALUES (?, 'คำเชิญเป็นกรรมการนิเทศ', ?, 'unread')")
-                ->execute([$peer_user_id, $msg]);
+            $msg = "คุณได้รับการเลือกให้เป็นครูผู้ร่วมนิเทศ โดย อ. " . $my_full_name . " ในวันที่ " . $thai_date;
+            cnp_notify($pdo, (int)$peer_user_id, 'คำเชิญเป็นกรรมการนิเทศ 📋', $msg, 'teacher_supervision.html', 'bi-person-badge-fill', '#3b82f6', 'supervision');
         }
 
         // Notify head
         $stmt_user->execute([$head_teacher_id]);
         $head_user_id = $stmt_user->fetchColumn();
         if ($head_user_id) {
-            $msg = "คุณได้รับการเลือกให้เป็นครูผู้นิเทศ โดย อ. " . $_SESSION['username'] . " ในวันที่ " . $booking_date;
-            $pdo->prepare("INSERT INTO notifications (user_id, title, message, status) VALUES (?, 'คำเชิญเป็นกรรมการนิเทศ', ?, 'unread')")
-                ->execute([$head_user_id, $msg]);
+            $msg = "คุณได้รับการเลือกให้เป็นครูผู้นิเทศ โดย อ. " . $my_full_name . " ในวันที่ " . $thai_date;
+            cnp_notify($pdo, (int)$head_user_id, 'คำเชิญเป็นกรรมการนิเทศ 📋', $msg, 'teacher_supervision.html', 'bi-person-badge-fill', '#3b82f6', 'supervision');
+        }
+
+        // Notify evaluatee (myself)
+        $action_type_th = ($data['booking_id'] ?? 0) > 0 ? 'แก้ไข' : 'จอง';
+        $msg_eval = "การ{$action_type_th}คิวนิเทศรายวิชา $subject_name ($subject_code) สำหรับห้อง $classroom วันที่ $thai_date คาบที่ $booking_period สำเร็จแล้ว";
+        cnp_notify($pdo, (int)$user_id, "{$action_type_th}คิวนิเทศสำเร็จ 🎉", $msg_eval, 'teacher_supervision.html', 'bi-calendar-check-fill', '#10b981', 'supervision');
+
+        // If updating an existing booking, notify peer and head about the modification details
+        if (($data['booking_id'] ?? 0) > 0) {
+            $msg_update = "อ. {$my_full_name} ได้อัปเดตรายละเอียดการจองคิวนิเทศในวันที่ $thai_date คาบที่ $booking_period";
+            if ($peer_user_id) {
+                cnp_notify($pdo, (int)$peer_user_id, 'อัปเดตคิวนิเทศ 📝', $msg_update, 'teacher_supervision.html', 'bi-pencil-square', '#eab308', 'supervision');
+            }
+            if ($head_user_id) {
+                cnp_notify($pdo, (int)$head_user_id, 'อัปเดตคิวนิเทศ 📝', $msg_update, 'teacher_supervision.html', 'bi-pencil-square', '#eab308', 'supervision');
+            }
         }
     } catch (Exception $e_notif) {
         // Suppress notification insert errors so booking doesn't roll back

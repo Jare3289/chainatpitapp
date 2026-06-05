@@ -197,6 +197,22 @@ function handleGet($pdo, $user_id) {
             ]);
         }
 
+        $releaseTs20260605  = strtotime('2026-06-05');
+        $expireTs20260605   = $releaseTs20260605 + 14 * 86400;
+        if (time() <= $expireTs20260605) {
+            array_unshift($actions, [
+                'id'         => 'alert_system_update_20260605',
+                'type'       => 'system_update',
+                'title'      => 'อัปเดตระบบ CNP APP — 5 มิถุนายน 2569',
+                'message'    => "ผู้ดูแลระบบได้ทำการปรับปรุงและพัฒนาระบบ CNP APP ในช่วงวันที่ 5 มิถุนายน 2569 มีรายละเอียดดังนี้\n\n📍 การจัดเส้นทางและเยี่ยมบ้านนักเรียน\n• การคำนวณเส้นทางเยี่ยมบ้านโดยใช้ระยะทางจริงบนถนนจริง (Nearest Neighbor Algorithm)\n• การเลือกจุดเริ่มต้นเดินทางได้อย่างยืดหยุ่น (โรงเรียน / พิกัด GPS / ระบุเองบนแผนที่)\n• ระบบเช็คอินติดตามผลการเยี่ยมบ้านนักเรียน ( visited check-in ) และเปลี่ยนสีหมุดเป็นสีเขียว\n• สามารถกดเบอร์โทรศัพท์เพื่อโทรออกได้โดยตรง (Click-to-Call Link) จากป๊อปอัปและเมนูจัดเส้นทาง\n• เพิ่มแถบควบคุม Layer บนแผนที่เพื่อสลับดูมุมมองปกติ หรือภาพถ่ายดาวเทียม (Satellite View) ได้ตามต้องการ\n\n🔔 ระบบแจ้งเตือนและการนิเทศการสอน\n• อัปเดตตรรกะระบบแจ้งเตือนนิเทศการสอนให้สมบูรณ์ในทุกขั้นตอน (จอง / อนุมัติ / ส่งแผน / ประเมิน / สะท้อนคิด / ยกเลิก)\n• เพิ่มรายการอัปเดตระบบประจำวันทั่วไป (System Update alert) เมื่ออ่านแล้วสามารถปิดได้ทันที",
+                'link'       => '',
+                'icon'       => 'bi bi-stars',
+                'color'      => '#7c3aed',
+                'is_read'    => 0,
+                'created_at' => date('Y-m-d 08:00:00', $releaseTs20260605),
+            ]);
+        }
+
         // Count total unread from DB
         $countStmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
         $countStmt->execute([$user_id]);

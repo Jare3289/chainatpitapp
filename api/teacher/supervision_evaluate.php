@@ -204,6 +204,38 @@ try {
         $msg = 'บันทึกการประเมินการจัดการเรียนรู้ในห้องเรียนเรียบร้อยแล้ว';
     }
 
+    // Send notifications
+    try {
+        require_once '../../inc/notifications.php';
+        // Get evaluator full name
+        $stmt_ev_name = $pdo->prepare("SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+        $stmt_ev_name->execute([$evaluator_id]);
+        $evaluator_full_name = $stmt_ev_name->fetchColumn() ?: $_SESSION['username'];
+
+        // Get evaluatee details
+        $stmt_bk = $pdo->prepare("SELECT subject_code, subject_name,
+            (SELECT user_id FROM teachers WHERE id = b.teacher_id) as t_user_id
+            FROM supervision_bookings b WHERE b.id = ?");
+        $stmt_bk->execute([$booking_id]);
+        $bk_info = $stmt_bk->fetch();
+
+        if ($bk_info) {
+            // Notify evaluator
+            cnp_notify($pdo, (int)$user_id, 'บันทึกการประเมินสำเร็จ 🎉', $msg, 'teacher_supervision.html', 'bi-check-circle-fill', '#10b981', 'supervision');
+
+            // Notify evaluatee
+            if ($bk_info['t_user_id']) {
+                if ($eval_type === 'doc') {
+                    $msg_eval = "แผนการจัดการเรียนรู้วิชา " . $bk_info['subject_name'] . " (" . $bk_info['subject_code'] . ") ของคุณได้รับการประเมินตรวจแผนโดย อ. " . $evaluator_full_name . " แล้ว";
+                    cnp_notify($pdo, (int)$bk_info['t_user_id'], 'แผนการสอนได้รับการตรวจประเมิน 📝', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-check', '#3b82f6', 'supervision');
+                } else {
+                    $msg_eval = "การจัดกิจกรรมการเรียนรู้ในห้องเรียนวิชา " . $bk_info['subject_name'] . " (" . $bk_info['subject_code'] . ") ของคุณได้รับการประเมินโดย อ. " . $evaluator_full_name . " แล้ว";
+                    cnp_notify($pdo, (int)$bk_info['t_user_id'], 'ได้รับการประเมินการสอนในห้องเรียน 🏫', $msg_eval, 'teacher_supervision.html', 'bi-mortarboard-fill', '#3b82f6', 'supervision');
+                }
+            }
+        }
+    } catch (Exception $ex) {}
+
     echo json_encode([
         'success' => true,
         'message' => $msg

@@ -142,6 +142,52 @@ try {
             $stmt_clear_reads->execute([$booking_id]);
         }
 
+        // Send notifications
+        try {
+            require_once '../../inc/notifications.php';
+            
+            $doc_names_th = [
+                'doc_subject_structure' => 'โครงสร้างรายวิชา',
+                'doc_unit_structure' => 'หน่วยการเรียนรู้',
+                'doc_unit_plan' => 'กำหนดการสอน',
+                'doc_lesson_plan' => 'แผนการจัดการเรียนรู้'
+            ];
+            $doc_name_th = $doc_names_th[$doc_type] ?? 'เอกสารประกอบการนิเทศ';
+
+            $stmt_comm = $pdo->prepare("SELECT peer_teacher_id, head_teacher_id, academic_teacher_id, subject_code, subject_name,
+                (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
+                (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
+                (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user,
+                (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name
+                FROM supervision_bookings b WHERE b.id = ?");
+            $stmt_comm->execute([$booking_id]);
+            $comm = $stmt_comm->fetch(PDO::FETCH_ASSOC);
+
+            if ($comm) {
+                if ($all_uploaded) {
+                    // Notify evaluatee
+                    $msg_eval = "คุณได้อัปโหลดเอกสารประกอบการนิเทศครบถ้วนทั้ง 4 ฉบับสำหรับรายวิชา " . $comm['subject_name'] . " (" . $comm['subject_code'] . ") เรียบร้อยแล้ว";
+                    cnp_notify($pdo, (int)$user_id, 'ส่งเอกสารประกอบการนิเทศครบถ้วน 📄', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-check-fill', '#10b981', 'supervision');
+
+                    // Notify committee members
+                    $msg_comm = "อ. " . $comm['t_name'] . " ได้อัปโหลดเอกสารประกอบการนิเทศครบถ้วนแล้วในวิชา " . $comm['subject_name'] . " กรุณาเข้าประเมินแผนการจัดกิจกรรม";
+                    if (!empty($comm['peer_user'])) {
+                        cnp_notify($pdo, (int)$comm['peer_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
+                    }
+                    if (!empty($comm['head_user'])) {
+                        cnp_notify($pdo, (int)$comm['head_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
+                    }
+                    if (!empty($comm['ac_user'])) {
+                        cnp_notify($pdo, (int)$comm['ac_user'], 'เอกสารนิเทศพร้อมรับการประเมิน 📝', $msg_comm, 'teacher_supervision.html', 'bi-file-earmark-arrow-up-fill', '#3b82f6', 'supervision');
+                    }
+                } else {
+                    // Notify evaluatee about individual upload success
+                    $msg_eval = "คุณได้อัปโหลดไฟล์เอกสาร \"" . $doc_name_th . "\" เรียบร้อยแล้ว กรุณาอัปโหลดเอกสารข้ออื่น ๆ ให้ครบถ้วน";
+                    cnp_notify($pdo, (int)$user_id, 'อัปโหลดเอกสารสำเร็จ 📤', $msg_eval, 'teacher_supervision.html', 'bi-file-earmark-arrow-up', '#eab308', 'supervision');
+                }
+            }
+        } catch (Exception $ex) {}
+
         echo json_encode([
             'success' => true,
             'message' => 'อัปโหลดเอกสารสำเร็จ',

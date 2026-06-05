@@ -123,9 +123,9 @@ try {
                 if ($post && $post['author_role'] !== 'admin') {
                     // Try to insert notification if helper function is available or table exists
                     try {
+                        require_once '../inc/notifications.php';
                         $msg = "ข่าวประชาสัมพันธ์ของคุณในหัวข้อ \"" . mb_strimwidth($post['title'], 0, 30, "...") . "\" ได้รับการอนุมัติแล้ว";
-                        $not = $pdo->prepare("INSERT INTO notifications (user_id, message, is_read, created_at) VALUES (?, ?, 0, NOW())");
-                        $not->execute([$post['author_id'], $msg]);
+                        cnp_notify($pdo, (int)$post['author_id'], 'ข่าวประชาสัมพันธ์ได้รับการอนุมัติ 📢', $msg, 'public_relations.html', 'bi-megaphone-fill', '#10b981', 'public_relations');
                     } catch (Exception $ex) { /* Ignore notification failure */ }
                 }
                 echo json_encode(['success' => true, 'message' => 'อนุมัติข่าวประชาสัมพันธ์เรียบร้อยแล้ว']);

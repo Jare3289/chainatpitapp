@@ -88,20 +88,29 @@ try {
         $stmt->execute([$academic_teacher_id, $booking_id]);
 
         if ($stmt->rowCount() > 0) {
-            // Notify academic evaluator
+            // Notify academic evaluator and evaluatee
             try {
+                require_once '../../inc/notifications.php';
                 $stmt_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
                 $stmt_user->execute([$academic_teacher_id]);
                 $evaluator_user_id = $stmt_user->fetchColumn();
 
-                if ($evaluator_user_id) {
-                    $stmt_bk = $pdo->prepare("SELECT booking_date, (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name FROM supervision_bookings b WHERE b.id = ?");
-                    $stmt_bk->execute([$booking_id]);
-                    $bk_info = $stmt_bk->fetch();
-                    
+                $stmt_bk = $pdo->prepare("SELECT booking_date, 
+                    (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
+                    (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?) as ac_name,
+                    (SELECT user_id FROM teachers WHERE id = b.teacher_id) as t_user_id
+                    FROM supervision_bookings b WHERE b.id = ?");
+                $stmt_bk->execute([$academic_teacher_id, $booking_id]);
+                $bk_info = $stmt_bk->fetch();
+
+                if ($evaluator_user_id && $bk_info) {
                     $msg = "ฝ่ายวิชาการได้มอบหมายให้คุณเป็นคณะกรรมการประเมินของ อ. " . $bk_info['t_name'] . " ในวันที่ " . $bk_info['booking_date'];
-                    $pdo->prepare("INSERT INTO notifications (user_id, title, message, status) VALUES (?, 'งานมอบหมายประเมินนิเทศการสอน', ?, 'unread')")
-                        ->execute([$evaluator_user_id, $msg]);
+                    cnp_notify($pdo, (int)$evaluator_user_id, 'งานมอบหมายประเมินนิเทศการสอน 📋', $msg, 'teacher_supervision.html', 'bi-person-video3', '#3b82f6', 'supervision');
+                }
+
+                if ($bk_info && $bk_info['t_user_id']) {
+                    $msg_eval = "ฝ่ายวิชาการได้อนุมัติคำร้องนิเทศของคุณในวันที่ " . $bk_info['booking_date'] . " และแต่งตั้ง อ. " . $bk_info['ac_name'] . " เป็นคณะกรรมการวิชาการประเมินการนิเทศ";
+                    cnp_notify($pdo, (int)$bk_info['t_user_id'], 'คำร้องการนิเทศได้รับการอนุมัติ 🎉', $msg_eval, 'teacher_supervision.html', 'bi-patch-check-fill', '#10b981', 'supervision');
                 }
             } catch (Exception $ex) {}
 
@@ -126,6 +135,18 @@ try {
         $stmt->execute([$booking_id]);
 
         if ($stmt->rowCount() > 0) {
+            // Notify evaluatee
+            try {
+                $stmt_bk = $pdo->prepare("SELECT booking_date, (SELECT user_id FROM teachers WHERE id = b.teacher_id) as t_user_id FROM supervision_bookings b WHERE b.id = ?");
+                $stmt_bk->execute([$booking_id]);
+                $bk_info = $stmt_bk->fetch();
+                if ($bk_info && $bk_info['t_user_id']) {
+                    require_once '../../inc/notifications.php';
+                    $msg_reject = "ฝ่ายวิชาการได้ยกเลิกหรือปฏิเสธรายการจองคิวนิเทศของคุณในวันที่ " . $bk_info['booking_date'];
+                    cnp_notify($pdo, (int)$bk_info['t_user_id'], 'รายการจองนิเทศถูกยกเลิก/ปฏิเสธ ⚠️', $msg_reject, 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
+                }
+            } catch (Exception $ex) {}
+
             echo json_encode(['success' => true, 'message' => 'ยกเลิกรายการจองเรียบร้อยแล้ว']);
         } else {
             http_response_code(400);

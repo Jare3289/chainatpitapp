@@ -617,12 +617,21 @@
                                             <span class="badge bg-success text-white rounded-pill px-2" id="route-active-badge" style="display: none; font-size: 0.7rem;">กำลังนำทาง</span>
                                         </div>
                                         
-                                        <p class="small text-secondary mb-3" style="font-size: 0.78rem; line-height: 1.4;">
-                                            คำนวณเส้นทางแบบวนรอบหาบ้านที่ใกล้ที่สุดตามลำดับ (Nearest Neighbor TSP) เริ่มต้นจากโรงเรียนเพื่อประหยัดเชื้อเพลิง
+                                        <p class="small text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.4;">
+                                            คำนวณเส้นทางแบบจุดต่อจุด โดยหาบ้านที่ใกล้ที่สุดตามลำดับ (Nearest Neighbor) เพื่อประหยัดเชื้อเพลิงในการเดินทาง
                                         </p>
                                         
                                         <!-- Controls -->
                                         <div class="mb-3">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-navy mb-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>จุดเริ่มต้นเดินทาง:</label>
+                                                <select class="form-select form-select-sm rounded-pill shadow-sm" id="route-start-point" onchange="handleStartPointChange()">
+                                                    <option value="school">โรงเรียนชัยนาทพิทยาคม (ค่าเริ่มต้น)</option>
+                                                    <option value="gps">📍 พิกัดปัจจุบันของคุณ (GPS)</option>
+                                                    <option value="custom">🗺️ เลือกจุดบนแผนที่เอง...</option>
+                                                </select>
+                                            </div>
+                                            
                                             <button type="button" class="btn btn-navy btn-sm rounded-pill w-100 py-2 fw-bold shadow-sm" onclick="optimizeVisitRoute()">
                                                 <i class="bi bi-magic me-1"></i>คำนวณเส้นทางประหยัดพลังงาน
                                             </button>
@@ -2689,6 +2698,20 @@
         let overviewMap = null;
         let overviewMarkerLayer = null;
 
+        function resolveStudentPhone(s) {
+            if (!s) return '';
+            const fields = [s.phone, s.g_phone, s.f_phone, s.m_phone];
+            for (let val of fields) {
+                if (val !== undefined && val !== null) {
+                    const str = val.toString().trim();
+                    if (str !== '' && str !== '-' && str !== 'null' && str !== 'undefined') {
+                        return str;
+                    }
+                }
+            }
+            return '';
+        }
+
         function initOverviewMap() {
             // Wait a small timeout to let the browser display the pane and set width/height
             setTimeout(() => {
@@ -2696,10 +2719,25 @@
                 if (!mapContainer) return;
                 
                 if (!overviewMap) {
-                    overviewMap = L.map('overview_map').setView([15.1878, 100.1245], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '© OpenStreetMap contributors'
-                    }).addTo(overviewMap);
+                    });
+                    const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                    });
+
+                    overviewMap = L.map('overview_map', {
+                        center: [15.1878, 100.1245],
+                        zoom: 13,
+                        layers: [streetMap]
+                    });
+
+                    const baseMaps = {
+                        "แผนที่ถนน": streetMap,
+                        "ดาวเทียม": satelliteMap
+                    };
+                    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(overviewMap);
+
                     overviewMarkerLayer = L.layerGroup().addTo(overviewMap);
                 } else {
                     overviewMap.invalidateSize();
@@ -2708,9 +2746,29 @@
                 // Clear existing markers
                 overviewMarkerLayer.clearLayers();
                 
+                // Re-add custom start marker if custom/gps coordinates are selected
+                if (window.routeStartCoords) {
+                    window.updateStartPointMarker();
+                }
+                
                 // Add pins for filtered students who have location_coords
                 let validCount = 0;
                 const bounds = [];
+                
+                // Icons definition
+                const activeIcon = L.divIcon({
+                    className: 'active-student-marker',
+                    html: `<div style="background:#2563eb; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); font-size:0.85rem;"><i class="bi bi-house-door-fill"></i></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+
+                const visitedIcon = L.divIcon({
+                    className: 'visited-student-marker',
+                    html: `<div style="background:#10b981; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); font-size:0.95rem;"><i class="bi bi-check-lg"></i></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
                 
                 filteredStudents.forEach(s => {
                     const coordsStr = s.location_coords;
@@ -2724,12 +2782,15 @@
                             const name = `${s.prefix || ''}${s.first_name_th || ''} ${s.last_name_th || ''}`.trim();
                             const room = s.class_name ? `ม.${s.class_name}` : '-';
                             const studentId = s.student_id || '-';
+                            const isVisited = window.visitedStudentIds && window.visitedStudentIds.has(parseInt(s.id));
+                            const studentPhone = resolveStudentPhone(s);
                             
-                            // Marker popup HTML with rich styling including driving directions link
+                            // Marker popup HTML with rich styling including driving directions link and check-in button
                             const popupHtml = `
                                 <div style="font-family: 'Sarabun', sans-serif; font-size: 0.95rem; line-height: 1.6; min-width: 240px; padding: 4px;">
                                     <div style="font-weight: 800; color: #1e3a8a; border-bottom: 2px solid #eff6ff; padding-bottom: 6px; margin-bottom: 8px; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
                                         <i class="bi bi-person-fill text-primary"></i> ${name}
+                                        ${isVisited ? '<span class="badge bg-success ms-auto text-white rounded-pill px-2 py-0.5" style="font-size:0.65rem;">เยี่ยมแล้ว</span>' : ''}
                                     </div>
                                     <div style="margin-bottom: 5px;">
                                         <strong>รหัสประจำตัว:</strong> <span class="text-primary fw-bold">${studentId}</span>
@@ -2738,19 +2799,22 @@
                                         <strong>ชั้น/ห้อง:</strong> <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 0.75rem;">${room}</span>
                                     </div>
                                     ` + (s.curr_house_no ? '<div style="margin-bottom: 5px;"><strong>ที่อยู่ปัจจุบัน:</strong> ' + s.curr_house_no + ' ม.' + (s.curr_moo || '-') + ' ต. ' + (s.curr_subdistrict || '-') + ' อ. ' + (s.curr_district || '-') + '</div>' : '') + `
-                                    ` + (s.phone ? '<div style="margin-bottom: 8px;"><strong>เบอร์โทรศัพท์:</strong> <a href="tel:' + s.phone + '" class="fw-bold text-decoration-none"><i class="bi bi-telephone"></i> ' + s.phone + '</a></div>' : '') + `
-                                    <div style="text-align: right; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; gap: 6px;">
-                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                    ` + (studentPhone ? '<div style="margin-bottom: 8px;"><strong>เบอร์โทรศัพท์:</strong> <a href="tel:' + studentPhone + '" class="fw-bold text-decoration-none"><i class="bi bi-telephone"></i> ' + studentPhone + '</a></div>' : '') + `
+                                    <div style="text-align: right; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.72rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                                             <i class="bi bi-compass-fill"></i> นำทาง
                                         </a>
-                                        <button class="btn btn-navy btn-sm py-1 px-3 text-white rounded-pill fw-bold" style="font-size: 0.78rem; transition: 0.2s;" onclick="viewStudentProfileFromMap(${s.id})">
-                                            <i class="bi bi-person-vcard me-1"></i>ดูโปรไฟล์เต็ม
+                                        <button class="btn btn-sm py-1 px-2 rounded-pill fw-bold ${isVisited ? 'btn-danger text-white' : 'btn-outline-primary'}" style="font-size: 0.72rem;" onclick="toggleStudentVisited(${s.id})">
+                                            <i class="bi ${isVisited ? 'bi-x-circle' : 'bi-check-circle'}"></i> ${isVisited ? 'ยกเลิกเช็คอิน' : 'เช็คอินเยี่ยมแล้ว'}
+                                        </button>
+                                        <button class="btn btn-navy btn-sm py-1 px-2 text-white rounded-pill fw-bold" style="font-size: 0.72rem; transition: 0.2s;" onclick="viewStudentProfileFromMap(${s.id})">
+                                            <i class="bi bi-person-vcard me-1"></i>ดูโปรไฟล์
                                         </button>
                                     </div>
                                 </div>
                             `;
                             
-                            const marker = L.marker([lat, lng]).bindPopup(popupHtml);
+                            const marker = L.marker([lat, lng], { icon: isVisited ? visitedIcon : activeIcon }).bindPopup(popupHtml);
                             overviewMarkerLayer.addLayer(marker);
                             bounds.push([lat, lng]);
                         }
@@ -2814,6 +2878,133 @@
             }
         }
 
+        window.visitedStudentIds = new Set();
+        try {
+            const stored = localStorage.getItem('cnp_visited_students');
+            if (stored) {
+                JSON.parse(stored).forEach(id => window.visitedStudentIds.add(parseInt(id)));
+            }
+        } catch (e) {
+            console.warn("Failed to load visited students from localStorage:", e);
+        }
+
+        window.saveVisitedStudents = function() {
+            try {
+                localStorage.setItem('cnp_visited_students', JSON.stringify(Array.from(window.visitedStudentIds)));
+            } catch (e) {
+                console.warn("Failed to save visited students to localStorage:", e);
+            }
+        }
+
+        window.routeStartCoords = null;
+        let routeStartMarker = null;
+
+        window.updateStartPointMarker = function() {
+            if (!overviewMap || !window.routeStartCoords) return;
+            if (routeStartMarker) {
+                routeStartMarker.setLatLng(window.routeStartCoords);
+            } else {
+                const startIcon = L.divIcon({
+                    className: 'custom-start-marker',
+                    html: `<div style="background:#dc2626; color:white; border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.4); font-size:0.8rem;"><i class="bi bi-geo-alt-fill"></i></div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                routeStartMarker = L.marker(window.routeStartCoords, { icon: startIcon, draggable: true }).addTo(overviewMap);
+                routeStartMarker.bindPopup("<b>จุดเริ่มต้นการเดินทาง</b><br>สามารถลากเพื่อปรับเปลี่ยนจุดได้");
+                routeStartMarker.on('dragend', function(e) {
+                    const latLng = e.target.getLatLng();
+                    window.routeStartCoords = [latLng.lat, latLng.lng];
+                    e.target.getPopup().setContent(`<b>จุดเริ่มต้นการเดินทาง</b><br>พิกัดใหม่: ${latLng.lat.toFixed(4)}, ${latLng.lng.toFixed(4)}`);
+                    
+                    // If route is active, re-calculate route
+                    if (document.getElementById('route-active-badge').style.display === 'inline-block') {
+                        optimizeVisitRoute();
+                    }
+                });
+            }
+            overviewMap.setView(window.routeStartCoords, overviewMap.getZoom());
+        }
+
+        window.handleStartPointChange = function() {
+            const val = document.getElementById('route-start-point').value;
+            if (val === 'school') {
+                window.routeStartCoords = null;
+                if (routeStartMarker) {
+                    overviewMap.removeLayer(routeStartMarker);
+                    routeStartMarker = null;
+                }
+                Swal.fire({ icon: 'info', title: 'ตั้งจุดเริ่มต้นใหม่', text: 'ใช้โรงเรียนชัยนาทพิทยาคมเป็นจุดเริ่มต้น', timer: 1000, showConfirmButton: false });
+                if (document.getElementById('route-active-badge').style.display === 'inline-block') {
+                    optimizeVisitRoute();
+                }
+            } else if (val === 'gps') {
+                Swal.fire({
+                    title: 'กำลังดึงพิกัด GPS...',
+                    text: 'กรุณารอสักครู่',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        Swal.close();
+                        window.routeStartCoords = [pos.coords.latitude, pos.coords.longitude];
+                        window.updateStartPointMarker();
+                        Swal.fire({ icon: 'success', title: 'ดึงพิกัด GPS สำเร็จ', text: `ใช้พิกัดปัจจุบันของคุณเป็นจุดเริ่มต้น`, timer: 1500, showConfirmButton: false });
+                        if (document.getElementById('route-active-badge').style.display === 'inline-block') {
+                            optimizeVisitRoute();
+                        }
+                    },
+                    (err) => {
+                        Swal.close();
+                        Swal.fire({ icon: 'error', title: 'ไม่สามารถดึงพิกัด GPS ได้', text: 'ระบบจะกลับไปใช้จุดเริ่มต้นที่โรงเรียนชัยนาทพิทยาคม' });
+                        document.getElementById('route-start-point').value = 'school';
+                        window.routeStartCoords = null;
+                        if (routeStartMarker) {
+                            overviewMap.removeLayer(routeStartMarker);
+                            routeStartMarker = null;
+                        }
+                    }
+                );
+            } else if (val === 'custom') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'เลือกจุดบนแผนที่',
+                    text: 'กรุณาคลิกเลือกตำแหน่งใดก็ได้บนแผนที่เพื่อตั้งเป็นจุดเริ่มต้นการเดินทาง'
+                });
+                
+                overviewMap.once('click', (e) => {
+                    window.routeStartCoords = [e.latlng.lat, e.latlng.lng];
+                    window.updateStartPointMarker();
+                    Swal.fire({ icon: 'success', title: 'ตั้งค่าจุดเริ่มต้นสำเร็จ', text: `พิกัด: ${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`, timer: 1500, showConfirmButton: false });
+                    if (document.getElementById('route-active-badge').style.display === 'inline-block') {
+                        optimizeVisitRoute();
+                    }
+                });
+            }
+        }
+
+        window.toggleStudentVisited = function(id) {
+            id = parseInt(id);
+            if (window.visitedStudentIds.has(id)) {
+                window.visitedStudentIds.delete(id);
+            } else {
+                window.visitedStudentIds.add(id);
+            }
+            window.saveVisitedStudents();
+            
+            // Re-render map pins to update style (visited checkmark)
+            initOverviewMap();
+            
+            // Re-calculate the active route if it is running
+            if (document.getElementById('route-active-badge').style.display === 'inline-block') {
+                optimizeVisitRoute();
+            } else {
+                // If route is not active, just refresh the list container to show visited list
+                clearVisitRoute();
+            }
+        };
+
         let routePolyline = null;
         let routeDecorators = []; // to store tooltips/labels showing visit order
 
@@ -2829,13 +3020,23 @@
             return R * c; // Distance in km
         }
 
-        function optimizeVisitRoute() {
-            const schoolLat = 15.1878;
-            const schoolLng = 100.1245;
+        async function optimizeVisitRoute() {
+            let startLat = 15.1878;
+            let startLng = 100.1245;
+            let startLabel = "โรงเรียนชัยนาทพิทยาคม";
             
-            // 1. Gather all destinations from filteredStudents that have coordinates
+            if (window.routeStartCoords) {
+                startLat = window.routeStartCoords[0];
+                startLng = window.routeStartCoords[1];
+                startLabel = "จุดเริ่มต้นกำหนดเอง";
+            }
+            
+            // 1. Gather all destinations from filteredStudents that have coordinates and are not visited
             const destinations = [];
             filteredStudents.forEach(s => {
+                const isVisited = window.visitedStudentIds && window.visitedStudentIds.has(parseInt(s.id));
+                if (isVisited) return; // Skip already visited students
+                
                 const coordsStr = s.location_coords;
                 if (coordsStr && coordsStr.includes(',')) {
                     const parts = coordsStr.split(',');
@@ -2853,74 +3054,195 @@
                             curr_moo: s.curr_moo,
                             curr_subdistrict: s.curr_subdistrict,
                             curr_district: s.curr_district,
-                            phone: s.phone
+                            phone: resolveStudentPhone(s)
                         });
                     }
                 }
             });
             
             if (destinations.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'ไม่พบพิกัดนักเรียน',
-                    text: 'ไม่พบนร.ที่มีพิกัดบ้านในห้องเรียนนี้ กรุณาระบุพิกัดก่อนคำนวณเส้นทาง'
-                });
-                return;
-            }
-            
-            // 2. Nearest Neighbor algorithm (TSP heuristic starting from school)
-            let currentLat = schoolLat;
-            let currentLng = schoolLng;
-            const remaining = [...destinations];
-            const route = [];
-            let totalDistance = 0;
-            
-            while (remaining.length > 0) {
-                let nearestIdx = -1;
-                let minDist = Infinity;
-                
-                for (let i = 0; i < remaining.length; i++) {
-                    const dist = haversineDistance(currentLat, currentLng, remaining[i].lat, remaining[i].lng);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        nearestIdx = i;
-                    }
+                // Check if they are all visited
+                const visitedCount = filteredStudents.filter(s => window.visitedStudentIds.has(parseInt(s.id)) && s.location_coords && s.location_coords.includes(',')).length;
+                if (visitedCount > 0) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'เยี่ยมบ้านครบถ้วนแล้ว',
+                        text: 'นักเรียนที่มีพิกัดทั้งหมดในห้องเรียนนี้ได้รับการเยี่ยมบ้าน (เช็คอิน) เรียบร้อยแล้ว!'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ไม่พบพิกัดนักเรียน',
+                        text: 'ไม่พบนร.ที่มีพิกัดบ้านในห้องเรียนนี้ กรุณาระบุพิกัดก่อนคำนวณเส้นทาง'
+                    });
                 }
                 
-                const nextStop = remaining[nearestIdx];
-                route.push({
-                    ...nextStop,
-                    legDistance: minDist
-                });
-                totalDistance += minDist;
-                currentLat = nextStop.lat;
-                currentLng = nextStop.lng;
-                remaining.splice(nearestIdx, 1);
+                // Still draw list of visited students if any
+                clearVisitRoute();
+                return;
             }
+
+            // แสดงการโหลดการคำนวณระยะทางและเส้นทางตามถนนจริง
+            Swal.fire({
+                title: 'กำลังคำนวณเส้นทางตามถนน...',
+                text: 'ระบบกำลังดึงข้อมูลเส้นทางถนนและหาลำดับการเดินทางที่สั้นที่สุด (OSRM API)',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            let route = [];
+            let totalDistance = 0;
+            let pathCoordinates = [];
+            let solvedByOSRM = false;
+
+            try {
+                // 1. ดึงข้อมูลตารางระยะทางระหว่างทุกจุดด้วย OSRM Table API (startCoords + destinations)
+                const coordsQuery = [[startLng, startLat], ...destinations.map(d => [d.lng, d.lat])].map(c => c.join(',')).join(';');
+                
+                const tableResponse = await fetch(`https://router.project-osrm.org/table/v1/driving/${coordsQuery}?annotations=distance`);
+                if (!tableResponse.ok) throw new Error("OSRM Table API response not OK");
+                const tableData = await tableResponse.json();
+                
+                if (tableData.code === 'Ok' && tableData.distances) {
+                    // 2. คำนวณลำดับการเดินทางแบบ Greedy Nearest Neighbor โดยอิงตามตารางระยะทางที่ได้จาก OSRM
+                    let currentIdx = 0; // จุดเริ่มต้นคือ ดัชนี 0 (startCoords)
+                    const remaining = [];
+                    for (let i = 1; i <= destinations.length; i++) {
+                        remaining.push(i);
+                    }
+                    
+                    const orderedIndices = [];
+                    
+                    while (remaining.length > 0) {
+                        let nearestIdxInRemaining = -1;
+                        let minDist = Infinity;
+                        
+                        for (let i = 0; i < remaining.length; i++) {
+                            const candidateIdx = remaining[i];
+                            const dist = tableData.distances[currentIdx][candidateIdx];
+                            
+                            // OSRM table อาจคืนค่า null หากไม่มีเส้นทางขับรถเชื่อมต่อกันได้จริง
+                            if (dist !== null && dist !== undefined && dist < minDist) {
+                                minDist = dist;
+                                nearestIdxInRemaining = i;
+                            }
+                        }
+                        
+                        // หากไม่มีเส้นทางที่เชื่อมโยงถึงกันได้เลยตามถนน ให้สลับไปใช้ Haversine (ระยะกระจัด) ชั่วคราวในการเลือก
+                        if (nearestIdxInRemaining === -1) {
+                            let minHaversineDist = Infinity;
+                            const currentLatVal = currentIdx === 0 ? startLat : destinations[currentIdx - 1].lat;
+                            const currentLngVal = currentIdx === 0 ? startLng : destinations[currentIdx - 1].lng;
+                            
+                            for (let i = 0; i < remaining.length; i++) {
+                                const candidateIdx = remaining[i];
+                                const candDest = destinations[candidateIdx - 1];
+                                const dist = haversineDistance(currentLatVal, currentLngVal, candDest.lat, candDest.lng) * 1000; // แปลงกม. เป็นเมตร
+                                if (dist < minHaversineDist) {
+                                    minHaversineDist = dist;
+                                    nearestIdxInRemaining = i;
+                                }
+                            }
+                        }
+                        
+                        const chosenIdx = remaining[nearestIdxInRemaining];
+                        orderedIndices.push(chosenIdx);
+                        remaining.splice(nearestIdxInRemaining, 1);
+                        currentIdx = chosenIdx;
+                    }
+                    
+                    // 3. จัดเรียงอาร์เรย์เป้าหมายตามผลการเรียงลำดับ
+                    const orderedDestinations = orderedIndices.map(idx => destinations[idx - 1]);
+                    
+                    // 4. เรียกใช้ OSRM Route API เพื่อดึงพิกัดเส้นทางขับขี่ละเอียดตามลำดับ (orderedCoords)
+                    const orderedCoordsQuery = [[startLng, startLat], ...orderedDestinations.map(d => [d.lng, d.lat])].map(c => c.join(',')).join(';');
+                    const routeResponse = await fetch(`https://router.project-osrm.org/route/v1/driving/${orderedCoordsQuery}?overview=full&geometries=geojson`);
+                    if (!routeResponse.ok) throw new Error("OSRM Route API response not OK");
+                    const routeData = await routeResponse.json();
+                    
+                    if (routeData.code === 'Ok' && routeData.routes && routeData.routes.length > 0) {
+                        const activeRoute = routeData.routes[0];
+                        
+                        // แม็ประยะทางแต่ละช่วง (Leg Distance) จาก API ซึ่งมีขนาดเท่ากับจำนวณจุดปลายทางพอดี
+                        route = orderedDestinations.map((dest, idx) => {
+                            const leg = activeRoute.legs[idx];
+                            return {
+                                ...dest,
+                                legDistance: leg ? (leg.distance / 1000) : 0
+                            };
+                        });
+                        
+                        totalDistance = activeRoute.distance / 1000;
+                        pathCoordinates = activeRoute.geometry.coordinates.map(c => [c[1], c[0]]);
+                        solvedByOSRM = true;
+                    } else {
+                        throw new Error("OSRM Route API did not return valid route");
+                    }
+                } else {
+                    throw new Error("OSRM Table logic returned failure");
+                }
+            } catch (err) {
+                console.warn("OSRM routing failed, falling back to straight-line distance:", err);
+                
+                // ระบบสำรอง: คำนวณแบบเดิม (Nearest Neighbor + ระยะกระจัด Haversine)
+                let currentLatVal = startLat;
+                let currentLngVal = startLng;
+                const remaining = [...destinations];
+                route = [];
+                totalDistance = 0;
+                
+                while (remaining.length > 0) {
+                    let nearestIdx = -1;
+                    let minDist = Infinity;
+                    
+                    for (let i = 0; i < remaining.length; i++) {
+                        const dist = haversineDistance(currentLatVal, currentLngVal, remaining[i].lat, remaining[i].lng);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            nearestIdx = i;
+                        }
+                    }
+                    
+                    const nextStop = remaining[nearestIdx];
+                    route.push({
+                        ...nextStop,
+                        legDistance: minDist
+                    });
+                    totalDistance += minDist;
+                    currentLatVal = nextStop.lat;
+                    currentLngVal = nextStop.lng;
+                    remaining.splice(nearestIdx, 1);
+                }
+
+                // พิกัดเส้นทางแบบสำรอง: ต่อกันเป็นเส้นตรง
+                pathCoordinates = [[startLat, startLng]];
+                route.forEach(stop => {
+                    pathCoordinates.push([stop.lat, stop.lng]);
+                });
+            }
+
+            // ปิด Alert โหลดข้อมูล
+            Swal.close();
             
             // 3. Clear existing route line and markers decoration
             clearVisitRouteDecorators();
             
             // 4. Draw route path polyline in Leaflet
-            const pathCoordinates = [[schoolLat, schoolLng]];
-            route.forEach(stop => {
-                pathCoordinates.push([stop.lat, stop.lng]);
-            });
-            
-            if (overviewMap) {
-                // Draw a beautiful blue dash polyline
+            if (overviewMap && pathCoordinates.length > 0) {
+                // วาดเส้นทาง (สีเขียวทึบหากเป็นถนนจริง หรือสีน้ำเงินประหากเป็นระยะกระจัดสำรอง)
                 routePolyline = L.polyline(pathCoordinates, {
-                    color: '#2563eb',
-                    weight: 4,
-                    opacity: 0.8,
-                    dashArray: '8, 8',
+                    color: solvedByOSRM ? '#10b981' : '#2563eb',
+                    weight: 5,
+                    opacity: 0.85,
+                    dashArray: solvedByOSRM ? null : '8, 8',
                     lineJoin: 'round'
                 }).addTo(overviewMap);
                 
-                // Add number markers / labels to help see sequence
+                // ใส่ตัวเลขลำดับบนแผนที่
                 route.forEach((stop, index) => {
                     const orderNumber = index + 1;
-                    // Draw a small custom circle tooltip/marker to show order
                     const labelIcon = L.divIcon({
                         className: 'custom-route-label',
                         html: `<div style="background:#10b981; color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); font-size:0.75rem;">${orderNumber}</div>`,
@@ -2932,7 +3254,7 @@
                     routeDecorators.push(decorator);
                 });
                 
-                // Zoom map to fit the route path
+                // ปรับขอบเขตแผนที่ให้พอดีกับเส้นทางทั้งหมด
                 overviewMap.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
             }
             
@@ -2940,15 +3262,15 @@
             const listContainer = document.getElementById('route-list-container');
             let listHtml = `
                 <div class="mb-3 p-2 border-start border-primary border-4 bg-white rounded shadow-sm">
-                    <strong>📍 จุดเริ่มต้น: โรงเรียนชัยนาทพิทยาคม</strong>
-                    <div class="text-muted small" style="font-size:0.7rem;">ละติจูด: ${schoolLat}, ลองจิจูด: ${schoolLng}</div>
+                    <strong>📍 จุดเริ่มต้น: ${startLabel}</strong>
+                    <div class="text-muted small" style="font-size:0.7rem;">ละติจูด: ${startLat.toFixed(4)}, ลองจิจูด: ${startLng.toFixed(4)}</div>
                 </div>
             `;
             
             route.forEach((stop, index) => {
                 const order = index + 1;
-                const prevStopLat = index === 0 ? schoolLat : route[index - 1].lat;
-                const prevStopLng = index === 0 ? schoolLng : route[index - 1].lng;
+                const prevStopLatVal = index === 0 ? startLat : route[index - 1].lat;
+                const prevStopLngVal = index === 0 ? startLng : route[index - 1].lng;
                 
                 listHtml += `
                     <div class="mb-3 p-2 border-start border-success border-4 bg-white rounded shadow-sm position-relative">
@@ -2959,18 +3281,49 @@
                         <div class="text-muted mb-2" style="font-size: 0.72rem; line-height: 1.4;">
                             <div>ห้อง: ${stop.room} | รหัส: ${stop.student_id}</div>
                             ${stop.curr_house_no ? `<div>ที่อยู่: ${stop.curr_house_no} ม.${stop.curr_moo || '-'} ต.${stop.curr_subdistrict || '-'}</div>` : ''}
+                            ${stop.phone ? `<div>เบอร์โทร: <a href="tel:${stop.phone}" class="fw-bold text-decoration-none"><i class="bi bi-telephone"></i> ${stop.phone}</a></div>` : ''}
                         </div>
-                        <div class="d-flex gap-1 justify-content-end">
-                            <a href="https://www.google.com/maps/dir/${prevStopLat},${prevStopLng}/${stop.lat},${stop.lng}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem; text-decoration: none;">
-                                <i class="bi bi-compass"></i> นำทางช่วงนี้
-                            </a>
-                            <button class="btn btn-outline-primary btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;" onclick="viewStudentOnMap(${stop.id})">
-                                <i class="bi bi-geo-alt"></i> ดูบนแผนที่
+                        <div class="d-flex gap-1 justify-content-between align-items-center">
+                            <button class="btn btn-sm btn-outline-success py-1 px-2 rounded-pill fw-bold text-nowrap" style="font-size: 0.7rem;" onclick="toggleStudentVisited(${stop.id})">
+                                <i class="bi bi-check-circle"></i> เช็คอินเยี่ยมแล้ว
                             </button>
+                            <div class="d-flex gap-1">
+                                <a href="https://www.google.com/maps/dir/${prevStopLatVal},${prevStopLngVal}/${stop.lat},${stop.lng}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem; text-decoration: none;">
+                                    <i class="bi bi-compass"></i> นำทาง
+                                </a>
+                                <button class="btn btn-outline-primary btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;" onclick="viewStudentOnMap(${stop.id})">
+                                    <i class="bi bi-geo-alt"></i> แผนที่
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
             });
+            
+            // 6. Append Visited Students at the bottom
+            const visitedInClass = filteredStudents.filter(s => window.visitedStudentIds.has(parseInt(s.id)));
+            if (visitedInClass.length > 0) {
+                listHtml += `
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="fw-bold text-secondary mb-2" style="font-size: 0.78rem;">
+                            <i class="bi bi-check2-all text-success me-1"></i>เยี่ยมบ้านแล้วในห้องนี้ (${visitedInClass.length} คน)
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                `;
+                visitedInClass.forEach(s => {
+                    const name = `${s.prefix || ''}${s.first_name_th || ''} ${s.last_name_th || ''}`.trim();
+                    listHtml += `
+                        <span class="badge bg-light text-success border border-success d-flex align-items-center gap-1 rounded-pill p-1 px-2" style="font-size: 0.68rem; font-weight: normal;">
+                            ${name}
+                            <i class="bi bi-x-circle text-danger cursor-pointer" style="font-size: 0.8rem;" onclick="toggleStudentVisited(${s.id})"></i>
+                        </span>
+                    `;
+                });
+                listHtml += `
+                        </div>
+                    </div>
+                `;
+            }
             
             listContainer.innerHTML = listHtml;
             
@@ -2978,7 +3331,7 @@
             document.getElementById('route-active-badge').style.display = 'inline-block';
             document.getElementById('btn-clear-route').style.display = 'block';
             document.getElementById('route-summary-box').style.display = 'block';
-            document.getElementById('route-total-distance').textContent = `${totalDistance.toFixed(2)} กม.`;
+            document.getElementById('route-total-distance').textContent = `${totalDistance.toFixed(2)} กม. ${solvedByOSRM ? '(ขับขี่ตามถนน)' : '(เส้นตรง)'}`;
         }
 
         function clearVisitRouteDecorators() {
@@ -3001,12 +3354,39 @@
             
             // Reset route planner panel to default message
             const listContainer = document.getElementById('route-list-container');
-            listContainer.innerHTML = `
+            let listHtml = `
                 <div class="text-center text-muted py-5">
                     <i class="bi bi-geo-alt fs-2 d-block mb-2 text-secondary"></i>
-                    กดปุ่มด้านบนเพื่อวางแผนเส้นทางเริ่มต้นจากโรงเรียนไปยังบ้านนักเรียนตามพิกัด
+                    กดปุ่มด้านบนเพื่อวางแผนเส้นทางเริ่มต้นไปยังบ้านนักเรียนตามพิกัด
                 </div>
             `;
+            
+            // Append Visited Students
+            const visitedInClass = filteredStudents.filter(s => window.visitedStudentIds.has(parseInt(s.id)));
+            if (visitedInClass.length > 0) {
+                listHtml += `
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="fw-bold text-secondary mb-2" style="font-size: 0.78rem;">
+                            <i class="bi bi-check2-all text-success me-1"></i>เยี่ยมบ้านแล้วในห้องนี้ (${visitedInClass.length} คน)
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                `;
+                visitedInClass.forEach(s => {
+                    const name = `${s.prefix || ''}${s.first_name_th || ''} ${s.last_name_th || ''}`.trim();
+                    listHtml += `
+                        <span class="badge bg-light text-success border border-success d-flex align-items-center gap-1 rounded-pill p-1 px-2" style="font-size: 0.68rem; font-weight: normal;">
+                            ${name}
+                            <i class="bi bi-x-circle text-danger cursor-pointer" style="font-size: 0.8rem;" onclick="toggleStudentVisited(${s.id})"></i>
+                        </span>
+                    `;
+                });
+                listHtml += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            listContainer.innerHTML = listHtml;
             
             document.getElementById('route-active-badge').style.display = 'none';
             document.getElementById('btn-clear-route').style.display = 'none';
@@ -3046,10 +3426,24 @@
                     adminMap = null;
                 }
                 
-                adminMap = L.map('admin_map').setView([lat, lng], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors'
-                }).addTo(adminMap);
+                });
+                const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                });
+
+                adminMap = L.map('admin_map', {
+                    center: [lat, lng],
+                    zoom: 15,
+                    layers: [streetMap]
+                });
+
+                const baseMaps = {
+                    "แผนที่ถนน": streetMap,
+                    "ดาวเทียม": satelliteMap
+                };
+                L.control.layers(baseMaps, null, { position: 'topright' }).addTo(adminMap);
                 
                 adminMarker = L.marker([lat, lng]).addTo(adminMap);
                 
@@ -3146,7 +3540,25 @@
             
             const badge = document.getElementById('dist_label_badge');
             if (badge) {
-                badge.innerText = `ระยะทางคำนวณอัตโนมัติ: ${dist.toFixed(2)} กม.`;
+                badge.innerText = `ระยะทางคำนวณอัตโนมัติ: ${dist.toFixed(2)} กม. (เส้นตรง)`;
+            }
+
+            // คำนวณระยะทางขับขี่จริงตามถนนผ่าน OSRM (ดึงค่ามาอัปเดตเมื่อโหลดเสร็จ)
+            if (lat && lng) {
+                fetch(`https://router.project-osrm.org/route/v1/driving/${schoolLng},${schoolLat};${lng},${lat}?overview=false`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                            const roadDist = data.routes[0].distance / 1000;
+                            if (distInput) {
+                                distInput.value = roadDist.toFixed(2);
+                            }
+                            if (badge) {
+                                badge.innerText = `ระยะทางอัตโนมัติ (ตามถนน): ${roadDist.toFixed(2)} กม.`;
+                            }
+                        }
+                    })
+                    .catch(e => console.warn("OSRM single route calculation failed:", e));
             }
         }
 
