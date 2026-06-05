@@ -77,6 +77,19 @@ function handleGet($pdo, $user_id) {
                 ];
             }
 
+            // ขอความกรุณาครูอัปเดตข้อมูลส่วนตัว (เนื่องจากจะเข้าสู่ช่วงนิเทศการสอน)
+            $actions[] = [
+                'id' => 'alert_teacher_profile_update_20260605',
+                'type' => 'action',
+                'title' => '📝 ขอความกรุณาอัปเดตข้อมูลส่วนตัว',
+                'message' => 'ระบบกำลังจะเข้าสู่ช่วงนิเทศการสอนแล้ว กรุณาตรวจสอบและอัปเดตข้อมูลประวัติและช่องทางติดต่อให้เป็นปัจจุบัน',
+                'link' => 'teacher_profile.html',
+                'icon' => 'bi bi-person-bounding-box',
+                'color' => '#8b5cf6',
+                'is_read' => 0,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+
             // ยังไม่เช็คชื่อโฮมรูมวันนี้
             if ($room && $varsR) {
                 $today  = date('Y-m-d');

@@ -463,6 +463,68 @@ try {
             }
         }
 
+        // ── If first_name_th is not set, but full_name_th is, parse it! ──
+        if (empty($fieldMap['first_name_th']) && !empty($fieldMap['full_name_th'])) {
+            $fullname = trim($fieldMap['full_name_th']);
+            $prefixes = ['เด็กชาย', 'เด็กหญิง', 'นางสาว', 'นาย', 'ด.ช.', 'ด.ญ.', 'น.ส.', 'นาง'];
+            
+            $prefix = $fieldMap['prefix'] ?? '';
+            foreach ($prefixes as $pfx) {
+                if (mb_strpos($fullname, $pfx) === 0) {
+                    if (empty($prefix)) {
+                        $prefix = $pfx;
+                    }
+                    $fullname = trim(mb_substr($fullname, mb_strlen($pfx)));
+                    break;
+                }
+            }
+            
+            $parts = preg_split('/\s+/', $fullname, 2);
+            $firstName = $parts[0] ?? '';
+            $lastName = $parts[1] ?? '';
+            
+            if ($firstName !== '') {
+                $fieldMap['first_name_th'] = $firstName;
+                if ($prefix !== '') {
+                    $fieldMap['prefix'] = $prefix;
+                }
+                if ($lastName !== '' && empty($fieldMap['last_name_th'])) {
+                    $fieldMap['last_name_th'] = $lastName;
+                }
+            }
+        }
+
+        // ── If first_name_th has a space and last_name_th is empty, split it! ──
+        if (!empty($fieldMap['first_name_th']) && strpos($fieldMap['first_name_th'], ' ') !== false && empty($fieldMap['last_name_th'])) {
+            $fullname = trim($fieldMap['first_name_th']);
+            $prefixes = ['เด็กชาย', 'เด็กหญิง', 'นางสาว', 'นาย', 'ด.ช.', 'ด.ญ.', 'น.ส.', 'นาง'];
+            
+            $prefix = $fieldMap['prefix'] ?? '';
+            foreach ($prefixes as $pfx) {
+                if (mb_strpos($fullname, $pfx) === 0) {
+                    if (empty($prefix)) {
+                        $prefix = $pfx;
+                    }
+                    $fullname = trim(mb_substr($fullname, mb_strlen($pfx)));
+                    break;
+                }
+            }
+            
+            $parts = preg_split('/\s+/', $fullname, 2);
+            $firstName = $parts[0] ?? '';
+            $lastName = $parts[1] ?? '';
+            
+            if ($firstName !== '') {
+                $fieldMap['first_name_th'] = $firstName;
+                if ($prefix !== '') {
+                    $fieldMap['prefix'] = $prefix;
+                }
+                if ($lastName !== '') {
+                    $fieldMap['last_name_th'] = $lastName;
+                }
+            }
+        }
+
         if ($existing) {
             // ── UPDATE existing student — apply all non-empty values from file ──
             // ถ้า student_id เดิมเป็น null ให้ update ด้วย (ป้องกัน import ซ้ำแล้วยังเป็น null)

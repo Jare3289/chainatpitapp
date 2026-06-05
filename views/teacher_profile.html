@@ -533,17 +533,19 @@
                                 </div>
 
                                 <!-- Completion Alert -->
-                                <div class="alert alert-warning border-0 shadow-sm d-none mb-3" id="completionAlert"
-                                    style="border-radius:16px;">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <i class="bi bi-exclamation-circle-fill fs-4 text-warning flex-shrink-0"></i>
+                                <div class="alert alert-danger border-0 shadow-sm d-none mb-3" id="completionAlert"
+                                    style="border-radius:16px; background: #fef2f2; border-left: 5px solid #ef4444 !important;">
+                                    <div class="d-flex align-items-start gap-3 p-2">
+                                        <i class="bi bi-exclamation-triangle-fill fs-4 text-danger flex-shrink-0 mt-1"></i>
                                         <div class="flex-grow-1">
-                                            <div class="fw-bold small">ข้อมูลโปรไฟล์ยังไม่สมบูรณ์</div>
-                                            <div class="small text-muted">ขาด: <span id="missingFields"
-                                                    class="fw-bold text-dark"></span></div>
+                                            <div class="fw-bold text-danger">⚠️ บังคับอัปเดตข้อมูลส่วนตัว (ช่วงนิเทศการสอน)</div>
+                                            <div class="small text-muted mt-1" style="line-height: 1.4;">
+                                                เพื่อเตรียมความพร้อมสำหรับ<b>การนิเทศการสอน</b> ขอความกรุณาคุณครูทุกท่านตรวจสอบและระบุข้อมูลในช่องที่จำเป็นให้ครบถ้วนทุกช่อง (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย <b>"-"</b> เท่านั้น) หลังจากนั้นกดปุ่มบันทึกข้อมูลเพื่อเปิดสิทธิ์เข้าใช้งานระบบตามปกติ
+                                            </div>
+                                            <div class="small text-danger fw-bold mt-2">ช่องที่ยังไม่ได้กรอก: <span id="missingFields" class="text-dark"></span></div>
                                         </div>
-                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3"
-                                            onclick="toggleEditMode(true)">แก้ไขตอนนี้</button>
+                                        <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 mt-1"
+                                            onclick="toggleEditMode(true)">แก้ไขทันที</button>
                                     </div>
                                 </div>
 
@@ -1294,8 +1296,25 @@
 
         // ──── Completion ────
         function checkCompletion(data) {
-            const essential = { id_card: 'เลขบัตรประชาชน', phone: 'เบอร์โทร', email: 'อีเมล', birth_date: 'วันเกิด', address_province: 'จังหวัด(ปัจจุบัน)', faculty: 'คณะสี' };
-            const missing = Object.entries(essential).filter(([k]) => !data[k] || data[k] === '').map(([, v]) => v);
+            const essential = {
+                prefix: 'คำนำหน้า',
+                first_name_th: 'ชื่อจริง',
+                last_name_th: 'นามสกุล',
+                nickname: 'ชื่อเล่น',
+                id_card: 'เลขบัตรประชาชน',
+                birth_date: 'วันเกิด',
+                position: 'ตำแหน่ง',
+                department: 'กลุ่มสาระฯ',
+                phone: 'เบอร์โทร',
+                email: 'อีเมล',
+                line_id: 'LINE ID'
+            };
+            const missing = Object.entries(essential)
+                .filter(([k]) => {
+                    const val = data[k] ? String(data[k]).trim() : '';
+                    return val === '' || val === '0000-00-00';
+                })
+                .map(([, v]) => v);
             const filled = Object.keys(essential).length - missing.length;
             const pct = Math.round((filled / Object.keys(essential).length) * 100);
             document.getElementById('completionProgress').style.width = pct + '%';
@@ -1445,8 +1464,55 @@
         // ──── Save ────
         async function saveProfile(e) {
             e.preventDefault();
+            const form = e.target;
 
+            // Clear previous invalid markings
+            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
+            const requiredFields = [
+                { name: 'prefix', label: 'คำนำหน้า' },
+                { name: 'first_name_th', label: 'ชื่อ (ภาษาไทย)' },
+                { name: 'last_name_th', label: 'นามสกุล (ภาษาไทย)' },
+                { name: 'nickname', label: 'ชื่อเล่น' },
+                { name: 'id_card', label: 'เลขประจำตัวประชาชน' },
+                { name: 'birth_date', label: 'วันเกิด' },
+                { name: 'position', label: 'ตำแหน่ง' },
+                { name: 'department', label: 'กลุ่มสาระการเรียนรู้' },
+                { name: 'phone', label: 'เบอร์โทรศัพท์' },
+                { name: 'email', label: 'อีเมล' },
+                { name: 'line_id', label: 'LINE ID' }
+            ];
+
+            let emptyCount = 0;
+            let firstEmptyEl = null;
+
+            for (const field of requiredFields) {
+                const el = form.querySelector(`[name="${field.name}"]`);
+                if (el) {
+                    const val = el.value.trim();
+                    if (val === '' || val === '0000-00-00') {
+                        el.classList.add('is-invalid');
+                        emptyCount++;
+                        if (!firstEmptyEl) firstEmptyEl = el;
+                    }
+                }
+            }
+
+            if (emptyCount > 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง',
+                    text: 'เพื่อเตรียมเข้าสู่ช่วงนิเทศการสอน กรุณาระบุข้อมูลในช่องที่จำเป็นให้ครบทุกช่องก่อนบันทึก (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น)',
+                    confirmButtonText: 'ตกลง'
+                });
+                if (firstEmptyEl) {
+                    firstEmptyEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => {
+                        if (typeof firstEmptyEl.focus === 'function') firstEmptyEl.focus();
+                    }, 450);
+                }
+                return;
+            }
 
             const edus = Array.from(document.querySelectorAll('#educationBody tr')).map(tr => ({
                 degree: tr.querySelector('.edu-degree')?.value || '',
@@ -1456,7 +1522,6 @@
             })).filter(e => e.degree || e.institution);
             document.getElementById('educationHistoryJson').value = JSON.stringify(edus);
 
-            const form = e.target;
             const disabled = Array.from(form.querySelectorAll(':disabled'));
             disabled.forEach(el => el.disabled = false);
             const data = Object.fromEntries(new FormData(form).entries());

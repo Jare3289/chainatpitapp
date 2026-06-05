@@ -54,6 +54,37 @@ if (isset($input['prefix'])) {
     elseif ($p === 'น.ส.') $input['prefix'] = 'นางสาว';
 }
 
+// ── If first_name_th contains space, split it! ──
+if (isset($input['first_name_th']) && strpos(trim($input['first_name_th']), ' ') !== false) {
+    $fullname = trim($input['first_name_th']);
+    $prefixes = ['เด็กชาย', 'เด็กหญิง', 'นางสาว', 'นาย', 'ด.ช.', 'ด.ญ.', 'น.ส.', 'นาง'];
+    
+    $prefix = $input['prefix'] ?? '';
+    foreach ($prefixes as $pfx) {
+        if (mb_strpos($fullname, $pfx) === 0) {
+            if (empty($prefix)) {
+                $prefix = $pfx;
+            }
+            $fullname = trim(mb_substr($fullname, mb_strlen($pfx)));
+            break;
+        }
+    }
+    
+    $parts = preg_split('/\s+/', $fullname, 2);
+    $firstName = $parts[0] ?? '';
+    $lastName = $parts[1] ?? '';
+    
+    if ($firstName !== '') {
+        $input['first_name_th'] = $firstName;
+        if ($prefix !== '') {
+            $input['prefix'] = $prefix;
+        }
+        if ($lastName !== '') {
+            $input['last_name_th'] = $lastName;
+        }
+    }
+}
+
 // Allowed fields — must exist in students table
 $allowedFields = ['student_id','student_id_card','number_in_class','class_name','house','room_id','grade_level','grade_level_id','faculty','photo','prefix','first_name_th','last_name_th','is_active','enrollment_status','full_name_th','first_name_en','last_name_en','nickname','email','gender','birth_sex','id_card','ethnicity','nationality','religion','birth_date','child_order','phone','line_id','facebook','instagram','address_status','reg_house_no','reg_soi','reg_road','reg_moo','reg_village','reg_subdistrict','reg_district','reg_province','reg_zipcode','curr_house_no','curr_soi','curr_road','curr_moo','curr_village','curr_subdistrict','curr_district','curr_province','curr_zipcode','location_coords','location_landmark','village_headman','subdistrict_headman','house_type','house_style','house_condition','house_cleanliness','has_electricity','has_water','has_toilet','dist_to_school','travel_time','travel_method','f_prefix','f_first_name','f_last_name','f_age','f_phone','f_education','f_job','f_workplace','f_family_status','f_welfare','f_income','m_prefix','m_first_name','m_last_name','m_age','m_phone','m_education','m_job','m_workplace','m_family_status','m_welfare','m_income','family_status','guardian_relation','g_prefix','g_first_name','g_last_name','g_age','g_phone','g_education','g_job','g_workplace','g_income','total_family_members','male_members','female_members','full_siblings','full_siblings_male','full_siblings_female','half_siblings','half_siblings_male','half_siblings_female','family_relationship','rel_father','rel_mother','rel_brothers','rel_sisters','rel_grandparents','rel_relatives','time_spent_together','allowance_source','allowance_per_day','responsibilities','caregiver_when_away','part_time_job','part_time_income','weight','height','blood_group','food_allergies','drug_allergies','congenital_disease','covid_vaccine','internet_access','social_media_usage','talents','interests','hobbies'];
 

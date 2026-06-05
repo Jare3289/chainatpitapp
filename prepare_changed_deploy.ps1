@@ -2,17 +2,23 @@
 # Creates a ZIP package containing only the files modified today, preserving directory structure.
 
 $ChangedFiles = @(
-    "admin_students.html",
-    "views\admin_students.html",
-    "views\student_profile.html",
+    "api\admin\organize_students.php",
+    "api\admin\update_student.php",
+    "api\admin\upload-students.php",
     "api\notifications.php",
+    "api\me.php",
     "api\public_relations.php",
-    "api\teacher\supervision_book.php",
-    "api\admin\supervision_admin.php",
-    "api\teacher\supervision_upload_docs.php",
-    "api\teacher\supervision_evaluate.php",
-    "api\teacher\supervision_post_teach.php",
-    "api\teacher\supervision_cancel.php"
+    "public\js\main.js",
+    "views\attendance_daily.html",
+    "views\attendance_subject.html",
+    "views\teacher_profile.html",
+    "views\public_relations.html",
+    ".htaccess"
+)
+
+# Folders to copy entirely (all contents)
+$ChangedFolders = @(
+    "public\uploads\pr_images"
 )
 
 $DistDir = ".\changed_dist"
@@ -48,7 +54,26 @@ foreach ($file in $ChangedFiles) {
     }
 }
 
-# 3. Compress folder to ZIP using tar.exe
+# 3. Copy entire folders (preserve structure)
+Write-Host "Copying folders..." -ForegroundColor Yellow
+foreach ($folder in $ChangedFolders) {
+    if (Test-Path $folder) {
+        $destFolder = Join-Path $DistDir $folder
+        if (!(Test-Path $destFolder)) {
+            New-Item -ItemType Directory -Force -Path $destFolder | Out-Null
+        }
+        Copy-Item -Recurse -Force "$folder\*" $destFolder
+        Write-Host "  [+] $folder\" -ForegroundColor Gray
+    } else {
+        Write-Host "  [!] Warning: Folder $folder not found, creating empty placeholder..." -ForegroundColor Yellow
+        $destFolder = Join-Path $DistDir $folder
+        New-Item -ItemType Directory -Force -Path $destFolder | Out-Null
+        # Create a .gitkeep so the folder exists in ZIP
+        New-Item -ItemType File -Force -Path (Join-Path $destFolder ".gitkeep") | Out-Null
+    }
+}
+
+# 4. Compress folder to ZIP using tar.exe
 Write-Host "Compressing patch folder to ZIP package..." -ForegroundColor Yellow
 tar.exe -a -c -f $ZipPath -C $DistDir .
 
@@ -62,3 +87,7 @@ if (Test-Path $ZipPath) {
     Write-Host "Size: $(( (Get-Item $ZipPath).Length / 1KB ).ToString('0.00')) KB" -ForegroundColor Green
 }
 Write-Host "========================================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "Files included in this patch:" -ForegroundColor Cyan
+foreach ($f in $ChangedFiles) { Write-Host "  - $f" -ForegroundColor White }
+foreach ($f in $ChangedFolders) { Write-Host "  - $f\ (folder)" -ForegroundColor White }

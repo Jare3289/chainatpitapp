@@ -465,7 +465,13 @@
                         <td class="text-center fw-bold text-muted">${s.number_in_class || idx + 1}</td>
                         <td class="small text-muted hide-mobile">${s.student_id}</td>
                         <td class="hide-mobile">${s.prefix || ''}</td>
-                        <td><span class="fw-bold text-navy">${s.first_name_th || '-'}</span></td>
+                        <td>
+                            <span class="fw-bold text-navy">
+                                <span class="d-inline d-md-none fw-normal text-muted">${s.prefix || ''}</span>
+                                <span>${s.first_name_th || '-'}</span>
+                                <span class="d-inline d-md-none fw-normal text-muted"> ${s.last_name_th || ''}</span>
+                            </span>
+                        </td>
                         <td class="hide-mobile">${s.last_name_th || ''}</td>
                         <td class="font-medium small text-center hide-mobile">${s.nickname || '-'}</td>
                         <td><div class="d-flex gap-2 gap-2-mobile justify-content-center">${btns}</div></td>

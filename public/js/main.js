@@ -306,110 +306,118 @@ function renderSidebar(role, user, settings = {}) {
 
     // Static items for all logged-in staff
     const homeUrl = (role === 'admin') ? 'admin_dashboard.html' : (role === 'teacher') ? 'teacher_dashboard.html' : 'student_dashboard.html';
+    const isProfileLocked = (role === 'student' || role === 'teacher') && user.is_profile_complete === false;
 
-    if (role === 'admin' || role === 'teacher') {
-        html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
-        html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
-        html += _navItem('public_relations.html', 'bi bi-megaphone-fill text-warning', 'ประชาสัมพันธ์', a('public_relations.html'));
-        const attendanceItems = [
-            { href: 'attendance_daily.html', icon: 'bi bi-calendar-check', label: 'เช็คชื่อรายวัน', active: a('attendance_daily.html') },
-            { href: 'attendance_subject.html', icon: 'bi bi-qr-code-scan', label: 'เช็คชื่อรายวิชา', active: a('attendance_subject.html') }
-        ];
-
-        if (role === 'teacher') {
-            attendanceItems.push({ href: 'attendance_report.html', icon: 'bi bi-file-earmark-bar-graph text-primary', label: 'รายงานห้องตนเอง', active: a('attendance_report.html') });
-            attendanceItems.push({ href: 'advisory_period_report.html', icon: 'bi bi-grid-3x3-gap-fill text-warning', label: 'เข้าเรียนห้องเรา', active: a('advisory_period_report.html') });
-        }
-
-        if (role === 'admin') {
-            attendanceItems.push(
-                { href: 'today_overview.html', icon: 'bi bi-laptop text-info', label: 'ภาพรวมวันนี้', active: a('today_overview.html') },
-                { href: 'attendance_report.html', icon: 'bi bi-grid-3x3-gap-fill text-primary', label: 'รายงานรายห้อง', active: a('attendance_report.html') || a('admin_room_report.html') },
-                { href: 'monthly_stats.html', icon: 'bi bi-bar-chart-fill text-success', label: 'สถิติรายเดือน', active: a('monthly_stats.html') },
-                { href: 'at_risk_students.html', icon: 'bi bi-exclamation-triangle-fill text-danger', label: 'นักเรียนกลุ่มเสี่ยง', active: a('at_risk_students.html') },
-                { href: 'admin_executive.html', icon: 'bi bi-bar-chart-line-fill text-primary', label: 'ภาพรวมผู้บริหาร', active: a('admin_executive.html') }
-            );
-        }
-
-        const isAttendanceActive = ['attendance_daily.html', 'attendance_subject.html', 'attendance_report.html', 'advisory_period_report.html', 'today_overview.html', 'admin_room_report.html', 'monthly_stats.html', 'at_risk_students.html', 'admin_executive.html'].some(x => a(x));
-        html += _navGroup('bi bi-calendar-check-fill', 'เช็คชื่อ', attendanceItems, isAttendanceActive);
-
-        const creditItems = [
-            { href: 'credit_score_manage.html', icon: 'bi bi-person-plus-fill', label: 'เพิ่ม/ลบ คะแนน', active: a('credit_score_manage.html') },
-            { href: 'credit_score_history.html', icon: 'bi bi-clock-history', label: 'ประวัติการให้คะแนน', active: a('credit_score_history.html') },
-            { href: 'credit_score_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสรุปคะแนน', active: a('credit_score_report.html') }
-        ];
-        if (role === 'admin') {
-            creditItems.push({ href: 'credit_score_settings.html', icon: 'bi bi-gear-fill', label: 'ตั้งค่าระบบคะแนน', active: a('credit_score_settings.html') });
-        }
-        html += _navGroup('bi bi-star-fill text-warning', 'ตัดเติมแต้ม', creditItems, creditItems.some(x => x.active));
-
-        if (role === 'admin') {
-            html += _navGroup('bi bi-database-fill-gear', 'จัดการข้อมูลพื้นฐาน', [
-                { href: 'admin_classes.html', icon: 'bi bi-filter-square', label: 'ข้อมูลชั้นเรียน', active: a('admin_classes.html') },
-                { href: 'admin_subjects.html', icon: 'bi bi-book', label: 'ข้อมูลวิชา', active: a('admin_subjects.html') },
-                { href: 'admin_departments.html', icon: 'bi bi-building', label: 'ข้อมูลกลุ่มสาระฯ', active: a('admin_departments.html') },
-                { href: 'admin_teachers.html', icon: 'bi bi-person-video3', label: 'ข้อมูลครู', active: a('admin_teachers.html') },
-                { href: 'admin_students.html', icon: 'bi bi-people', label: 'ข้อมูลนักเรียน', active: a('admin_students.html') }
-            ], ['admin_classes.html', 'admin_subjects.html', 'admin_departments.html', 'admin_teachers.html', 'admin_students.html'].some(x => a(x)));
-
-            html += _navGroup('bi bi-tools', 'ตั้งค่าระบบ', [
-                { href: 'admin_settings.html', icon: 'bi bi-gear', label: 'ตั้งค่าทั่วไป', active: a('admin_settings.html') },
-                { href: 'admin_sysadmins.html', icon: 'bi bi-shield-lock', label: 'ผู้ดูแลระบบ', active: a('admin_sysadmins.html') }
-            ], a('admin_settings.html') || a('admin_sysadmins.html'));
-            html += _navGroup('bi bi-table text-info', 'ตารางสอน', [
-                { href: 'timetable.html',       icon: 'bi bi-calendar-week',   label: 'ดูตารางสอน',        active: a('timetable.html') },
-                { href: 'admin_timetable.html', icon: 'bi bi-pencil-square',   label: 'จัดการตารางสอน',   active: a('admin_timetable.html') }
-            ], a('timetable.html') || a('admin_timetable.html'));
-        }
-        if (role === 'teacher') {
-            html += _navItem('timetable.html', 'bi bi-table text-info', 'ตารางสอน', a('timetable.html'));
-            html += _navItem('admin_students.html', 'bi bi-people-fill', 'นักเรียนที่ปรึกษา', a('admin_students.html'));
-        }
-        html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
-        if (role === 'admin') {
-            html += _navItem('supervision.html', 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a('supervision.html'));
-        } else if (role === 'teacher') {
-            const supervisionItems = [
-                { href: 'teacher_supervision.html', icon: 'bi bi-house-door', label: 'ภาพรวมนิเทศ', active: a('teacher_supervision.html') },
-                { href: 'supervision_booking.html', icon: 'bi bi-calendar-check', label: 'จองคิวนิเทศ', active: a('supervision_booking.html') },
-                { href: 'supervision_docs.html', icon: 'bi bi-file-earmark-pdf', label: 'เอกสารนิเทศ', active: a('supervision_docs.html') },
-                { href: 'supervision_evaluate.html', icon: 'bi bi-star', label: 'การประเมินผล', active: a('supervision_evaluate.html') },
-                { href: 'supervision_post_teach.html', icon: 'bi bi-pencil-square', label: 'บันทึกหลังแผน', active: a('supervision_post_teach.html') },
-                { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
+    if (isProfileLocked) {
+        const profileUrl = role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html';
+        html += `<li class="nav-header text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> บังคับอัปเดตข้อมูล</li>`;
+        html += _navItem(profileUrl, 'bi bi-person-circle text-warning', 'โปรไฟล์ส่วนตัว (บังคับ)', true);
+        html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
+    } else {
+        if (role === 'admin' || role === 'teacher') {
+            html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
+            html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
+            html += _navItem('public_relations.html', 'bi bi-megaphone-fill text-warning', 'ประชาสัมพันธ์', a('public_relations.html'));
+            const attendanceItems = [
+                { href: 'attendance_daily.html', icon: 'bi bi-calendar-check', label: 'เช็คชื่อรายวัน', active: a('attendance_daily.html') },
+                { href: 'attendance_subject.html', icon: 'bi bi-qr-code-scan', label: 'เช็คชื่อรายวิชา', active: a('attendance_subject.html') }
             ];
-            const isSupervisionActive = ['teacher_supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html'].some(x => a(x));
-            html += _navGroup('bi bi-person-video3 text-primary', 'นิเทศการสอน', supervisionItems, isSupervisionActive);
+
+            if (role === 'teacher') {
+                attendanceItems.push({ href: 'attendance_report.html', icon: 'bi bi-file-earmark-bar-graph text-primary', label: 'รายงานห้องตนเอง', active: a('attendance_report.html') });
+                attendanceItems.push({ href: 'advisory_period_report.html', icon: 'bi bi-grid-3x3-gap-fill text-warning', label: 'เข้าเรียนห้องเรา', active: a('advisory_period_report.html') });
+            }
+
+            if (role === 'admin') {
+                attendanceItems.push(
+                    { href: 'today_overview.html', icon: 'bi bi-laptop text-info', label: 'ภาพรวมวันนี้', active: a('today_overview.html') },
+                    { href: 'attendance_report.html', icon: 'bi bi-grid-3x3-gap-fill text-primary', label: 'รายงานรายห้อง', active: a('attendance_report.html') || a('admin_room_report.html') },
+                    { href: 'monthly_stats.html', icon: 'bi bi-bar-chart-fill text-success', label: 'สถิติรายเดือน', active: a('monthly_stats.html') },
+                    { href: 'at_risk_students.html', icon: 'bi bi-exclamation-triangle-fill text-danger', label: 'นักเรียนกลุ่มเสี่ยง', active: a('at_risk_students.html') },
+                    { href: 'admin_executive.html', icon: 'bi bi-bar-chart-line-fill text-primary', label: 'ภาพรวมผู้บริหาร', active: a('admin_executive.html') }
+                );
+            }
+
+            const isAttendanceActive = ['attendance_daily.html', 'attendance_subject.html', 'attendance_report.html', 'advisory_period_report.html', 'today_overview.html', 'admin_room_report.html', 'monthly_stats.html', 'at_risk_students.html', 'admin_executive.html'].some(x => a(x));
+            html += _navGroup('bi bi-calendar-check-fill', 'เช็คชื่อ', attendanceItems, isAttendanceActive);
+
+            const creditItems = [
+                { href: 'credit_score_manage.html', icon: 'bi bi-person-plus-fill', label: 'เพิ่ม/ลบ คะแนน', active: a('credit_score_manage.html') },
+                { href: 'credit_score_history.html', icon: 'bi bi-clock-history', label: 'ประวัติการให้คะแนน', active: a('credit_score_history.html') },
+                { href: 'credit_score_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสรุปคะแนน', active: a('credit_score_report.html') }
+            ];
+            if (role === 'admin') {
+                creditItems.push({ href: 'credit_score_settings.html', icon: 'bi bi-gear-fill', label: 'ตั้งค่าระบบคะแนน', active: a('credit_score_settings.html') });
+            }
+            html += _navGroup('bi bi-star-fill text-warning', 'ตัดเติมแต้ม', creditItems, creditItems.some(x => x.active));
+
+            if (role === 'admin') {
+                html += _navGroup('bi bi-database-fill-gear', 'จัดการข้อมูลพื้นฐาน', [
+                    { href: 'admin_classes.html', icon: 'bi bi-filter-square', label: 'ข้อมูลชั้นเรียน', active: a('admin_classes.html') },
+                    { href: 'admin_subjects.html', icon: 'bi bi-book', label: 'ข้อมูลวิชา', active: a('admin_subjects.html') },
+                    { href: 'admin_departments.html', icon: 'bi bi-building', label: 'ข้อมูลกลุ่มสาระฯ', active: a('admin_departments.html') },
+                    { href: 'admin_teachers.html', icon: 'bi bi-person-video3', label: 'ข้อมูลครู', active: a('admin_teachers.html') },
+                    { href: 'admin_students.html', icon: 'bi bi-people', label: 'ข้อมูลนักเรียน', active: a('admin_students.html') }
+                ], ['admin_classes.html', 'admin_subjects.html', 'admin_departments.html', 'admin_teachers.html', 'admin_students.html'].some(x => a(x)));
+
+                html += _navGroup('bi bi-tools', 'ตั้งค่าระบบ', [
+                    { href: 'admin_settings.html', icon: 'bi bi-gear', label: 'ตั้งค่าทั่วไป', active: a('admin_settings.html') },
+                    { href: 'admin_sysadmins.html', icon: 'bi bi-shield-lock', label: 'ผู้ดูแลระบบ', active: a('admin_sysadmins.html') }
+                ], a('admin_settings.html') || a('admin_sysadmins.html'));
+                html += _navGroup('bi bi-table text-info', 'ตารางสอน', [
+                    { href: 'timetable.html',       icon: 'bi bi-calendar-week',   label: 'ดูตารางสอน',        active: a('timetable.html') },
+                    { href: 'admin_timetable.html', icon: 'bi bi-pencil-square',   label: 'จัดการตารางสอน',   active: a('admin_timetable.html') }
+                ], a('timetable.html') || a('admin_timetable.html'));
+            }
+            if (role === 'teacher') {
+                html += _navItem('timetable.html', 'bi bi-table text-info', 'ตารางสอน', a('timetable.html'));
+                html += _navItem('admin_students.html', 'bi bi-people-fill', 'นักเรียนที่ปรึกษา', a('admin_students.html'));
+            }
+            html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
+            if (role === 'admin') {
+                html += _navItem('supervision.html', 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a('supervision.html'));
+            } else if (role === 'teacher') {
+                const supervisionItems = [
+                    { href: 'teacher_supervision.html', icon: 'bi bi-house-door', label: 'ภาพรวมนิเทศ', active: a('teacher_supervision.html') },
+                    { href: 'supervision_booking.html', icon: 'bi bi-calendar-check', label: 'จองคิวนิเทศ', active: a('supervision_booking.html') },
+                    { href: 'supervision_docs.html', icon: 'bi bi-file-earmark-pdf', label: 'เอกสารนิเทศ', active: a('supervision_docs.html') },
+                    { href: 'supervision_evaluate.html', icon: 'bi bi-star', label: 'การประเมินผล', active: a('supervision_evaluate.html') },
+                    { href: 'supervision_post_teach.html', icon: 'bi bi-pencil-square', label: 'บันทึกหลังแผน', active: a('supervision_post_teach.html') },
+                    { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
+                ];
+                const isSupervisionActive = ['teacher_supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html'].some(x => a(x));
+                html += _navGroup('bi bi-person-video3 text-primary', 'นิเทศการสอน', supervisionItems, isSupervisionActive);
+            }
+
+            const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
+            let psItems = [];
+            if (role === 'admin') {
+                psItems.push({ href: 'admin_public_service.html', icon: 'bi bi-activity', label: 'ภาพรวมกิจกรรม', active: a('admin_public_service.html') });
+                psItems.push({ href: 'admin_public_service_stats.html', icon: 'bi bi-bar-chart-line', label: 'รายงานและสถิติ', active: a('admin_public_service_stats.html') });
+            }
+            if (role === 'teacher') {
+                psItems.push({ href: 'teacher_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('teacher_public_service.html') });
+                psItems.push({ href: 'teacher_public_service_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสาธา', active: a('teacher_public_service_report.html') });
+            }
+            html += _navGroup('bi bi-heart-fill text-danger', 'สาธารณประโยชน์', psItems, isPublicServiceActive);
         }
 
-        const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
-        let psItems = [];
-        if (role === 'admin') {
-            psItems.push({ href: 'admin_public_service.html', icon: 'bi bi-activity', label: 'ภาพรวมกิจกรรม', active: a('admin_public_service.html') });
-            psItems.push({ href: 'admin_public_service_stats.html', icon: 'bi bi-bar-chart-line', label: 'รายงานและสถิติ', active: a('admin_public_service_stats.html') });
+        if (role === 'student') {
+            html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
+            html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
+            html += _navItem('public_relations.html', 'bi bi-megaphone-fill text-warning', 'ประชาสัมพันธ์', a('public_relations.html'));
+            html += _navItem('student_attendance_history.html', 'bi bi-calendar-check', 'ประวัติการมาเรียน', a('student_attendance_history.html'));
+            html += _navItem('student_credit_history.html', 'bi bi-star', 'คะแนนความประพฤติ', a('student_credit_history.html'));
+            html += _navItem('student_public_service.html', 'bi bi-heart-fill text-danger', 'สาธารณประโยชน์', a('student_public_service.html'));
+            html += _navItem('timetable.html', 'bi bi-table text-info', 'ตารางสอน', a('timetable.html'));
+            html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
         }
-        if (role === 'teacher') {
-            psItems.push({ href: 'teacher_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('teacher_public_service.html') });
-            psItems.push({ href: 'teacher_public_service_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสาธา', active: a('teacher_public_service_report.html') });
-        }
-        html += _navGroup('bi bi-heart-fill text-danger', 'สาธารณประโยชน์', psItems, isPublicServiceActive);
+
+        html += `<li class="nav-header mt-4">บัญชีผู้ใช้</li>`;
+        let profileUrl = role === 'admin' ? 'admin_profile.html' : role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html';
+        html += _navItem(profileUrl, 'bi bi-person-circle', 'โปรไฟล์ส่วนตัว', a(profileUrl));
+        html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
     }
-
-    if (role === 'student') {
-        html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
-        html += _navItem('javascript:showNotificationsModal()', 'bi bi-bell-fill', 'การแจ้งเตือน', false, '<span class="badge bg-danger rounded-pill ms-auto" id="sidebar-noti-badge" style="display:none; font-size: 0.7rem; padding: 0.35em 0.6em;">0</span>');
-        html += _navItem('public_relations.html', 'bi bi-megaphone-fill text-warning', 'ประชาสัมพันธ์', a('public_relations.html'));
-        html += _navItem('student_attendance_history.html', 'bi bi-calendar-check', 'ประวัติการมาเรียน', a('student_attendance_history.html'));
-        html += _navItem('student_credit_history.html', 'bi bi-star', 'คะแนนความประพฤติ', a('student_credit_history.html'));
-        html += _navItem('student_public_service.html', 'bi bi-heart-fill text-danger', 'สาธารณประโยชน์', a('student_public_service.html'));
-        html += _navItem('timetable.html', 'bi bi-table text-info', 'ตารางสอน', a('timetable.html'));
-        html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
-    }
-
-    html += `<li class="nav-header mt-4">บัญชีผู้ใช้</li>`;
-    let profileUrl = role === 'admin' ? 'admin_profile.html' : role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html';
-    html += _navItem(profileUrl, 'bi bi-person-circle', 'โปรไฟล์ส่วนตัว', a(profileUrl));
-    html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
     html += `</ul></nav></div>`;
     sidebar.innerHTML = html;
 }
@@ -516,6 +524,57 @@ async function checkAuth(expectedRole) {
                         icon: 'info',
                         title: 'คำแนะนำการบันทึกข้อมูล',
                         text: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น) จากนั้นกดปุ่ม "บันทึกข้อมูล" ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานส่วนอื่น ๆ ของระบบ',
+                        confirmButtonText: 'รับทราบ'
+                    });
+                }
+            }
+        } else if (data.user.role === 'teacher' && !data.user.is_profile_complete) {
+            const currentPage = window.location.pathname.split('/').pop() || 'teacher_dashboard.html';
+            if (currentPage !== 'teacher_profile.html') {
+                if (typeof Swal === 'undefined') {
+                    await new Promise((resolve) => {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css';
+                        document.head.appendChild(link);
+
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+                        script.onload = () => resolve();
+                        document.body.appendChild(script);
+                    });
+                }
+                
+                await Swal.fire({
+                    icon: 'warning',
+                    title: '⚠️ เข้าสู่ช่วงนิเทศการสอน: กรุณาอัปเดตข้อมูลส่วนตัว',
+                    text: 'เนื่องจากระบบกำลังจะเข้าสู่ช่วงนิเทศการสอน ขอความกรุณาคุณครูทุกท่านตรวจสอบและอัปเดตข้อมูลประวัติและช่องทางติดต่อให้ครบถ้วนทุกช่องก่อน จึงจะสามารถเข้าใช้งานระบบส่วนอื่นได้ (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น)',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    confirmButtonText: 'ไปหน้าแก้ไขโปรไฟล์เพื่ออัปเดตข้อมูล'
+                });
+                window.location.href = 'teacher_profile.html';
+                return null;
+            } else {
+                if (!sessionStorage.getItem('cnp_teacher_profile_tip_shown')) {
+                    sessionStorage.setItem('cnp_teacher_profile_tip_shown', '1');
+                    if (typeof Swal === 'undefined') {
+                        await new Promise((resolve) => {
+                            const link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = 'https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css';
+                            document.head.appendChild(link);
+
+                            const script = document.createElement('script');
+                            script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+                            script.onload = () => resolve();
+                            document.body.appendChild(script);
+                        });
+                    }
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'คำแนะนำการบันทึกข้อมูล',
+                        text: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น) จากนั้นกดปุ่ม "บันทึกและอัปเดตข้อมูล" ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานส่วนอื่น ๆ ของระบบ',
                         confirmButtonText: 'รับทราบ'
                     });
                 }

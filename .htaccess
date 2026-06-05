@@ -27,3 +27,13 @@
     php_value max_execution_time 600
     php_value max_input_time 600
 </IfModule>
+
+# Disable caching for JS and CSS files to prevent old cached scripts/styles from being loaded
+<FilesMatch "\.(js|css)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+    </IfModule>
+</FilesMatch>
+

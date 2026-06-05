@@ -608,7 +608,9 @@
                         <td class="text-dark hide-mobile">${s.prefix || ''}</td>
                         <td>
                             <a href="javascript:void(0)" onclick="viewHistory(${s.id})" class="text-decoration-none fw-bold text-navy hover-link">
-                                ${firstName}
+                                <span class="d-inline d-md-none fw-normal text-muted">${s.prefix || ''}</span>
+                                <span>${firstName}</span>
+                                <span class="d-inline d-md-none fw-normal text-muted"> ${lastName}</span>
                             </a>
                         </td>
                         <td class="text-dark hide-mobile">${lastName}</td>
