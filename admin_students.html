@@ -10,12 +10,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="../public/css/fonts.css">
     <link rel="stylesheet" href="../public/css/style.css">
     <!-- Leaflet Map CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
+        @media print { body, * { font-family: 'TH Sarabun PSK', 'Sarabun', sans-serif !important; font-size: 14pt !important; } }
         body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
         .text-navy { color: #1e3a8a !important; }
         .bg-navy { background-color: #1e3a8a !important; }
@@ -228,12 +230,109 @@
         /* Animation */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+        /* Page Tabs */
+        .nav-page-tabs { list-style:none; padding:0; margin:0 0 1.5rem 0; display:flex; gap:0; border-bottom:2px solid #e2e8f0; }
+        .nav-page-tabs li button {
+            background:transparent; border:none; padding:14px 28px;
+            color:#64748b; font-weight:700; cursor:pointer;
+            border-bottom:3px solid transparent; margin-bottom:-2px;
+            transition:.2s; font-size:.92rem; border-radius:0;
+            display:inline-flex; align-items:center; gap:8px;
+        }
+        .nav-page-tabs li button:hover:not(.active) { color:#1e293b; background:#f8fafc; }
+        .nav-page-tabs li button.active { color:#1e3a8a; border-bottom-color:#1e3a8a; }
+
+        /* Count Summary - Official School Style */
+        .cs-wrap { background:#fff; border-radius:1.5rem; padding:2rem 2rem 1.5rem; box-shadow:0 2px 12px rgba(0,0,0,.04); border:1px solid #f1f5f9; }
+        .cs-header { text-align:center; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:2px solid #e2e8f0; }
+        .cs-header h5 { color:#1e3a8a; font-weight:800; margin:0; font-size:1.1rem; letter-spacing:-.3px; }
+        .cs-header small { color:#64748b; font-weight:500; font-size:.82rem; }
+        .cs-card { background:#fff; border:1.5px solid #cbd5e1; border-radius:6px; overflow:hidden; height:100%; }
+        .cs-card-title { background:linear-gradient(135deg,#1e3a8a,#2563eb); color:#fff; font-weight:800; text-align:center; padding:8px 4px; font-size:.85rem; letter-spacing:.3px; }
+        .cs-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+        .cs-table th, .cs-table td { border:1px solid #cbd5e1; padding:5px 4px; text-align:center; }
+        .cs-table thead th { background:#f1f5f9; color:#1e293b; font-weight:700; font-size:.74rem; text-transform:uppercase; letter-spacing:.5px; padding:7px 4px; }
+        .cs-table tbody td:first-child { font-weight:700; color:#1e3a8a; font-family:'Google Sans',sans-serif; }
+        .cs-table tbody tr:nth-child(odd) { background:#fafbfc; }
+        .cs-table tbody tr:hover { background:#eff6ff; }
+        .cs-table tfoot th { background:#fffbeb; color:#92400e; font-weight:800; font-size:.8rem; padding:7px 4px; }
+        .cs-summary { width:100%; border-collapse:collapse; font-size:.9rem; }
+        .cs-summary thead th { background:#1e3a8a; color:#fff; padding:12px 16px; font-weight:700; border:none; }
+        .cs-summary thead th:not(:first-child) { text-align:center; }
+        .cs-summary td { border:1px solid #cbd5e1; padding:10px 16px; font-weight:600; }
+        .cs-summary td:not(:first-child) { text-align:center; }
+        .cs-summary tr.cs-grand td { background:#fef3c7; font-weight:800; color:#1e3a8a; font-size:.95rem; }
+        .cs-footer { text-align:right; color:#94a3b8; font-size:.78rem; margin-top:1rem; padding-top:.5rem; border-top:1px solid #f1f5f9; font-style:italic; }
         
         /* Floating labels enhancement */
         .form-floating > .form-control:focus ~ label,
         .form-floating > .form-control:not(:placeholder-shown) ~ label {
             color: #1e3a8a;
             font-weight: 700;
+        }
+
+        /* Skeleton Loading styles */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton-row td {
+            padding: 1.2rem 0.75rem !important;
+            vertical-align: middle;
+        }
+        .skeleton-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        .skeleton-text {
+            height: 15px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            width: 80%;
+        }
+        .skeleton-text.short {
+            width: 45%;
+        }
+        .skeleton-text.medium {
+            width: 65%;
+        }
+        .skeleton-text.action {
+            width: 90px;
+            height: 28px;
+            border-radius: 6px;
+        }
+        .skeleton-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #f1f5f9;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .skeleton-card-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            margin-bottom: 12px;
+        }
+        .skeleton-card-body {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
     </style>
 </head>
@@ -261,6 +360,7 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2">
                                     <li><a class="dropdown-item rounded-3 py-2 fw-bold" href="#" onclick="openImport()"><i class="bi bi-cloud-arrow-up me-2 text-success"></i>นำเข้า Excel</a></li>
+                                    <li><a class="dropdown-item rounded-3 py-2 fw-bold text-warning" href="#" onclick="openUpdateClassNumbers()"><i class="bi bi-123 me-2"></i>อัปเดตเลขที่นักเรียน</a></li>
                                     <li><a class="dropdown-item rounded-3 py-2 fw-bold" href="#" onclick="syncStudentPhotos()"><i class="bi bi-images me-2 text-primary"></i>ซิงค์รูปภาพนักเรียน</a></li>
                                     <li><a class="dropdown-item rounded-3 py-2 fw-bold text-danger" href="#" onclick="standardizeData()"><i class="bi bi-magic me-2"></i>จัดระเบียบข้อมูลใหม่</a></li>
                                 </ul>
@@ -270,44 +370,78 @@
                     </div>
 
                     <!-- Statistics Dashboard -->
-                    <div class="row g-4 mb-5" id="stats-dashboard">
+                    <div class="row g-3 mb-4" id="stats-dashboard">
                         <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="stat-card animate-fade-in">
-                                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people-fill"></i></div>
-                                <div class="stat-label text-muted small fw-bold">นักเรียนทั้งหมด</div>
-                                <div class="stat-value fs-2 fw-black text-navy" id="stat-total">0</div>
-                                <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-primary" style="width: 100%"></div></div>
+                            <div class="stat-card animate-fade-in p-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="stat-label text-muted small fw-bold mb-1">นักเรียนทั้งหมด</div>
+                                        <div class="stat-value fs-3 fw-black text-navy" id="stat-total">0</div>
+                                    </div>
+                                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-0" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;"><i class="bi bi-people-fill"></i></div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="stat-card animate-fade-in" style="animation-delay: 0.1s;">
-                                <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-gender-male"></i></div>
-                                <div class="stat-label text-muted small fw-bold">ชาย (นาย / ด.ช.)</div>
-                                <div class="stat-value fs-2 fw-black text-navy" id="stat-male">0</div>
-                                <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-info" style="width: 45%"></div></div>
+                            <div class="stat-card animate-fade-in p-3" style="animation-delay: 0.1s;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="stat-label text-muted small fw-bold mb-1">นักเรียนชาย</div>
+                                        <div class="stat-value fs-3 fw-black text-navy" id="stat-male">0</div>
+                                    </div>
+                                    <div class="stat-icon bg-info bg-opacity-10 text-info mb-0" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;"><i class="bi bi-gender-male"></i></div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="stat-card animate-fade-in" style="animation-delay: 0.2s;">
-                                <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-gender-female"></i></div>
-                                <div class="stat-label text-muted small fw-bold">หญิง (น.ส. / ด.ญ.)</div>
-                                <div class="stat-value fs-2 fw-black text-navy" id="stat-female">0</div>
-                                <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-danger" style="width: 55%"></div></div>
+                            <div class="stat-card animate-fade-in p-3" style="animation-delay: 0.2s;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="stat-label text-muted small fw-bold mb-1">นักเรียนหญิง</div>
+                                        <div class="stat-value fs-3 fw-black text-navy" id="stat-female">0</div>
+                                    </div>
+                                    <div class="stat-icon bg-danger bg-opacity-10 text-danger mb-0" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;"><i class="bi bi-gender-female"></i></div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-xl-3">
-                            <div class="stat-card animate-fade-in" style="animation-delay: 0.3s;">
-                                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-house-door-fill"></i></div>
-                                <div class="stat-label text-muted small fw-bold">ระดับชั้น / ห้องเรียน</div>
-                                <div class="stat-value fs-2 fw-black text-navy" id="stat-rooms">0</div>
-                                <div class="progress mt-3" style="height: 4px;"><div class="progress-bar bg-warning" style="width: 70%"></div></div>
+                            <div class="stat-card animate-fade-in p-3" style="animation-delay: 0.3s;">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="stat-label text-muted small fw-bold mb-1">ระดับชั้น / ห้องเรียน</div>
+                                        <div class="stat-value fs-3 fw-black text-navy" id="stat-rooms">0</div>
+                                    </div>
+                                    <div class="stat-icon bg-warning bg-opacity-10 text-warning mb-0" style="width: 44px; height: 44px; border-radius: 12px; font-size: 1.25rem; display: flex; align-items: center; justify-content: center;"><i class="bi bi-house-door-fill"></i></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Page Tabs -->
+                    <ul class="nav-page-tabs animate-fade-in" style="animation-delay: 0.35s;">
+                        <li>
+                            <button id="tab-list-btn" class="active" onclick="switchAdminTab('list')">
+                                <i class="bi bi-people-fill"></i>รายชื่อนักเรียน
+                            </button>
+                        </li>
+                        <li>
+                            <button id="tab-summary-btn" onclick="switchAdminTab('summary')">
+                                <i class="bi bi-clipboard-data-fill"></i>สรุปจำนวนนักเรียน
+                            </button>
+                        </li>
+                        <li>
+                            <button id="tab-map-btn" onclick="switchAdminTab('map')">
+                                <i class="bi bi-geo-alt-fill"></i>แผนที่พิกัดที่อยู่นักเรียน
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Pane: รายชื่อนักเรียน -->
+                    <div id="tab-list-pane">
+
                     <div class="filter-container mb-5 animate-fade-in" style="animation-delay: 0.4s;">
                         <div class="row g-4">
-                            <div class="col-12 col-xl-7">
+                            <div class="col-12 col-xl-7" id="search-input-col">
                                 <div class="input-group search-input-group mb-0">
                                     <span class="input-group-text bg-transparent border-0 pe-0"><i class="bi bi-search"></i></span>
                                     <select id="searchField" class="form-select border-0 fw-bold text-navy" style="max-width: 140px; cursor: pointer;" onchange="filterData()">
@@ -321,14 +455,14 @@
                                     <input type="text" id="searchInput" class="form-control border-0 ps-3" placeholder="ระบุข้อความที่ต้องการค้นหา..." onkeyup="filterData()">
                                 </div>
                             </div>
-                            <div class="col-12 col-xl-5">
+                            <div class="col-12 col-xl-5" id="reset-btn-col">
                                 <button class="btn btn-light border rounded-pill px-4 fw-bold w-100 h-100" style="height: 52px !important;" onclick="resetFilters()">
                                     <i class="bi bi-arrow-counterclockwise me-2"></i>ล้างการกรองทั้งหมด
                                 </button>
                             </div>
                         </div>
 
-                        <div class="row mt-4">
+                        <div class="row mt-4" id="filter-row-chips">
                             <div class="col-12 col-md-6">
                                 <div class="filter-label">ระดับชั้น</div>
                                 <div id="grade-chips" class="filter-chip-group"></div>
@@ -375,17 +509,167 @@
                                         <th class="text-center">สังกัดคณะสี</th>
                                         <th class="text-center">อายุ</th>
                                         <th class="text-center" style="width: 150px;">ความสมบูรณ์</th>
+                                        <th class="text-center" style="width: 120px;">สถานะ</th>
                                         <th class="text-end pe-4">จัดการข้อมูล</th>
                                     </tr>
                                 </thead>
-                                <tbody id="studentTableBody"></tbody>
+                                <tbody id="studentTableBody">
+                                    <tr class="skeleton-row">
+                                        <td class="text-center"><div class="skeleton-avatar mx-auto"></div></td>
+                                        <td><div class="skeleton-text fw-bold mb-1"></div><div class="skeleton-text short text-muted"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td><div class="skeleton-text short mb-1 mx-auto"></div><div class="skeleton-text mx-auto" style="width: 80px; height: 6px; border-radius: 3px; background: #e2e8f0;"></div></td>
+                                        <td class="text-end pe-4"><div class="skeleton-text action ms-auto"></div></td>
+                                    </tr>
+                                    <tr class="skeleton-row">
+                                        <td class="text-center"><div class="skeleton-avatar mx-auto"></div></td>
+                                        <td><div class="skeleton-text fw-bold mb-1"></div><div class="skeleton-text short text-muted"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td><div class="skeleton-text short mb-1 mx-auto"></div><div class="skeleton-text mx-auto" style="width: 80px; height: 6px; border-radius: 3px; background: #e2e8f0;"></div></td>
+                                        <td class="text-end pe-4"><div class="skeleton-text action ms-auto"></div></td>
+                                    </tr>
+                                    <tr class="skeleton-row">
+                                        <td class="text-center"><div class="skeleton-avatar mx-auto"></div></td>
+                                        <td><div class="skeleton-text fw-bold mb-1"></div><div class="skeleton-text short text-muted"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td class="text-center"><div class="skeleton-text short mx-auto"></div></td>
+                                        <td><div class="skeleton-text short mb-1 mx-auto"></div><div class="skeleton-text mx-auto" style="width: 80px; height: 6px; border-radius: 3px; background: #e2e8f0;"></div></td>
+                                        <td class="text-end pe-4"><div class="skeleton-text action ms-auto"></div></td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
+                        <!-- Pagination Container -->
+                        <div id="pagination-container" class="mt-4 px-2"></div>
                     </div>
 
                     <!-- Card View Container -->
-                    <div id="card-view" class="d-none pb-5 animate-fade-in"></div>
+                    <div id="card-view" class="d-none pb-5 animate-fade-in">
+                        <div class="student-grid">
+                            <div class="skeleton-card">
+                                <div class="skeleton-card-img"></div>
+                                <div class="skeleton-card-body">
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div class="skeleton-card">
+                                <div class="skeleton-card-img"></div>
+                                <div class="skeleton-card-body">
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text short"></div>
+                                </div>
+                            </div>
+                            <div class="skeleton-card">
+                                <div class="skeleton-card-img"></div>
+                                <div class="skeleton-card-body">
+                                    <div class="skeleton-text mb-2"></div>
+                                    <div class="skeleton-text short"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    </div><!-- /tab-list-pane -->
+
+                    <!-- Tab Pane: สรุปจำนวนนักเรียน -->
+                    <div id="tab-summary-pane" class="d-none animate-fade-in">
+                        <div class="cs-wrap" id="count-summary-content">
+                            <div class="text-center text-muted py-5">
+                                <div class="spinner-border spinner-border-sm me-2"></div>กำลังโหลด...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Pane: แผนที่พิกัดที่อยู่ของนักเรียน -->
+                    <div id="tab-map-pane" class="d-none animate-fade-in">
+                        <div class="card border shadow-sm p-4 bg-white rounded-4">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                                <div>
+                                    <h5 class="fw-bold text-navy mb-1"><i class="bi bi-geo-alt-fill text-danger me-2"></i>แผนที่พิกัดที่อยู่นักเรียน</h5>
+                                    <small class="text-muted">แสดงตำแหน่งบ้านของนักเรียนและช่วยวางแผนการเดินทางเริ่มต้นจากโรงเรียน</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="resetOverviewMap()">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>รีเซ็ตมุมมองแผนที่
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Split Map and Route Optimization Column -->
+                            <div class="row g-3 mb-3">
+                                <!-- Map container -->
+                                <div class="col-xl-8">
+                                    <div class="overflow-hidden rounded-4 border shadow-inner" style="height: 600px; position: relative;">
+                                        <div id="overview_map" style="width: 100%; height: 100%; z-index: 1;"></div>
+                                    </div>
+                                </div>
+                                <!-- Route optimization column -->
+                                <div class="col-xl-4">
+                                    <div class="card border shadow-sm h-100 rounded-4 bg-light p-3 mb-0" style="min-height: 600px; max-height: 600px; display: flex; flex-direction: column;">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="fw-bold text-navy mb-0"><i class="bi bi-compass-fill text-success me-2"></i>วางแผนการเยี่ยมบ้านประหยัดน้ำมัน</h6>
+                                            <span class="badge bg-success text-white rounded-pill px-2" id="route-active-badge" style="display: none; font-size: 0.7rem;">กำลังนำทาง</span>
+                                        </div>
+                                        
+                                        <p class="small text-secondary mb-3" style="font-size: 0.78rem; line-height: 1.4;">
+                                            คำนวณเส้นทางแบบวนรอบหาบ้านที่ใกล้ที่สุดตามลำดับ (Nearest Neighbor TSP) เริ่มต้นจากโรงเรียนเพื่อประหยัดเชื้อเพลิง
+                                        </p>
+                                        
+                                        <!-- Controls -->
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-navy btn-sm rounded-pill w-100 py-2 fw-bold shadow-sm" onclick="optimizeVisitRoute()">
+                                                <i class="bi bi-magic me-1"></i>คำนวณเส้นทางประหยัดพลังงาน
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill w-100 py-2 fw-bold mt-2" id="btn-clear-route" style="display: none;" onclick="clearVisitRoute()">
+                                                <i class="bi bi-trash3 me-1"></i>ล้างเส้นทางแนะนำ
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Route details list -->
+                                        <div class="flex-grow-1 overflow-auto rounded-3 bg-white p-2 border" id="route-list-container" style="font-size: 0.82rem; min-height: 250px;">
+                                            <div class="text-center text-muted py-5">
+                                                <i class="bi bi-geo-alt fs-2 d-block mb-2 text-secondary"></i>
+                                                กดปุ่มด้านบนเพื่อวางแผนเส้นทางเริ่มต้นจากโรงเรียนไปยังบ้านนักเรียนตามพิกัด
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Total Distance summary -->
+                                        <div class="mt-3 p-3 bg-navy text-white rounded-3 border-0" id="route-summary-box" style="display: none;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="fw-bold" style="font-size: 0.8rem;">ระยะทางรวมโดยประมาณ:</span>
+                                                <span class="fs-5 fw-black" id="route-total-distance">0.00 กม.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Map Stats & Info -->
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <div class="small text-muted fw-bold mb-1">นักเรียนที่มีพิกัดในระบบ</div>
+                                        <div class="fs-4 fw-black text-navy" id="map-stat-valid">0 / 0 คน</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <div class="small text-muted fw-bold mb-1">คำแนะนำ</div>
+                                        <div class="small text-secondary" style="font-size: 0.8rem; line-height: 1.4;">
+                                            - สามารถกดที่สัญลักษณ์หมุดบนแผนที่เพื่อดูข้อมูลชื่อ ชั้น/ห้อง และลิงก์ดูโปรไฟล์หรือนำทาง Google Maps ได้<br>
+                                            - ฟังก์ชันจัดเส้นทางจะช่วยเรียงลำดับการไปเยือนบ้านนักเรียนทีละจุด เพื่อประหยัดระยะทางขับขี่รวมและประหยัดน้ำมัน
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>
@@ -831,10 +1115,101 @@
                 type: 'student',
                 apiUrl: '../api/admin/upload-students.php',
                 templateBaseUrl: '../api/admin/download-template.php?type=student',
-                onSuccess: loadData
+                onSuccess: () => { loadData(); silentSyncStudentPhotos(); }
             });
         }
-        
+
+        function openUpdateClassNumbers() {
+            // Inject modal once
+            if (!document.getElementById('modal-update-classnum')) {
+                document.body.insertAdjacentHTML('beforeend', `
+                <div class="modal fade" id="modal-update-classnum" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                            <div class="modal-header border-0 p-4 pb-0">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-warning bg-opacity-10 rounded-3 p-3 fs-4">🔢</div>
+                                    <div>
+                                        <h5 class="fw-black text-navy mb-0">อัปเดตเลขที่นักเรียน</h5>
+                                        <p class="text-muted small mb-0">อ่านไฟล์ CSV/Excel แล้ว UPDATE เฉพาะเลขที่ในห้องทันที</p>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <div class="bg-info bg-opacity-10 border border-info border-opacity-25 rounded-3 p-3 mb-3 small">
+                                    <i class="bi bi-info-circle-fill text-info me-2"></i>
+                                    ไฟล์ต้องมีคอลัมน์ <strong>รหัสนักเรียน</strong> และ <strong>เลขที่</strong> (หรือ ลำดับที่ / ลำดับ / ที่)
+                                </div>
+                                <div id="classnum-step-1">
+                                    <label class="form-label fw-bold small">เลือกไฟล์ CSV / Excel</label>
+                                    <input type="file" id="classnum-file" class="form-control rounded-3 border-0 bg-light" accept=".csv,.xlsx,.xls">
+                                    <div class="d-flex gap-2 justify-content-end mt-3">
+                                        <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                                        <button class="btn btn-warning rounded-pill px-5 fw-bold" onclick="doUpdateClassNumbers()">
+                                            <i class="bi bi-arrow-repeat me-2"></i>อัปเดตเลยทันที
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="classnum-step-2" class="d-none text-center py-3">
+                                    <div class="spinner-border text-warning mb-3"></div>
+                                    <p class="fw-bold text-muted">กำลังอัปเดต...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`);
+            }
+            document.getElementById('classnum-file').value = '';
+            document.getElementById('classnum-step-1').classList.remove('d-none');
+            document.getElementById('classnum-step-2').classList.add('d-none');
+            const m = bootstrap.Modal.getInstance(document.getElementById('modal-update-classnum'))
+                   || new bootstrap.Modal(document.getElementById('modal-update-classnum'));
+            m.show();
+        }
+
+        async function doUpdateClassNumbers() {
+            const fileInput = document.getElementById('classnum-file');
+            if (!fileInput.files[0]) {
+                Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไฟล์ก่อน', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
+                return;
+            }
+            document.getElementById('classnum-step-1').classList.add('d-none');
+            document.getElementById('classnum-step-2').classList.remove('d-none');
+
+            const fd = new FormData();
+            fd.append('file', fileInput.files[0]);
+
+            try {
+                const res  = await fetch('../api/admin/update_class_numbers.php', { method: 'POST', body: fd });
+                const data = await res.json();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modal-update-classnum'));
+                if (modal) modal.hide();
+
+                if (data.error) {
+                    let detail = data.error;
+                    if (data.all_headers) {
+                        detail += `<br><br><small class="text-muted">คอลัมน์ที่พบในไฟล์:<br><code>${data.all_headers.join(' | ')}</code></small>`;
+                    }
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', html: detail });
+                } else {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'อัปเดตเลขที่สำเร็จ!',
+                        html: `✅ อัปเดตแล้ว: <strong>${data.updated}</strong> คน<br>
+                               ${data.not_found > 0 ? `⚠️ ไม่พบรหัสนักเรียนในระบบ: <strong>${data.not_found}</strong> คน<br>` : ''}
+                               ${data.skipped  > 0 ? `⏭️ ข้าม (ข้อมูลว่าง): <strong>${data.skipped}</strong> แถว` : ''}
+                               <br><small class="text-muted">คอลัมน์ที่ใช้: ${data.sid_col} → ${data.num_col}</small>`,
+                        confirmButtonText: 'ตกลง'
+                    });
+                    loadData();
+                }
+            } catch (e) {
+                bootstrap.Modal.getInstance(document.getElementById('modal-update-classnum'))?.hide();
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: e.message });
+            }
+        }
+
         async function standardizeData() {
             const result = await Swal.fire({
                 title: 'จัดระเบียบข้อมูลใหม่?',
@@ -869,6 +1244,9 @@
         let viewMode = 'table';
         let currentRole = '';
         let advisoryRoom = '';
+        let currentPage = 1;
+        let currentStudentId = null;
+        const itemsPerPage = 50;
 
         // ── Photo helper ──────────────────────────────────────
         const CNP_AVATAR_COLORS = ['1e3c72','2193b0','f7971e','f953c6','b91d73','11998e','ee0979','4776e6','8e54e9','e65c00'];
@@ -914,23 +1292,32 @@
             currentRole = user.role || '';
             
             if (currentRole === 'teacher') {
+                // ซ่อนเฉพาะแท็บสรุปจำนวนของแอดมิน ส่วนแท็บแผนที่ยังคงให้ครูใช้งานได้เพื่อดูพิกัดนักเรียนในห้องที่ดูแล
+                document.getElementById('tab-summary-btn')?.classList.add('d-none');
+                document.getElementById('tab-summary-pane')?.classList.add('d-none');
                 // Hide import for teachers
                 document.querySelectorAll('[onclick="openImport()"]').forEach(el => el.classList.add('d-none'));
                 
                 // We keep stats-dashboard visible now but it will show only advisory class stats
                 // document.getElementById('stats-dashboard').classList.add('d-none'); 
 
-                // Safely hide only specific filters if they exist
-                const gradeChips = document.getElementById('grade-chips');
-                if (gradeChips && gradeChips.parentElement) {
-                    // teachers usually only see their own grade, so we might want to hide the grade selector
-                    // but for now, let's just make sure we don't crash
+                // Hide filters row (Grade, Gender, House) and Reset button for teachers
+                const filterRow = document.getElementById('filter-row-chips');
+                if (filterRow) filterRow.classList.add('d-none');
+                
+                const resetBtnCol = document.getElementById('reset-btn-col');
+                if (resetBtnCol) resetBtnCol.classList.add('d-none');
+                
+                const searchInputCol = document.getElementById('search-input-col');
+                if (searchInputCol) {
+                    searchInputCol.classList.remove('col-xl-7');
+                    searchInputCol.classList.add('col-xl-12');
                 }
             }
             
             await silentSyncStudentPhotos();
             await loadData();
-            
+
             document.getElementById('editFromProfBtn')?.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 if (id) {
@@ -939,6 +1326,151 @@
                 }
             });
         });
+
+        let _csLoaded = false;
+        function switchAdminTab(tab) {
+            const isList = tab === 'list';
+            const isSummary = tab === 'summary';
+            const isMap = tab === 'map';
+            
+            document.getElementById('tab-list-btn').classList.toggle('active', isList);
+            document.getElementById('tab-summary-btn').classList.toggle('active', isSummary);
+            document.getElementById('tab-map-btn').classList.toggle('active', isMap);
+            
+            document.getElementById('tab-list-pane').classList.toggle('d-none', !isList);
+            document.getElementById('tab-summary-pane').classList.toggle('d-none', !isSummary);
+            document.getElementById('tab-map-pane').classList.toggle('d-none', !isMap);
+            
+            if (isList) {
+                // Restore table or card view
+                if (viewMode === 'table') {
+                    document.getElementById('table-view')?.classList.remove('d-none');
+                    document.getElementById('card-view')?.classList.add('d-none');
+                } else {
+                    document.getElementById('table-view')?.classList.add('d-none');
+                    document.getElementById('card-view')?.classList.remove('d-none');
+                }
+            } else {
+                document.getElementById('table-view')?.classList.add('d-none');
+                document.getElementById('card-view')?.classList.add('d-none');
+            }
+            
+            if (isSummary && !_csLoaded) { 
+                _csLoaded = true; 
+                loadCountSummary(); 
+            }
+            if (isMap) {
+                initOverviewMap();
+            }
+        }
+
+        async function loadCountSummary() {
+            const content = document.getElementById('count-summary-content');
+            try {
+                const res = await fetch('../api/admin/student_count_summary.php');
+                const json = await res.json();
+                if (!json.success) throw new Error('load failed');
+
+                const levels = {};
+                json.data.forEach(row => {
+                    const lv = row.class_name.charAt(0);
+                    (levels[lv] = levels[lv] || []).push(row);
+                });
+
+                function buildCard(lv) {
+                    const rows = levels[lv] || [];
+                    let tm = 0, tf = 0, tt = 0, body = '';
+                    rows.forEach(r => {
+                        const m = +r.male, f = +r.female, t = +r.total;
+                        tm += m; tf += f; tt += t;
+                        body += `<tr>
+                            <td>${r.class_name}</td>
+                            <td>${m}</td>
+                            <td>${f}</td>
+                            <td><b>${t}</b></td>
+                        </tr>`;
+                    });
+                    return {
+                        html: `<div class="cs-card">
+                            <div class="cs-card-title">จำนวนนักเรียน ม.${lv}</div>
+                            <table class="cs-table">
+                                <thead><tr><th>ชั้น</th><th>ชาย</th><th>หญิง</th><th>รวม</th></tr></thead>
+                                <tbody>${body}</tbody>
+                                <tfoot><tr><th>รวม</th><th>${tm}</th><th>${tf}</th><th>${tt}</th></tr></tfoot>
+                            </table>
+                        </div>`,
+                        m: tm, f: tf, t: tt
+                    };
+                }
+
+                const t = {};
+                let jm=0, jf=0, jt=0, sm=0, sf=0, st=0;
+                for (let i = 1; i <= 6; i++) {
+                    t[i] = buildCard(String(i));
+                    if (i <= 3) { jm += t[i].m; jf += t[i].f; jt += t[i].t; }
+                    else        { sm += t[i].m; sf += t[i].f; st += t[i].t; }
+                }
+                const gm = jm + sm, gf = jf + sf, gt = jt + st;
+
+                const yearTH = new Date().getFullYear() + 543;
+                const todayTH = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                content.innerHTML = `
+                    <div class="cs-header">
+                        <h5>จำนวนนักเรียนโรงเรียนชัยนาทพิทยาคม</h5>
+                        <small>ปีการศึกษา ${yearTH}</small>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6 col-xl-4">${t[1].html}</div>
+                        <div class="col-12 col-md-6 col-xl-4">${t[2].html}</div>
+                        <div class="col-12 col-md-6 col-xl-4">${t[3].html}</div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6 col-xl-4">${t[4].html}</div>
+                        <div class="col-12 col-md-6 col-xl-4">${t[5].html}</div>
+                        <div class="col-12 col-md-6 col-xl-4">${t[6].html}</div>
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-md-9 col-xl-7">
+                            <table class="cs-summary">
+                                <thead>
+                                    <tr>
+                                        <th>จำนวนนักเรียน</th>
+                                        <th class="text-center">ชาย</th>
+                                        <th class="text-center">หญิง</th>
+                                        <th class="text-center">รวม</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>นักเรียน ม.ต้น</td>
+                                        <td>${jm}</td>
+                                        <td>${jf}</td>
+                                        <td><b>${jt}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td>นักเรียน ม.ปลาย</td>
+                                        <td>${sm}</td>
+                                        <td>${sf}</td>
+                                        <td><b>${st}</b></td>
+                                    </tr>
+                                    <tr class="cs-grand">
+                                        <td>รวมนักเรียนทั้งหมด</td>
+                                        <td>${gm}</td>
+                                        <td>${gf}</td>
+                                        <td>${gt}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="cs-footer">
+                        ข้อมูล ณ วันที่ ${todayTH} · งานทะเบียนนักเรียน โรงเรียนชัยนาทพิทยาคม
+                    </div>`;
+            } catch(e) {
+                content.innerHTML = '<div class="alert alert-danger m-2">โหลดข้อมูลไม่ได้</div>';
+            }
+        }
 
         async function loadData() {
             try {
@@ -1030,46 +1562,49 @@
             // Stats are now available for both admin and teacher
             // Teachers will see stats for their filtered advisory students
             
-            const total = filteredStudents.length;
+            const sourceArray = window.__showSearchPrompt ? allStudents : filteredStudents;
+            const total = sourceArray.length;
             
             // Improved gender detection
             const getGender = s => {
+                if (['นาย', 'ด.ช.', 'เด็กชาย'].includes(s.prefix)) return 'M';
+                if (['น.ส.', 'ด.ญ.', 'เด็กหญิง', 'นางสาว', 'นาง'].includes(s.prefix)) return 'F';
                 if (s.gender === 'ชาย') return 'M';
                 if (s.gender === 'หญิง') return 'F';
-                if (['นาย', 'ด.ช.', 'เด็กชาย'].includes(s.prefix)) return 'M';
-                if (['น.ส.', 'ด.ญ.', 'เด็กหญิง', 'นางสาว'].includes(s.prefix)) return 'F';
                 return null;
             };
 
-            const male = filteredStudents.filter(s => getGender(s) === 'M').length;
-            const female = filteredStudents.filter(s => getGender(s) === 'F').length;
-            const uniqueRooms = new Set(filteredStudents.map(s => s.class_name).filter(Boolean)).size;
+            const male = sourceArray.filter(s => getGender(s) === 'M').length;
+            const female = sourceArray.filter(s => getGender(s) === 'F').length;
+            const uniqueRooms = new Set(sourceArray.map(s => s.class_name).filter(Boolean)).size;
             
             animateValue('stat-total', 0, total, 400);
             animateValue('stat-male', 0, male, 400);
             animateValue('stat-female', 0, female, 400);
             animateValue('stat-rooms', 0, uniqueRooms, 400);
 
-            if (total > 0) {
-                document.querySelector('#stat-male + .progress .progress-bar').style.width = (male / total * 100) + '%';
-                document.querySelector('#stat-female + .progress .progress-bar').style.width = (female / total * 100) + '%';
+            // Safely set progress if elements exist (e.g. if page has progress bars)
+            const maleProg = document.querySelector('#stat-male + .progress .progress-bar');
+            if (maleProg && total > 0) {
+                maleProg.style.width = (male / total * 100) + '%';
+            }
+            const femaleProg = document.querySelector('#stat-female + .progress .progress-bar');
+            if (femaleProg && total > 0) {
+                femaleProg.style.width = (female / total * 100) + '%';
             }
         }
 
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
             if (!obj) return;
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
-                if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
+            // Pop up instantly to avoid animation delay and load times
+            obj.innerHTML = end.toLocaleString();
         }
 
         function filterData() {
+            // Reset to first page on filter change
+            currentPage = 1;
+
             const q = document.getElementById('searchInput').value.toLowerCase();
             const sField = document.getElementById('searchField').value;
             
@@ -1082,6 +1617,7 @@
                 return '';
             };
 
+            window.__showSearchPrompt = false;
             filteredStudents = allStudents.filter(s => {
                 let matchQ = true;
                 if (q) {
@@ -1095,7 +1631,13 @@
                     else if (sField === 'student_id') matchQ = sid.includes(q);
                     else if (sField === 'nickname') matchQ = nick.includes(q);
                     else if (sField === 'email') matchQ = email.includes(q);
-                    else matchQ = fullName.includes(q) || fullNameEN.includes(q) || sid.includes(q) || nick.includes(q) || email.includes(q);
+                    else {
+                        // Search all information (fields) in the student object
+                        matchQ = Object.values(s).some(val => 
+                            val !== null && val !== undefined && 
+                            val.toString().toLowerCase().includes(q)
+                        );
+                    }
                 }
                 
                 const matchG = !activeFilters.grade || s.grade_level === activeFilters.grade;
@@ -1135,9 +1677,13 @@
         }
 
         function renderContent() {
+            if (!document.getElementById('tab-summary-pane').classList.contains('d-none')) return;
+            if (!document.getElementById('tab-map-pane').classList.contains('d-none')) {
+                initOverviewMap();
+                return;
+            }
             const tv = document.getElementById('table-view');
             const cv = document.getElementById('card-view');
-            
             if (viewMode === 'table') {
                 tv.classList.remove('d-none');
                 cv.classList.add('d-none');
@@ -1150,37 +1696,43 @@
         }
 
 
+
         function renderTable() {
             const tbody = document.getElementById('studentTableBody');
-            if (filteredStudents.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียน</td></tr>';
+            if (window.__showSearchPrompt) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="py-4 text-muted"><div class="fs-1 mb-2">🔍</div><h6 class="fw-bold">กรุณาเลือกตัวกรองระดับชั้น/ห้องเรียน หรือพิมพ์คำค้นหาเพื่อแสดงรายชื่อนักเรียน</h6><p class="small mb-0 text-secondary">ระบบจำกัดการแสดงผลเริ่มต้นเพื่อความรวดเร็วและลื่นไหลในการโหลดข้อมูล</p></div></td></tr>';
                 return;
             }
-
-            // Sort by grade, class, and number
+            if (filteredStudents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียน</td></tr>';
+                const pagCont = document.getElementById('pagination-container');
+                if (pagCont) pagCont.innerHTML = '';
+                return;
+            }
             const sorted = [...filteredStudents].sort((a,b) => {
-                const ga = (a.grade_level || '').toString();
-                const gb = (b.grade_level || '').toString();
+                const ga = (a.grade_level || '').toString(), gb = (b.grade_level || '').toString();
                 if (ga !== gb) return ga.localeCompare(gb);
-                
-                const ra = (a.class_name || '').toString();
-                const rb = (b.class_name || '').toString();
+                const ra = (a.class_name || '').toString(), rb = (b.class_name || '').toString();
                 if (ra !== rb) return ra.localeCompare(rb);
-                
                 return (parseInt(a.number_in_class)||0) - (parseInt(b.number_in_class)||0);
             });
-
-            tbody.innerHTML = sorted.map(s => renderTableRow(s)).join('');
+            const totalPages = Math.ceil(sorted.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = 1;
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const pageItems = sorted.slice(startIdx, startIdx + itemsPerPage);
+            tbody.innerHTML = pageItems.map(s => renderTableRow(s)).join('');
+            renderPaginationControls(sorted.length, totalPages);
         }
 
         function renderTableRow(s, extraClass = '') {
             const age = calculateAge(s.birth_date);
             const photo = studentPhotoUrl(s, 100);
-            const isM = s.gender === 'ชาย';
+            const mPfx = ['นาย','ด.ช.','เด็กชาย'];
+            const fPfx = ['น.ส.','ด.ญ.','เด็กหญิง','นางสาว','นาง'];
+            const isM = mPfx.includes(s.prefix) || (!fPfx.includes(s.prefix) && s.gender === 'ชาย');
             const genderClass = isM ? 'row-male' : 'row-female';
             const hStyle = getHouseStyle(s.house);
             const comp = calcCompleteness(s);
-
             return `
                 <tr class="${extraClass} ${genderClass} animate-fade-in" onclick="viewProfile(${s.id})">
                     <td class="text-center"><span class="badge bg-light text-dark rounded-pill px-3">${s.number_in_class || '-'}</span></td>
@@ -1188,28 +1740,36 @@
                         <div class="d-flex align-items-center gap-3">
                             <img src="${photo}" class="rounded-circle border-2 border-white shadow-sm" style="width:52px;height:52px;object-fit:cover;" onerror="cnpImgError(this,'${encodeURIComponent(s.first_name_th||'ส')}','${encodeURIComponent(s.last_name_th||'')}','${s.student_id||''}',100)">
                             <div>
-                                <div class="fw-black text-dark mb-0 fs-6">${s.first_name_th} ${s.last_name_th}</div>
+                                <div class="fw-black text-dark mb-0 fs-6">${s.prefix ? `<span class="text-muted fw-normal small me-1">${s.prefix}</span>` : ''}${s.first_name_th} ${s.last_name_th}</div>
                                 <div class="text-secondary small fw-bold" style="text-transform: uppercase; font-size: 0.7rem;">${s.first_name_en || ''} ${s.last_name_en || ''}</div>
                                 <div class="small text-muted fw-bold">
-                                    <span class="me-3"><i class="bi bi-person-badge me-1"></i>${s.student_id}</span>
-                                    ${s.class_name ? `<span class="text-navy opacity-75"><i class="bi bi-door-open-fill me-1"></i>${s.grade_level} / ห้อง ${s.class_name}</span>` : ''}
+                                    <span class="me-3"><i class="bi bi-person-badge me-1"></i>${s.student_id || '-'}</span>
+                                    ${s.class_name && currentRole !== 'teacher' ? `<span class="text-navy opacity-75"><i class="bi bi-door-open-fill me-1"></i>ห้อง ${s.class_name}</span>` : ''}
                                 </div>
                             </div>
                         </div>
                     </td>
                     <td class="text-center"><span class="badge bg-light text-navy rounded-pill px-3 py-2 fw-bold">${s.nickname || '-'}</span></td>
-                    <td class="text-center">
-                        <span class="badge rounded-pill px-3 py-2 fw-black" style="background:${hStyle.bg};color:${hStyle.color};">${s.house || 'ไม่ระบุ'}</span>
-                    </td>
+                    <td class="text-center"><span class="badge rounded-pill px-3 py-2 fw-black" style="background:${hStyle.bg};color:${hStyle.color};">${s.house || 'ไม่ระบุ'}</span></td>
                     <td class="text-center fw-bold text-muted">${age.y} ปี</td>
                     <td class="align-middle">
                         <div class="d-flex justify-content-between small fw-bold mb-1"><span class="text-muted">ข้อมูล</span><span class="${comp.pct < 100 ? 'text-primary' : 'text-success'}">${comp.pct}%</span></div>
                         <div class="progress" style="height: 6px;"><div class="progress-bar ${comp.pct < 50 ? 'bg-danger' : (comp.pct < 80 ? 'bg-warning' : 'bg-success')}" style="width: ${comp.pct}%"></div></div>
                     </td>
+                    <td class="text-center" onclick="event.stopPropagation()">
+                        ${s.enrollment_status && s.enrollment_status !== 'กำลังศึกษา'
+                            ? `<span class="badge rounded-pill px-3 py-2 fw-bold" style="background:#fef2f2;color:#ef4444;font-size:0.7rem;">${s.enrollment_status}</span>`
+                            : `<span class="badge rounded-pill px-3 py-2 fw-bold" style="background:#ecfdf5;color:#10b981;font-size:0.7rem;">กำลังศึกษา</span>`}
+                    </td>
                     <td class="text-end pe-4" onclick="event.stopPropagation()">
                         <div class="d-flex justify-content-end gap-2">
+                            ${s.location_coords && s.location_coords.includes(',')
+                                ? `<button class="btn-modern-action" style="background:#ecfdf5;color:#10b981;" onclick="viewStudentOnMap(${s.id})" title="ดูบนแผนที่"><i class="bi bi-geo-alt-fill"></i></button>`
+                                : `<button class="btn-modern-action" style="background:#f8fafc;color:#cbd5e1;cursor:not-allowed;" onclick="Swal.fire({icon:'warning', title:'ไม่พบพิกัด', text:'นักเรียนคนนี้ยังไม่ได้ระบุพิกัดที่อยู่ปัจจุบันในระบบ'})" title="ไม่พบพิกัด"><i class="bi bi-geo-alt"></i></button>`
+                            }
                             <button class="btn-modern-action" onclick="viewProfile(${s.id})" title="ดูข้อมูล"><i class="bi bi-eye-fill"></i></button>
                             <button class="btn-modern-action btn-modern-edit" onclick="editStudent(${s.id})" title="แก้ไข"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn-modern-action" style="background:#fef3c7;color:#d97706;" onclick="openStatusModal(${s.id},'${(s.first_name_th||'')+' '+(s.last_name_th||'')}','${s.enrollment_status||'กำลังศึกษา'}')" title="เปลี่ยนสถานะ"><i class="bi bi-person-fill-gear"></i></button>
                             <button class="btn-modern-action btn-modern-delete" onclick="deleteStudent(${s.id})" title="ลบ"><i class="bi bi-trash3-fill"></i></button>
                         </div>
                     </td>
@@ -1218,6 +1778,7 @@
 
         function renderGridCard(s) {
             const photo = studentPhotoUrl(s, 400);
+            const hasCoords = s.location_coords && s.location_coords.includes(',');
             
             return `
                 <div class="modern-profile-card animate-fade-in" onclick="viewProfile(${s.id})">
@@ -1226,15 +1787,25 @@
                     <div class="card-content-modern">
                         <h3 class="fw-black mb-1" style="font-size: 1rem; line-height: 1.2;">${s.first_name_th || ''}<br>${s.last_name_th || ''}</h3>
                         <p class="small opacity-75 mb-0" style="font-size: 0.7rem;">รหัส: ${s.student_id} | เลขที่: ${s.number_in_class || '-'}</p>
-                        <button class="btn-view-profile" onclick="event.stopPropagation(); viewProfile(${s.id})">
-                            <i class="bi bi-person-fill me-2"></i>ดูข้อมูล
-                        </button>
+                        <div class="d-flex gap-1 w-100 mt-2" onclick="event.stopPropagation();">
+                            <button class="btn-view-profile flex-grow-1 py-1" onclick="viewProfile(${s.id})">
+                                <i class="bi bi-person-fill me-1"></i>ดูข้อมูล
+                            </button>
+                            ${hasCoords 
+                                ? `<button class="btn btn-success btn-sm rounded-3 px-2 py-1" onclick="viewStudentOnMap(${s.id})" title="ดูบนแผนที่"><i class="bi bi-geo-alt-fill"></i></button>`
+                                : `<button class="btn btn-light btn-sm rounded-3 px-2 py-1 text-muted" style="cursor:not-allowed;" onclick="Swal.fire({icon:'warning', title:'ไม่พบพิกัด', text:'นักเรียนคนนี้ยังไม่ได้ระบุพิกัดที่อยู่ปัจจุบันในระบบ'})" title="ไม่พบพิกัด"><i class="bi bi-geo-alt text-secondary"></i></button>`
+                            }
+                        </div>
                     </div>
                 </div>`;
         }
 
         function renderCards() {
             const container = document.getElementById('card-view');
+            if (window.__showSearchPrompt) {
+                container.innerHTML = '<div class="text-center py-5"><div class="py-5 text-muted"><div class="fs-1 mb-2">🔍</div><h6 class="fw-bold">กรุณาเลือกตัวกรองระดับชั้น/ห้องเรียน หรือพิมพ์คำค้นหาเพื่อแสดงรายชื่อนักเรียน</h6><p class="small mb-0 text-secondary">ระบบจำกัดการแสดงผลเริ่มต้นเพื่อความรวดเร็วและลื่นไหลในการโหลดข้อมูล</p></div></div>';
+                return;
+            }
             if (filteredStudents.length === 0) {
                 container.innerHTML = '<div class="text-center py-5 text-muted">ไม่พบข้อมูลนักเรียน</div>';
                 return;
@@ -1253,7 +1824,109 @@
                 return (parseInt(a.number_in_class)||0) - (parseInt(b.number_in_class)||0);
             });
 
-            container.innerHTML = `<div class="student-grid">${sorted.map(s => renderGridCard(s)).join('')}</div>`;
+            // Pagination slice
+            const totalPages = Math.ceil(sorted.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = 1;
+            
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = startIdx + itemsPerPage;
+            const pageItems = sorted.slice(startIdx, endIdx);
+
+            container.innerHTML = `
+                <div class="student-grid">${pageItems.map(s => renderGridCard(s)).join('')}</div>
+                <!-- Pagination for cards -->
+                <div id="card-pagination-container" class="mt-4 px-2"></div>
+            `;
+            
+            renderPaginationControls(sorted.length, totalPages);
+        }
+
+        function renderPaginationControls(totalItems, totalPages) {
+            const containerId = (viewMode === 'table') ? 'pagination-container' : 'card-pagination-container';
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 py-2 border-top">
+                    <div class="text-secondary small fw-bold">
+                        แสดง ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, totalItems)} จากทั้งหมด ${totalItems} คน
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0 align-items-center gap-1">
+                            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                                <button class="page-link border rounded-pill px-3 py-1 text-navy fw-bold" onclick="changePage(${currentPage - 1})">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                            </li>
+            `;
+
+            // Display page numbers cleanly, e.g., max 5 pages centered around current page
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `
+                    <li class="page-item">
+                        <button class="page-link border rounded-circle text-navy fw-bold d-flex align-items-center justify-content-center" style="width:34px;height:34px;" onclick="changePage(1)">1</button>
+                    </li>
+                `;
+                if (startPage > 2) {
+                    html += `<li class="page-item disabled px-1"><span class="text-muted">...</span></li>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <li class="page-item ${currentPage === i ? 'active' : ''}">
+                        <button class="page-link border rounded-circle fw-bold d-flex align-items-center justify-content-center" 
+                                style="width:34px;height:34px;${currentPage === i ? 'background:#1e3a8a;color:white;border-color:#1e3a8a;' : 'color:#1e3a8a;'}" 
+                                onclick="changePage(${i})">${i}</button>
+                    </li>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<li class="page-item disabled px-1"><span class="text-muted">...</span></li>`;
+                }
+                html += `
+                    <li class="page-item">
+                        <button class="page-link border rounded-circle text-navy fw-bold d-flex align-items-center justify-content-center" style="width:34px;height:34px;" onclick="changePage(${totalPages})">${totalPages}</button>
+                    </li>
+                `;
+            }
+
+            html += `
+                            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                                <button class="page-link border rounded-pill px-3 py-1 text-navy fw-bold" onclick="changePage(${currentPage + 1})">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderContent();
+            // Scroll to table/card top smoothly
+            const anchor = document.getElementById('stats-dashboard') || document.querySelector('h4');
+            if (anchor) {
+                anchor.scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         function standardizePrefix(p) {
@@ -1328,7 +2001,17 @@
                 return `ชั้นมัธยมศึกษาปีที่ ${g} ห้อง ${r}`;
             };
 
-            document.getElementById('prof_name').textContent = `${standardizePrefix(s.prefix || '')}${s.first_name_th || ''} ${s.last_name_th || ''}`;
+            const expandPrefix = p => {
+                if (!p) return '';
+                p = p.trim();
+                if (p === 'ด.ช.' || p.includes('เด็กชาย')) return 'เด็กชาย';
+                if (p === 'ด.ญ.' || p.includes('เด็กหญิง')) return 'เด็กหญิง';
+                if (p === 'น.ส.' || p.includes('นางสาว')) return 'นางสาว';
+                if (p === 'นาย') return 'นาย';
+                return p;
+            };
+
+            document.getElementById('prof_name').textContent = `${expandPrefix(s.prefix || '')}${s.first_name_th || ''} ${s.last_name_th || ''}`;
             document.getElementById('prof_name_en').textContent = `${s.first_name_en || ''} ${s.last_name_en || ''}`.trim();
             document.getElementById('prof_nickname').textContent = s.nickname || '-';
             document.getElementById('prof_id_label').textContent = s.student_id;
@@ -1480,8 +2163,9 @@
             document.getElementById('t_interests').textContent = nv(s.interests);
             document.getElementById('t_hobbies').textContent = nv(s.hobbies);
 
-            // Show photo label
+            // Show photo label and reset file input so the same file can be re-selected for a different student
             document.getElementById('profPhotoLabel').style.display = 'block';
+            document.getElementById('profPhotoInput').value = '';
 
             // Link Edit Button
             const editBtn = document.getElementById('editFromProfBtn');
@@ -1520,21 +2204,23 @@
                 
                 const data = await res.json();
                 if (data.success) {
-                    // Update preview and local data
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        document.getElementById('prof_photo').src = e.target.result;
-                        // Update in allStudents array to keep it sync
+                    // Update the in-memory record immediately so reopening the profile shows the new photo
+                    if (data.photo_path) {
                         const idx = allStudents.findIndex(x => x.id == currentStudentId);
-                        if (idx !== -1) {
-                            // We don't have the new path yet from API usually but we can use the data:uri for now
-                            // Or re-fetch if needed. The API actually could return the new path.
-                        }
-                    };
+                        if (idx !== -1) allStudents[idx].photo = data.photo_path;
+                        if (window._cnpProfileStudent) window._cnpProfileStudent.photo = data.photo_path;
+                    }
+
+                    // Update the visible preview via data-URI (instant, no extra request)
+                    const reader = new FileReader();
+                    reader.onload = (e) => { document.getElementById('prof_photo').src = e.target.result; };
                     reader.readAsDataURL(file);
-                    
+
+                    // Clear file input so the same file can be re-selected if needed
+                    input.value = '';
+
                     Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'อัปโหลดรูปภาพใหม่เรียบร้อยแล้ว', timer: 2000 });
-                    loadData(); // Refresh list to get new paths
+                    loadData(); // Refresh list in background
                 } else {
                     throw new Error(data.error || 'Unknown error');
                 }
@@ -1674,10 +2360,17 @@
 
                                     <h6 class="fw-bold text-navy border-bottom pb-2 mt-4 d-flex justify-content-between align-items-center">
                                         <span>ที่อยู่ปัจจุบัน</span>
-                                        <select name="address_status" class="form-select form-select-sm w-auto" onchange="syncAdminAddress(this)">
-                                            <option value="">--เลือก--</option>
-                                            ${buildOptions(['ตามทะเบียนบ้าน', 'ไม่ได้อยู่ตามทะเบียนบ้าน'], 'address_status')}
-                                        </select>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="hidden" name="address_status" value="${getVal('address_status')}">
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold ${getVal('address_status') === 'ตามทะเบียนบ้าน' ? 'btn-navy' : 'btn-outline-secondary'}"
+                                                onclick="setAdminAddressStatus(this,'ตามทะเบียนบ้าน')">
+                                                <i class="bi bi-house-fill me-1"></i>ตามทะเบียนบ้าน
+                                            </button>
+                                            <button type="button" class="btn btn-sm rounded-pill px-3 fw-bold ${getVal('address_status') === 'ไม่ได้อยู่ตามทะเบียนบ้าน' ? 'btn-warning text-dark' : 'btn-outline-secondary'}"
+                                                onclick="setAdminAddressStatus(this,'ไม่ได้อยู่ตามทะเบียนบ้าน')">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>ไม่ได้อยู่ตามทะเบียนบ้าน
+                                            </button>
+                                        </div>
                                     </h6>
                                     <div class="col-md-2"><label class="small fw-bold">บ้านเลขที่</label><input type="text" name="curr_house_no" class="form-control" value="${getVal('curr_house_no')}"></div>
                                     <div class="col-md-2"><label class="small fw-bold">หมู่ที่</label><input type="text" name="curr_moo" class="form-control" value="${getVal('curr_moo')}"></div>
@@ -1847,16 +2540,36 @@
             `;
         }
 
-        function syncAdminAddress(el) {
-            if (el.value === 'ตามทะเบียนบ้าน') {
-                const f = el.form;
+        function setAdminAddressStatus(btn, value) {
+            const container = document.getElementById('editStudentForm');
+            if (!container) return;
+
+            // Update hidden input
+            const hidden = container.querySelector('[name="address_status"]');
+            if (hidden) hidden.value = value;
+
+            // Update button styles
+            const buttons = btn.parentElement.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('btn-navy', 'btn-warning', 'text-dark', 'btn-outline-secondary');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.remove('btn-outline-secondary');
+            if (value === 'ตามทะเบียนบ้าน') {
+                btn.classList.add('btn-navy');
+            } else {
+                btn.classList.add('btn-warning', 'text-dark');
+            }
+
+            // Copy reg → curr when "ตามทะเบียนบ้าน"
+            if (value === 'ตามทะเบียนบ้าน') {
                 const fields = ['house_no', 'moo', 'soi', 'road', 'village', 'province', 'district', 'subdistrict', 'zipcode'];
                 fields.forEach(field => {
-                    const reg = f.elements['reg_' + field];
-                    const curr = f.elements['curr_' + field];
+                    const reg  = container.querySelector('[name="reg_' + field + '"]');
+                    const curr = container.querySelector('[name="curr_' + field + '"]');
                     if (reg && curr) {
                         curr.value = reg.value;
-                        if (field === 'province' || field === 'district' || field === 'subdistrict') {
+                        if (['province', 'district', 'subdistrict'].includes(field)) {
                             curr.dispatchEvent(new Event('change'));
                         }
                     }
@@ -1973,6 +2686,335 @@
 
         let adminMap = null;
         let adminMarker = null;
+        let overviewMap = null;
+        let overviewMarkerLayer = null;
+
+        function initOverviewMap() {
+            // Wait a small timeout to let the browser display the pane and set width/height
+            setTimeout(() => {
+                const mapContainer = document.getElementById('overview_map');
+                if (!mapContainer) return;
+                
+                if (!overviewMap) {
+                    overviewMap = L.map('overview_map').setView([15.1878, 100.1245], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(overviewMap);
+                    overviewMarkerLayer = L.layerGroup().addTo(overviewMap);
+                } else {
+                    overviewMap.invalidateSize();
+                }
+                
+                // Clear existing markers
+                overviewMarkerLayer.clearLayers();
+                
+                // Add pins for filtered students who have location_coords
+                let validCount = 0;
+                const bounds = [];
+                
+                filteredStudents.forEach(s => {
+                    const coordsStr = s.location_coords;
+                    if (coordsStr && coordsStr.includes(',')) {
+                        const parts = coordsStr.split(',');
+                        const lat = parseFloat(parts[0]);
+                        const lng = parseFloat(parts[1]);
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            validCount++;
+                            
+                            const name = `${s.prefix || ''}${s.first_name_th || ''} ${s.last_name_th || ''}`.trim();
+                            const room = s.class_name ? `ม.${s.class_name}` : '-';
+                            const studentId = s.student_id || '-';
+                            
+                            // Marker popup HTML with rich styling including driving directions link
+                            const popupHtml = `
+                                <div style="font-family: 'Sarabun', sans-serif; font-size: 0.95rem; line-height: 1.6; min-width: 240px; padding: 4px;">
+                                    <div style="font-weight: 800; color: #1e3a8a; border-bottom: 2px solid #eff6ff; padding-bottom: 6px; margin-bottom: 8px; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
+                                        <i class="bi bi-person-fill text-primary"></i> ${name}
+                                    </div>
+                                    <div style="margin-bottom: 5px;">
+                                        <strong>รหัสประจำตัว:</strong> <span class="text-primary fw-bold">${studentId}</span>
+                                    </div>
+                                    <div style="margin-bottom: 5px;">
+                                        <strong>ชั้น/ห้อง:</strong> <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 0.75rem;">${room}</span>
+                                    </div>
+                                    ` + (s.curr_house_no ? '<div style="margin-bottom: 5px;"><strong>ที่อยู่ปัจจุบัน:</strong> ' + s.curr_house_no + ' ม.' + (s.curr_moo || '-') + ' ต. ' + (s.curr_subdistrict || '-') + ' อ. ' + (s.curr_district || '-') + '</div>' : '') + `
+                                    ` + (s.phone ? '<div style="margin-bottom: 8px;"><strong>เบอร์โทรศัพท์:</strong> <a href="tel:' + s.phone + '" class="fw-bold text-decoration-none"><i class="bi bi-telephone"></i> ' + s.phone + '</a></div>' : '') + `
+                                    <div style="text-align: right; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 8px; display: flex; justify-content: space-between; gap: 6px;">
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-3 rounded-pill fw-bold" style="font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="bi bi-compass-fill"></i> นำทาง
+                                        </a>
+                                        <button class="btn btn-navy btn-sm py-1 px-3 text-white rounded-pill fw-bold" style="font-size: 0.78rem; transition: 0.2s;" onclick="viewStudentProfileFromMap(${s.id})">
+                                            <i class="bi bi-person-vcard me-1"></i>ดูโปรไฟล์เต็ม
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            const marker = L.marker([lat, lng]).bindPopup(popupHtml);
+                            overviewMarkerLayer.addLayer(marker);
+                            bounds.push([lat, lng]);
+                        }
+                    }
+                });
+                
+                // Update stats counters
+                document.getElementById('map-stat-valid').textContent = `${validCount} / ${filteredStudents.length} คน`;
+                
+                // Fit map bounds to contain all markers if there any
+                if (bounds.length > 0) {
+                    overviewMap.fitBounds(bounds, { padding: [50, 50] });
+                } else {
+                    overviewMap.setView([15.1878, 100.1245], 13);
+                }
+            }, 300);
+        }
+
+        window.viewStudentOnMap = function(id) {
+            const s = allStudents.find(x => x.id == id);
+            if (!s || !s.location_coords || !s.location_coords.includes(',')) {
+                Swal.fire({ icon: 'warning', title: 'ไม่พบพิกัด', text: 'นักเรียนคนนี้ยังไม่ได้ระบุพิกัดที่อยู่ปัจจุบันในระบบ' });
+                return;
+            }
+            
+            // Switch to map tab
+            switchAdminTab('map');
+            
+            // Focus and open popup on the marker
+            setTimeout(() => {
+                const parts = s.location_coords.split(',');
+                const lat = parseFloat(parts[0]);
+                const lng = parseFloat(parts[1]);
+                if (isNaN(lat) || isNaN(lng)) return;
+                
+                if (overviewMap) {
+                    overviewMap.setView([lat, lng], 17); // Zoom in close to 17
+                    
+                    overviewMarkerLayer.eachLayer(marker => {
+                        const mLatLng = marker.getLatLng();
+                        if (Math.abs(mLatLng.lat - lat) < 0.00001 && Math.abs(mLatLng.lng - lng) < 0.00001) {
+                            marker.openPopup();
+                        }
+                    });
+                }
+            }, 500);
+        };
+
+        window.viewStudentProfileFromMap = function(id) {
+            // Close the leaflet popup first
+            if (overviewMap) {
+                overviewMap.closePopup();
+            }
+            viewProfile(id);
+        };
+        
+        function resetOverviewMap() {
+            if (overviewMap) {
+                overviewMap.setView([15.1878, 100.1245], 13);
+                initOverviewMap();
+            }
+        }
+
+        let routePolyline = null;
+        let routeDecorators = []; // to store tooltips/labels showing visit order
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in km
+        }
+
+        function optimizeVisitRoute() {
+            const schoolLat = 15.1878;
+            const schoolLng = 100.1245;
+            
+            // 1. Gather all destinations from filteredStudents that have coordinates
+            const destinations = [];
+            filteredStudents.forEach(s => {
+                const coordsStr = s.location_coords;
+                if (coordsStr && coordsStr.includes(',')) {
+                    const parts = coordsStr.split(',');
+                    const lat = parseFloat(parts[0]);
+                    const lng = parseFloat(parts[1]);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        destinations.push({
+                            id: s.id,
+                            student_id: s.student_id,
+                            name: `${s.prefix || ''}${s.first_name_th || ''} ${s.last_name_th || ''}`.trim(),
+                            room: s.class_name ? `ม.${s.class_name}` : '-',
+                            lat: lat,
+                            lng: lng,
+                            curr_house_no: s.curr_house_no,
+                            curr_moo: s.curr_moo,
+                            curr_subdistrict: s.curr_subdistrict,
+                            curr_district: s.curr_district,
+                            phone: s.phone
+                        });
+                    }
+                }
+            });
+            
+            if (destinations.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ไม่พบพิกัดนักเรียน',
+                    text: 'ไม่พบนร.ที่มีพิกัดบ้านในห้องเรียนนี้ กรุณาระบุพิกัดก่อนคำนวณเส้นทาง'
+                });
+                return;
+            }
+            
+            // 2. Nearest Neighbor algorithm (TSP heuristic starting from school)
+            let currentLat = schoolLat;
+            let currentLng = schoolLng;
+            const remaining = [...destinations];
+            const route = [];
+            let totalDistance = 0;
+            
+            while (remaining.length > 0) {
+                let nearestIdx = -1;
+                let minDist = Infinity;
+                
+                for (let i = 0; i < remaining.length; i++) {
+                    const dist = haversineDistance(currentLat, currentLng, remaining[i].lat, remaining[i].lng);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestIdx = i;
+                    }
+                }
+                
+                const nextStop = remaining[nearestIdx];
+                route.push({
+                    ...nextStop,
+                    legDistance: minDist
+                });
+                totalDistance += minDist;
+                currentLat = nextStop.lat;
+                currentLng = nextStop.lng;
+                remaining.splice(nearestIdx, 1);
+            }
+            
+            // 3. Clear existing route line and markers decoration
+            clearVisitRouteDecorators();
+            
+            // 4. Draw route path polyline in Leaflet
+            const pathCoordinates = [[schoolLat, schoolLng]];
+            route.forEach(stop => {
+                pathCoordinates.push([stop.lat, stop.lng]);
+            });
+            
+            if (overviewMap) {
+                // Draw a beautiful blue dash polyline
+                routePolyline = L.polyline(pathCoordinates, {
+                    color: '#2563eb',
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '8, 8',
+                    lineJoin: 'round'
+                }).addTo(overviewMap);
+                
+                // Add number markers / labels to help see sequence
+                route.forEach((stop, index) => {
+                    const orderNumber = index + 1;
+                    // Draw a small custom circle tooltip/marker to show order
+                    const labelIcon = L.divIcon({
+                        className: 'custom-route-label',
+                        html: `<div style="background:#10b981; color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.3); font-size:0.75rem;">${orderNumber}</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+                    
+                    const decorator = L.marker([stop.lat, stop.lng], { icon: labelIcon }).addTo(overviewMap);
+                    routeDecorators.push(decorator);
+                });
+                
+                // Zoom map to fit the route path
+                overviewMap.fitBounds(routePolyline.getBounds(), { padding: [50, 50] });
+            }
+            
+            // 5. Render route sequence in panel
+            const listContainer = document.getElementById('route-list-container');
+            let listHtml = `
+                <div class="mb-3 p-2 border-start border-primary border-4 bg-white rounded shadow-sm">
+                    <strong>📍 จุดเริ่มต้น: โรงเรียนชัยนาทพิทยาคม</strong>
+                    <div class="text-muted small" style="font-size:0.7rem;">ละติจูด: ${schoolLat}, ลองจิจูด: ${schoolLng}</div>
+                </div>
+            `;
+            
+            route.forEach((stop, index) => {
+                const order = index + 1;
+                const prevStopLat = index === 0 ? schoolLat : route[index - 1].lat;
+                const prevStopLng = index === 0 ? schoolLng : route[index - 1].lng;
+                
+                listHtml += `
+                    <div class="mb-3 p-2 border-start border-success border-4 bg-white rounded shadow-sm position-relative">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong><span class="badge bg-success text-white rounded-pill me-1" style="font-size:0.7rem;">${order}</span> ${stop.name}</strong>
+                            <span class="badge bg-light text-secondary small">+${stop.legDistance.toFixed(2)} กม.</span>
+                        </div>
+                        <div class="text-muted mb-2" style="font-size: 0.72rem; line-height: 1.4;">
+                            <div>ห้อง: ${stop.room} | รหัส: ${stop.student_id}</div>
+                            ${stop.curr_house_no ? `<div>ที่อยู่: ${stop.curr_house_no} ม.${stop.curr_moo || '-'} ต.${stop.curr_subdistrict || '-'}</div>` : ''}
+                        </div>
+                        <div class="d-flex gap-1 justify-content-end">
+                            <a href="https://www.google.com/maps/dir/${prevStopLat},${prevStopLng}/${stop.lat},${stop.lng}" target="_blank" class="btn btn-outline-success btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem; text-decoration: none;">
+                                <i class="bi bi-compass"></i> นำทางช่วงนี้
+                            </a>
+                            <button class="btn btn-outline-primary btn-sm py-1 px-2 rounded-pill fw-bold" style="font-size: 0.7rem;" onclick="viewStudentOnMap(${stop.id})">
+                                <i class="bi bi-geo-alt"></i> ดูบนแผนที่
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            listContainer.innerHTML = listHtml;
+            
+            // Show summary and action buttons
+            document.getElementById('route-active-badge').style.display = 'inline-block';
+            document.getElementById('btn-clear-route').style.display = 'block';
+            document.getElementById('route-summary-box').style.display = 'block';
+            document.getElementById('route-total-distance').textContent = `${totalDistance.toFixed(2)} กม.`;
+        }
+
+        function clearVisitRouteDecorators() {
+            if (routePolyline) {
+                if (overviewMap) {
+                    overviewMap.removeLayer(routePolyline);
+                }
+                routePolyline = null;
+            }
+            routeDecorators.forEach(decorator => {
+                if (overviewMap) {
+                    overviewMap.removeLayer(decorator);
+                }
+            });
+            routeDecorators = [];
+        }
+
+        function clearVisitRoute() {
+            clearVisitRouteDecorators();
+            
+            // Reset route planner panel to default message
+            const listContainer = document.getElementById('route-list-container');
+            listContainer.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-geo-alt fs-2 d-block mb-2 text-secondary"></i>
+                    กดปุ่มด้านบนเพื่อวางแผนเส้นทางเริ่มต้นจากโรงเรียนไปยังบ้านนักเรียนตามพิกัด
+                </div>
+            `;
+            
+            document.getElementById('route-active-badge').style.display = 'none';
+            document.getElementById('btn-clear-route').style.display = 'none';
+            document.getElementById('route-summary-box').style.display = 'none';
+            
+            // Re-render overview map pins bounds
+            initOverviewMap();
+        }
 
         function initAdminMap(coordsStr = '') {
             const defaultLat = 15.1878;
@@ -2464,6 +3506,69 @@
                 console.error('[silentSyncStudentPhotos] error:', e);
             }
         }
+
+        // ─── Student Enrollment Status Modal ───────────────────────────────
+        let _statusStudentId = null;
+        function openStatusModal(id, name, currentStatus) {
+            _statusStudentId = id;
+            document.getElementById('statusModalStudentName').textContent = name.trim();
+            document.getElementById('statusSelect').value = currentStatus || 'กำลังศึกษา';
+            new bootstrap.Modal(document.getElementById('studentStatusModal')).show();
+        }
+
+        async function saveEnrollmentStatus() {
+            if (!_statusStudentId) return;
+            const status = document.getElementById('statusSelect').value;
+            try {
+                const res = await fetch('../api/admin/update_student.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: _statusStudentId, enrollment_status: status })
+                });
+                const j = await res.json();
+                if (j.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('studentStatusModal')).hide();
+                    Swal.fire({ icon: 'success', title: 'อัปเดตสถานะแล้ว', timer: 1400, showConfirmButton: false, toast: true, position: 'top-end' });
+                    loadData();
+                } else {
+                    Swal.fire('ผิดพลาด', j.error || 'บันทึกไม่สำเร็จ', 'error');
+                }
+            } catch (e) { Swal.fire('ผิดพลาด', 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', 'error'); }
+        }
     </script>
+
+    <!-- Student Status Modal -->
+    <div class="modal fade" id="studentStatusModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <div>
+                        <h5 class="fw-black text-navy mb-0"><i class="bi bi-person-fill-gear text-warning me-2"></i>เปลี่ยนสถานะนักเรียน</h5>
+                        <p class="small text-muted mb-0 mt-1" id="statusModalStudentName"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pb-2">
+                    <label class="form-label small fw-bold text-muted">สถานะการศึกษา</label>
+                    <select id="statusSelect" class="form-select rounded-3 border-0 bg-light fw-bold">
+                        <option value="กำลังศึกษา">✅ กำลังศึกษา</option>
+                        <option value="พักการเรียน">⏸️ พักการเรียน</option>
+                        <option value="ลาออก">🚪 ลาออก</option>
+                        <option value="จำหน่าย">📋 จำหน่าย</option>
+                    </select>
+                    <div class="alert alert-warning mt-3 rounded-3 small py-2 px-3 mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        นักเรียนที่มีสถานะ <strong>พักการเรียน / ลาออก / จำหน่าย</strong> จะถูกซ่อนออกจากรายชื่อเช็คชื่อทุกประเภทโดยอัตโนมัติ
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold" onclick="saveEnrollmentStatus()">
+                        <i class="bi bi-check-circle-fill me-1"></i>บันทึก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
