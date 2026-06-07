@@ -77,10 +77,10 @@ try {
         exit;
     }
 
-    // Max 15MB file size
-    if ($file['size'] > 15 * 1024 * 1024) {
+    // Max 50MB file size
+    if ($file['size'] > 50 * 1024 * 1024) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'ไฟล์ต้องมีขนาดไม่เกิน 15MB']);
+        echo json_encode(['success' => false, 'error' => 'ไฟล์ต้องมีขนาดไม่เกิน 50MB']);
         exit;
     }
 

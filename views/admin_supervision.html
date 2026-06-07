@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>สถิติภาพรวมการนิเทศการสอน | CNP APP</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../public/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .bg-gradient-navy {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+        .banner-icon-bg {
+            position: absolute; right: -20px; bottom: -20px; font-size: 10rem; opacity: 0.12; transform: rotate(-10deg); color: white; pointer-events: none;
+        }
+        .text-navy { color: #1e3a8a; }
+        .card-premium {
+            background: white; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.015); transition: all 0.25s ease;
+        }
+        .card-premium:hover {
+            transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.03);
+        }
+        .card-title-premium {
+            font-weight: 800; font-size: 1.1rem; color: #0f172a; display: flex; align-items: center; gap: 10px;
+        }
+        
+        /* Calendar Styles */
+        .calendar-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+        }
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;
+        }
+        .calendar-day-label {
+            font-weight: 700; font-size: 0.8rem; color: #64748b; padding: 5px 0; text-transform: uppercase;
+        }
+        .calendar-cell {
+            min-height: 100px; background: white; border: 1px solid #f1f5f9; border-radius: 12px; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; position: relative; transition: all 0.2s;
+        }
+        .calendar-cell.today {
+            border: 2px solid #3b82f6; background-color: #eff6ff;
+        }
+        .calendar-cell.inactive {
+            background: #f8fafc; opacity: 0.45; pointer-events: none;
+        }
+        .calendar-cell.scheduled-date {
+            border: 1px dashed #cbd5e1; background-color: #fafafa;
+        }
+        .calendar-cell.scheduled-date.has-bookings {
+            background-color: #f0fdf4; border: 1px solid #86efac;
+        }
+        .calendar-cell.scheduled-date.is-full {
+            background-color: #fff7ed; border: 1px solid #ffedd5;
+        }
+        .calendar-date-number {
+            font-weight: 800; font-size: 0.95rem; color: #0f172a; text-align: left;
+        }
+        .calendar-cell.inactive .calendar-date-number {
+            color: #94a3b8;
+        }
+        .calendar-cell.scheduled-date .calendar-date-number {
+            color: #1e3a8a;
+        }
+        .calendar-dept-tag {
+            font-size: 0.62rem; font-weight: 800; background: #e2e8f0; color: #475569; border-radius: 4px; padding: 2px 4px; display: block; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;
+        }
+        .calendar-cell.scheduled-date.has-bookings .calendar-dept-tag {
+            background: #dcfce7; color: #15803d;
+        }
+        .calendar-cell.scheduled-date.is-full .calendar-dept-tag {
+            background: #ffe4e6; color: #b91c1c;
+        }
+        .calendar-slots {
+            font-size: 0.65rem; font-weight: 700; color: #64748b; text-align: right;
+        }
+        .calendar-cell.scheduled-date.has-bookings .calendar-slots {
+            color: #16a34a;
+        }
+        .calendar-bookings-indicator {
+            display: flex; flex-direction: column; gap: 2px; margin-top: 4px; text-align: left; max-height: 52px; overflow-y: auto;
+        }
+        .calendar-booking-chip {
+            font-size: 0.58rem; font-weight: 700; padding: 1px 3px; border-radius: 3px; background: #3b82f6; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+        }
+        .calendar-booking-chip.completed {
+            background-color: #10b981;
+        }
+        .calendar-booking-chip.pending {
+            background-color: #f59e0b;
+        }
+        
+        /* Stats Styles */
+        .aspect-score-card {
+            padding: 16px; border-bottom: 1px solid #f1f5f9;
+        }
+        .aspect-score-card:last-child {
+            border-bottom: none;
+        }
+        .aspect-score-title {
+            font-weight: 700; font-size: 0.92rem; color: #334155; margin-bottom: 6px;
+        }
+        .aspect-score-bar-bg {
+            height: 8px; background: #e2e8f0; border-radius: 10px; overflow: hidden; position: relative;
+        }
+        .aspect-score-bar-fill {
+            height: 100%; border-radius: 10px; transition: width 0.8s ease-out;
+        }
+        .badge-qual {
+            font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 12px;
+        }
+        
+        @media (max-width: 992px) {
+            .calendar-cell { min-height: 80px; }
+            .calendar-dept-tag { font-size: 0.58rem; }
+        }
+        @media (max-width: 768px) {
+            .calendar-grid { gap: 4px; }
+            .calendar-cell { min-height: 60px; padding: 3px; }
+            .calendar-day-label { font-size: 0.65rem; }
+            .calendar-dept-tag { display: none; }
+            .calendar-slots { font-size: 0.55rem; text-align: center; }
+            .calendar-bookings-indicator { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar" id="mainSidebar"></div>
+
+        <main class="app-main main-panel d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main">
+            <div class="app-content page-content flex-grow-1 py-4">
+                <div class="container-fluid">
+                    
+                    <!-- BREADCRUMB -->
+                    <nav aria-label="breadcrumb" class="mb-4">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="#" id="breadcrumbHome" class="text-navy">หน้าแรก</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">สถิติภาพรวมการนิเทศ</li>
+                        </ol>
+                    </nav>
+
+                    <!-- BANNER -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-12">
+                            <div class="card border-0 bg-gradient-navy rounded-4 position-relative overflow-hidden shadow-lg">
+                                <i class="fas fa-chart-pie banner-icon-bg"></i>
+                                <div class="card-body p-4 p-md-5 text-white position-relative" style="z-index: 1;">
+                                    <h1 class="display-6 fw-black mb-1">สถิติภาพรวมการนิเทศการสอน</h1>
+                                    <p class="lead mb-0 opacity-75">สรุปผลประเมินรายกลุ่มสาระการเรียนรู้ ปฏิทินช่วงวันนิเทศ และคะแนนเฉลี่ยแต่ละด้าน</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI CARDS -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-6 col-lg-3">
+                            <div class="card card-premium p-3 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i class="bi bi-calendar-check fs-1 text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small fw-bold mb-1">คิวนิเทศสะสมทั้งหมด</div>
+                                    <h2 class="fw-black text-primary mb-0" id="stat-total-bookings">0</h2>
+                                </div>
+                                <div class="small text-muted mt-2">จองคิวสำเร็จ (ไม่รวมยกเลิก)</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card card-premium p-3 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i class="bi bi-check-circle fs-1 text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small fw-bold mb-1">นิเทศเสร็จสิ้นแล้ว</div>
+                                    <h2 class="fw-black text-success mb-0" id="stat-completed-bookings">0</h2>
+                                </div>
+                                <div class="small text-success mt-2 fw-bold" id="stat-completed-pct"><i class="bi bi-check2"></i> 0% ของคิวทั้งหมด</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card card-premium p-3 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i class="bi bi-hourglass-split fs-1 text-warning"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small fw-bold mb-1">คำร้องรออนุมัติ</div>
+                                    <h2 class="fw-black text-warning mb-0" id="stat-pending-bookings">0</h2>
+                                </div>
+                                <div class="small text-muted mt-2">รอตั้งวิชาการร่วมประเมิน</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="card card-premium p-3 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden">
+                                <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i class="bi bi-calendar-event fs-1 text-info"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small fw-bold mb-1">กำลังรอดำเนินการนิเทศ</div>
+                                    <h2 class="fw-black text-info mb-0" id="stat-upcoming-bookings">0</h2>
+                                </div>
+                                <div class="small text-muted mt-2">อนุมัติแล้ว แต่อยู่ในขั้นตอนส่งแผน/ประเมิน</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHARTS & SUMMARY SCORING -->
+                    <div class="row g-4 mb-4">
+                        <!-- Chart Section -->
+                        <div class="col-xl-6">
+                            <div class="card card-premium p-4 h-100">
+                                <div class="card-header border-0 bg-transparent p-0 mb-4 d-flex justify-content-between align-items-center">
+                                    <div class="card-title-premium">
+                                        <i class="bi bi-bar-chart-steps text-navy"></i>
+                                        <span>จำนวนจองนิเทศแยกตามกลุ่มสาระฯ</span>
+                                    </div>
+                                </div>
+                                <div style="position: relative; height: 320px;">
+                                    <canvas id="deptChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scoring averages section -->
+                        <div class="col-xl-6">
+                            <div class="card card-premium p-4 h-100">
+                                <div class="card-header border-0 bg-transparent p-0 mb-3">
+                                    <div class="card-title-premium">
+                                        <i class="bi bi-star-fill text-warning"></i>
+                                        <span>คะแนนประเมินเฉลี่ยแต่ละด้าน (เต็ม 5.00)</span>
+                                    </div>
+                                </div>
+
+                                <ul class="nav nav-tabs border-bottom mb-3" id="scoreTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active fw-bold text-dark" id="doc-tab" data-bs-toggle="tab" data-bs-target="#doc-score" type="button" role="tab">การประเมินแผนจัดการเรียนรู้</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link fw-bold text-dark" id="class-tab" data-bs-toggle="tab" data-bs-target="#class-score" type="button" role="tab">การสังเกตการจัดการเรียนรู้ในห้องเรียน</button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content" id="scoreTabContent">
+                                    <!-- Document evaluation scores -->
+                                    <div class="tab-pane fade show active" id="doc-score" role="tabpanel">
+                                        <div class="text-center py-2 mb-3 bg-light rounded-4">
+                                            <small class="text-muted fw-bold d-block">จำนวนแผนการจัดการเรียนรู้ที่ประเมินแล้ว</small>
+                                            <h4 class="fw-black mb-0 text-navy" id="doc-eval-count">0 เล่ม</h4>
+                                        </div>
+                                        <div id="doc-aspect-list">
+                                            <!-- Javascript renders -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Classroom teaching scores -->
+                                    <div class="tab-pane fade" id="class-score" role="tabpanel">
+                                        <div class="text-center py-2 mb-3 bg-light rounded-4">
+                                            <small class="text-muted fw-bold d-block">จำนวนคาบเรียนที่กรรมการลงประเมินแล้ว</small>
+                                            <h4 class="fw-black mb-0 text-navy" id="class-eval-count">0 คาบ</h4>
+                                        </div>
+                                        <div id="class-aspect-list" style="max-height: 290px; overflow-y: auto; padding-right: 5px;">
+                                            <!-- Javascript renders -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MONTHLY SUPERVISION TIMETABLE CALENDAR -->
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card card-premium p-4">
+                                <div class="card-header border-0 bg-transparent p-0 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                    <div>
+                                        <div class="card-title-premium mb-1">
+                                            <i class="bi bi-calendar3 text-navy"></i>
+                                            <span>ปฏิทินแสดงคิวการนิเทศประจำเดือน</span>
+                                        </div>
+                                        <p class="text-muted small mb-0 fw-bold">* แสดงช่วงวันที่ได้รับการกำหนดปฏิทินนิเทศหลักตามกลุ่มสาระการเรียนรู้</p>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="changeMonth(-1)"><i class="bi bi-chevron-left"></i> เดือนก่อนหน้า</button>
+                                        <h5 class="mb-0 fw-black px-2" style="min-width: 140px; text-align: center;" id="calendarMonthTitle">มิถุนายน 2569</h5>
+                                        <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="changeMonth(1)">เดือนถัดไป <i class="bi bi-chevron-right"></i></button>
+                                    </div>
+                                </div>
+
+                                <!-- Legend -->
+                                <div class="d-flex flex-wrap gap-3 mb-3 small fw-bold">
+                                    <div class="d-flex align-items-center gap-1"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background-color: #fafafa; border: 1px dashed #cbd5e1;"></span> กำหนดการนิเทศหลัก</div>
+                                    <div class="d-flex align-items-center gap-1"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background-color: #f0fdf4; border: 1px solid #86efac;"></span> มีคิวการจองแล้ว</div>
+                                    <div class="d-flex align-items-center gap-1"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background-color: #ffe4e6; border: 1px solid #b91c1c;"></span> คิวเต็มในวันนั้น (4 คาบ)</div>
+                                </div>
+
+                                <div class="calendar-header"></div>
+                                <div class="calendar-grid mb-3">
+                                    <div class="calendar-day-label">อา.</div>
+                                    <div class="calendar-day-label">จ.</div>
+                                    <div class="calendar-day-label">อ.</div>
+                                    <div class="calendar-day-label">พ.</div>
+                                    <div class="calendar-day-label">พฤ.</div>
+                                    <div class="calendar-day-label">ศ.</div>
+                                    <div class="calendar-day-label">ส.</div>
+                                </div>
+                                <div class="calendar-grid" id="calendarDaysContainer">
+                                    <!-- Days are rendered by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            
+            <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+        </main>
+    </div>
+
+    <!-- Modal for showing booking details on a specific date -->
+    <div class="modal fade" id="dateBookingsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header bg-light rounded-top-4 border-bottom">
+                    <h5 class="modal-title fw-black text-navy" id="modalDateTitle">คิวการนิเทศวันที่ -</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="modalBookingsBody">
+                    <!-- Loaded dynamically -->
+                </div>
+                <div class="modal-footer border-top-0">
+                    <a href="admin_supervision_booking.html" class="btn btn-navy rounded-pill fw-bold w-100">ไปที่หน้าจัดการคิวและกรรมการ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../public/js/main.js"></script>
+    
+    <script>
+        let statsData = null;
+        let currentMonth = new Date(2026, 5, 1); // Start with June 2026
+        let deptChart = null;
+
+        function thDate(dateStr) {
+            if (!dateStr) return '-';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth('admin');
+            if (user) {
+                // Dynamic home link for teacher 518 acting as supervision manager
+                const homeUrl = (user.role === 'teacher') ? 'teacher_dashboard.html' : 'admin_dashboard.html';
+                const bcHome = document.getElementById('breadcrumbHome');
+                if (bcHome) bcHome.href = homeUrl;
+                await loadStats();
+            }
+        });
+
+        async function loadStats() {
+            try {
+                const res = await fetch('../api/admin/supervision_stats.php');
+                const data = await res.json();
+                if (data.success) {
+                    statsData = data;
+                    populateSummaryCards(data.stats);
+                    renderDepartmentChart(data.departments);
+                    renderScoringAverages(data.averages);
+                    renderCalendar();
+                } else {
+                    Swal.fire('ดึงข้อมูลล้มเหลว', data.error || 'กรุณาลองใหม่อีกครั้ง', 'error');
+                }
+            } catch (err) {
+                console.error("Error loading stats API:", err);
+            }
+        }
+
+        function populateSummaryCards(stats) {
+            document.getElementById('stat-total-bookings').textContent = stats.total;
+            document.getElementById('stat-completed-bookings').textContent = stats.completed;
+            document.getElementById('stat-pending-bookings').textContent = stats.pending;
+            document.getElementById('stat-upcoming-bookings').textContent = stats.approved;
+            
+            const pct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+            document.getElementById('stat-completed-pct').innerHTML = `<i class="bi bi-check2"></i> ${pct}% ของคิวทั้งหมด`;
+        }
+
+        function renderDepartmentChart(departments) {
+            const ctx = document.getElementById('deptChart').getContext('2d');
+            
+            const labels = departments.map(d => d.department);
+            const totalData = departments.map(d => parseInt(d.count));
+            const completedData = departments.map(d => parseInt(d.completed_count));
+            
+            if (deptChart) {
+                deptChart.destroy();
+            }
+
+            deptChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'นิเทศเสร็จแล้ว',
+                            data: completedData,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'รอดำเนินการ',
+                            data: departments.map((d, i) => totalData[i] - completedData[i]),
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Sarabun', weight: 'bold' } } }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, labels: labels.map(l => l.substring(0, 12) + (l.length > 12 ? '..' : '')) },
+                        y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        function getQualityBadge(avg) {
+            if (avg >= 4.21) return '<span class="badge badge-qual bg-success text-white">ยอดเยี่ยม</span>';
+            if (avg >= 3.41) return '<span class="badge badge-qual bg-info text-white">ดีเลิศ</span>';
+            if (avg >= 2.61) return '<span class="badge badge-qual bg-primary text-white">ดี</span>';
+            if (avg >= 1.81) return '<span class="badge badge-qual bg-warning text-dark">ปานกลาง</span>';
+            if (avg >= 1.00) return '<span class="badge badge-qual bg-secondary text-white">กำลังพัฒนา</span>';
+            return '<span class="badge badge-qual bg-danger text-white">ปรับปรุงเร่งด่วน</span>';
+        }
+
+        function getQualityColor(avg) {
+            if (avg >= 4.21) return '#10b981'; // Green
+            if (avg >= 3.41) return '#06b6d4'; // Cyan/Info
+            if (avg >= 2.61) return '#3b82f6'; // Blue
+            if (avg >= 1.81) return '#f59e0b'; // Amber/Warning
+            if (avg >= 1.00) return '#64748b'; // Slate
+            return '#ef4444'; // Red
+        }
+
+        function renderScoringAverages(averages) {
+            // Render Document
+            document.getElementById('doc-eval-count').textContent = `${averages.doc.count} เล่ม`;
+            
+            const docAspects = [
+                { title: "ด้านที่ 1: การประเมินโครงสร้างและหน่วยการเรียนรู้ (19 ข้อ)", score: averages.doc.unit_avg },
+                { title: "ด้านที่ 2: การประเมินแผนการจัดการเรียนรู้รายคาบ (25 ข้อ)", score: averages.doc.plan_avg },
+                { title: "คะแนนเฉลี่ยรวมการประเมินเอกสารแผนการจัดสอน", score: averages.doc.overall_avg, isOverall: true }
+            ];
+
+            document.getElementById('doc-aspect-list').innerHTML = docAspects.map(a => {
+                const pct = (a.score / 5) * 100;
+                const color = getQualityColor(a.score);
+                return `
+                    <div class="aspect-score-card">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="aspect-score-title ${a.isOverall ? 'fw-black text-navy' : ''}">${a.title}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-black text-dark">${a.score.toFixed(2)}</span>
+                                ${getQualityBadge(a.score)}
+                            </div>
+                        </div>
+                        <div class="aspect-score-bar-bg">
+                            <div class="aspect-score-bar-fill" style="width: ${pct}%; background-color: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Render Classroom
+            document.getElementById('class-eval-count').textContent = `${averages.class.count} คาบ`;
+
+            const classAspects = [
+                { title: "ตอนที่ 1: การเตรียมการสอน/ขั้นนำ (6 ข้อ)", score: averages.class.p1_avg },
+                { title: "ตอนที่ 2: ด้านการจัดการเรียนรู้ (13 ข้อ)", score: averages.class.p2_avg },
+                { title: "ตอนที่ 3: การบริหารจัดการชั้นเรียน (4 ข้อ)", score: averages.class.p3_avg },
+                { title: "ตอนที่ 4: การสรุปบทเรียน (2 ข้อ)", score: averages.class.p4_avg },
+                { title: "ตอนที่ 5: การวัดและประเมินผลการเรียนรู้ (2 ข้อ)", score: averages.class.p5_avg },
+                { title: "ตอนที่ 6: บุคลิกภาพ ร่างกาย อารมณ์ (4 ข้อ)", score: averages.class.p6_avg },
+                { title: "คะแนนเฉลี่ยรวมการสังเกตการสอนในชั้นเรียน", score: averages.class.overall_avg, isOverall: true }
+            ];
+
+            document.getElementById('class-aspect-list').innerHTML = classAspects.map(a => {
+                const pct = (a.score / 5) * 100;
+                const color = getQualityColor(a.score);
+                return `
+                    <div class="aspect-score-card">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="aspect-score-title ${a.isOverall ? 'fw-black text-navy' : ''}">${a.title}</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-black text-dark">${a.score.toFixed(2)}</span>
+                                ${getQualityBadge(a.score)}
+                            </div>
+                        </div>
+                        <div class="aspect-score-bar-bg">
+                            <div class="aspect-score-bar-fill" style="width: ${pct}%; background-color: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function changeMonth(delta) {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            if (!statsData) return;
+
+            const monthsThai = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            const yearThai = currentMonth.getFullYear() + 543;
+            document.getElementById('calendarMonthTitle').textContent = `${monthsThai[currentMonth.getMonth()]} ${yearThai}`;
+
+            const container = document.getElementById('calendarDaysContainer');
+            container.innerHTML = '';
+
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            // First day of month (0 = Sunday, 6 = Saturday)
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            // Total days in month
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            // Previous month total days to fill beginning cells
+            const prevMonthTotalDays = new Date(year, month, 0).getDate();
+
+            // 1. Render blank or inactive days from previous month
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                const dayNum = prevMonthTotalDays - i;
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell inactive';
+                cell.innerHTML = `<span class="calendar-date-number">${dayNum}</span>`;
+                container.appendChild(cell);
+            }
+
+            // Map API calendar data by date string
+            const calendarMap = {};
+            statsData.calendar.forEach(c => {
+                calendarMap[c.date] = c;
+            });
+
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            // 2. Render actual days of the current month
+            for (let day = 1; day <= totalDays; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell';
+                
+                if (dateStr === todayStr) {
+                    cell.classList.add('today');
+                }
+
+                let contentHtml = `<span class="calendar-date-number">${day}</span>`;
+
+                // Check if this date has a schedule mapped
+                if (calendarMap[dateStr]) {
+                    const cInfo = calendarMap[dateStr];
+                    cell.classList.add('scheduled-date');
+                    
+                    if (cInfo.bookings_count > 0) {
+                        cell.classList.add('has-bookings');
+                        if (cInfo.bookings_count >= 4) {
+                            cell.classList.add('is-full');
+                        }
+                    }
+
+                    // Render short label
+                    let deptNameShort = cInfo.department.replace('และเทคโนโลยี', '').replace('ศาสนา และวัฒนธรรม', '');
+                    contentHtml += `
+                        <span class="calendar-dept-tag" title="${cInfo.department}">${deptNameShort}</span>
+                        <div class="calendar-bookings-indicator">
+                            ${cInfo.bookings.slice(0, 2).map(b => {
+                                let statusClass = '';
+                                if (b.status === 'completed') statusClass = 'completed';
+                                else if (b.status === 'pending') statusClass = 'pending';
+                                
+                                return `<span class="calendar-booking-chip ${statusClass}" onclick="event.stopPropagation(); showBookingsForDate('${cInfo.date}')" title="คาบ ${b.period} · ${b.teacher_name} · ${b.subject_code}">
+                                            คาบ ${b.period} ${b.teacher_name.split(' ')[0]}
+                                        </span>`;
+                            }).join('')}
+                            ${cInfo.bookings_count > 2 ? `<span class="text-muted text-center" style="font-size: 0.55rem; font-weight: 700;">+ อีก ${cInfo.bookings_count - 2} คิว</span>` : ''}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="calendar-slots">${cInfo.bookings_count}/4 คาบ</span>
+                        </div>
+                    `;
+
+                    cell.onclick = () => showBookingsForDate(cInfo.date);
+                } else {
+                    // Plain date cell
+                    contentHtml += `<div></div><div class="calendar-slots"></div>`;
+                }
+
+                cell.innerHTML = contentHtml;
+                container.appendChild(cell);
+            }
+
+            // 3. Render grid elements to wrap up the grid to full row if necessary (42 cells total for clean layout)
+            const totalCellsRendered = firstDayIndex + totalDays;
+            const remainingCells = 42 - totalCellsRendered;
+            for (let i = 1; i <= remainingCells; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell inactive';
+                cell.innerHTML = `<span class="calendar-date-number">${i}</span>`;
+                container.appendChild(cell);
+            }
+        }
+
+        function showBookingsForDate(dateStr) {
+            const calendarMap = {};
+            statsData.calendar.forEach(c => {
+                calendarMap[c.date] = c;
+            });
+
+            const dayInfo = calendarMap[dateStr];
+            if (!dayInfo) return;
+
+            document.getElementById('modalDateTitle').textContent = `คิวการนิเทศวันที่ ${thDate(dateStr)} (${dayInfo.department})`;
+            const body = document.getElementById('modalBookingsBody');
+
+            if (dayInfo.bookings_count === 0) {
+                body.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-calendar-x fs-1 mb-2 d-block"></i>
+                        <p class="mb-0 fw-bold">ยังไม่มีการจองคิวนิเทศในวันนี้</p>
+                        <small>คุณสามารถเปิดระบบให้คณะครูจอง หรือตรวจสอบหน้าจัดการคิวได้</small>
+                    </div>
+                `;
+            } else {
+                body.innerHTML = `
+                    <div class="d-flex flex-column gap-3">
+                        <div class="small fw-bold text-muted mb-1">คิวจองนิเทศทั้งหมด ${dayInfo.bookings_count} คาบ:</div>
+                        ${dayInfo.bookings.map(b => {
+                            let badgeClass = 'bg-secondary bg-opacity-10 text-secondary';
+                            let badgeText = 'รอนิเทศ';
+                            if (b.status === 'pending') {
+                                badgeClass = 'bg-warning bg-opacity-10 text-warning';
+                                badgeText = 'รออนุมัติ';
+                            } else if (b.status === 'completed') {
+                                badgeClass = 'bg-success bg-opacity-10 text-success';
+                                badgeText = 'นิเทศแล้ว';
+                            }
+
+                            return `
+                                <div class="p-3 border rounded-3 bg-light bg-opacity-50">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="fw-bold text-dark fs-6">คาบเรียนที่ ${b.period}</div>
+                                        <span class="badge ${badgeClass}">${badgeText}</span>
+                                    </div>
+                                    <div class="row g-1 small text-muted">
+                                        <div class="col-4 fw-bold">ผู้สอน:</div>
+                                        <div class="col-8 fw-bold text-dark">${b.teacher_name}</div>
+                                        
+                                        <div class="col-4 fw-bold">กลุ่มสาระฯ:</div>
+                                        <div class="col-8">${b.department}</div>
+
+                                        <div class="col-4 fw-bold">วิชา:</div>
+                                        <div class="col-8">${b.subject_code} ${b.subject_name}</div>
+                                        
+                                        <div class="col-4 fw-bold">ชั้นเรียน:</div>
+                                        <div class="col-8">ชั้น ม. ${b.classroom}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            const myModal = new bootstrap.Modal(document.getElementById('dateBookingsModal'));
+            myModal.show();
+        }
+    </script>
+</body>
+</html>

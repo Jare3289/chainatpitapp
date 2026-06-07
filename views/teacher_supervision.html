@@ -115,11 +115,21 @@
             border-radius: 2px;
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
         .super-step {
             position: relative;
             z-index: 2;
             text-align: center;
             flex: 1;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .super-step:hover {
+            transform: translateY(-2px);
         }
         .step-circle {
             width: 50px;
@@ -135,8 +145,19 @@
             color: #94a3b8;
             transition: all 0.3s ease;
         }
+        .super-step:hover .step-circle {
+            transform: scale(1.15);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
         .super-step.completed .step-circle {
             background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+        .super-step.completed:hover .step-circle {
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
             border-color: #10b981;
             color: white;
         }
@@ -144,8 +165,13 @@
             background: #3b82f6;
             border-color: #3b82f6;
             color: white;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            animation: pulse-blue 2s infinite;
             transform: scale(1.1);
+        }
+        .super-step.active:hover .step-circle {
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+            border-color: #3b82f6;
+            color: white;
         }
         .step-label { font-weight: 800; font-size: 0.85rem; margin-bottom: 2px; color: #1e293b; }
         .step-subtext { font-size: 0.7rem; color: #64748b; font-weight: 600; }
@@ -511,8 +537,19 @@
                 const data = await res.json();
                 if (data.success) {
                     // Update Stepper
-                    const step = data.booking ? data.current_step : 1;
-                    updateStepper(step);
+                    let step = 1;
+                    let allCompleted = false;
+                    if (data.booking) {
+                        if (data.booking.status === 'pending') {
+                            step = 2; // Step 1 (จองคิว) is completed, currently at Step 2 (waiting for queue approval)
+                        } else if (data.booking.status === 'completed' || (data.current_step === 6 && data.booking.post_teaching_record)) {
+                            step = 6;
+                            allCompleted = true; // All steps completed
+                        } else {
+                            step = data.current_step;
+                        }
+                    }
+                    updateStepper(step, !!data.booking, data.booking, allCompleted);
                     
                     // Render Pending Tasks
                     renderPendingTasks(data);
@@ -528,27 +565,77 @@
             }
         }
 
-        function updateStepper(step) {
+        function updateStepper(step, hasBooking = true, booking = null, allCompleted = false) {
             const stepsCount = 6;
-            const progress = ((step - 1) / (stepsCount - 1)) * 100;
+            let progress = ((step - 1) / (stepsCount - 1)) * 100;
+            if (allCompleted) {
+                progress = 100;
+            }
             
             const line = document.getElementById('stepper-line-progress');
             if (line) line.style.width = progress + '%';
+
+            const stepIcons = [
+                'bi-calendar-plus',
+                'bi-file-earmark-arrow-up',
+                'bi-file-earmark-check',
+                'bi-eye',
+                'bi-pencil-square',
+                'bi-check-all'
+            ];
+
+            const subtexts = [
+                'รออนุมัติ',
+                'ครูผู้รับนิเทศ',
+                'กรรมการตรวจ',
+                'นิเทศห้องเรียน',
+                'บันทึกหลังแผน',
+                'เสร็จกระบวนการ'
+            ];
+
+            const stepLinks = [
+                'supervision_booking.html',
+                'supervision_docs.html',
+                'supervision_docs.html',
+                'supervision_evaluate.html',
+                'supervision_post_teach.html',
+                'supervision_print.html'
+            ];
 
             for (let i = 1; i <= stepsCount; i++) {
                 const stepEl = document.getElementById('step-' + i);
                 if (!stepEl) continue;
 
                 stepEl.classList.remove('active', 'completed');
-                if (i < step) {
+                
+                // Add click redirection to make each step card interactive
+                stepEl.onclick = () => {
+                    window.location.href = stepLinks[i - 1];
+                };
+
+                if (allCompleted || i < step) {
                     stepEl.classList.add('completed');
+                    stepEl.querySelector('.step-circle').innerHTML = '<i class="bi bi-check-lg"></i>';
+                    stepEl.querySelector('.step-subtext').innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>เสร็จแล้ว</span>';
                 } else if (i === step) {
                     stepEl.classList.add('active');
+                    stepEl.querySelector('.step-circle').innerHTML = `<i class="bi ${stepIcons[i - 1]}"></i>`;
+                    if (i === 1 && !hasBooking) {
+                        stepEl.querySelector('.step-subtext').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i>ยังไม่ได้จอง</span>';
+                    } else if (i === 2 && booking && booking.status === 'pending') {
+                        stepEl.querySelector('.step-subtext').innerHTML = '<span class="text-warning fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px; border-width: 2px;"></i>รออนุมัติคิว</span>';
+                    } else {
+                        stepEl.querySelector('.step-subtext').innerHTML = `<span class="text-primary fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px; border-width: 2px;"></i>กำลังทำ</span>`;
+                    }
+                } else {
+                    stepEl.querySelector('.step-circle').innerHTML = `<i class="bi ${stepIcons[i - 1]}"></i>`;
+                    stepEl.querySelector('.step-subtext').textContent = subtexts[i - 1];
                 }
             }
 
             const percent = Math.round(progress);
-            document.getElementById('overall-steps-text').textContent = `${step}/${stepsCount}`;
+            const completedCount = allCompleted ? stepsCount : (step - (booking && booking.status === 'pending' ? 1 : 0));
+            document.getElementById('overall-steps-text').textContent = `${completedCount}/${stepsCount}`;
             document.getElementById('overall-percent-text').textContent = `${percent}%`;
             
             const desc = document.getElementById('overall-status-desc');
@@ -560,7 +647,16 @@
                 'รอส่งรายงานบันทึกผลสะท้อนหลังการจัดการเรียนรู้',
                 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด เรียบร้อยแล้ว'
             ];
-            desc.textContent = descriptions[step - 1] || 'รอเริ่มต้นการจอง';
+            
+            if (!hasBooking) {
+                desc.textContent = 'ยังไม่ได้เริ่มต้นจองคิวนิเทศ';
+            } else if (allCompleted) {
+                desc.textContent = 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด เรียบร้อยแล้ว';
+            } else if (booking && booking.status === 'pending') {
+                desc.textContent = 'จองคิวนิเทศสำเร็จ (รออนุมัติ)';
+            } else {
+                desc.textContent = descriptions[step - 1] || 'รอเริ่มต้นการจอง';
+            }
 
             // AI Advice Box
             const adviceBox = document.getElementById('advice-content-box');
@@ -572,10 +668,17 @@
                 'การนิเทศในชั้นเรียนเสร็จสิ้นแล้ว กรุณากรอกบันทึกสรุปผลหลังการจัดการเรียนรู้ของท่านเพื่อจบกระบวนการ',
                 'เสร็จสิ้นกระบวนการนิเทศการจัดการเรียนรู้เรียบร้อยแล้ว ท่านสามารถเข้าดาวน์โหลดหรือสั่งพิมพ์เอกสารรายงานผลนิเทศ (Booklet) เก็บไว้ประกอบหลักฐานวิทยฐานะได้ทันที'
             ];
+            
             if (adviceBox) {
+                let adviceText = advices[step - 1] || 'ยินดีต้อนรับเข้าสู่ระบบนิเทศการสอน';
+                if (step === 1 && !hasBooking) {
+                    adviceText = 'คุณยังไม่มีรายการจองคิวนิเทศในภาคเรียนนี้ กรุณาคลิกเพื่อทำการจองคิวระบบจัดตารางเวลาและกำหนดคณะกรรมการนิเทศการสอนของท่าน';
+                } else if (step === 2 && booking && booking.status === 'pending') {
+                    adviceText = 'คุณได้ส่งคำขอจองคิวนิเทศแล้ว ขณะนี้อยู่ระหว่างรอฝ่ายวิชาการดำเนินการตรวจสอบและอนุมัติวันนิเทศการสอนของท่าน';
+                }
                 adviceBox.querySelector('.advice-content').innerHTML = `
                     <h6 class="fw-bold mb-1">คำแนะนำสำหรับขั้นตอนที่ ${step}</h6>
-                    <p class="mb-0 small">${advices[step - 1] || 'ยินดีต้อนรับเข้าสู่ระบบนิเทศการสอน'}</p>
+                    <p class="mb-0 small">${adviceText}</p>
                 `;
             }
         }
@@ -717,15 +820,20 @@
 
             container.innerHTML = activeDuties.map(d => {
                 const avatar = d.teacher_photo ? `../${d.teacher_photo}` : '../public/img/default-avatar.png';
+                let statusBadge = '';
+                if (d.status === 'pending') {
+                    statusBadge = `<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill ms-1" style="font-size:0.65rem;">รออนุมัติ</span>`;
+                }
                 return `
-                    <a href="supervision_evaluate.html" class="list-item-modern text-decoration-none d-flex align-items-center gap-3">
+                    <a href="${d.status === 'pending' ? '#' : 'supervision_evaluate.html'}" class="list-item-modern text-decoration-none d-flex align-items-center gap-3" ${d.status === 'pending' ? 'onclick="Swal.fire({icon:\'warning\', title:\'รอการอนุมัติ\', text:\'คำร้องของ อ. \' + ' + JSON.stringify(d.teacher_name) + ' + \' อยู่ระหว่างรอการอนุมัติจากฝ่ายวิชาการ จึงยังไม่สามารถบันทึกการประเมินได้\', confirmButtonColor:\'#1e3a8a\'}); return false;"' : ''}>
                         <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
                         <div class="flex-grow-1">
                             <div class="fw-bold small text-navy mb-0">${d.teacher_name}</div>
                             <div class="text-muted" style="font-size: 0.72rem;">${d.subject_code} • วันที่นิเทศ: ${thDate(d.booking_date)}</div>
                         </div>
-                        <div>
-                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill" style="font-size:0.65rem;">${d.role_th}</span>
+                        <div class="text-end">
+                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill d-block mb-1" style="font-size:0.65rem;">${d.role_th}</span>
+                            ${statusBadge}
                         </div>
                     </a>
                 `;

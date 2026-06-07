@@ -6,6 +6,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/supervision_notify.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
@@ -55,24 +56,9 @@ try {
         $teacher_id = $me['id'];
     }
 
-    // 2. Verify ownership and status
-    if ($is_admin) {
-        $stmt = $pdo->prepare("SELECT status, subject_code, subject_name, booking_date, peer_teacher_id, head_teacher_id, academic_teacher_id, teacher_id,
-            (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
-            (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
-            (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
-            (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user
-            FROM supervision_bookings b WHERE b.id = ?");
-        $stmt->execute([$booking_id]);
-    } else {
-        $stmt = $pdo->prepare("SELECT status, subject_code, subject_name, booking_date, peer_teacher_id, head_teacher_id, academic_teacher_id, teacher_id,
-            (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.teacher_id) as t_name,
-            (SELECT user_id FROM teachers WHERE id = b.peer_teacher_id) as peer_user,
-            (SELECT user_id FROM teachers WHERE id = b.head_teacher_id) as head_user,
-            (SELECT user_id FROM teachers WHERE id = b.academic_teacher_id) as ac_user
-            FROM supervision_bookings b WHERE b.id = ? AND b.teacher_id = ?");
-        $stmt->execute([$booking_id, $teacher_id]);
-    }
+    // 2. Verify ownership and status (also fetch peer/head for notifications)
+    $stmt = $pdo->prepare("SELECT status, peer_teacher_id, head_teacher_id FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+    $stmt->execute([$booking_id, $teacher_id]);
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$booking) {
@@ -81,9 +67,9 @@ try {
         exit;
     }
 
-    if ($booking['status'] !== 'pending' && $booking['status'] !== 'approved') {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'ไม่สามารถยกเลิกได้ เนื่องจากคิวถูกดำเนินการไปแล้ว']);
+    if ($booking['status'] === 'cancelled') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'รายการนี้ถูกยกเลิกไปแล้ว']);
         exit;
     }
 
@@ -91,51 +77,14 @@ try {
     $stmt = $pdo->prepare("UPDATE supervision_bookings SET status = 'cancelled' WHERE id = ?");
     $stmt->execute([$booking_id]);
 
-    // Send notifications
+    // 4. Notify peer + head
     try {
-        require_once '../../inc/notifications.php';
-        
-        $parts = explode('-', $booking['booking_date']);
-        $thai_date = $booking['booking_date'];
-        if (count($parts) === 3) {
-            $y = (int)$parts[0] + 543;
-            $m = (int)$parts[1];
-            $d = (int)$parts[2];
-            $months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-            $thai_date = "$d {$months[$m]} $y";
-        }
-
-        // Get evaluatee user id
-        $stmt_bk_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
-        $stmt_bk_user->execute([$booking['teacher_id']]);
-        $evaluatee_user_id = $stmt_bk_user->fetchColumn();
-
-        $msg_eval = "การยกเลิกจองคิวนิเทศรายวิชา " . $booking['subject_name'] . " (" . $booking['subject_code'] . ") ในวันที่ $thai_date สำเร็จแล้ว";
-
-        if ($evaluatee_user_id) {
-            if ($is_admin) {
-                cnp_notify($pdo, (int)$evaluatee_user_id, 'คิวนิเทศถูกยกเลิก ⚠️', "คิวนิเทศของคุณวิชา " . $booking['subject_name'] . " ได้ถูกยกเลิกโดยผู้บริหาร/ผู้ดูแลระบบ", 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
-            } else {
-                cnp_notify($pdo, (int)$evaluatee_user_id, 'ยกเลิกคิวนิเทศสำเร็จ ❌', $msg_eval, 'teacher_supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
-            }
-        }
-
-        if ($is_admin) {
-            cnp_notify($pdo, (int)$user_id, 'ยกเลิกคิวนิเทศสำเร็จ ❌', $msg_eval, 'supervision.html', 'bi-x-circle-fill', '#ef4444', 'supervision');
-        }
-
-        // Notify committee
-        $msg_comm = "คิวนิเทศของ อ. " . $booking['t_name'] . " ในวันที่ $thai_date วิชา " . $booking['subject_name'] . " ถูกยกเลิก";
-        if (!empty($booking['peer_user'])) {
-            cnp_notify($pdo, (int)$booking['peer_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
-        }
-        if (!empty($booking['head_user'])) {
-            cnp_notify($pdo, (int)$booking['head_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
-        }
-        if (!empty($booking['ac_user'])) {
-            cnp_notify($pdo, (int)$booking['ac_user'], 'คิวนิเทศถูกยกเลิก ⚠️', $msg_comm, 'teacher_supervision.html', 'bi-x-circle', '#ef4444', 'supervision');
-        }
-    } catch (Exception $ex) {}
+        $ids = supervisionBookingUserIds($pdo, $booking_id);
+        $msg = "การจองคิวนิเทศ #ต{$booking_id} ถูกยกเลิกโดยครูผู้รับการนิเทศ";
+        supervisionNotify($pdo, [$ids['peer_user_id'], $ids['head_user_id']], 'ยกเลิกการจองนิเทศ', $msg, 'supervision_booking.html');
+    } catch (Throwable $e_n) {
+        error_log('[supervision_cancel notify] ' . $e_n->getMessage());
+    }
 
     echo json_encode(['success' => true, 'message' => 'ยกเลิกการจองคิวสำเร็จ']);
 

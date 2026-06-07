@@ -222,6 +222,34 @@ try {
         }
     }
 
+    // 3. Fetch my evaluations duties (where I am Peer, Head, or Academic evaluator)
+    // Only fetch bookings in active stages: approved, doc_submitted, completed
+    $stmt_duties = $pdo->prepare("SELECT b.*, 
+        t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept,
+        e.doc_evaluated_at, e.class_evaluated_at,
+        e.doc_comments, e.class_comments,
+        e.doc_score_1, e.doc_score_2, e.doc_score_3, e.doc_score_4, e.doc_score_5,
+        e.unit_score_1, e.unit_score_2, e.unit_score_3, e.unit_score_4, e.unit_score_5,
+        e.unit_score_6, e.unit_score_7, e.unit_score_8, e.unit_score_9, e.unit_score_10,
+        e.unit_score_11, e.unit_score_12, e.unit_score_13, e.unit_score_14, e.unit_score_15,
+        e.unit_score_16, e.unit_score_17, e.unit_score_18, e.unit_score_19,
+        e.plan_score_1, e.plan_score_2, e.plan_score_3, e.plan_score_4, e.plan_score_5,
+        e.plan_score_6, e.plan_score_7, e.plan_score_8, e.plan_score_9, e.plan_score_10,
+        e.plan_score_11, e.plan_score_12, e.plan_score_13, e.plan_score_14, e.plan_score_15,
+        e.plan_score_16, e.plan_score_17, e.plan_score_18, e.plan_score_19, e.plan_score_20,
+        e.plan_score_21, e.plan_score_22_1, e.plan_score_22_2, e.plan_score_22_3, e.plan_score_22_4,
+        e.class_score_1, e.class_score_2, e.class_score_3, e.class_score_4, e.class_score_5,
+        e.class_score_6, e.class_score_7, e.class_score_8, e.class_score_9, e.class_score_10,
+        e.unit_integration, e.plan_integration
+        FROM supervision_bookings b
+        JOIN teachers t ON b.teacher_id = t.id
+        LEFT JOIN supervision_evaluations e ON b.id = e.booking_id AND e.evaluator_teacher_id = ?
+        WHERE (b.peer_teacher_id = ? OR b.head_teacher_id = ? OR b.academic_teacher_id = ?) 
+          AND b.semester = ? AND b.year = ? AND b.status IN ('pending', 'approved', 'doc_submitted', 'completed')
+        ORDER BY b.booking_date ASC");
+    $stmt_duties->execute([$teacher_id, $teacher_id, $teacher_id, $teacher_id, $semester, $year]);
+    $raw_duties = $stmt_duties->fetchAll(PDO::FETCH_ASSOC);
+
     $duties = [];
     if ($teacher_id) {
         // 3. Fetch my evaluations duties (where I am Peer, Head, or Academic evaluator)
@@ -300,40 +328,18 @@ try {
                 $docs_uploaded = true;
             }
 
-            $duty_item = [
-                'id' => $d['id'],
-                'teacher_name' => trim(($d['t_prefix'] ?? '') . $d['t_first'] . ' ' . $d['t_last']),
-                'teacher_photo' => $d['t_photo'],
-                'department' => $d['t_dept'],
-                'teacher_position' => $d['teacher_position'] ?? 'ครู',
-                'academic_standing' => $d['academic_standing'] ?? 'ไม่มีวิทยฐานะ',
-                'evaluation_purpose' => $d['evaluation_purpose'] ?? 'ไม่มีวิทยฐานะ',
-                'lesson_topic' => $d['lesson_topic'] ?? '',
-                'subject_code' => $d['subject_code'],
-                'subject_name' => $d['subject_name'],
-                'classroom' => $d['classroom'],
-                'room_number' => $d['room_number'],
-                'booking_date' => $d['booking_date'],
-                'booking_period' => $d['booking_period'],
-                'status' => $d['status'],
-                'role' => $role,
-                'role_th' => $role_th,
-                'doc_done' => !empty($d['doc_evaluated_at']),
-                'class_done' => !empty($d['class_evaluated_at']),
-                'doc_evaluated_at' => $d['doc_evaluated_at'],
-                'class_evaluated_at' => $d['class_evaluated_at'],
-                'doc_score_1' => $d['doc_score_1'] ?? null,
-                'doc_score_2' => $d['doc_score_2'] ?? null,
-                'doc_score_3' => $d['doc_score_3'] ?? null,
-                'doc_score_4' => $d['doc_score_4'] ?? null,
-                'doc_score_5' => $d['doc_score_5'] ?? null,
-                'doc_comments' => $d['doc_comments'] ?? null,
-                'docs_uploaded' => $docs_uploaded,
-                'all_docs_read_by_everyone' => $all_docs_read_by_everyone,
-                'i_have_read' => $i_have_read,
-                'unit_integration' => $d['unit_integration'] ?? null,
-                'plan_integration' => $d['plan_integration'] ?? null
-            ];
+        for ($i = 1; $i <= 19; $i++) {
+            $duty_item["unit_score_$i"] = $d["unit_score_$i"] !== null ? (int)$d["unit_score_$i"] : null;
+        }
+        for ($i = 1; $i <= 21; $i++) {
+            $duty_item["plan_score_$i"] = $d["plan_score_$i"] !== null ? (int)$d["plan_score_$i"] : null;
+        }
+        for ($i = 1; $i <= 4; $i++) {
+            $duty_item["plan_score_22_$i"] = $d["plan_score_22_$i"] !== null ? (int)$d["plan_score_22_$i"] : null;
+        }
+        for ($i = 1; $i <= 10; $i++) {
+            $duty_item["class_score_$i"] = $d["class_score_$i"] !== null ? (int)$d["class_score_$i"] : null;
+        }
 
             for ($i = 1; $i <= 19; $i++) {
                 $duty_item["unit_score_$i"] = $d["unit_score_$i"] !== null ? (int)$d["unit_score_$i"] : null;

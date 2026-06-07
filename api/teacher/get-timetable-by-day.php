@@ -58,7 +58,7 @@
             SELECT 
                 t.id,
                 t.period, 
-                COALESCE(s.subject_code, t.subject_code, t.subject_name) as subject_code,
+                COALESCE(MAX(s.subject_code), t.subject_code, t.subject_name) as subject_code,
                 COALESCE(MAX(s.subject_name), t.subject_name) as subject_name,
                 t.class_name, 
                 t.room_location 

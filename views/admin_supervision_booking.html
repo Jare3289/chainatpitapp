@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>จัดการคิวนิเทศและกรรมการ | CNP APP</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../public/css/style.css">
+    
+    <style>
+        body { font-family: 'Google Sans', 'Sarabun', sans-serif; background: #f8fafc; color: #1e293b; }
+
+        /* ── Banner ── */
+        .page-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            border-radius: 20px;
+            padding: 28px 36px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(30, 58, 138, 0.1);
+        }
+        .page-banner::before {
+            content: '\f073';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: -10px;
+            bottom: -15px;
+            font-size: 8rem;
+            opacity: 0.08;
+            color: white;
+        }
+        .page-banner h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 4px; }
+        .page-banner p { font-size: 0.9rem; opacity: 0.8; margin: 0; }
+
+        /* ── Quick Stats ── */
+        .stat-chip {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(15,23,42,0.02);
+            transition: all 0.25s ease;
+        }
+        .stat-chip:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,0.06); }
+        .stat-chip .icon { 
+            width: 44px; height: 44px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; flex-shrink: 0;
+        }
+        .stat-chip .val { font-size: 1.6rem; font-weight: 800; line-height: 1; color: #1e3a8a; }
+        .stat-chip .lbl { font-size: 0.78rem; color: #64748b; font-weight: 600; }
+
+        /* ── Filter Bar ── */
+        .filter-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(15,23,42,0.01);
+        }
+        .filter-bar input, .filter-bar select {
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            padding: 8px 14px;
+            font-size: 0.88rem;
+            font-family: 'Sarabun', sans-serif;
+            color: #1e293b;
+            transition: border 0.2s;
+        }
+        .filter-bar input:focus, .filter-bar select:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        .filter-bar input { flex: 1; min-width: 200px; }
+
+        /* ── Status Tabs ── */
+        .status-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .status-tab {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 1.5px solid #e2e8f0;
+            background: white;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #64748b;
+            font-family: 'Google Sans', 'Sarabun', sans-serif;
+        }
+        .status-tab:hover { border-color: #94a3b8; background: #f8fafc; color: #1e293b; }
+        .status-tab.active { border-color: transparent; }
+        .status-tab.active.all { background: #1e3a8a; color: white; }
+        .status-tab.active.pending { background: #d97706; color: white; }
+        .status-tab.active.active_sup { background: #2563eb; color: white; }
+        .status-tab.active.done { background: #16a34a; color: white; }
+
+        /* ── Booking Card Layout ── */
+        .booking-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(15,23,42,0.02);
+            position: relative;
+        }
+        .booking-card:hover {
+            transform: translateY(-2px);
+            border-color: #3b82f6;
+            box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+        }
+        .booking-card.selected-card {
+            border: 2px solid #2563eb;
+            background-color: #f0f7ff;
+            box-shadow: 0 8px 24px rgba(37,99,235,0.08);
+        }
+
+        /* ── Status Badge ── */
+        .sbadge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 20px;
+            font-size: 0.73rem; font-weight: 700; white-space: nowrap;
+        }
+        .sbadge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
+        .sbadge.pending { background: #fef3c7; color: #92400e; }
+        .sbadge.pending::before { background: #d97706; }
+        .sbadge.approved { background: #dbeafe; color: #1e40af; }
+        .sbadge.approved::before { background: #2563eb; }
+        .sbadge.doc_submitted { background: #e0f2fe; color: #0c4a6e; }
+        .sbadge.doc_submitted::before { background: #0284c7; }
+        .sbadge.completed { background: #dcfce7; color: #14532d; }
+        .sbadge.completed::before { background: #16a34a; }
+
+        /* ── Evaluator dots ── */
+        .eval-dots { display: flex; gap: 6px; }
+        .eval-dot {
+            width: 11px; height: 11px; border-radius: 50%;
+            background: #e2e8f0; border: 1px solid #cbd5e1; 
+            position: relative;
+        }
+        .eval-dot.filled { background: #22c55e; border-color: #16a34a; }
+        .eval-dot.partial { background: #f59e0b; border-color: #d97706; }
+
+        /* ── Workspace Card ── */
+        .workspace-card {
+            background: white;
+            border-radius: 20px;
+            border: 1.5px solid #e2e8f0;
+            padding: 24px;
+            box-shadow: 0 6px 20px rgba(15,23,42,0.03);
+            position: sticky;
+            top: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .evaluator-slot {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 16px;
+            border: 1.5px solid #e2e8f0;
+            margin-bottom: 14px;
+            transition: all 0.2s;
+        }
+        .evaluator-slot:focus-within { border-color: #3b82f6; background: #fff; }
+        .evaluator-slot-number {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.78rem; font-weight: 800; color: white; flex-shrink: 0;
+        }
+        .evaluator-slot select {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 0.88rem;
+            font-family: 'Sarabun', sans-serif;
+            background: white;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        .evaluator-slot select:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        /* ── Info Box ── */
+        .info-row { 
+            background: #f8fafc; border-radius: 12px; 
+            padding: 14px 16px; font-size: 0.85rem; margin-bottom: 14px;
+            border: 1px solid #e2e8f0;
+        }
+        .info-row .lbl { color: #64748b; font-weight: 600; font-size: 0.78rem; margin-bottom: 2px; }
+        .info-row .val { font-weight: 700; color: #1e293b; }
+
+        /* ── Action Buttons ── */
+        .btn-navy {
+            background: linear-gradient(135deg, #1e3a8a, #2563eb);
+            color: white; border: none; border-radius: 10px;
+            padding: 10px 20px; font-weight: 700; font-size: 0.9rem;
+            font-family: 'Google Sans', 'Sarabun', sans-serif;
+            transition: all 0.2s; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.15);
+        }
+        .btn-navy:hover { background: linear-gradient(135deg, #1e40af, #3b82f6); transform: translateY(-1px); }
+        .btn-navy:active { transform: translateY(0); }
+        .btn-navy:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-cancel-bk {
+            background: transparent; border: 1.5px solid #ef4444;
+            color: #ef4444; border-radius: 10px; padding: 9px 15px;
+            font-weight: 700; font-size: 0.88rem; font-family: 'Sarabun', sans-serif;
+            transition: all 0.2s; cursor: pointer;
+        }
+        .btn-cancel-bk:hover { background: #fef2f2; }
+
+        /* ── Empty / Loading ── */
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .empty-state i { font-size: 3rem; margin-bottom: 12px; display: block; }
+
+        @media (max-width: 992px) {
+            .workspace-card {
+                position: static;
+                margin-top: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar" id="mainSidebar"></div>
+
+    <main class="app-main main-panel d-flex flex-column min-vh-100" id="main">
+        <div class="app-content page-content flex-grow-1 py-4">
+            <div class="container-fluid">
+
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="#" id="breadcrumbHome" class="text-navy">หน้าแรก</a></li>
+                        <li class="breadcrumb-item"><a href="admin_supervision.html" class="text-navy">ภาพรวมนิเทศ</a></li>
+                        <li class="breadcrumb-item active">จัดการคิวและกรรมการ</li>
+                    </ol>
+                </nav>
+
+                <!-- Banner -->
+                <div class="page-banner">
+                    <h1><i class="bi bi-person-check-fill me-2"></i>จัดการคิวนิเทศและมอบหมายกรรมการ</h1>
+                    <p>อนุมัติคิวจอง ตรวจสอบตารางสอน และแต่งตั้งคณะกรรมการนิเทศการสอน</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="row g-3 mb-4" id="statsRow">
+                    <div class="col-6 col-md-3">
+                        <div class="stat-chip">
+                            <div class="icon bg-primary bg-opacity-10"><i class="bi bi-calendar-check text-primary"></i></div>
+                            <div>
+                                <div class="val text-primary" id="stat-total">0</div>
+                                <div class="lbl">คิวทั้งหมด</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-chip">
+                            <div class="icon" style="background:#fef3c7"><i class="bi bi-hourglass-split" style="color:#d97706"></i></div>
+                            <div>
+                                <div class="val" style="color:#d97706" id="stat-pending">0</div>
+                                <div class="lbl">รอจัดการ</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-chip">
+                            <div class="icon bg-primary bg-opacity-10"><i class="bi bi-arrow-clockwise text-primary"></i></div>
+                            <div>
+                                <div class="val text-primary" id="stat-active">0</div>
+                                <div class="lbl">กำลังดำเนินการ</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-chip">
+                            <div class="icon bg-success bg-opacity-10"><i class="bi bi-check-circle text-success"></i></div>
+                            <div>
+                                <div class="val text-success" id="stat-done">0</div>
+                                <div class="lbl">เสร็จสิ้น</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Row -->
+                <div class="row g-4">
+                    <!-- Left: Booking List (7/12 width) -->
+                    <div class="col-lg-7">
+                        <!-- Status Tabs -->
+                        <div class="status-tabs">
+                            <button class="status-tab active all" onclick="setTab('', this)">ทั้งหมด</button>
+                            <button class="status-tab pending" onclick="setTab('pending', this)">รอจัดการคิว</button>
+                            <button class="status-tab active_sup" onclick="setTab('active_supervision', this)">รอดำเนินการ</button>
+                            <button class="status-tab done" onclick="setTab('completed', this)">เสร็จสิ้น</button>
+                        </div>
+
+                        <!-- Filter Bar -->
+                        <div class="filter-bar">
+                            <i class="bi bi-search text-muted"></i>
+                            <input type="text" id="searchInput" placeholder="ค้นหาชื่อครู / รหัสวิชา / ชื่อวิชา..." oninput="filterAndRender()">
+                            <select id="deptFilter" onchange="filterAndRender()" style="min-width: 180px;">
+                                <option value="">ทุกกลุ่มสาระฯ</option>
+                                <option>คอมพิวเตอร์และเทคโนโลยี</option>
+                                <option>วิทยาศาสตร์และเทคโนโลยี</option>
+                                <option>คณิตศาสตร์</option>
+                                <option>ภาษาไทย</option>
+                                <option>ภาษาต่างประเทศ</option>
+                                <option>สังคมศึกษา ศาสนา และวัฒนธรรม</option>
+                                <option>สุขศึกษาและพลศึกษา</option>
+                                <option>ศิลปะ</option>
+                                <option>การงานอาชีพ</option>
+                                <option>แนะแนว</option>
+                            </select>
+                        </div>
+
+                        <!-- Card List Container -->
+                        <div id="bookingListContainer" class="d-flex flex-column gap-3">
+                            <div class="empty-state bg-white border rounded-4 py-5 shadow-sm">
+                                <div class="spinner-border text-primary mb-3" role="status"></div>
+                                <div class="fw-bold">กำลังโหลดข้อมูล...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Workspace Panel (5/12 width) -->
+                    <div class="col-lg-5">
+                        <div class="workspace-card" id="workspacePanel">
+                            <!-- Empty State -->
+                            <div id="workspaceEmpty" class="empty-state">
+                                <i class="bi bi-arrow-left-circle text-primary" style="font-size: 3rem;"></i>
+                                <div class="fw-bold mt-2 text-dark">กรุณาเลือกรายการด้านซ้าย</div>
+                                <div class="text-muted small">เพื่อดำเนินการแต่งตั้งกรรมการหรือยกเลิกคิวนิเทศ</div>
+                            </div>
+
+                            <!-- Assignment Form Panel (Initially hidden) -->
+                            <div id="workspaceForm" class="d-none">
+                                <div class="d-flex align-items-start justify-content-between mb-3 border-bottom pb-3">
+                                    <div>
+                                        <h5 class="fw-black text-navy mb-1" id="wsTeacherName">-</h5>
+                                        <div class="text-muted small" id="wsTeacherMeta">-</div>
+                                    </div>
+                                    <div id="wsStatusBadge"></div>
+                                </div>
+
+                                <!-- Booking Details inside workspace -->
+                                <div class="info-row mb-3">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="lbl">วันที่นิเทศ</div>
+                                            <div class="val" id="wsDate">-</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="lbl">คาบเรียน</div>
+                                            <div class="val" id="wsPeriod">-</div>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <div class="lbl">วิชา / ชั้นเรียน</div>
+                                            <div class="val" id="wsSubject">-</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 pt-2 border-top" id="wsTopicRow" style="display:none">
+                                        <div class="lbl">หัวข้อที่สอน</div>
+                                        <div class="val" id="wsTopic">-</div>
+                                    </div>
+                                </div>
+
+                                <!-- Evaluators -->
+                                <div class="fw-bold mb-3 text-navy" style="font-size:0.92rem;">
+                                    <i class="bi bi-people-fill text-primary me-2"></i>แต่งตั้งคณะกรรมการนิเทศ 3 ท่าน
+                                </div>
+
+                                <!-- Slot 1: Peer -->
+                                <div class="evaluator-slot">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="evaluator-slot-number" style="background:#6366f1;">1</span>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size:0.85rem;">ครูร่วมประเมิน (ครูคู่หู · Peer Teacher)</div>
+                                            <div class="text-muted" style="font-size:0.72rem;">เพื่อนครูในกลุ่มสาระเดียวกัน</div>
+                                        </div>
+                                    </div>
+                                    <select id="selectPeer" onchange="checkConflict()">
+                                        <option value="">-- เลือกครูคู่หู --</option>
+                                    </select>
+                                </div>
+
+                                <!-- Slot 2: Head -->
+                                <div class="evaluator-slot">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="evaluator-slot-number" style="background:#0ea5e9;">2</span>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size:0.85rem;">หัวหน้ากลุ่มสาระฯ (หรือผู้ได้รับมอบหมาย)</div>
+                                            <div class="text-muted" style="font-size:0.72rem;">หัวหน้า/รองหัวหน้ากลุ่มสาระฯ ที่มีคาบว่าง</div>
+                                        </div>
+                                    </div>
+                                    <select id="selectHead" onchange="checkConflict()">
+                                        <option value="">-- เลือกหัวหน้ากลุ่มสาระฯ --</option>
+                                    </select>
+                                </div>
+
+                                <!-- Slot 3: Academic -->
+                                <div class="evaluator-slot">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="evaluator-slot-number" style="background:#059669;">3</span>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size:0.85rem;">ตัวแทนวิชาการ (Academic Evaluator)</div>
+                                            <div class="text-muted" style="font-size:0.72rem;">ครูไทย / ผู้บริหาร ที่ว่างในคาบนั้น (ไม่บังคับ)</div>
+                                        </div>
+                                    </div>
+                                    <select id="selectAcademic" onchange="checkConflict()">
+                                        <option value="">-- เลือกตัวแทนวิชาการ (ไม่บังคับ) --</option>
+                                    </select>
+                                </div>
+
+                                <!-- Conflict Warning -->
+                                <div id="conflictWarning" class="alert alert-warning d-none py-2 px-3" style="border-radius:10px; font-size:0.8rem;">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    <span id="conflictMsg"></span>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="d-flex gap-2 mt-4 flex-wrap">
+                                    <button class="btn-navy flex-grow-1 py-2" onclick="saveAssignment()" id="btnSave">
+                                        <i class="bi bi-check-circle-fill me-2"></i>บันทึกการมอบหมาย
+                                    </button>
+                                    <button class="btn-cancel-bk py-2 px-3" onclick="cancelBooking()" id="btnCancelBk" title="ยกเลิกคิวนิเทศนี้">
+                                        <i class="bi bi-trash"></i> ยกเลิกคิว
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /container -->
+        </div>
+
+        <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
+    </main>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../public/js/main.js"></script>
+
+<script>
+    let allBookings = [];
+    let currentTab = '';
+    let activeBookingId = null;
+    let availableData = null;
+
+    // Local thDate function
+    function thDate(dateStr) {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+    }
+
+    // ─── Init ───
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = await checkAuth('admin');
+        if (user) {
+            // Dynamic home link for teacher 518 (supervision manager)
+            const homeUrl = (user.role === 'teacher') ? 'teacher_dashboard.html' : 'admin_dashboard.html';
+            const bcHome = document.getElementById('breadcrumbHome');
+            if (bcHome) bcHome.href = homeUrl;
+            await loadBookings();
+        }
+    });
+
+    // ─── Load all bookings ───
+    async function loadBookings() {
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=list');
+            const data = await res.json();
+            if (data.success) {
+                allBookings = data.bookings;
+                updateStats();
+                filterAndRender();
+            } else {
+                showError(data.error || 'ดึงข้อมูลไม่สำเร็จ');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // ─── Stats ───
+    function updateStats() {
+        const total = allBookings.length;
+        const pending = allBookings.filter(b => b.status === 'pending').length;
+        const active = allBookings.filter(b => b.status === 'approved' || b.status === 'doc_submitted').length;
+        const done = allBookings.filter(b => b.status === 'completed').length;
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-pending').textContent = pending;
+        document.getElementById('stat-active').textContent = active;
+        document.getElementById('stat-done').textContent = done;
+    }
+
+    // ─── Tab switching ───
+    function setTab(tab, btn) {
+        currentTab = tab;
+        document.querySelectorAll('.status-tab').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        filterAndRender();
+    }
+
+    // ─── Filter and render ───
+    function filterAndRender() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const dept = document.getElementById('deptFilter').value;
+
+        let list = allBookings.filter(b => {
+            const matchSearch = !search ||
+                b.teacher_name.toLowerCase().includes(search) ||
+                b.subject_code.toLowerCase().includes(search) ||
+                b.subject_name.toLowerCase().includes(search) ||
+                (b.lesson_topic || '').toLowerCase().includes(search);
+            const matchDept = !dept || b.t_dept === dept;
+            let matchStatus = true;
+            if (currentTab === 'pending') matchStatus = b.status === 'pending';
+            else if (currentTab === 'active_supervision') matchStatus = b.status === 'approved' || b.status === 'doc_submitted';
+            else if (currentTab === 'completed') matchStatus = b.status === 'completed';
+            return matchSearch && matchDept && matchStatus;
+        });
+
+        // Reset workspace panel if selection is no longer in filtered list
+        if (activeBookingId && !list.some(b => b.id === activeBookingId)) {
+            activeBookingId = null;
+            document.getElementById('workspaceEmpty').classList.remove('d-none');
+            document.getElementById('workspaceForm').classList.add('d-none');
+        }
+
+        renderCards(list);
+    }
+
+    // ─── Render Booking Cards ───
+    function renderCards(list) {
+        const container = document.getElementById('bookingListContainer');
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state bg-white border rounded-4 py-5 shadow-sm">
+                    <i class="bi bi-calendar-x text-muted"></i>
+                    <div class="fw-bold text-muted">ไม่พบรายการตามเงื่อนไขที่เลือก</div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = list.map(b => {
+            const statusMap = {
+                'pending': '<span class="sbadge pending">รออนุมัติ</span>',
+                'approved': '<span class="sbadge approved">อนุมัติแล้ว</span>',
+                'doc_submitted': '<span class="sbadge doc_submitted">ส่งแผนแล้ว</span>',
+                'completed': '<span class="sbadge completed">เสร็จสมบูรณ์</span>'
+            };
+            const badge = statusMap[b.status] || `<span class="sbadge">${b.status}</span>`;
+
+            const peerFill = b.peer_teacher_id ? 'filled' : '';
+            const headFill = b.head_teacher_id ? 'filled' : '';
+            const acadFill = b.academic_teacher_id ? 'filled' : '';
+
+            const evaluatorInfo = buildEvaluatorNames(b);
+            const isSelected = activeBookingId === b.id;
+            const selClass = isSelected ? 'selected-card' : '';
+
+            return `
+                <div class="booking-card ${selClass}" onclick="selectBooking(${b.id})">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <div class="fw-bold text-navy" style="font-size: 1.05rem;">${b.teacher_name}</div>
+                            <div class="text-muted small" style="font-size: 0.78rem;">${b.t_dept || '-'} · ${b.t_standing || 'ไม่มีวิทยฐานะ'}</div>
+                        </div>
+                        ${badge}
+                    </div>
+                    
+                    <div class="card-details p-3 rounded-3 mb-2" style="background: #f8fafc; font-size: 0.85rem; border: 1px solid #f1f5f9;">
+                        <div class="row g-1">
+                            <div class="col-12 col-sm-6">
+                                <strong>วิชา:</strong> ${b.subject_code} ${b.subject_name}
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <strong>ชั้น:</strong> ม.${b.classroom} · ห้อง ${b.room_number || '-'}
+                            </div>
+                            <div class="col-12 col-sm-6 mt-1">
+                                <strong>วันที่:</strong> ${thDate(b.booking_date)}
+                            </div>
+                            <div class="col-12 col-sm-6 mt-1">
+                                <strong>เวลา:</strong> <span class="text-primary fw-bold">คาบ ${b.booking_period}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 pt-2 border-top" style="font-size: 0.82rem;">
+                        <div class="row g-2">
+                            <div class="col-12 col-md-4 d-flex align-items-center gap-2">
+                                <span class="evaluator-slot-number" style="background:#6366f1; width: 18px; height: 18px; font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; flex-shrink: 0;">1</span>
+                                <span class="text-muted" style="font-size: 0.75rem;">คู่หู:</span>
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.peer_name || 'ยังไม่มอบหมาย'}">${b.peer_name && b.peer_name !== '-' ? b.peer_name.split(' ').slice(1).join(' ') || b.peer_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
+                            </div>
+                            <div class="col-12 col-md-4 d-flex align-items-center gap-2">
+                                <span class="evaluator-slot-number" style="background:#0ea5e9; width: 18px; height: 18px; font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; flex-shrink: 0;">2</span>
+                                <span class="text-muted" style="font-size: 0.75rem;">หัวหน้า:</span>
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.head_name || 'ยังไม่มอบหมาย'}">${b.head_name && b.head_name !== '-' ? b.head_name.split(' ').slice(1).join(' ') || b.head_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
+                            </div>
+                            <div class="col-12 col-md-4 d-flex align-items-center gap-2">
+                                <span class="evaluator-slot-number" style="background:#059669; width: 18px; height: 18px; font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; flex-shrink: 0;">3</span>
+                                <span class="text-muted" style="font-size: 0.75rem;">วิชาการ:</span>
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.academic_name || 'ยังไม่มอบหมาย'}">${b.academic_name && b.academic_name !== '-' ? b.academic_name.split(' ').slice(1).join(' ') || b.academic_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function buildEvaluatorNames(b) {
+        let parts = [];
+        if (b.peer_name && b.peer_name !== '-') parts.push(b.peer_name.split(' ')[1] || b.peer_name);
+        if (b.head_name && b.head_name !== '-') parts.push(b.head_name.split(' ')[1] || b.head_name);
+        if (b.academic_name && b.academic_name !== '-') parts.push(b.academic_name.split(' ')[1] || b.academic_name);
+        return parts.length > 0 ? parts.join(', ') : 'ยังไม่มอบหมาย';
+    }
+
+    // ─── Select Booking to view in Workspace ───
+    async function selectBooking(bookingId) {
+        activeBookingId = bookingId;
+        const bk = allBookings.find(b => b.id === bookingId);
+        if (!bk) return;
+
+        // Highlight selected card and remove selected state from others
+        document.querySelectorAll('.booking-card').forEach(card => card.classList.remove('selected-card'));
+        const cardEl = document.querySelector(`.booking-card[onclick*="selectBooking(${bookingId})"]`);
+        if (cardEl) {
+            cardEl.classList.add('selected-card');
+        }
+
+        // Toggle visibility
+        document.getElementById('workspaceEmpty').classList.add('d-none');
+        document.getElementById('workspaceForm').classList.remove('d-none');
+
+        // Fill details
+        document.getElementById('wsTeacherName').textContent = bk.teacher_name;
+        document.getElementById('wsTeacherMeta').textContent = `${bk.t_dept || ''} · ${bk.t_standing || 'ไม่มีวิทยฐานะ'}`;
+        document.getElementById('wsDate').textContent = thDate(bk.booking_date);
+        document.getElementById('wsPeriod').textContent = `คาบที่ ${bk.booking_period}`;
+        document.getElementById('wsSubject').textContent = `${bk.subject_code} ${bk.subject_name} (ม.${bk.classroom})`;
+
+        if (bk.lesson_topic) {
+            document.getElementById('wsTopic').textContent = bk.lesson_topic;
+            document.getElementById('wsTopicRow').style.display = '';
+        } else {
+            document.getElementById('wsTopicRow').style.display = 'none';
+        }
+
+        // Status Badge
+        const statusMap = {
+            'pending': '<span class="sbadge pending">รออนุมัติ</span>',
+            'approved': '<span class="sbadge approved">อนุมัติแล้ว</span>',
+            'doc_submitted': '<span class="sbadge doc_submitted">ส่งแผนแล้ว</span>',
+            'completed': '<span class="sbadge completed">เสร็จสมบูรณ์</span>'
+        };
+        document.getElementById('wsStatusBadge').innerHTML = statusMap[bk.status] || `<span class="sbadge">${bk.status}</span>`;
+
+        // Buttons state
+        const btnCancel = document.getElementById('btnCancelBk');
+        const btnSave = document.getElementById('btnSave');
+        if (bk.status === 'completed') {
+            btnSave.textContent = 'การนิเทศเสร็จสมบูรณ์แล้ว';
+            btnSave.disabled = true;
+            btnCancel.style.display = 'none';
+        } else {
+            btnSave.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>บันทึกการมอบหมาย';
+            btnSave.disabled = false;
+            btnCancel.style.display = '';
+        }
+
+        // Loading option
+        const loading = '<option value="">-- กำลังโหลด... --</option>';
+        ['selectPeer','selectHead','selectAcademic'].forEach(id => {
+            document.getElementById(id).innerHTML = loading;
+        });
+        document.getElementById('conflictWarning').classList.add('d-none');
+
+        // Smooth scroll to Workspace panel if on mobile/small screen
+        if (window.innerWidth < 992) {
+            document.getElementById('workspacePanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Fetch available teachers
+        try {
+            const res = await fetch(`../api/admin/supervision_booking_manage.php?action=get_available_evaluators&booking_id=${bookingId}`);
+            const data = await res.json();
+            if (data.success) {
+                availableData = data;
+                populateDropdowns(bk);
+            } else {
+                showError('ไม่สามารถโหลดรายชื่อครูได้');
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function populateDropdowns(bk) {
+        const teachers = availableData.teachers || [];
+        const academicList = availableData.academic_teachers || [];
+
+        // ── Peer (same dept, not evaluatee) ──
+        let peerHtml = '<option value="">-- เลือกครูคู่หู --</option>';
+        const sameDept = teachers.filter(t => t.id !== bk.teacher_id && t.department === bk.t_dept);
+        if (sameDept.length === 0) {
+            peerHtml += '<option disabled>-- ไม่พบครูในกลุ่มสาระนี้ --</option>';
+        } else {
+            sameDept.forEach(t => {
+                const avail = t.is_busy ? `(ไม่ว่าง)` : '(ว่าง ✓)';
+                const dis = (t.is_busy && t.id !== bk.peer_teacher_id) ? 'disabled' : '';
+                const sel = t.id === bk.peer_teacher_id ? 'selected' : '';
+                peerHtml += `<option value="${t.id}" ${sel} ${dis}>${t.full_name} ${avail}</option>`;
+            });
+        }
+        document.getElementById('selectPeer').innerHTML = peerHtml;
+
+        // ── Head (same dept, is head/deputy) ──
+        let headHtml = '<option value="">-- เลือกหัวหน้ากลุ่มสาระฯ --</option>';
+        const heads = teachers.filter(t => {
+            if (t.id === bk.teacher_id) return false;
+            if (t.department !== bk.t_dept) return false;
+            const pos = t.department_position || '';
+            return pos.includes('หัวหน้า') || pos.includes('รองหัวหน้า');
+        });
+        if (heads.length === 0) {
+            headHtml += '<option disabled>-- ไม่พบหัวหน้ากลุ่มสาระในกลุ่มนี้ --</option>';
+        } else {
+            heads.forEach(t => {
+                const avail = t.is_busy ? '(ไม่ว่าง)' : '(ว่าง ✓)';
+                const dis = (t.is_busy && t.id !== bk.head_teacher_id) ? 'disabled' : '';
+                const sel = t.id === bk.head_teacher_id ? 'selected' : '';
+                headHtml += `<option value="${t.id}" ${sel} ${dis}>${t.full_name} ${avail}</option>`;
+            });
+        }
+        document.getElementById('selectHead').innerHTML = headHtml;
+
+        // ── Academic (pre-filtered, only available) ──
+        let acadHtml = '<option value="">-- เลือกตัวแทนวิชาการ (ไม่บังคับ) --</option>';
+        if (academicList.length === 0) {
+            acadHtml += '<option disabled>-- ไม่มีครูที่ว่างตรงเงื่อนไข --</option>';
+        } else {
+            academicList.forEach(t => {
+                const sel = t.id === bk.academic_teacher_id ? 'selected' : '';
+                acadHtml += `<option value="${t.id}" ${sel}>${t.full_name} (ว่าง ✓)</option>`;
+            });
+        }
+        document.getElementById('selectAcademic').innerHTML = acadHtml;
+
+        // Pre-select if previously assigned but now busy (to keep the selected data readable)
+        if (bk.academic_teacher_id) {
+            const acadSel = document.getElementById('selectAcademic');
+            const existing = acadSel.querySelector(`option[value="${bk.academic_teacher_id}"]`);
+            if (!existing) {
+                const prev = availableData.teachers.find(t => t.id === bk.academic_teacher_id);
+                if (prev) {
+                    const opt = new Option(`${prev.full_name} (เดิม)`, prev.id, false, true);
+                    acadSel.add(opt);
+                }
+            }
+        }
+
+        checkConflict();
+    }
+
+    function checkConflict() {
+        const p = parseInt(document.getElementById('selectPeer').value);
+        const h = parseInt(document.getElementById('selectHead').value);
+        const a = parseInt(document.getElementById('selectAcademic').value) || 0;
+        const warn = document.getElementById('conflictWarning');
+        const msg = document.getElementById('conflictMsg');
+
+        if (p && h && p === h) {
+            warn.classList.remove('d-none');
+            msg.textContent = 'ครูคู่หูและหัวหน้ากลุ่มสาระฯ ไม่สามารถเป็นคนเดียวกันได้';
+            return;
+        }
+        if (a && (a === p || a === h)) {
+            warn.classList.remove('d-none');
+            msg.textContent = 'ตัวแทนวิชาการไม่สามารถซ้ำกับกรรมการท่านอื่นได้';
+            return;
+        }
+        warn.classList.add('d-none');
+    }
+
+    // ─── Save Assignment ───
+    async function saveAssignment() {
+        const bookingId = activeBookingId;
+        const peerId = parseInt(document.getElementById('selectPeer').value) || 0;
+        const headId = parseInt(document.getElementById('selectHead').value) || 0;
+        const acadId = parseInt(document.getElementById('selectAcademic').value) || 0;
+
+        if (!peerId || !headId) {
+            Swal.fire('กรอกข้อมูลไม่ครบ', 'กรุณาเลือกกรรมการที่ 1 (ครูคู่หู) และกรรมการที่ 2 (หัวหน้ากลุ่มสาระฯ)', 'warning');
+            return;
+        }
+        if (peerId === headId) {
+            Swal.fire('ข้อมูลผิดพลาด', 'กรรมการที่ 1 และ 2 ต้องเป็นคนละคนกัน', 'warning');
+            return;
+        }
+
+        Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ booking_id: bookingId, peer_teacher_id: peerId, head_teacher_id: headId, academic_teacher_id: acadId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'มอบหมายกรรมการเรียบร้อยแล้ว', timer: 1600, showConfirmButton: false });
+                await loadBookings();
+                if (activeBookingId) {
+                    await selectBooking(activeBookingId);
+                }
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (e) {
+            Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+        }
+    }
+
+    // ─── Cancel Booking ───
+    async function cancelBooking() {
+        const confirm = await Swal.fire({
+            title: 'ยืนยันยกเลิกคิวนิเทศ?',
+            html: 'คิวนิเทศและสิทธิ์การประเมินในรายการนี้จะถูก<strong>ยกเลิกถาวร</strong>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'ยืนยัน ยกเลิกคิว',
+            cancelButtonText: 'ไม่ยกเลิก'
+        });
+        if (!confirm.isConfirmed) return;
+
+        Swal.fire({ title: 'กำลังยกเลิก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ booking_id: activeBookingId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'ยกเลิกเรียบร้อย', timer: 1400, showConfirmButton: false });
+                activeBookingId = null;
+                document.getElementById('workspaceEmpty').classList.remove('d-none');
+                document.getElementById('workspaceForm').classList.add('d-none');
+                await loadBookings();
+            } else {
+                Swal.fire('ล้มเหลว', data.error, 'error');
+            }
+        } catch (e) {
+            Swal.fire('ข้อผิดพลาด', 'กรุณาลองใหม่อีกครั้ง', 'error');
+        }
+    }
+
+    function showError(msg) {
+        Swal.fire('ข้อผิดพลาด', msg, 'error');
+    }
+</script>
+</body>
+</html>

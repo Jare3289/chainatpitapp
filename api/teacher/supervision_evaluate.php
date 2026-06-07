@@ -6,6 +6,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/supervision_notify.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
@@ -266,6 +267,16 @@ try {
         'success' => true,
         'message' => $msg
     ]);
+
+    // Notify the evaluated teacher
+    try {
+        $ids = supervisionBookingUserIds($pdo, $booking_id);
+        $evalTypeLabel = ($eval_type === 'doc') ? 'แผนการจัดการเรียนรู้' : 'การจัดการเรียนรู้ในชั้นเรียน';
+        $notifMsg = "กรรมการประเมินได้บันทึกผลการประเมิน {$evalTypeLabel} ของท่าน (จอง #{$booking_id}) เรียบร้อยแล้ว";
+        supervisionNotify($pdo, [$ids['teacher_user_id']], 'ผลการประเมินนิเทศการสอน', $notifMsg, 'supervision_booking.html');
+    } catch (Throwable $e_n) {
+        error_log('[supervision_evaluate notify] ' . $e_n->getMessage());
+    }
 
 } catch (PDOException $e) {
     http_response_code(500);
