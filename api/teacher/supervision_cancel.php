@@ -9,7 +9,7 @@ require_once '../../inc/security.php';
 require_once '../../inc/supervision_notify.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -33,24 +33,28 @@ if ($booking_id <= 0) {
 }
 
 try {
-    // 1. Get teacher id
-    $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $teacher_id = 0;
+    
+    if (!$is_admin) {
+        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
-        exit;
-    }
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-    $teacher_id = $me['id'];
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
+            exit;
+        }
+
+        $teacher_id = $me['id'];
+    }
 
     // 2. Verify ownership and status (also fetch peer/head for notifications)
     $stmt = $pdo->prepare("SELECT status, peer_teacher_id, head_teacher_id FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
@@ -88,3 +92,4 @@ try {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Database error']);
 }
+?>

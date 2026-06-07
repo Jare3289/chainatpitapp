@@ -157,6 +157,91 @@
         .pr-card-บุคคล { border-top: 4px solid var(--primary) !important; }
         .pr-card-กิจกรรม { border-top: 4px solid var(--warning) !important; }
         .pr-card-แสดงความยินดี { border-top: 4px solid var(--success) !important; }
+
+        /* PR Image Thumbnail in cards */
+        .pr-card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            display: block;
+            transition: transform 0.35s var(--ease-out);
+        }
+        .pr-card:hover .pr-card-img {
+            transform: scale(1.04);
+        }
+        .pr-card-img-wrap {
+            overflow: hidden;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            margin: -1px -1px 0 -1px;
+        }
+
+        /* Image Upload Drop Zone */
+        .img-upload-zone {
+            border: 2.5px dashed var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-subtle);
+            text-align: center;
+            padding: 28px 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .img-upload-zone:hover, .img-upload-zone.dragover {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+        }
+        .img-upload-zone input[type=file] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .img-preview-box {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .img-preview-box img {
+            max-height: 160px;
+            max-width: 100%;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            display: block;
+            margin: 0 auto;
+        }
+        .img-preview-box .btn-remove-img {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 0.75rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease;
+        }
+        .img-preview-box .btn-remove-img:hover { transform: scale(1.15); }
+
+        /* Detail modal hero image */
+        #detailHeroImg {
+            width: 100%;
+            max-height: 320px;
+            object-fit: cover;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.25rem;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -366,6 +451,26 @@
                         <label class="cnp-form-label">เนื้อหาประชาสัมพันธ์โดยละเอียด <span class="text-danger">*</span></label>
                         <textarea class="cnp-form-input" id="postContent" rows="6" placeholder="กรอกข่าวสาร ประกาศ ตารางเวลา สถานที่จัดงาน และข้อความอื่นๆ..." required></textarea>
                     </div>
+
+                    <!-- IMAGE UPLOAD ZONE -->
+                    <div class="mb-2">
+                        <label class="cnp-form-label"><i class="bi bi-image me-1 text-primary"></i> แนบรูปภาพประกอบ (ไม่บังคับ)</label>
+                        <div class="img-upload-zone" id="imgUploadZone">
+                            <input type="file" id="postImageFile" accept="image/jpeg,image/png,image/gif,image/webp" onchange="handleImageSelect(this)">
+                            <div id="imgUploadPlaceholder">
+                                <i class="bi bi-cloud-arrow-up-fill text-primary" style="font-size:2rem;"></i>
+                                <p class="mb-0 mt-2 fw-bold text-navy" style="font-size:0.88rem;">คลิกหรือลากวางรูปภาพที่นี่</p>
+                                <p class="text-muted mb-0" style="font-size:0.75rem;">รองรับ JPG, PNG, GIF, WEBP · ขนาดสูงสุด 5 MB</p>
+                            </div>
+                        </div>
+                        <div id="imgPreviewArea" class="text-center mt-2" style="display:none;">
+                            <div class="img-preview-box">
+                                <img id="imgPreviewImg" src="" alt="ตัวอย่างรูปภาพ">
+                                <button type="button" class="btn-remove-img" onclick="clearImageUpload()" title="ลบรูปภาพ"><i class="bi bi-x"></i></button>
+                            </div>
+                            <p class="text-muted small mt-1 mb-0" id="imgPreviewName"></p>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer border-0 p-4 bg-light rounded-bottom-4">
@@ -387,6 +492,9 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 bg-white">
+                <!-- Hero image (shown when post has image) -->
+                <img id="detailHeroImg" src="" alt="ภาพประกอบข่าว" class="mb-3">
+
                 <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
                     <img src="" onerror="this.src='../public/img/default-avatar.png'" class="cnp-avatar cnp-avatar--lg" id="detailAuthorPhoto">
                     <div>
@@ -661,12 +769,18 @@
                 // Pinned state
                 const isBookmarked = bookmarksList.includes(post.id);
 
+                // Image thumbnail
+                const imgThumbHtml = post.image_path
+                    ? `<div class="pr-card-img-wrap"><img src="../${escapeHtml(post.image_path)}" class="pr-card-img" alt="ภาพประกอบ" loading="lazy" onerror="this.parentElement.style.display='none'"></div>`
+                    : '';
+
                 const col = document.createElement('div');
                 col.className = 'col-12 col-md-6 col-lg-4';
                 col.innerHTML = `
-                    <div class="cnp-card cnp-card--compact pr-card pr-card-${post.category || 'ทั่วไป'}" id="card-pr-${post.id}">
+                    <div class="cnp-card cnp-card--compact pr-card pr-card-${post.category || 'ทั่วไป'}" id="card-pr-${post.id}" style="padding:0; overflow:hidden;">
                         ${statusBadgeHtml}
-                        <div class="card-body p-0 d-flex flex-column h-100" onclick="showPostDetails(${post.id})">
+                        ${imgThumbHtml}
+                        <div class="card-body p-3 d-flex flex-column h-100" onclick="showPostDetails(${post.id})">
                             <div class="d-flex align-items-center gap-2 mb-3">
                                 <span class="${catBadgeClass}">${post.category}</span>
                                 <span class="badge ${roleColorClass} text-white px-2.5 py-1 small" style="font-size:0.65rem;">${roleTh}</span>
@@ -674,7 +788,7 @@
                             </div>
                             
                             <h5 class="card-title fw-bold text-navy mb-2 fs-5" style="line-height:1.4;">${escapeHtml(post.title)}</h5>
-                            <p class="card-text text-muted small flex-grow-1 mb-3" style="white-space: pre-wrap; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(post.content)}</p>
+                            <p class="card-text text-muted small flex-grow-1 mb-3" style="white-space: pre-wrap; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: ${post.image_path ? 2 : 4}; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(post.content)}</p>
                             
                             <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light">
                                 <div class="d-flex align-items-center gap-2">
@@ -690,7 +804,7 @@
                         </div>
                         
                         <!-- Premium Micro-Interaction Footer Bar -->
-                        <div class="pb-0 pt-3 d-flex gap-2">
+                        <div class="px-3 pb-3 pt-0 d-flex gap-2">
                             <button class="social-bar-btn flex-grow-1 justify-content-center ${userLiked ? 'liked' : ''}" onclick="toggleLikePost(${post.id}, this, event)">
                                 <i class="bi bi-heart${userLiked ? '-fill' : ''}"></i> <span>${currentLikes}</span>
                             </button>
@@ -847,6 +961,15 @@
         document.getElementById('detailPublishDate').textContent = postDate;
         document.getElementById('detailTitle').textContent = post.title;
         document.getElementById('detailContent').textContent = post.content;
+
+        // Hero image
+        const heroImg = document.getElementById('detailHeroImg');
+        if (post.image_path) {
+            heroImg.src = '../' + post.image_path;
+            heroImg.style.display = 'block';
+        } else {
+            heroImg.style.display = 'none';
+        }
         
         const likesMap = store.getLikes();
         document.getElementById('detailLikesCount').textContent = likesMap[postId] || 0;
@@ -880,25 +1003,81 @@
 
     function openNewPostModal() {
         document.getElementById('newPostForm').reset();
+        clearImageUpload();
         new bootstrap.Modal(document.getElementById('newPostModal')).show();
     }
 
+    /* ── IMAGE UPLOAD HANDLERS ── */
+    function handleImageSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            Swal.fire({ icon: 'warning', title: 'ไฟล์ใหญ่เกินไป', text: 'กรุณาเลือกรูปภาพที่มีขนาดไม่เกิน 5 MB' });
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('imgPreviewImg').src = e.target.result;
+            document.getElementById('imgPreviewName').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+            document.getElementById('imgUploadPlaceholder').style.display = 'none';
+            document.getElementById('imgPreviewArea').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        // Drag-drop zone events
+        const zone = document.getElementById('imgUploadZone');
+        zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+        zone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            zone.classList.remove('dragover');
+            const dt = e.dataTransfer;
+            if (dt && dt.files.length) {
+                const fi = document.getElementById('postImageFile');
+                // Create new FileList-like object
+                Object.defineProperty(fi, 'files', { value: dt.files, writable: false, configurable: true });
+                handleImageSelect(fi);
+            }
+        });
+    }
+
+    function clearImageUpload() {
+        document.getElementById('postImageFile').value = '';
+        document.getElementById('imgPreviewImg').src = '';
+        document.getElementById('imgPreviewName').textContent = '';
+        document.getElementById('imgUploadPlaceholder').style.display = 'block';
+        document.getElementById('imgPreviewArea').style.display = 'none';
+    }
+
     async function submitNewPost() {
-        const title = document.getElementById('postTitle').value.trim();
-        const category = document.getElementById('postCategory').value;
+        const title      = document.getElementById('postTitle').value.trim();
+        const category   = document.getElementById('postCategory').value;
         const visibility = document.getElementById('postVisibility').value;
-        const content = document.getElementById('postContent').value.trim();
+        const content    = document.getElementById('postContent').value.trim();
+        const imageFile  = document.getElementById('postImageFile').files[0];
         
         if (!title || !content) {
             Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอกหัวข้อและเนื้อหาประชาสัมพันธ์ให้ครบถ้วนก่อนส่ง' });
             return;
         }
+
+        // Use FormData to support file upload
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('category', category);
+        formData.append('visibility', visibility);
+        formData.append('content', content);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
         
         try {
             const res = await fetch('../api/public_relations.php?action=create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, category, visibility, content })
+                body: formData  // No Content-Type header — browser sets multipart boundary automatically
             });
             const data = await res.json();
             
@@ -906,6 +1085,7 @@
                 const modalEl = document.getElementById('newPostModal');
                 const modal = bootstrap.Modal.getInstance(modalEl);
                 if (modal) modal.hide();
+                clearImageUpload();
                 
                 Swal.fire({
                     icon: 'success',

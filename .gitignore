@@ -76,6 +76,7 @@ api/admin/reset_all_passwords.php
 /_diag.php
 /admin_cnpapp.sql
 /*.sql
+!/admin_cnpapp (3).sql
 
 # ─── Legacy FTP deploy script (replaced by Plesk Git) ───
 /deploy.php

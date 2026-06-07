@@ -10,7 +10,7 @@ require_once '../../inc/supervision_schedule.php';
 require_once '../../inc/supervision_notify.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'admin'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
@@ -48,26 +48,51 @@ if (empty($subject_name) || empty($lesson_topic) || empty($booking_date) || $boo
 }
 
 try {
-    // 1. Get Evaluatee details
-    $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
+    $is_admin = ($_SESSION['role'] === 'admin');
+    $me = null;
+    $teacher_id = 0;
+    $my_dept = '';
+    $my_sub_dept = '';
 
-    if (!$me) {
-        $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+    if ($is_admin) {
+        if ($booking_id > 0) {
+            $stmt = $pdo->prepare("SELECT teacher_id FROM supervision_bookings WHERE id = ?");
+            $stmt->execute([$booking_id]);
+            $teacher_id = (int)$stmt->fetchColumn();
+        } else {
+            $teacher_id = isset($data['teacher_id']) ? (int)$data['teacher_id'] : 0;
+        }
+
+        if ($teacher_id > 0) {
+            $stmt_t = $pdo->prepare("SELECT department, sub_department FROM teachers WHERE id = ?");
+            $stmt_t->execute([$teacher_id]);
+            $t_rec = $stmt_t->fetch(PDO::FETCH_ASSOC);
+            if ($t_rec) {
+                $my_dept = $t_rec['department'];
+                $my_sub_dept = $t_rec['sub_department'];
+            }
+        }
+    } else {
+        $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 
-    if (!$me) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'ไม่พบข้อมูลอาจารย์ในระบบ']);
-        exit;
-    }
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-    $teacher_id = $me['id'];
-    $my_dept = $me['department'];
-    $my_sub_dept = $me['sub_department'];
+        if (!$me) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'ไม่พบข้อมูลอาจารย์ในระบบ']);
+            exit;
+        }
+
+        $teacher_id = $me['id'];
+        $my_dept = $me['department'];
+        $my_sub_dept = $me['sub_department'];
+    }
 
     // 2. Check if already booked for this semester
     $sql_check_dup = "SELECT id FROM supervision_bookings WHERE teacher_id = ? AND semester = ? AND year = ? AND status != 'cancelled'";
@@ -103,7 +128,7 @@ try {
     }
 
     $allowed_dates = $supervision_schedules[$schedule_key]['dates'];
-    if (!in_array($booking_date, $allowed_dates)) {
+    if (!in_array($booking_date, $allowed_dates) && !$is_admin) {
         // Format Thai Dates for error message
         $formatted_dates = array_map(function($d) {
             $parts = explode('-', $d);
@@ -137,8 +162,13 @@ try {
     }
 
     if ($booking_id > 0) {
-        $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
-        $stmt_check->execute([$booking_id, $teacher_id]);
+        if ($is_admin) {
+            $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ?");
+            $stmt_check->execute([$booking_id]);
+        } else {
+            $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+            $stmt_check->execute([$booking_id, $teacher_id]);
+        }
         $existing = $stmt_check->fetch(PDO::FETCH_ASSOC);
 
         if (!$existing) {

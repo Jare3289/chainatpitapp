@@ -181,6 +181,35 @@
                         </div>
                     </div>
 
+                    <!-- All Bookings Table -->
+                    <div class="row g-4 mt-2">
+                        <div class="col-12">
+                            <div class="section-title">
+                                <h5><i class="bi bi-list-task text-primary me-2"></i>รายการคิวนิเทศทั้งหมดในระบบ</h5>
+                            </div>
+                            <div class="dashboard-panel p-0 overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" style="font-size:0.88rem;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="py-3 px-4 text-muted small fw-bold">ผู้รับนิเทศ</th>
+                                                <th class="py-3 px-4 text-muted small fw-bold">วิชา / ชั้น</th>
+                                                <th class="py-3 px-4 text-muted small fw-bold">วันที่ / คาบ</th>
+                                                <th class="py-3 px-4 text-muted small fw-bold">สถานะ</th>
+                                                <th class="py-3 px-4 text-muted small fw-bold text-end">ดำเนินการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-all-list">
+                                            <tr>
+                                                <td colspan="5" class="text-center py-5 text-muted small">กำลังโหลดรายการทั้งหมด...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </main>
@@ -214,6 +243,7 @@
                     // Render tables
                     renderPendingList();
                     renderUpcomingList();
+                    renderAllList();
                 }
             } catch (err) {
                 console.error("Error loading admin data: ", err);
@@ -317,6 +347,62 @@
                             </span>
                         </div>
                     </div>
+                `;
+            }).join('');
+        }
+
+        function renderAllList() {
+            const container = document.getElementById('admin-all-list');
+            if (allBookings.length === 0) {
+                container.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted small">ไม่มีข้อมูลคิวนิเทศการสอนในขณะนี้</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            container.innerHTML = allBookings.map(b => {
+                let badgeClass = 'bg-warning text-warning';
+                let statusText = 'รออนุมัติ';
+                if (b.status === 'approved') {
+                    badgeClass = 'bg-info text-info';
+                    statusText = 'อนุมัติแล้ว';
+                } else if (b.status === 'doc_submitted') {
+                    badgeClass = 'bg-success text-success';
+                    statusText = 'ส่งแผนแล้ว';
+                } else if (b.status === 'completed') {
+                    badgeClass = 'bg-primary text-primary';
+                    statusText = 'เสร็จสมบูรณ์';
+                }
+
+                return `
+                    <tr>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold text-dark">${b.teacher_name}</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">${b.t_dept || 'ไม่มีกลุ่มสาระ'}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold">${b.subject_code} ${b.subject_name}</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">ชั้น ม. ${b.classroom} · ห้อง ${b.room_number}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="fw-bold">${thDate(b.booking_date)}</div>
+                            <div class="text-muted" style="font-size: 0.72rem;">คาบเรียนที่ ${b.booking_period}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="badge ${badgeClass} bg-opacity-10 border border-${badgeClass.split(' ')[1] || 'warning'}" style="font-size:0.72rem;">${statusText}</span>
+                        </td>
+                        <td class="px-4 py-3 text-end">
+                            <div class="d-flex gap-1 justify-content-end">
+                                <a href="supervision_booking.html?booking_id=${b.id}" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1" style="font-size:0.75rem;" title="แก้ไขรายละเอียดคิว"><i class="bi bi-pencil"></i> จัดการคิว</a>
+                                <a href="supervision_docs.html?booking_id=${b.id}" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1" style="font-size:0.75rem;" title="เอกสาร & ประเมินแผน"><i class="bi bi-file-earmark-pdf"></i> เอกสาร</a>
+                                <a href="supervision_evaluate.html?booking_id=${b.id}" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1" style="font-size:0.75rem;" title="บันทึกคะแนนประเมิน"><i class="bi bi-star"></i> ประเมินผล</a>
+                                <a href="supervision_post_teach.html?booking_id=${b.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" style="font-size:0.75rem;" title="บันทึกหลังการสอน"><i class="bi bi-journal-text"></i> หลังสอน</a>
+                                <a href="supervision_print.html?booking_id=${b.id}" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" style="font-size:0.75rem;" title="พิมพ์รายงาน"><i class="bi bi-printer"></i> รายงาน</a>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             }).join('');
         }

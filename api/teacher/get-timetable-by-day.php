@@ -16,6 +16,7 @@
 
     $user_id = $_SESSION['user_id'];
     $day_of_week = isset($_GET['day']) ? (int)$_GET['day'] : 0;
+    $booking_id = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
 
     if ($day_of_week < 1 || $day_of_week > 7) {
         http_response_code(400);
@@ -24,21 +25,32 @@
     }
 
     try {
-        // Get logged-in teacher's internal id
-        $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-        $stmt->execute([$user_id]);
-        $teacher_internal_id = $stmt->fetchColumn();
-
-        if (!$teacher_internal_id) {
-            $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
-            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+        if ($_SESSION['role'] === 'admin' && $booking_id > 0) {
+            $stmt = $pdo->prepare("SELECT teacher_id FROM supervision_bookings WHERE id = ?");
+            $stmt->execute([$booking_id]);
             $teacher_internal_id = $stmt->fetchColumn();
-        }
+            if (!$teacher_internal_id) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'Booking not found']);
+                exit;
+            }
+        } else {
+            // Get logged-in teacher's internal id
+            $stmt = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+            $stmt->execute([$user_id]);
+            $teacher_internal_id = $stmt->fetchColumn();
 
-        if (!$teacher_internal_id) {
-            http_response_code(404);
-            echo json_encode(['success' => false, 'error' => 'Teacher profile not found']);
-            exit;
+            if (!$teacher_internal_id) {
+                $stmt = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ?");
+                $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+                $teacher_internal_id = $stmt->fetchColumn();
+            }
+
+            if (!$teacher_internal_id) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'Teacher profile not found']);
+                exit;
+            }
         }
 
         // Fetch timetable for this teacher and day

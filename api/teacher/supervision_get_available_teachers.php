@@ -18,6 +18,7 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'ad
 $user_id = $_SESSION['user_id'];
 $date = trim($_GET['date'] ?? '');
 $period = isset($_GET['period']) ? (int)$_GET['period'] : -1;
+$booking_id = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
 
 if (empty($date) || $period < 0) {
     http_response_code(400);
@@ -29,15 +30,29 @@ if (empty($date) || $period < 0) {
 $day_of_week = date('N', strtotime($date));
 
 try {
-    // 1. Get logged-in teacher's info (especially department)
-    $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE user_id = ?");
-    $stmt->execute([$user_id]);
-    $me = $stmt->fetch(PDO::FETCH_ASSOC);
+    // 1. Get logged-in/target teacher's info (especially department)
+    $me = null;
+    if ($_SESSION['role'] === 'admin' && $booking_id > 0) {
+        $stmt_booking = $pdo->prepare("SELECT teacher_id FROM supervision_bookings WHERE id = ?");
+        $stmt_booking->execute([$booking_id]);
+        $target_teacher_id = $stmt_booking->fetchColumn();
+        if ($target_teacher_id) {
+            $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE id = ?");
+            $stmt->execute([$target_teacher_id]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+    }
 
     if (!$me) {
-        $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE teacher_id = ? OR email = ?");
-        $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+        $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE user_id = ?");
+        $stmt->execute([$user_id]);
         $me = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$me) {
+            $stmt = $pdo->prepare("SELECT id, department, sub_department FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
+            $me = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
     }
 
     $my_dept = $me ? $me['department'] : '';
