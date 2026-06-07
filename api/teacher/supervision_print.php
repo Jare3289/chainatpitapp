@@ -29,12 +29,14 @@ try {
     $my_teacher = $stmt->fetch();
     $my_teacher_id = $my_teacher ? $my_teacher['id'] : 0;
 
-    // 2. Fetch booking details
     $stmt = $pdo->prepare("SELECT b.*, 
-        t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept, t.academic_standing as t_standing, t.position as t_pos,
+        t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept, t.academic_standing as t_standing, t.position as t_pos, t.signature as t_signature,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.peer_teacher_id) as peer_name,
+        (SELECT signature FROM teachers WHERE id = b.peer_teacher_id) as peer_signature,
         (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.head_teacher_id) as head_name,
-        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name
+        (SELECT signature FROM teachers WHERE id = b.head_teacher_id) as head_signature,
+        (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name,
+        (SELECT signature FROM teachers WHERE id = b.academic_teacher_id) as academic_signature
         FROM supervision_bookings b
         JOIN teachers t ON b.teacher_id = t.id
         WHERE b.id = ?");
@@ -43,6 +45,50 @@ try {
 
     if (!$booking) {
         die("ไม่พบข้อมูลการนิเทศรายการนี้");
+    }
+
+    // Fetch department head name
+    $dept_head_name = '.......................................................';
+    if (!empty($booking['t_dept'])) {
+        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+        $stmt_dept->execute([$booking['t_dept']]);
+        $dept_row = $stmt_dept->fetch();
+        if ($dept_row && !empty($dept_row['head_name'])) {
+            $dept_head_name = $dept_row['head_name'];
+        }
+    }
+
+    // Fetch department head name
+    $dept_head_name = '.......................................................';
+    if (!empty($booking['t_dept'])) {
+        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+        $stmt_dept->execute([$booking['t_dept']]);
+        $dept_row = $stmt_dept->fetch();
+        if ($dept_row && !empty($dept_row['head_name'])) {
+            $dept_head_name = $dept_row['head_name'];
+        }
+    }
+
+    // Fetch department head name
+    $dept_head_name = '.......................................................';
+    if (!empty($booking['t_dept'])) {
+        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+        $stmt_dept->execute([$booking['t_dept']]);
+        $dept_row = $stmt_dept->fetch();
+        if ($dept_row && !empty($dept_row['head_name'])) {
+            $dept_head_name = $dept_row['head_name'];
+        }
+    }
+
+    // Fetch department head name
+    $dept_head_name = '.......................................................';
+    if (!empty($booking['t_dept'])) {
+        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
+        $stmt_dept->execute([$booking['t_dept']]);
+        $dept_row = $stmt_dept->fetch();
+        if ($dept_row && !empty($dept_row['head_name'])) {
+            $dept_head_name = $dept_row['head_name'];
+        }
     }
 
     // Security check: Must be Evaluatee, one of the 3 evaluators, or admin
@@ -117,6 +163,13 @@ try {
         $day = (int)$parts[2];
         $months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
         return "$day {$months[$m]} $y";
+    }
+
+    // Convert Arabic to Thai Numerals Helper
+    function to_thai_num($num) {
+        $arabic = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $thai = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+        return str_replace($arabic, $thai, (string)$num);
     }
 
     $teacher_name = trim(($booking['t_prefix'] ?? '') . $booking['t_first'] . ' ' . $booking['t_last']);
@@ -226,6 +279,9 @@ try {
             font-size: 16pt;
             line-height: 1.25;
         }
+        .table-eval, .table-eval th, .table-eval td {
+            border-color: #94a3b8 !important;
+        }
         .table-eval th {
             background-color: #f8fafc !important;
             font-weight: 700;
@@ -267,9 +323,14 @@ try {
         }
 
         @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
             body {
                 background: white !important;
                 padding: 0 !important;
+                margin: 0 !important;
                 color: #000 !important;
                 font-family: 'TH Sarabun PSK', 'TH Sarabun New', 'Sarabun', sans-serif !important;
             }
@@ -277,10 +338,11 @@ try {
                 width: 210mm !important;
                 min-height: 297mm !important;
                 padding: 25mm 20mm 20mm 25mm !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
                 page-break-after: always !important;
+                page-break-inside: avoid !important;
                 display: block !important;
                 background: white !important;
                 box-sizing: border-box !important;
@@ -293,6 +355,7 @@ try {
                 padding: 20mm 20mm 18mm 20mm !important;
                 display: flex !important;
                 flex-direction: column !important;
+                height: 297mm !important;
             }
             .print-btn-container {
                 display: none !important;
@@ -365,29 +428,25 @@ try {
     $standing = ($booking['t_standing'] && $booking['t_standing'] !== 'ไม่มีวิทยฐานะ') ? $booking['t_standing'] : '';
     ?>
     <div class="page page-break">
-        <div style="position: relative; text-align: center; margin-bottom: 15px;">
-            <img src="../../public/img/logo.png" alt="Logo" style="position: absolute; left: 0; top: 0; width: 60px; height: auto;" onerror="this.style.display='none'">
-            <span style="font-size: 26pt; font-weight: bold;">บันทึกข้อความ</span>
+        <div style="position: relative; text-align: center; margin-bottom: 20px; height: 60px; line-height: 60px;">
+            <img src="../../public/img/krut.png" alt="Garuda" style="position: absolute; left: 0; top: 0; width: 60px; height: auto;">
+            <span style="font-size: 29pt; font-weight: bold; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; display: inline-block; vertical-align: middle;">บันทึกข้อความ</span>
         </div>
         
-        <div style="font-size: 16pt; line-height: 1.25;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                <div style="flex-grow: 1;">
-                    <strong>ส่วนราชการ</strong> <span class="border-bottom-dotted" style="display: inline-block; width: calc(100% - 100px); padding-left: 5px;">โรงเรียนชัยนาทพิทยาคม อำเภอเมืองชัยนาท จังหวัดชัยนาท</span>
-                </div>
+        <div style="font-size: 16pt; line-height: 1.6; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif;">
+            <div style="margin-bottom: 4px;">
+                <strong>ส่วนราชการ</strong> โรงเรียนชัยนาทพิทยาคม &nbsp;&nbsp;&nbsp; อำเภอเมืองชัยนาท &nbsp;&nbsp;&nbsp; จังหวัดชัยนาท
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                 <div style="width: 50%;">
-                    <strong>ที่</strong> <span class="border-bottom-dotted" style="display: inline-block; width: calc(100% - 30px); padding-left: 5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+                    <strong>ที่</strong> <span style="padding-left: 5px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
                 </div>
                 <div style="width: 50%;">
-                    <strong>วันที่</strong> <span class="border-bottom-dotted" style="display: inline-block; width: calc(100% - 40px); padding-left: 5px;"><?php echo htmlspecialchars($sign_date_thai); ?></span>
+                    <strong>วันที่</strong> <span style="padding-left: 5px;"><?php echo htmlspecialchars($sign_date_thai); ?></span>
                 </div>
             </div>
-            <div style="display: flex; margin-bottom: 8px; border-bottom: 2px solid #000; padding-bottom: 6px;">
-                <div style="width: 100%;">
-                    <strong>เรื่อง</strong> <span class="border-bottom-dotted" style="display: inline-block; width: calc(100% - 50px); padding-left: 5px;">รายงานการประเมินการจัดการเรียนรู้ ประจำภาคเรียนที่ <?php echo htmlspecialchars($booking['semester']); ?> ปีการศึกษา <?php echo htmlspecialchars($booking['year']); ?></span>
-                </div>
+            <div style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1.5px solid #000;">
+                <strong>เรื่อง</strong> <span style="padding-left: 5px;">รายงานการประเมินการจัดการเรียนรู้ ประจำภาคเรียนที่ <?php echo htmlspecialchars($booking['semester']); ?> ปีการศึกษา <?php echo htmlspecialchars($booking['year']); ?></span>
             </div>
             
             <div style="margin-top: 10px; margin-bottom: 10px;">
@@ -396,7 +455,7 @@ try {
             
             <div style="margin-bottom: 10px; padding-left: 30px;">
                 <strong>สิ่งที่ส่งมาด้วย</strong>
-                <div style="padding-left: 30px;">
+                <div style="padding-left: 30px; line-height: 1.4;">
                     1. แบบรายงานการประเมินการจัดการเรียนรู้ (แบบนิเทศ 01) <span style="float: right;">จำนวน 1 ฉบับ</span><br>
                     2. แบบประเมินแผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้ (รายชั่วโมง) <span style="float: right;">จำนวน 3 ฉบับ</span><br>
                     3. แบบนิเทศการจัดการเรียนรู้ <span style="float: right;">จำนวน 3 ฉบับ</span><br>
@@ -404,80 +463,80 @@ try {
                 </div>
             </div>
             
-            <div style="text-indent: 70px; text-align: justify; margin-bottom: 10px; line-height: 1.25;">
-                ตามคำสั่งโรงเรียน <span class="border-bottom-dotted" style="padding: 0 5px;"><?php echo htmlspecialchars($order_no); ?></span> กำหนดให้ดำเนินการนิเทศการจัดการเรียนรู้ของครูผู้สอนประจำภาคเรียนที่ <?php echo htmlspecialchars($booking['semester']); ?> ปีการศึกษา <?php echo htmlspecialchars($booking['year']); ?> นั้น
+            <div style="text-indent: 70px; text-align: justify; margin-bottom: 10px; line-height: 1.35;">
+                ตามคำสั่งโรงเรียน <?php echo htmlspecialchars($order_no); ?> กำหนดให้ดำเนินการนิเทศการจัดการเรียนรู้ของครูผู้สอนประจำภาคเรียนที่ <?php echo htmlspecialchars($booking['semester']); ?> ปีการศึกษา <?php echo htmlspecialchars($booking['year']); ?> นั้น
             </div>
             
-            <div style="text-indent: 70px; text-align: justify; margin-bottom: 10px; line-height: 1.25;">
+            <div style="text-indent: 70px; text-align: justify; margin-bottom: 10px; line-height: 1.35;">
                 ข้าพเจ้า <span style="font-weight: bold;"><?php echo htmlspecialchars($teacher_name); ?></span> ตำแหน่ง <?php echo htmlspecialchars($booking['t_pos'] ?? 'ครู'); ?><?php echo !empty($standing) ? ' ' . htmlspecialchars($standing) : ''; ?> กลุ่มสาระการเรียนรู้ <?php echo htmlspecialchars($booking['t_dept'] ?? '-'); ?> ได้รับการนิเทศรายวิชา <span style="font-weight: bold;"><?php echo htmlspecialchars($booking['subject_name']); ?></span> รหัสวิชา <?php echo htmlspecialchars($booking['subject_code']); ?> เมื่อวันที่ <?php echo format_th_date($booking['booking_date']); ?> โดยผู้นิเทศ ดังนี้
-                <div style="padding-left: 40px; margin-top: 3px;">
+                <div style="padding-left: 40px; margin-top: 3px; line-height: 1.35;">
                     1. <?php echo htmlspecialchars($booking['peer_name'] ?? '.......................................................'); ?> ตำแหน่ง ครูผู้ร่วมนิเทศ<br>
                     2. <?php echo htmlspecialchars($booking['head_name'] ?? '.......................................................'); ?> ตำแหน่ง ผู้ร่วมนิเทศในตำแหน่งหัวหน้าหรือรอง<br>
                     3. <?php echo htmlspecialchars($booking['academic_name'] ?? '.......................................................'); ?> ตำแหน่ง ผู้ร่วมนิเทศในคณะกรรมการกลุ่มบริหารวิชาการ
                 </div>
             </div>
             
-            <div style="text-indent: 70px; text-align: justify; margin-bottom: 15px; line-height: 1.25;">
+            <div style="text-indent: 70px; text-align: justify; margin-bottom: 15px; line-height: 1.35;">
                 บัดนี้การดำเนินการเสร็จสิ้นแล้ว จึงขอรายงานการประเมินการจัดการเรียนรู้ ดังนี้
-                <div style="padding-left: 40px; margin-top: 3px;">
+                <div style="padding-left: 40px; margin-top: 3px; line-height: 1.35;">
                     • ผลการประเมินแผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้ อยู่ในระดับ <span style="font-weight: bold;"><?php echo htmlspecialchars($doc_quality); ?></span><br>
                     • ผลการนิเทศการจัดการเรียนรู้ อยู่ในระดับ <span style="font-weight: bold;"><?php echo htmlspecialchars($class_quality); ?></span>
                 </div>
             </div>
             
-            <div style="text-indent: 70px; margin-bottom: 15px;">
+            <div style="text-indent: 70px; margin-bottom: 25px;">
                 จึงเรียนมาเพื่อโปรดพิจารณา
             </div>
             
-            <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 50px; margin-bottom: 15px; text-align: center;">
-                <div style="width: 280px;">
-                    ลงชื่อ.......................................................<br>
-                    ผู้รับการประเมิน<br>
-                    ( <?php echo htmlspecialchars($teacher_name); ?> )<br>
-                    ตำแหน่ง <?php echo htmlspecialchars($booking['t_pos'] ?? 'ครู'); ?><?php echo !empty($standing) ? ' ' . htmlspecialchars($standing) : ''; ?>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; margin-right: 50px; margin-bottom: 25px;">
+                <div style="text-align: left; line-height: 1.6;">
+                    ลงชื่อ....................................................... ผู้รับการประเมิน<br>
+                    <div style="text-align: center; width: 230px; margin-top: 5px;">
+                        ( <?php echo htmlspecialchars($teacher_name); ?> )<br>
+                        ตำแหน่ง <?php echo htmlspecialchars($booking['t_pos'] ?? 'ครู'); ?><?php echo !empty($standing) ? ' ' . htmlspecialchars($standing) : ''; ?>
+                    </div>
                 </div>
             </div>
             
-            <div style="border-top: 1px solid #000; padding-top: 8px; margin-top: 10px; font-size: 16pt;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <div style="width: 48%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px;">
-                        <strong style="font-size: 16pt;">ความคิดเห็นของหัวหน้ากลุ่มสาระการเรียนรู้</strong>
-                        <div style="margin-top: 20px; line-height: 1.25;">
-                            …………………………………………………………………………<br>
-                            ………………………………………………………………………<br>
-                            ลงชื่อ………………………………………..<br>
-                            (........................................)<br>
-                            หัวหน้ากลุ่มสาระการเรียนรู้……………………
+            <table style="width: 100%; border: 1.5px solid #000; border-collapse: collapse; font-size: 16pt; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif; margin-top: 15px;">
+                <tr>
+                    <td style="width: 50%; border: 1.5px solid #000; padding: 10px; vertical-align: top; height: 130px;">
+                        <strong>ความคิดเห็นของหัวหน้ากลุ่มสาระการเรียนรู้</strong>
+                        <div style="margin-top: 8px; border-bottom: 1px dotted #000; height: 20px;"></div>
+                        <div style="margin-top: 8px; border-bottom: 1px dotted #000; height: 20px;"></div>
+                        <div style="margin-top: 15px; text-align: center; line-height: 1.3;">
+                            ลงชื่อ.......................................................<br>
+                            ( <?php echo htmlspecialchars($dept_head_name); ?> )<br>
+                            หัวหน้ากลุ่มสาระการเรียนรู้<?php echo htmlspecialchars($booking['t_dept'] ?? '……………'); ?>
                         </div>
-                    </div>
-                    <div style="width: 48%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px;">
-                        <strong style="font-size: 16pt;">ความคิดเห็นของรองผู้อำนวยการกลุ่มบริหารวิชาการ</strong>
-                        <div style="margin-top: 20px; line-height: 1.25;">
-                            …………………………………………………………………………<br>
-                            …………………………………………………………………………<br>
-                            ลงชื่อ………………………………………..<br>
-                            (นายธีรพงศ์ เพ็งชัย)<br>
+                    </td>
+                    <td style="width: 50%; border: 1.5px solid #000; padding: 10px; vertical-align: top; height: 130px;">
+                        <strong>ความคิดเห็นของรองผู้อำนวยการกลุ่มบริหารวิชาการ</strong>
+                        <div style="margin-top: 8px; border-bottom: 1px dotted #000; height: 20px;"></div>
+                        <div style="margin-top: 8px; border-bottom: 1px dotted #000; height: 20px;"></div>
+                        <div style="margin-top: 15px; text-align: center; line-height: 1.3;">
+                            ลงชื่อ.......................................................<br>
+                            ( นายธีรพงศ์ เพ็งชัย )<br>
                             รองผู้อำนวยการกลุ่มบริหารวิชาการ
                         </div>
-                    </div>
-                </div>
-                
-                <div style="width: 100%; border: 1px solid #cbd5e1; padding: 8px; border-radius: 6px; text-align: center;">
-                    <strong style="font-size: 16pt;">ความคิดเห็นของผู้อำนวยการโรงเรียน</strong>
-                    <div style="margin-top: 8px; text-align: left; padding: 0 20px;">
-                        ………………………………………………………………….……………………………………………………………………………………<br>
-                        ………………………………………………………………………………………………………………………..……………….……………
-                    </div>
-                    <div style="margin-top: 12px; line-height: 1.25;">
-                        ลงชื่อ  ………………………………………..      <br>
-                        (นายชูชาติ  พารีสอน)<br>
-                        ผู้อำนวยการโรงเรียนชัยนาทพิทยาคม
-                    </div>
-                </div>
-            </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="border: 1.5px solid #000; padding: 10px; vertical-align: top;">
+                        <strong>ความคิดเห็นของผู้อำนวยการโรงเรียน</strong>
+                        <div style="margin-top: 8px; border-bottom: 1px dotted #000; height: 20px;"></div>
+                        <div style="margin-top: 8px; border-bottom: 1px dotted #000; height: 20px;"></div>
+                        <div style="margin-top: 15px; text-align: center; line-height: 1.3; margin-bottom: 5px;">
+                            ลงชื่อ.......................................................<br>
+                            ( นายชูชาติ พารีสอน )<br>
+                            ผู้อำนวยการโรงเรียนชัยนาทพิทยาคม
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
-
+    
     <!-- PAGE 3: INFORMATION & EVALUATION SUMMARY -->
     <div class="page page-break">
         <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt;">ส่วนที่ 1: ข้อมูลประกอบการนิเทศการสอน</h5>
@@ -543,90 +602,89 @@ try {
         $overall_percent = ($overall_avg / 5) * 100;
         ?>
 
-        <div class="row g-4 text-center mt-2 mb-5">
-            <div class="col-4">
-                <div class="card p-3 border-0 bg-light rounded-3">
-                    <div class="text-muted fw-bold" style="font-size: 16pt;">คะแนนเฉลี่ยตรวจแผน (เอกสาร)</div>
-                    <h3 class="fw-bold text-navy mt-2" style="font-size: 20pt;"><?php echo number_format($avg_doc, 2); ?> / 5</h3>
-                    <div class="text-success fw-bold" style="font-size: 16pt;"><?php echo number_format($percent_doc, 1); ?>%</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card p-3 border-0 bg-light rounded-3">
-                    <div class="text-muted fw-bold" style="font-size: 16pt;">คะแนนเฉลี่ยการสอน (ห้องเรียน)</div>
-                    <h3 class="fw-bold text-navy mt-2" style="font-size: 20pt;"><?php echo number_format($avg_class, 2); ?> / 5</h3>
-                    <div class="text-success fw-bold" style="font-size: 16pt;"><?php echo number_format($percent_class, 1); ?>%</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="card p-3 border-0 bg-primary bg-opacity-10 rounded-3">
-                    <div class="text-primary fw-bold" style="font-size: 16pt;">คะแนนรวมเฉลี่ยสะสม</div>
-                    <h3 class="fw-bold text-primary mt-2" style="font-size: 20pt;"><?php echo number_format($overall_avg, 2); ?> / 5</h3>
-                    <div class="text-primary fw-bold" style="font-size: 16pt;"><?php echo number_format($overall_percent, 1); ?>%</div>
-                </div>
-            </div>
-        </div>
+        <?php
+        $p_doc_avg = 0; $h_doc_avg = 0; $a_doc_avg = 0;
+        $p_class_avg = 0; $h_class_avg = 0; $a_class_avg = 0;
 
-        <table class="table table-bordered table-eval text-center align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>องค์ประกอบการประเมิน</th>
-                    <th>คะแนนเต็ม</th>
-                    <th>ครูผู้ร่วมนิเทศ (Peer)</th>
-                    <th>ครูผู้นิเทศ (Head)</th>
-                    <th>กรรมการวิชาการ (Academic)</th>
-                    <th>คะแนนเฉลี่ย</th>
+        if ($peer_eval) {
+            $p_doc_scores = [];
+            for($i=1;$i<=5;$i++) { if($peer_eval["doc_score_$i"]>0) $p_doc_scores[] = $peer_eval["doc_score_$i"]; }
+            $p_doc_avg = count($p_doc_scores) > 0 ? array_sum($p_doc_scores) / count($p_doc_scores) : 0;
+            
+            $p_class_scores = [];
+            for($i=1;$i<=10;$i++) { if($peer_eval["class_score_$i"]>0) $p_class_scores[] = $peer_eval["class_score_$i"]; }
+            $p_class_avg = count($p_class_scores) > 0 ? array_sum($p_class_scores) / count($p_class_scores) : 0;
+        }
+        if ($head_eval) {
+            $h_doc_scores = [];
+            for($i=1;$i<=5;$i++) { if($head_eval["doc_score_$i"]>0) $h_doc_scores[] = $head_eval["doc_score_$i"]; }
+            $h_doc_avg = count($h_doc_scores) > 0 ? array_sum($h_doc_scores) / count($h_doc_scores) : 0;
+            
+            $h_class_scores = [];
+            for($i=1;$i<=10;$i++) { if($head_eval["class_score_$i"]>0) $h_class_scores[] = $head_eval["class_score_$i"]; }
+            $h_class_avg = count($h_class_scores) > 0 ? array_sum($h_class_scores) / count($h_class_scores) : 0;
+        }
+        if ($academic_eval) {
+            $a_doc_scores = [];
+            for($i=1;$i<=5;$i++) { if($academic_eval["doc_score_$i"]>0) $a_doc_scores[] = $academic_eval["doc_score_$i"]; }
+            $a_doc_avg = count($a_doc_scores) > 0 ? array_sum($a_doc_scores) / count($a_doc_scores) : 0;
+            
+            $a_class_scores = [];
+            for($i=1;$i<=10;$i++) { if($academic_eval["class_score_$i"]>0) $a_class_scores[] = $academic_eval["class_score_$i"]; }
+            $a_class_avg = count($a_class_scores) > 0 ? array_sum($a_class_scores) / count($a_class_scores) : 0;
+        }
+        ?>
+
+        <div style="border: 1px solid #94a3b8; border-radius: 8px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; border-style: hidden; text-align: center; vertical-align: middle; font-family: 'TH Sarabun PSK', 'TH Sarabun New', sans-serif;">
+                <tbody>
+                    <tr>
+                        <td rowspan="3" style="border: 1px solid #94a3b8; width: 35%; vertical-align: middle; background-color: #f8f9fa;">
+                            <div style="font-size: 16pt; font-weight: bold;">ผู้รับการประเมิน</div>
+                        </td>
+                        <td colspan="4" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">รวมผลการประเมิน</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">แผนหน่วยการเรียนรู้และ<br>แผนการจัดการเรียนรู้</td>
+                        <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">ผลการนิเทศการจัดการเรียนรู้</td>
+                    </tr>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
                 </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="text-start fw-bold">1. การประเมินแผนการจัดการเรียนรู้ (ตรวจแผน)</td>
-                    <td>25</td>
-                    <td>
-                        <?php 
-                        $p_doc = $peer_eval ? ($peer_eval['doc_score_1']+$peer_eval['doc_score_2']+$peer_eval['doc_score_3']+$peer_eval['doc_score_4']+$peer_eval['doc_score_5']) : 0;
-                        echo $p_doc > 0 ? $p_doc : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $h_doc = $head_eval ? ($head_eval['doc_score_1']+$head_eval['doc_score_2']+$head_eval['doc_score_3']+$head_eval['doc_score_4']+$head_eval['doc_score_5']) : 0;
-                        echo $h_doc > 0 ? $h_doc : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $a_doc = $academic_eval ? ($academic_eval['doc_score_1']+$academic_eval['doc_score_2']+$academic_eval['doc_score_3']+$academic_eval['doc_score_4']+$academic_eval['doc_score_5']) : 0;
-                        echo $a_doc > 0 ? $a_doc : '-';
-                        ?>
-                    </td>
-                    <td class="fw-bold text-navy"><?php echo number_format(calculate_average(array_filter([$p_doc, $h_doc, $a_doc])), 2); ?></td>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ครูผู้ร่วมนิเทศ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_doc_avg > 0 ? number_format($p_doc_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_doc_avg > 0 ? get_quality_text_php($p_doc_avg) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_class_avg > 0 ? number_format($p_class_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $p_class_avg > 0 ? get_quality_text_php($p_class_avg) : '-'; ?></td>
                 </tr>
-                <tr>
-                    <td class="text-start fw-bold">2. การประเมินจัดกิจกรรมการเรียนรู้ (ห้องเรียน)</td>
-                    <td>50</td>
-                    <td>
-                        <?php 
-                        $p_class = 0; if ($peer_eval) { for($i=1;$i<=10;$i++) $p_class += $peer_eval["class_score_$i"]; }
-                        echo $p_class > 0 ? $p_class : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $h_class = 0; if ($head_eval) { for($i=1;$i<=10;$i++) $h_class += $head_eval["class_score_$i"]; }
-                        echo $h_class > 0 ? $h_class : '-';
-                        ?>
-                    </td>
-                    <td>
-                        <?php 
-                        $a_class = 0; if ($academic_eval) { for($i=1;$i<=10;$i++) $a_class += $academic_eval["class_score_$i"]; }
-                        echo $a_class > 0 ? $a_class : '-';
-                        ?>
-                    </td>
-                    <td class="fw-bold text-navy"><?php echo number_format(calculate_average(array_filter([$p_class, $h_class, $a_class])), 2); ?></td>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ผู้นิเทศ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_doc_avg > 0 ? number_format($h_doc_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_doc_avg > 0 ? get_quality_text_php($h_doc_avg) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_class_avg > 0 ? number_format($h_class_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $h_class_avg > 0 ? get_quality_text_php($h_class_avg) : '-'; ?></td>
+                </tr>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">คณะกรรมการนิเทศ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_doc_avg > 0 ? number_format($a_doc_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_doc_avg > 0 ? get_quality_text_php($a_doc_avg) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_class_avg > 0 ? number_format($a_class_avg, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $a_class_avg > 0 ? get_quality_text_php($a_class_avg) : '-'; ?></td>
+                </tr>
+                <tr style="font-size: 16pt;">
+                    <td style="border: 1px solid #94a3b8; padding: 8px 15px; text-align: right;">รวมผลและระดับคุณภาพ</td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_doc > 0 ? number_format($avg_doc, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_doc > 0 ? get_quality_text_php($avg_doc) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_class > 0 ? number_format($avg_class, 3) : '-'; ?></td>
+                    <td style="border: 1px solid #94a3b8; color: #2563eb;"><?php echo $avg_class > 0 ? get_quality_text_php($avg_class) : '-'; ?></td>
                 </tr>
             </tbody>
         </table>
+        </div>
     </div>
 
     <!-- PAGE 4: DOCUMENT SCORE DETAIL -->
@@ -774,42 +832,6 @@ try {
             endif;
             ?>
         </div>
-
-        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt;">ส่วนที่ 6: ลงลายมือชื่อคณะกรรมการ</h5>
-        
-        <div class="row sig-block text-center" style="font-size: 16pt; line-height: 1.25;">
-            <div class="col-6 mb-5">
-                ลงชื่อ.......................................................<br>
-                ผู้สอน<br>
-                ( <?php echo htmlspecialchars($teacher_name); ?> )<br>
-                ตำแหน่ง <?php echo htmlspecialchars(($booking['t_pos'] ?? 'ครู') . ($booking['t_standing'] ? ' ' . $booking['t_standing'] : '')); ?><br>
-                <?php 
-                $sign_date_str = 'วันที่ ........ เดือน .................... พ.ศ. ............';
-                if (!empty($booking['post_teaching_record'])) {
-                    $post_record = json_decode($booking['post_teaching_record'], true);
-                    if (is_array($post_record) && !empty($post_record['sign_date'])) {
-                        $sign_date_str = format_th_date($post_record['sign_date']);
-                    }
-                }
-                echo htmlspecialchars($sign_date_str);
-                ?>
-            </div>
-            <div class="col-6 mb-5">
-                ลงชื่อ.......................................................<br>
-                ( <?php echo htmlspecialchars($booking['peer_name']); ?> )<br>
-                <strong>ครูผู้ร่วมนิเทศ (Peer)</strong>
-            </div>
-            <div class="col-6">
-                ลงชื่อ.......................................................<br>
-                ( <?php echo htmlspecialchars($booking['head_name']); ?> )<br>
-                <strong>ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)</strong>
-            </div>
-            <div class="col-6">
-                ลงชื่อ.......................................................<br>
-                ( <?php echo htmlspecialchars($booking['academic_name'] ?? '.......................................................'); ?> )<br>
-                <strong>ผู้แทนคณะกรรมการวิชาการ</strong>
-            </div>
-        </div>
     </div>
 
     <!-- PAGE 7: PHOTOS -->
@@ -832,7 +854,7 @@ try {
     ?>
     <div class="page page-break">
         <div style="text-align: center; margin-bottom: 15px; line-height: 1.25;">
-            <span style="font-size: 20pt; font-weight: bold; display: block;">ภาพประกอบการประเมินการจัดการเรียนรู้และการนิเทศการสอน</span>
+            <span style="font-size: 20pt; font-weight: bold; display: block;">ส่วนที่ 6: ภาพประกอบการประเมินการจัดการเรียนรู้และการนิเทศการสอน</span>
             <span style="font-size: 16pt; display: block; margin-top: 3px;">
                 ชื่อ-สกุลผู้รับการประเมิน <span style="font-weight: bold;"><?php echo htmlspecialchars($teacher_name); ?></span> ตำแหน่ง <?php echo htmlspecialchars($booking['t_pos'] ?? 'ครู'); ?><?php echo !empty($standing) ? ' ' . htmlspecialchars($standing) : ''; ?>
             </span>
@@ -875,6 +897,111 @@ try {
             </div>
         </div>
     </div>
+
+
+    <!-- PAGE 8: SIGNATURES -->
+    <div class="page page-break">
+
+
+        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt;">ส่วนที่ 7: ลงลายมือชื่อคณะกรรมการ</h5>
+        
+        <div class="row sig-block text-center" style="font-size: 16pt; line-height: 1.25;">
+            <div class="col-6 mb-5" style="position: relative;">
+                <?php if (!empty($booking['t_signature'])): ?>
+                    <div style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none;">
+                        <img src="<?php echo $booking['t_signature']; ?>" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                    </div>
+                <?php endif; ?>
+                ลงชื่อ.......................................................<br>
+                ผู้สอน<br>
+                ( <?php echo htmlspecialchars($teacher_name); ?> )<br>
+                ตำแหน่ง <?php echo htmlspecialchars(($booking['t_pos'] ?? 'ครู') . ($booking['t_standing'] ? ' ' . $booking['t_standing'] : '')); ?><br>
+                <?php 
+                $sign_date_str = 'วันที่ ........ เดือน .................... พ.ศ. ............';
+                if (!empty($booking['post_teaching_record'])) {
+                    $post_record = json_decode($booking['post_teaching_record'], true);
+                    if (is_array($post_record) && !empty($post_record['sign_date'])) {
+                        $sign_date_str = format_th_date($post_record['sign_date']);
+                    }
+                }
+                echo htmlspecialchars($sign_date_str);
+                ?>
+            </div>
+            <div class="col-6 mb-5" style="position: relative;">
+                <?php if (!empty($booking['peer_signature'])): ?>
+                    <div style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none;">
+                        <img src="<?php echo $booking['peer_signature']; ?>" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                    </div>
+                <?php endif; ?>
+                ลงชื่อ.......................................................<br>
+                ( <?php echo htmlspecialchars($booking['peer_name']); ?> )<br>
+                <strong>ครูผู้ร่วมนิเทศ (Peer)</strong>
+            </div>
+            <div class="col-6" style="position: relative;">
+                <?php if (!empty($booking['head_signature'])): ?>
+                    <div style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none;">
+                        <img src="<?php echo $booking['head_signature']; ?>" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                    </div>
+                <?php endif; ?>
+                ลงชื่อ.......................................................<br>
+                ( <?php echo htmlspecialchars($booking['head_name']); ?> )<br>
+                <strong>ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)</strong>
+            </div>
+            <div class="col-6" style="position: relative;">
+                <?php if (!empty($booking['academic_signature'])): ?>
+                    <div style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none;">
+                        <img src="<?php echo $booking['academic_signature']; ?>" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                    </div>
+                <?php endif; ?>
+                ลงชื่อ.......................................................<br>
+                ( <?php echo htmlspecialchars($booking['academic_name'] ?? '.......................................................'); ?> )<br>
+                <strong>ผู้แทนคณะกรรมการวิชาการ</strong>
+            </div>
+        </div>
+    </div>    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const imgs = document.getElementsByTagName("img");
+        for (let i = 0; i < imgs.length; i++) {
+            const img = imgs[i];
+            if (img.src && img.src.startsWith("data:image/")) {
+                processSignatureTransparency(img);
+            }
+        }
+
+        function processSignatureTransparency(imgElement) {
+            const originalSrc = imgElement.src;
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                const canvas = document.createElement("canvas");
+                canvas.width = tempImg.width;
+                canvas.height = tempImg.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(tempImg, 0, 0);
+                try {
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imgData.data;
+                    let modified = false;
+                    for (let j = 0; j < data.length; j += 4) {
+                        const r = data[j];
+                        const g = data[j+1];
+                        const b = data[j+2];
+                        if (r > 240 && g > 240 && b > 240) {
+                            data[j+3] = 0;
+                            modified = true;
+                        }
+                    }
+                    if (modified) {
+                        ctx.putImageData(imgData, 0, 0);
+                        imgElement.src = canvas.toDataURL("image/png");
+                    }
+                } catch (e) {
+                    console.error("Error transparency:", e);
+                }
+            };
+            tempImg.src = originalSrc;
+        }
+    });
+    </script>
 
 </body>
 </html>

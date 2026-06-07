@@ -765,11 +765,66 @@
 
         async function loadBookingDetails() {
             try {
-                const res = await fetch('../api/teacher/supervision_get.php');
+                const res = await fetch('../api/teacher/supervision_get.php?booking_id=' + currentBookingId);
                 const data = await res.json();
                 
-                if (data.success && data.duties) {
-                    dutyRecord = data.duties.find(d => d.id === currentBookingId);
+                if (data.success) {
+                    if (currentUser.role === 'admin') {
+                        const booking = data.booking;
+                        if (!booking) {
+                            Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลคิวนิเทศ', 'error').then(() => {
+                                window.location.href = 'supervision_evaluate.html';
+                            });
+                            return;
+                        }
+                        
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const urlRole = urlParams.get('role') || 'academic';
+                        const evalInfo = data.evaluations_status[urlRole] || {};
+                        const ev = evalInfo.eval || {};
+                        
+                        dutyRecord = {
+                            id: booking.id,
+                            teacher_name: `${booking.teacher_prefix || ''}${booking.teacher_first || ''} ${booking.teacher_last || ''}`,
+                            teacher_photo: booking.teacher_photo,
+                            department: booking.teacher_dept,
+                            teacher_position: booking.teacher_position || 'ครู',
+                            academic_standing: booking.academic_standing || 'ไม่มีวิทยฐานะ',
+                            evaluation_purpose: booking.evaluation_purpose || 'ไม่มีวิทยฐานะ',
+                            lesson_topic: booking.lesson_topic,
+                            subject_code: booking.subject_code,
+                            subject_name: booking.subject_name,
+                            classroom: booking.classroom,
+                            room_number: booking.room_number,
+                            booking_date: booking.booking_date,
+                            booking_period: booking.booking_period,
+                            status: booking.status,
+                            role: urlRole,
+                            role_th: urlRole === 'peer' ? 'ครูผู้ร่วมนิเทศ (Peer)' : (urlRole === 'head' ? 'ครูผู้นิเทศ (Head)' : 'ฝ่ายวิชาการ (Academic)'),
+                            doc_done: evalInfo.doc_done,
+                            class_done: evalInfo.class_done,
+                            doc_comments: ev.doc_comments || '',
+                            unit_integration: ev.unit_integration || '',
+                            plan_integration: ev.plan_integration || ''
+                        };
+                        
+                        for (let i = 1; i <= 19; i++) {
+                            dutyRecord[`unit_score_${i}`] = ev[`unit_score_${i}`] !== undefined ? ev[`unit_score_${i}`] : null;
+                        }
+                        for (let i = 1; i <= 21; i++) {
+                            dutyRecord[`plan_score_${i}`] = ev[`plan_score_${i}`] !== undefined ? ev[`plan_score_${i}`] : null;
+                        }
+                        for (let i = 1; i <= 4; i++) {
+                            dutyRecord[`plan_score_22_${i}`] = ev[`plan_score_22_${i}`] !== undefined ? ev[`plan_score_22_${i}`] : null;
+                        }
+                        for (let i = 1; i <= 31; i++) {
+                            dutyRecord[`class_score_${i}`] = ev[`class_score_${i}`] !== undefined ? ev[`class_score_${i}`] : null;
+                        }
+                    } else {
+                        if (data.duties) {
+                            dutyRecord = data.duties.find(d => d.id === currentBookingId);
+                        }
+                    }
                     
                     if (!dutyRecord) {
                         Swal.fire('สิทธิ์การเข้าถึง', 'คุณไม่ได้เป็นคณะกรรมการประเมินของคิวนิเทศนี้', 'error').then(() => {
@@ -1819,6 +1874,11 @@
                 unit_integration: unitIntegrationVal,
                 plan_integration: planIntegrationVal
             };
+
+            if (currentUser.role === 'admin') {
+                const urlParams = new URLSearchParams(window.location.search);
+                payload.role = urlParams.get('role') || 'academic';
+            }
 
             // Loop to populate payload
             for (let i = 1; i <= 19; i++) {

@@ -1029,10 +1029,24 @@
                 studentMap = null;
             }
             
-            studentMap = L.map('student_map').setView([lat, lng], 15);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
-            }).addTo(studentMap);
+            });
+            const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            });
+
+            studentMap = L.map('student_map', {
+                center: [lat, lng],
+                zoom: 15,
+                layers: [streetMap]
+            });
+
+            const baseMaps = {
+                "แผนที่ถนน": streetMap,
+                "ดาวเทียม": satelliteMap
+            };
+            L.control.layers(baseMaps, null, { position: 'topright' }).addTo(studentMap);
             
             studentMarker = L.marker([lat, lng]).addTo(studentMap);
             

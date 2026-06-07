@@ -28,21 +28,43 @@ $userData = [
 
 try {
     if ($role === 'teacher' || $role === 'admin') {
-        $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, academic_standing, position, photo, classroom, faculty FROM teachers WHERE user_id = ?");
+        $stmt = $pdo->prepare("SELECT * FROM teachers WHERE user_id = ?");
         $stmt->execute([$user_id]);
         $details = $stmt->fetch(PDO::FETCH_ASSOC);
-
+ 
         if (!$details && isset($_SESSION['username'])) {
-            $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, academic_standing, position, photo, classroom, faculty FROM teachers WHERE teacher_id = ? OR email = ?");
+            $stmt = $pdo->prepare("SELECT * FROM teachers WHERE teacher_id = ? OR email = ?");
             $stmt->execute([$_SESSION['username'], $_SESSION['username']]);
             $details = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($details && !empty($details['id'])) {
                 try { $pdo->prepare("UPDATE teachers SET user_id = ? WHERE id = ?")->execute([$user_id, $details['id']]); } catch (Exception $e) {}
             }
         }
-
+ 
         if ($details) {
             $details['full_name_th'] = trim(($details['prefix'] ?? '') . $details['first_name_th'] . ' ' . $details['last_name_th']);
+            
+            // Calculate teacher profile completion (required for supervision period)
+            if ($role === 'teacher') {
+                $required_fields = [
+                    'prefix', 'first_name_th', 'last_name_th', 'nickname',
+                    'id_card', 'birth_date', 'position', 'department',
+                    'phone', 'email', 'line_id'
+                ];
+                
+                $is_complete = true;
+                foreach ($required_fields as $fld) {
+                    $val = trim((string)($details[$fld] ?? ''));
+                    if ($val === '' || $val === '0000-00-00') {
+                        $is_complete = false;
+                        break;
+                    }
+                }
+                $details['is_profile_complete'] = $is_complete;
+            } else {
+                $details['is_profile_complete'] = true;
+            }
+            
             $userData = array_merge($userData, $details);
         }
     } else if ($role === 'student') {

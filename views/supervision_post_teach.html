@@ -83,9 +83,26 @@
             }
         });
 
+        function getUrlBookingId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return parseInt(urlParams.get('booking_id')) || 0;
+        }
+
         async function loadPostTeachData() {
             try {
-                const res = await fetch('../api/teacher/supervision_get.php');
+                const bookingId = getUrlBookingId();
+                if (currentUser.role === 'admin' && bookingId === 0) {
+                    document.getElementById('post-teach-content-box').innerHTML = `
+                        <div class="alert alert-info border-0 shadow-sm rounded-4 mb-0 text-center py-4" style="background-color: #ebf5ff; border-left: 4px solid #1e3a8a !important; color: #1e3a8a;">
+                            <i class="bi bi-info-circle-fill fs-3 mb-2 d-block text-primary"></i>
+                            <span class="small fw-bold">กรุณาเลือกรายการคิวนิเทศจากแถบด้านบนเพื่อดูหรือบันทึกหลังการสอน</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const url = bookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${bookingId}` : '../api/teacher/supervision_get.php';
+                const res = await fetch(url);
                 const data = await res.json();
                 if (data.success) {
                     renderPostTeachContent(data.booking);
@@ -221,7 +238,7 @@
                 const d = await res.json();
                 if (d.success) {
                     Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: d.message, confirmButtonColor: '#1e3a8a' }).then(() => {
-                        window.location.href = 'teacher_supervision.html';
+                        window.location.href = currentUser.role === 'admin' ? 'supervision.html' : 'teacher_supervision.html';
                     });
                 } else {
                     Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: d.error });

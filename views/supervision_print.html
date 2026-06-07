@@ -33,6 +33,7 @@
         .text-primary-gradient {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -313,6 +314,10 @@
 
         /* Print styles */
         @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
             body {
                 background: white !important;
                 color: #000 !important;
@@ -342,10 +347,11 @@
                 width: 210mm !important;
                 min-height: 297mm !important;
                 padding: 25mm 20mm 20mm 25mm !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
                 page-break-after: always !important;
+                page-break-inside: avoid !important;
                 display: block !important;
                 background: white !important;
                 box-sizing: border-box !important;
@@ -357,10 +363,15 @@
                 padding: 20mm 20mm 18mm 20mm !important;
                 display: flex !important;
                 flex-direction: column !important;
+                height: 297mm !important;
             }
             .a4-page-preview:last-child {
                 page-break-after: avoid !important;
             }
+        }
+        
+        .table-eval, .table-eval th, .table-eval td {
+            border-color: #94a3b8 !important;
         }
     </style>
 </head>
@@ -384,13 +395,10 @@
                                 <div class="text-muted small">บันทึกข้อความรายงานการประเมินการจัดการเรียนรู้ และแบบประเมินนิเทศ (นิเทศ 01)</div>
                             </div>
                         </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-navy rounded-pill px-4 fw-black shadow" onclick="window.print()">
-                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> สั่งพิมพ์ / บันทึกเป็น PDF (A4)
-                            </button>
-                        </div>
+
                     </div>
+
+
 
 
                     <div class="row g-4">
@@ -491,14 +499,322 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- DESK WORKSPACE PREVIEW -->
+                            <div class="desk-workspace d-none-screen">
+                                <!-- PAGE 1: COVER PAGE PREVIEW -->
+                                <div class="a4-page-preview shadow-sm d-none-screen" id="page-cover-preview">
+                                    <!-- Logo -->
+                                    <div style="text-align: center; padding-bottom: 18px;">
+                                        <img src="../public/img/logo.png" alt="Logo" style="width: 100px; height: auto;" onerror="this.style.display='none'">
+                                    </div>
+
+                                    <!-- Navy + Gold divider top -->
+                                    <div style="border-top: 3px solid #1e3a8a; margin-bottom: 2px;"></div>
+                                    <div style="border-top: 1.5px solid #b8952a; margin-bottom: 28px;"></div>
+
+                                    <!-- Title -->
+                                    <div style="text-align: center; margin-bottom: 24px;">
+                                        <div style="font-size: 30pt; font-weight: bold; color: #1e3a8a; line-height: 1.3; font-family: 'TH Sarabun New', sans-serif;">รายงานผลการนิเทศการจัดการเรียนรู้</div>
+                                        <div style="font-size: 22pt; color: #334155; margin-top: 6px; font-family: 'TH Sarabun New', sans-serif;">ภาคเรียนที่ <span class="preview-semester">[ภาคเรียน]</span> &nbsp; ปีการศึกษา <span class="preview-year">[ปีการศึกษา]</span></div>
+                                    </div>
+
+                                    <!-- Info box -->
+                                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; margin-top: 80px; margin-bottom: 80px;">
+                                        <div style="background: #f0f4ff; border: 1.5px solid #c7d7f5; border-radius: 6px; padding: 22px 40px; min-width: 380px; max-width: 480px; margin: 0 auto;">
+                                            <table style="width: 100%; font-size: 18pt; line-height: 2.0; font-family: 'TH Sarabun New', sans-serif; border-collapse: collapse;">
+                                                <tr>
+                                                    <td style="font-weight: bold; color: #1e3a8a; white-space: nowrap; padding-right: 10px; vertical-align: top;">ชื่อ-สกุล</td>
+                                                    <td style="color: #1e293b; vertical-align: top; padding-right: 8px;">:</td>
+                                                    <td style="color: #1e293b; font-weight: bold; vertical-align: top;"><span class="preview-teacher-name">[ชื่อครู]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="font-weight: bold; color: #1e3a8a; white-space: nowrap; padding-right: 10px; vertical-align: top;">ตำแหน่ง</td>
+                                                    <td style="color: #1e293b; vertical-align: top; padding-right: 8px;">:</td>
+                                                    <td style="color: #1e293b; vertical-align: top;"><span class="preview-teacher-position">[ตำแหน่ง]</span><span class="preview-teacher-standing-comma">[วิทยฐานะ]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="font-weight: bold; color: #1e3a8a; white-space: nowrap; padding-right: 10px; vertical-align: top;">กลุ่มสาระฯ</td>
+                                                    <td style="color: #1e293b; vertical-align: top; padding-right: 8px;">:</td>
+                                                    <td style="color: #1e293b; font-weight: bold; vertical-align: top;"><span class="preview-teacher-dept">[กลุ่มสาระ]</span></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Gold + Navy divider bottom -->
+                                    <div style="border-top: 1.5px solid #b8952a; margin-top: 24px; margin-bottom: 2px;"></div>
+                                    <div style="border-top: 3px solid #1e3a8a; margin-bottom: 18px;"></div>
+
+                                    <!-- School footer -->
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 20pt; font-weight: bold; color: #1e3a8a; margin-bottom: 4px; font-family: 'TH Sarabun New', sans-serif;">โรงเรียนชัยนาทพิทยาคม</div>
+                                        <div style="font-size: 16pt; color: #475569; margin-bottom: 2px; font-family: 'TH Sarabun New', sans-serif;">สำนักงานเขตพื้นที่การศึกษามัธยมศึกษาอุทัยธานี ชัยนาท</div>
+                                        <div style="font-size: 14pt; color: #64748b; font-family: 'TH Sarabun New', sans-serif;">สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน กระทรวงศึกษาธิการ</div>
+                                    </div>
+                                </div>
+
+                                <!-- PAGE 2: MEMO PREVIEW -->
+                                <div class="a4-page-preview shadow-sm d-none-screen" id="page-memo-preview">
+                                    <div style="position: relative; text-align: center; margin-bottom: 20px; height: 60px; line-height: 60px;">
+                                        <img src="../public/img/krut.png" alt="Garuda" style="position: absolute; left: 0; top: 0; width: 60px; height: auto;">
+                                        <span style="font-size: 29pt; font-weight: bold; font-family: 'TH Sarabun New', 'TH Sarabun PSK', sans-serif; display: inline-block; vertical-align: middle;">บันทึกข้อความ</span>
+                                    </div>
                                     
 
                                 </div>
+                                
+                                <!-- PAGE 3-6: NITHET01 PREVIEW (4 Pages) -->
+                                <div class="d-none-screen" id="page-nithet01-preview" style="display: flex; flex-direction: column; gap: 30px; width: 100%; align-items: center;">
+                                    <!-- SUB-PAGE 3.1: EVALUATION SUMMARY -->
+                                    <div class="a4-page-preview shadow-sm">
+                                        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 1: ข้อมูลประกอบการนิเทศการสอน</h5>
+                                        
+                                        <table class="table table-bordered table-eval align-middle mb-5" style="font-family: 'TH Sarabun New', sans-serif; font-size: 16pt; line-height: 1.35;">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="bg-light fw-bold" style="width: 250px;">รายวิชาที่นิเทศ</td>
+                                                    <td><span class="preview-subject-code">[รหัสวิชา]</span> <span class="preview-subject-name">[ชื่อวิชา]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bg-light fw-bold">ระดับชั้น / ห้องเรียน</td>
+                                                    <td>มัธยมศึกษาปีที่ <span class="preview-classroom">[ห้องเรียน]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bg-light fw-bold">วันที่และเวลาคาบเรียน</td>
+                                                    <td>วันที่ <span class="preview-booking-date-thai">[วันที่]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bg-light fw-bold">วัตถุประสงค์การประเมิน</td>
+                                                    <td>เพื่อพัฒนาทักษะการสอนและวัดประสิทธิภาพแผนการสอน</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bg-light fw-bold">ครูผู้ร่วมนิเทศ (Peer)</td>
+                                                    <td><span class="preview-peer-name">[ชื่อ Peer]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bg-light fw-bold">ครูผู้นิเทศ (Head/Deputy)</td>
+                                                    <td><span class="preview-head-name">[ชื่อ Head]</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="bg-light fw-bold">คณะกรรมการวิชาการ (Academic)</td>
+                                                    <td><span class="preview-academic-name">[ชื่อ Academic]</span></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
 
-                                <!-- PAGE 3: PHOTOS -->
+                                        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 2: สรุปผลคะแนนการประเมิน</h5>
+                                        
+                                        <div style="border: 1px solid #94a3b8; border-radius: 8px; overflow: hidden;">
+                                        <table style="width: 100%; border-collapse: collapse; border-style: hidden; text-align: center; vertical-align: middle; font-family: 'TH Sarabun New', sans-serif;">
+                                            <tbody>
+                                                <tr>
+                                                    <td rowspan="3" style="border: 1px solid #94a3b8; width: 35%; vertical-align: middle; background-color: #f8f9fa;">
+                                                        <div style="font-size: 16pt; font-weight: bold;">ผู้รับการประเมิน</div>
+                                                    </td>
+                                                    <td colspan="4" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">รวมผลการประเมิน</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">แผนหน่วยการเรียนรู้และ<br>แผนการจัดการเรียนรู้</td>
+                                                    <td colspan="2" style="border: 1px solid #94a3b8; background-color: #f8f9fa; font-size: 16pt; padding: 4px;">ผลการนิเทศการจัดการเรียนรู้</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ค่าเฉลี่ย</td>
+                                                    <td style="border: 1px solid #94a3b8; padding: 4px; width: 16.25%;">ระดับคุณภาพ</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ครูผู้ร่วมนิเทศ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-peer-class-qual">-</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">ผู้นิเทศ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-head-class-qual">-</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 12px; text-align: left;">คณะกรรมการนิเทศ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-acad-class-qual">-</td>
+                                                </tr>
+                                                <tr style="font-size: 16pt;">
+                                                    <td style="border: 1px solid #94a3b8; padding: 8px 15px; text-align: right;">รวมผลและระดับคุณภาพ</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-doc-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-doc-qual">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-class-avg">-</td>
+                                                    <td style="border: 1px solid #94a3b8; color: #2563eb;" id="table-overall-class-qual">-</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        </div>
+                                        
+                                        <div style="margin-top: 40px; text-align: center; font-size: 16pt;">
+                                            <div style="width: 320px; margin-left: auto;">
+                                                ลงชื่อ.......................................................<br>
+                                                ผู้รับการประเมิน<br>
+                                                ( <span class="preview-teacher-name">[ผู้รับการนิเทศ]</span> )<br>
+                                                ตำแหน่ง <span class="preview-teacher-position">[ตำแหน่ง]</span><span class="preview-teacher-standing-comma">[วิทยฐานะ]</span><br>
+                                                <span class="preview-booking-date-thai">[วันที่]</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SUB-PAGE 3.2: DOCUMENT SCORE DETAIL -->
+                                    <div class="a4-page-preview shadow-sm">
+                                        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 3: คะแนนประเมินแผนการจัดการเรียนรู้ (ตรวจแผน)</h5>
+                                        <table class="table table-bordered table-eval align-middle" style="font-family: 'TH Sarabun New', sans-serif; font-size: 15pt; line-height: 1.3;">
+                                            <thead>
+                                                <tr>
+                                                    <th class="align-middle text-center" style="width: 60%">หัวข้อการประเมินแผนการจัดการเรียนรู้</th>
+                                                    <th class="align-middle text-center">ครูผู้ร่วมนิเทศ (Peer)</th>
+                                                    <th class="align-middle text-center">ครูผู้นิเทศ (Head)</th>
+                                                    <th class="align-middle text-center">วิชาการ (Acad)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>1. จุดประสงค์การเรียนรู้ชัดเจน ครอบคลุม K P A</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>2. การจัดกิจกรรมการเรียนรู้สอดคล้องกับจุดประสงค์</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>3. การเลือกใช้สื่อ/นวัตกรรมการเรียนรู้เหมาะสม</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>4. การวัดและประเมินผลเครื่องมือตรงตามเป้าหมาย</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>5. ความสมบูรณ์และถูกต้องของเนื้อหาในแผน</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <div class="mt-4 p-3 bg-light rounded-3" style="font-size: 15pt; line-height: 1.35; font-family: 'TH Sarabun New', sans-serif;">
+                                            <strong>ข้อเสนอแนะเกี่ยวกับแผนการจัดการเรียนรู้ (ตรวจแผน) จากคณะกรรมการ:</strong>
+                                            <div style="font-size: 14pt; margin-top: 8px; color: #475569;">
+                                                สามารถตรวจสอบข้อเสนอแนะและบันทึกคะแนนเต็มได้ที่ปุ่ม "เล่มรายงานเต็ม" บนหน้าแดชบอร์ด
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- SUB-PAGE 3.3: CLASSROOM TEACHING SCORE DETAIL -->
+                                    <div class="a4-page-preview shadow-sm">
+                                        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 4: คะแนนประเมินการจัดการเรียนรู้ในห้องเรียน</h5>
+                                        <table class="table table-bordered table-eval align-middle" style="font-family: 'TH Sarabun New', sans-serif; font-size: 15pt; line-height: 1.2;">
+                                            <thead>
+                                                <tr>
+                                                    <th class="align-middle text-center" style="width: 60%">หัวข้อการประเมินทักษะการสอนในชั้นเรียน</th>
+                                                    <th class="align-middle text-center">ครูผู้ร่วมนิเทศ (Peer)</th>
+                                                    <th class="align-middle text-center">ครูผู้นิเทศ (Head)</th>
+                                                    <th class="align-middle text-center">วิชาการ (Acad)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>1. การนำเข้าสู่บทเรียนเชื่อมโยงเนื้อหาเดิมและเร้าความสนใจ</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>2. การจัดบรรยากาศที่ส่งเสริมการมีส่วนร่วมของนักเรียน</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>3. ครูจัดกิจกรรมการเรียนรู้ตามขั้นตอนในแผน</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>4. ครูอธิบายเนื้อหาถูกต้อง ชัดเจน เข้าใจง่าย</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>5. การใช้คำถามกระตุ้นความคิดและการแก้ปัญหา</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>6. การใช้สื่อการสอน/เทคโนโลยีส่งเสริมการเรียนรู้</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>7. ครูดูแล ควบคุมชั้นเรียน และช่วยเหลือนักเรียนทั่วถึง</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>8. มีการวัดและประเมินผลระหว่างเรียนเป็นระยะ</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>9. นักเรียนบรรลุวัตถุประสงค์การเรียนรู้ในคาบนั้น</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>10. บุคลิกภาพ น้ำเสียง และการจัดสรรเวลาอย่างเหมาะสม</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                    <td class="text-center">ประเมินแล้ว</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- SUB-PAGE 3.4: REFLECTIONS & SIGNATURES -->
+                                    <div class="a4-page-preview shadow-sm">
+                                        <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 5: บันทึกผลหลังการจัดการเรียนรู้ของครูผู้รับนิเทศ</h5>
+                                        
+                                        <div class="p-3 border rounded-3 bg-light bg-opacity-50 mb-4" style="min-height: 180px; font-size: 15pt; line-height: 1.35; font-family: 'TH Sarabun New', sans-serif;">
+                                            <div><strong>ความคืบหน้าการส่งบันทึกหลังการสอน:</strong></div>
+                                            <div class="text-secondary mt-1">
+                                                กรุณากรอกบันทึกหลังการสอนที่เมนู "บันทึกหลังแผน" เพื่อให้ข้อมูลแสดงในรายงานเล่มเต็มโดยสมบูรณ์
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- PAGE 7: PHOTOS -->
                                 <div class="a4-page-preview d-none-screen shadow-sm" id="page-photos-preview">
                                     <div style="text-align: center; margin-bottom: 15px; line-height: 1.25;">
-                                        <span style="font-size: 20pt; font-weight: bold; display: block;">ภาพประกอบการประเมินการจัดการเรียนรู้และการนิเทศการสอน</span>
+                                        <span style="font-size: 20pt; font-weight: bold; display: block;">ส่วนที่ 6: ภาพประกอบการประเมินการจัดการเรียนรู้และการนิเทศการสอน</span>
                                         <span style="font-size: 16pt; display: block; margin-top: 3px;">
                                             ชื่อ-สกุลผู้รับการประเมิน <span class="preview-teacher-name" style="font-weight: bold;">[ผู้รับการนิเทศ]</span> ตำแหน่ง <span class="preview-teacher-position">[ตำแหน่ง]</span> <span class="preview-teacher-standing">[วิทยฐานะ]</span>
                                         </span>
@@ -534,11 +850,51 @@
                                     </div>
                                 </div>
 
+                                <!-- PAGE 8: SIGNATURES -->
+                                <div class="a4-page-preview d-none-screen shadow-sm" id="page-signatures-preview">
+                                    <h5 class="fw-bold text-navy border-bottom pb-2 mb-4" style="font-size: 18pt; font-family: 'TH Sarabun New', sans-serif;">ส่วนที่ 7: ลงลายมือชื่อคณะกรรมการ</h5>
+                                    
+                                    <div class="row text-center mt-3" style="font-size: 15pt; line-height: 1.35; font-family: 'TH Sarabun New', sans-serif;">
+                                        <div class="col-6 mb-4" style="position: relative;">
+                                            <div id="preview-page8-teacher-sig-box" style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none; display: none;">
+                                                <img id="preview-page8-teacher-sig-img" src="" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                                            </div>
+                                            ลงชื่อ.......................................................<br>
+                                            ผู้สอน<br>
+                                            ( <span class="preview-teacher-name">[ผู้รับการประเมิน]</span> )<br>
+                                            ตำแหน่ง <span class="preview-teacher-position">[ตำแหน่ง]</span><span class="preview-teacher-standing-comma">[วิทยฐานะ]</span>
+                                        </div>
+                                        <div class="col-6 mb-4" style="position: relative;">
+                                            <div id="preview-page8-peer-sig-box" style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none; display: none;">
+                                                <img id="preview-page8-peer-sig-img" src="" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                                            </div>
+                                            ลงชื่อ.......................................................<br>
+                                            ( <span class="preview-peer-name">[ชื่อ Peer]</span> )<br>
+                                            <strong>ครูผู้ร่วมนิเทศ (Peer)</strong>
+                                        </div>
+                                        <div class="col-6" style="position: relative;">
+                                            <div id="preview-page8-head-sig-box" style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none; display: none;">
+                                                <img id="preview-page8-head-sig-img" src="" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                                            </div>
+                                            ลงชื่อ.......................................................<br>
+                                            ( <span class="preview-head-name">[ชื่อ Head]</span> )<br>
+                                            <strong>ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)</strong>
+                                        </div>
+                                        <div class="col-6" style="position: relative;">
+                                            <div id="preview-page8-academic-sig-box" style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none; display: none;">
+                                                <img id="preview-page8-academic-sig-img" src="" style="height: 55px; width: auto; max-width: 200px; mix-blend-mode: multiply;">
+                                            </div>
+                                            ลงชื่อ.......................................................<br>
+                                            ( <span class="preview-academic-name">[ชื่อ Academic]</span> )<br>
+                                            <strong>ผู้แทนคณะกรรมการวิชาการ</strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Photo Upload Card -->
-                        <div class="col-lg-12 no-print mb-5">
+                        <div class="col-lg-12 no-print mb-5 d-none" id="custom-fields-form">
                             <div class="dashboard-panel">
                                 <div class="dashboard-panel-header" style="padding: 16px 28px;">
                                     <div>
@@ -573,6 +929,7 @@
                         </div>
                     </div>
 
+
                 </div>
             </div>
             <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4 no-print"></footer>
@@ -585,6 +942,49 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../public/js/main.js"></script>
     <script>
+        function removeImageWhiteBackground(base64Str, callback) {
+            if (!base64Str || !base64Str.startsWith('data:image/')) {
+                callback(base64Str);
+                return;
+            }
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                try {
+                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const data = imgData.data;
+                    let modified = false;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i+1];
+                        const b = data[i+2];
+                        if (r > 240 && g > 240 && b > 240) {
+                            data[i+3] = 0;
+                            modified = true;
+                        }
+                    }
+                    if (modified) {
+                        ctx.putImageData(imgData, 0, 0);
+                        callback(canvas.toDataURL('image/png'));
+                    } else {
+                        callback(base64Str);
+                    }
+                } catch (err) {
+                    console.error("Error processing signature transparency:", err);
+                    callback(base64Str);
+                }
+            };
+            img.onerror = function() {
+                callback(base64Str);
+            };
+            img.src = base64Str;
+        }
+
         let currentUser = null;
         let bookingData = null;
         let myBookingId = null;
@@ -651,7 +1051,8 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const urlBookingId = parseInt(urlParams.get('booking_id')) || 0;
                 
-                const res = await fetch('../api/teacher/supervision_get.php');
+                const url = urlBookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${urlBookingId}` : '../api/teacher/supervision_get.php';
+                const res = await fetch(url);
                 const data = await res.json();
                 
                 if (!data.success) {
@@ -812,7 +1213,7 @@
             if (calculatedAverages.overallDoc > 0) {
                 document.getElementById('table-overall-doc-avg').innerText = calculatedAverages.overallDoc.toFixed(2);
                 document.getElementById('table-overall-doc-qual').innerText = getQualityText(calculatedAverages.overallDoc);
-                document.getElementById('dash-doc-avg').innerText = `${calculatedAverages.overallDoc.toFixed(2)} / 5.00`;
+                document.getElementById('dash-doc-avg').innerText = calculatedAverages.overallDoc.toFixed(2);
                 const dbg1 = document.getElementById('dash-doc-badge');
                 dbg1.innerText = getQualityText(calculatedAverages.overallDoc);
                 dbg1.className = 'badge bg-primary rounded-pill px-3 py-2';
@@ -820,7 +1221,7 @@
             if (calculatedAverages.overallClass > 0) {
                 document.getElementById('table-overall-class-avg').innerText = calculatedAverages.overallClass.toFixed(2);
                 document.getElementById('table-overall-class-qual').innerText = getQualityText(calculatedAverages.overallClass);
-                document.getElementById('dash-class-avg').innerText = `${calculatedAverages.overallClass.toFixed(2)} / 5.00`;
+                document.getElementById('dash-class-avg').innerText = calculatedAverages.overallClass.toFixed(2);
                 const dbg2 = document.getElementById('dash-class-badge');
                 dbg2.innerText = getQualityText(calculatedAverages.overallClass);
                 dbg2.className = 'badge bg-primary rounded-pill px-3 py-2';
@@ -831,7 +1232,7 @@
                 : (calculatedAverages.overallDoc || calculatedAverages.overallClass || 0);
 
             if (overallCumulative > 0) {
-                document.getElementById('dash-overall-avg').innerText = `${overallCumulative.toFixed(2)} / 5.00`;
+                document.getElementById('dash-overall-avg').innerText = overallCumulative.toFixed(2);
                 document.getElementById('dash-overall-badge').innerText = getQualityText(overallCumulative);
 
                 // SVG Circular Progress Ring Animation
@@ -994,6 +1395,17 @@
             });
         }
 
+        function toThaiNum(num) {
+            if (num === null || num === undefined) return '';
+            const arabic = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            const thai = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+            let str = num.toString();
+            for (let i = 0; i < 10; i++) {
+                str = str.replaceAll(arabic[i], thai[i]);
+            }
+            return str;
+        }
+
         function updateLivePreview() {
             if (!bookingData) return;
 
@@ -1008,15 +1420,15 @@
                 fullBookletBtn.href = `../api/teacher/supervision_print.php?booking_id=${bookingData.id}`;
             }
 
-            document.getElementById('preview-memo-date').innerText = formatThaiDate(memoDateVal) || '...................................................';
-            document.getElementById('preview-order-no').innerText = orderNoVal || '323/2568';
+            document.getElementById('preview-memo-date').innerText = toThaiNum(formatThaiDate(memoDateVal)) || '...................................................';
+            document.querySelectorAll('.preview-order-no-val').forEach(el => el.innerText = toThaiNum(orderNoVal) || '๓๒๓/๒๕๖๘');
 
             const sem = bookingData.semester;
             const year = bookingData.year;
-            document.querySelectorAll('.preview-semester').forEach(el => el.innerText = sem);
-            document.querySelectorAll('.preview-year').forEach(el => el.innerText = year);
+            document.querySelectorAll('.preview-semester').forEach(el => el.innerText = toThaiNum(sem));
+            document.querySelectorAll('.preview-year').forEach(el => el.innerText = toThaiNum(year));
 
-            document.getElementById('preview-memo-subject').innerText = `รายงานการประเมินการจัดการเรียนรู้ ประจำภาคเรียนที่ ${sem} ปีการศึกษา ${year}`;
+            document.getElementById('preview-memo-subject').innerText = `รายงานการประเมินการจัดการเรียนรู้ ประจำภาคเรียนที่ ${toThaiNum(sem)} ปีการศึกษา ${toThaiNum(year)}`;
 
             const tPrefix = bookingData.teacher_prefix || '';
             const tFirst = bookingData.teacher_first || '';
@@ -1044,10 +1456,10 @@
             if (bannerDept) bannerDept.textContent = bookingData.teacher_dept || '-';
             if (bannerDate) bannerDate.textContent = formatThaiDate(bookingData.booking_date) || '-';
             
-            document.querySelectorAll('.preview-subject-name').forEach(el => el.innerText = bookingData.subject_name || '-');
-            document.querySelectorAll('.preview-subject-code').forEach(el => el.innerText = bookingData.subject_code || '-');
-            document.querySelectorAll('.preview-classroom').forEach(el => el.innerText = bookingData.classroom || '-');
-            document.querySelectorAll('.preview-booking-date-thai').forEach(el => el.innerText = formatThaiDate(bookingData.booking_date));
+            document.querySelectorAll('.preview-subject-name').forEach(el => el.innerText = toThaiNum(bookingData.subject_name) || '-');
+            document.querySelectorAll('.preview-subject-code').forEach(el => el.innerText = toThaiNum(bookingData.subject_code) || '-');
+            document.querySelectorAll('.preview-classroom').forEach(el => el.innerText = toThaiNum(bookingData.classroom) || '-');
+            document.querySelectorAll('.preview-booking-date-thai').forEach(el => el.innerText = toThaiNum(formatThaiDate(bookingData.booking_date)));
 
             document.querySelectorAll('.preview-peer-name').forEach(el => el.innerText = bookingData.peer_name || '.......................................................');
             document.querySelectorAll('.preview-head-name').forEach(el => el.innerText = bookingData.head_name || '.......................................................');
@@ -1087,6 +1499,7 @@
             document.getElementById('page-memo-preview').classList.add('d-none-screen');
             document.getElementById('page-nithet01-preview').classList.add('d-none-screen');
             document.getElementById('page-photos-preview').classList.add('d-none-screen');
+            document.getElementById('page-signatures-preview').classList.add('d-none-screen');
 
             // Reset all main tab buttons
             document.querySelectorAll('.tab-btn-modern').forEach(btn => {
@@ -1122,7 +1535,10 @@
                 document.querySelector('.desk-workspace').classList.remove('d-none-screen');
                 if (tabName === 'cover') document.getElementById('page-cover-preview').classList.remove('d-none-screen');
                 else if (tabName === 'memo') document.getElementById('page-memo-preview').classList.remove('d-none-screen');
-                else if (tabName === 'nithet01') document.getElementById('page-nithet01-preview').classList.remove('d-none-screen');
+                else if (tabName === 'nithet01') {
+                    document.getElementById('page-nithet01-preview').classList.remove('d-none-screen');
+                    document.getElementById('page-signatures-preview').classList.remove('d-none-screen');
+                }
                 else if (tabName === 'photos') document.getElementById('page-photos-preview').classList.remove('d-none-screen');
                 if (docTabNav) docTabNav.style.display = 'block';
 

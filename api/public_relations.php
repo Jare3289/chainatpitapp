@@ -34,6 +34,50 @@ function getAuthorName($pdo, $uid, $uRole) {
     return $u['username'] ?? 'ผู้ใช้ทั่วไป';
 }
 
+// Handle image upload — returns relative web path or null
+function handleImageUpload(): ?string {
+    if (empty($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        return null;
+    }
+
+    $file    = $_FILES['image'];
+    $maxSize = 5 * 1024 * 1024; // 5 MB
+
+    if ($file['size'] > $maxSize) {
+        throw new Exception('ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5 MB');
+    }
+
+    $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mime  = $finfo->file($file['tmp_name']);
+
+    if (!in_array($mime, $allowedMimes, true)) {
+        throw new Exception('รองรับเฉพาะไฟล์ภาพ JPG, PNG, GIF หรือ WEBP เท่านั้น');
+    }
+
+    $ext      = match ($mime) {
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+        'image/gif'  => 'gif',
+        'image/webp' => 'webp',
+        default      => 'jpg',
+    };
+
+    $uploadDir = __DIR__ . '/../public/uploads/pr_images/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $filename = uniqid('pr_', true) . '.' . $ext;
+    $destPath = $uploadDir . $filename;
+
+    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+        throw new Exception('ไม่สามารถบันทึกไฟล์ภาพได้');
+    }
+
+    return 'public/uploads/pr_images/' . $filename;
+}
+
 $action = $_GET['action'] ?? '';
 
 try {
@@ -59,12 +103,19 @@ try {
     }
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        // Check if request is multipart (file upload) or JSON
+        $isMultipart = isset($_SERVER['CONTENT_TYPE']) && str_contains($_SERVER['CONTENT_TYPE'], 'multipart/form-data');
+
+        if ($isMultipart) {
+            $data = $_POST;
+        } else {
+            $data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+        }
         
         if ($action === 'create') {
-            $title = trim($data['title'] ?? '');
-            $content = trim($data['content'] ?? '');
-            $category = trim($data['category'] ?? 'ทั่วไป');
+            $title      = trim($data['title']    ?? '');
+            $content    = trim($data['content']  ?? '');
+            $category   = trim($data['category'] ?? 'ทั่วไป');
             $visibility = trim($data['visibility'] ?? 'all');
             
             if (!in_array($visibility, ['all', 'teacher', 'student'])) {
@@ -75,19 +126,26 @@ try {
                 echo json_encode(['success' => false, 'error' => 'กรุณากรอกหัวข้อและเนื้อหาให้ครบถ้วน']);
                 exit;
             }
+
+            // Handle optional image upload
+            $imagePath = null;
+            if ($isMultipart) {
+                $imagePath = handleImageUpload(); // may throw
+            }
             
             $authorName = getAuthorName($pdo, $user_id, $role);
             // Admins posts are automatically approved, others start as pending
-            $status = ($role === 'admin') ? 'approved' : 'pending';
+            $status      = ($role === 'admin') ? 'approved' : 'pending';
             $approved_at = ($role === 'admin') ? date('Y-m-d H:i:s') : null;
             $approved_by = ($role === 'admin') ? $user_id : null;
             
             $stmt = $pdo->prepare("
-                INSERT INTO public_relations (title, content, category, visibility, author_id, author_role, author_name, status, approved_at, approved_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO public_relations (title, content, category, visibility, image_path, author_id, author_role, author_name, status, approved_at, approved_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $success = $stmt->execute([
-                $title, $content, $category, $visibility, $user_id, $role, $authorName, $status, $approved_at, $approved_by
+                $title, $content, $category, $visibility, $imagePath,
+                $user_id, $role, $authorName, $status, $approved_at, $approved_by
             ]);
             
             if ($success) {
@@ -123,9 +181,9 @@ try {
                 if ($post && $post['author_role'] !== 'admin') {
                     // Try to insert notification if helper function is available or table exists
                     try {
+                        require_once '../inc/notifications.php';
                         $msg = "ข่าวประชาสัมพันธ์ของคุณในหัวข้อ \"" . mb_strimwidth($post['title'], 0, 30, "...") . "\" ได้รับการอนุมัติแล้ว";
-                        $not = $pdo->prepare("INSERT INTO notifications (user_id, message, is_read, created_at) VALUES (?, ?, 0, NOW())");
-                        $not->execute([$post['author_id'], $msg]);
+                        cnp_notify($pdo, (int)$post['author_id'], 'ข่าวประชาสัมพันธ์ได้รับการอนุมัติ 📢', $msg, 'public_relations.html', 'bi-megaphone-fill', '#10b981', 'public_relations');
                     } catch (Exception $ex) { /* Ignore notification failure */ }
                 }
                 echo json_encode(['success' => true, 'message' => 'อนุมัติข่าวประชาสัมพันธ์เรียบร้อยแล้ว']);
@@ -158,6 +216,17 @@ try {
             if ($id <= 0) {
                 echo json_encode(['success' => false, 'error' => 'ID ไม่ถูกต้อง']);
                 exit;
+            }
+
+            // Delete associated image file if exists
+            $imgStmt = $pdo->prepare("SELECT image_path FROM public_relations WHERE id = ?");
+            $imgStmt->execute([$id]);
+            $imgRow = $imgStmt->fetch(PDO::FETCH_ASSOC);
+            if ($imgRow && !empty($imgRow['image_path'])) {
+                $filePath = __DIR__ . '/../' . $imgRow['image_path'];
+                if (is_file($filePath)) {
+                    @unlink($filePath);
+                }
             }
             
             $stmt = $pdo->prepare("DELETE FROM public_relations WHERE id = ?");
