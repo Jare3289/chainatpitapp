@@ -313,14 +313,29 @@
                         </a>
                     </div>
 
-                    <!-- Bottom: เรานิเทศใคร / ใครนิเทศเรา -->
+                    <!-- Bottom: 3 คอลัมน์ -->
                     <div class="row g-4 animate-up" style="animation-delay:0.2s">
 
-                        <!-- เรานิเทศใคร -->
-                        <div class="col-lg-6">
+                        <!-- ภาระงานที่ต้องทำ -->
+                        <div class="col-lg-4">
                             <div class="section-title">
                                 <h5>
-                                    <i class="bi bi-people text-primary me-2"></i>เรานิเทศใคร
+                                    <i class="bi bi-clipboard-check text-danger me-2"></i>ภาระงานที่ต้องทำ
+                                    <span class="tab-badge bg-danger bg-opacity-10 text-danger" id="pending-count">0</span>
+                                </h5>
+                            </div>
+                            <div class="dashboard-panel">
+                                <div id="pending-tasks-list">
+                                    <div class="text-center py-5 text-muted small">กำลังโหลด...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- เป็นกรรมการนิเทศให้กับ -->
+                        <div class="col-lg-4">
+                            <div class="section-title">
+                                <h5>
+                                    <i class="bi bi-people text-primary me-2"></i>เป็นกรรมการนิเทศให้กับ
                                     <span class="tab-badge bg-primary bg-opacity-10 text-primary" id="supervise-count">0</span>
                                 </h5>
                             </div>
@@ -331,11 +346,11 @@
                             </div>
                         </div>
 
-                        <!-- ใครนิเทศเรา -->
-                        <div class="col-lg-6">
+                        <!-- รับการนิเทศจาก -->
+                        <div class="col-lg-4">
                             <div class="section-title">
                                 <h5>
-                                    <i class="bi bi-person-check text-success me-2"></i>ใครนิเทศเรา
+                                    <i class="bi bi-person-check text-success me-2"></i>รับการนิเทศจาก
                                     <span class="tab-badge bg-success bg-opacity-10 text-success" id="evaluator-count">0</span>
                                 </h5>
                             </div>
@@ -371,6 +386,7 @@
                 const data = await res.json();
                 if (data.success) {
                     updateStepper(data.current_step, !!data.booking, data.booking);
+                    renderPendingTasks(data);
                     renderSupervising(data.duties);
                     renderSupervisors(data.booking, data.evaluations_status);
                 }
@@ -462,7 +478,65 @@
             }
         }
 
-        // ─── เรานิเทศใคร ────────────────────────────────────────────────────────
+        // ─── ภาระงานที่ต้องทำ ───────────────────────────────────────────────────
+        function renderPendingTasks(data) {
+            const container = document.getElementById('pending-tasks-list');
+            const b = data.booking;
+            const duties = data.duties || [];
+            const items = [];
+
+            // งานของตัวเอง (ฐานะผู้รับนิเทศ)
+            if (!b) {
+                items.push({ text: 'จองคิวการนิเทศการสอนในภาคเรียนนี้', tag: 'จองคิว', link: 'supervision_booking.html', color: 'danger' });
+            } else {
+                if (b.status === 'pending') {
+                    items.push({ text: 'รอฝ่ายวิชาการอนุมัติคิวนิเทศ', tag: 'รออนุมัติ', link: 'supervision_booking.html', color: 'warning' });
+                } else if (b.status === 'approved' && !b.lesson_plan_doc) {
+                    items.push({ text: 'อัปโหลดแผนการจัดการเรียนรู้ (PDF) ให้กรรมการ', tag: 'ส่งแผน', link: 'supervision_docs.html', color: 'danger' });
+                } else if ((b.status === 'doc_submitted' || b.status === 'completed') && !b.post_teaching_record && data.current_step === 5) {
+                    items.push({ text: 'บันทึกผลสะท้อนหลังการจัดการเรียนรู้', tag: 'หลังสอน', link: 'supervision_post_teach.html', color: 'danger' });
+                }
+            }
+
+            // งานกรรมการ (ฐานะผู้นิเทศผู้อื่น)
+            duties.forEach(d => {
+                if (d.status === 'approved' || d.status === 'doc_submitted' || d.status === 'completed') {
+                    if (!d.doc_done && d.docs_uploaded) {
+                        items.push({ text: `ประเมินเอกสารแผนการสอนของ ${d.teacher_name}`, tag: 'ตรวจแผน', link: `supervision_evaluate.html?id=${d.id}`, color: 'warning' });
+                    }
+                    if (!d.class_done && d.status !== 'pending') {
+                        items.push({ text: `ประเมินการสอนในชั้นเรียนของ ${d.teacher_name}`, tag: 'นิเทศชั้นเรียน', link: `supervision_evaluate.html?id=${d.id}`, color: 'warning' });
+                    }
+                }
+            });
+
+            document.getElementById('pending-count').textContent = items.length;
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted small">
+                        <i class="bi bi-check2-circle display-4 text-success mb-2 d-block"></i>
+                        ไม่มีงานค้างดำเนินการ
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const tagCls = item.color === 'danger'
+                    ? 'bg-danger bg-opacity-10 text-danger'
+                    : 'bg-warning bg-opacity-10 text-warning';
+                return `
+                    <a href="${item.link}" class="text-decoration-none d-block py-3 border-bottom border-light">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <span class="badge ${tagCls} rounded-pill" style="font-size:0.65rem;">${item.tag}</span>
+                            <i class="bi bi-chevron-right text-muted" style="font-size:0.8rem;"></i>
+                        </div>
+                        <div class="text-navy small fw-semibold">${item.text}</div>
+                    </a>`;
+            }).join('');
+        }
+
+        // ─── เป็นกรรมการนิเทศให้กับ ─────────────────────────────────────────────
         function renderSupervising(duties) {
             const container = document.getElementById('supervise-list');
             const active = (duties || []).filter(d => d.status !== 'cancelled');
