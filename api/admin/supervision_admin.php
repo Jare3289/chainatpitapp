@@ -9,7 +9,21 @@ require_once '../../config.php';
 require_once '../../inc/security.php';
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+$is_supervision_manager = false;
+if (isset($_SESSION['user_id'])) {
+    if ($_SESSION['role'] === 'admin') {
+        $is_supervision_manager = true;
+    } elseif ($_SESSION['role'] === 'teacher') {
+        $stmt_check = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
+        $stmt_check->execute([$_SESSION['user_id']]);
+        $teacher_id = $stmt_check->fetchColumn();
+        if ($teacher_id && (int)$teacher_id === 518) {
+            $is_supervision_manager = true;
+        }
+    }
+}
+
+if (!$is_supervision_manager) {
     http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;

@@ -6,6 +6,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/supervision_notify.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
@@ -71,6 +72,15 @@ try {
         'success' => true,
         'message' => 'บันทึกหลังการจัดการเรียนรู้เรียบร้อยแล้ว ท่านสามารถเข้าดาวน์โหลด/พิมพ์รูปเล่มเอกสารนิเทศได้ทันที'
     ]);
+
+    // Notify peer + head that post-teach record is complete
+    try {
+        $ids = supervisionBookingUserIds($pdo, $booking_id);
+        $msg = "ครูผู้รับการนิเทศได้ส่งบันทึกหลังการสอน การนิเทศจอง #{$booking_id} เสร็จสมบูรณ์แล้ว";
+        supervisionNotify($pdo, [$ids['peer_user_id'], $ids['head_user_id']], 'บันทึกหลังสอนเสร็จสมบูรณ์', $msg, 'supervision_booking.html');
+    } catch (Throwable $e_n) {
+        error_log('[supervision_post_teach notify] ' . $e_n->getMessage());
+    }
 
 } catch (PDOException $e) {
     http_response_code(500);

@@ -92,10 +92,33 @@ try {
         $stmt_date_count = $pdo->prepare("SELECT COUNT(*) FROM supervision_bookings WHERE booking_date = ? AND status != 'cancelled'");
         $stmt_date_count->execute([$d]);
         $count = (int)$stmt_date_count->fetchColumn();
+
+        $stmt_bookings = $pdo->prepare("SELECT b.id, b.booking_period, t.first_name_th, t.last_name_th, b.subject_code, b.subject_name, b.classroom, b.room_number, b.lesson_topic, b.teacher_id FROM supervision_bookings b JOIN teachers t ON b.teacher_id = t.id WHERE b.booking_date = ? AND b.status != 'cancelled' ORDER BY b.booking_period ASC");
+        $stmt_bookings->execute([$d]);
+        $bookings_on_date = [];
+        $names = [];
+        while($row = $stmt_bookings->fetch(PDO::FETCH_ASSOC)) {
+            $teacher_name = $row['first_name_th'] . ' ' . $row['last_name_th'];
+            $names[] = $teacher_name;
+            $bookings_on_date[] = [
+                'id' => $row['id'],
+                'period' => $row['booking_period'],
+                'teacher_name' => $teacher_name,
+                'teacher_id' => $row['teacher_id'],
+                'subject_code' => $row['subject_code'],
+                'subject_name' => $row['subject_name'],
+                'classroom' => $row['classroom'],
+                'room_number' => $row['room_number'],
+                'lesson_topic' => $row['lesson_topic']
+            ];
+        }
+
         $allowed_dates_with_counts[] = [
             'date' => $d,
             'count' => $count,
-            'max' => 5
+            'max' => 4,
+            'booked_by' => $names,
+            'bookings' => $bookings_on_date
         ];
     }
 

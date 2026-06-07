@@ -194,12 +194,8 @@
         let allBookings = [];
         let allTeachers = [];
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const currentUser = await checkAuth(['admin']); // Only admin for this overview
-            if (currentUser) {
-                await loadAdminData();
-                await loadTeachersList();
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            window.location.replace('admin_supervision.html');
         });
 
         async function loadAdminData() {
@@ -277,7 +273,7 @@
 
         function renderUpcomingList() {
             const container = document.getElementById('admin-upcoming-list');
-            const upcoming = allBookings.filter(b => b.status === 'approved' || b.status === 'doc_submitted');
+            const upcoming = allBookings.filter(b => b.status === 'pending' || b.status === 'approved' || b.status === 'doc_submitted');
 
             if (upcoming.length === 0) {
                 container.innerHTML = `
@@ -294,6 +290,16 @@
                 const months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
                 const monthText = months[parseInt(parts[1])];
 
+                let badgeClass = 'bg-secondary bg-opacity-10 text-secondary';
+                let badgeText = 'รอส่งแผน';
+                if (b.status === 'pending') {
+                    badgeClass = 'bg-warning bg-opacity-10 text-warning';
+                    badgeText = 'รออนุมัติ';
+                } else if (b.status === 'doc_submitted') {
+                    badgeClass = 'bg-success bg-opacity-10 text-success';
+                    badgeText = 'ส่งแผนแล้ว';
+                }
+
                 return `
                     <div class="list-item-modern">
                         <div class="date-badge bg-primary bg-opacity-10 text-primary">
@@ -306,8 +312,8 @@
                             <div class="text-muted mt-1" style="font-size: 0.7rem;"><i class="bi bi-geo-alt"></i> ห้องเรียน ${b.room_number}</div>
                         </div>
                         <div>
-                            <span class="badge ${b.status === 'doc_submitted' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}" style="font-size: 0.65rem;">
-                                ${b.status === 'doc_submitted' ? 'ส่งแผนแล้ว' : 'รอส่งแผน'}
+                            <span class="badge ${badgeClass}" style="font-size: 0.65rem;">
+                                ${badgeText}
                             </span>
                         </div>
                     </div>

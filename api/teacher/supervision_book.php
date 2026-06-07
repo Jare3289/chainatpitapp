@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
 require_once '../../inc/supervision_schedule.php';
+require_once '../../inc/supervision_notify.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
@@ -118,12 +119,18 @@ try {
         exit;
     }
 
-    // 4. Check school daily limit (max 5 bookings total across the school)
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM supervision_bookings WHERE booking_date = ? AND status != 'cancelled'");
-    $stmt->execute([$booking_date]);
-    $daily_count = $stmt->fetchColumn();
+    // 4. Check school daily limit (max 4 bookings total across the school)
+    $sql_limit = "SELECT COUNT(*) FROM supervision_bookings WHERE booking_date = ? AND status != 'cancelled'";
+    $params_limit = [$booking_date];
+    if ($booking_id > 0) {
+        $sql_limit .= " AND id != ?";
+        $params_limit[] = $booking_id;
+    }
+    $stmt = $pdo->prepare($sql_limit);
+    $stmt->execute($params_limit);
+    $daily_count = (int)$stmt->fetchColumn();
 
-    if ($daily_count >= 5) {
+    if ($daily_count >= 4) {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'ไม่สามารถจองได้ เนื่องจากคิวการนิเทศในวันที่เลือกเต็มแล้ว']);
         exit;
@@ -140,17 +147,13 @@ try {
             exit;
         }
 
-        if ($existing['status'] !== 'pending' && $existing['status'] !== 'approved') {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'error' => 'ไม่สามารถแก้ไขได้เนื่องจากคิวถูกดำเนินการไปแล้ว']);
-            exit;
-        }
+
 
         $stmt_update = $pdo->prepare("UPDATE supervision_bookings 
             SET teacher_position = ?, academic_standing = ?, evaluation_purpose = ?, 
                 subject_code = ?, subject_name = ?, classroom = ?, room_number = ?, 
                 lesson_topic = ?, booking_date = ?, booking_period = ?, 
-                peer_teacher_id = ?, head_teacher_id = ?, updated_at = NOW() 
+                peer_teacher_id = ?, head_teacher_id = ?, status = 'pending', updated_at = NOW() 
             WHERE id = ?");
         $stmt_update->execute([
             $teacher_position, $academic_standing, $evaluation_purpose,
@@ -166,7 +169,7 @@ try {
             (teacher_id, teacher_position, academic_standing, evaluation_purpose, 
             semester, year, subject_code, subject_name, classroom, room_number, lesson_topic, 
             booking_date, booking_period, peer_teacher_id, head_teacher_id, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved')");
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
         
         $stmt->execute([
             $teacher_id, $teacher_position, $academic_standing, $evaluation_purpose,
@@ -178,29 +181,25 @@ try {
         $success_message = 'จองคิวนิเทศเรียบร้อยแล้ว (สามารถอัปโหลดเอกสารได้ทันที)';
     }
 
-    // Create notifications
+    // Notify relevant parties
     try {
-        $stmt_user = $pdo->prepare("SELECT user_id FROM teachers WHERE id = ?");
-        
-        // Notify peer
-        $stmt_user->execute([$peer_teacher_id]);
-        $peer_user_id = $stmt_user->fetchColumn();
-        if ($peer_user_id) {
-            $msg = "คุณได้รับการเลือกให้เป็นครูผู้ร่วมนิเทศ โดย อ. " . $_SESSION['username'] . " ในวันที่ " . $booking_date;
-            $pdo->prepare("INSERT INTO notifications (user_id, title, message, status) VALUES (?, 'คำเชิญเป็นกรรมการนิเทศ', ?, 'unread')")
-                ->execute([$peer_user_id, $msg]);
-        }
+        $ids = supervisionBookingUserIds($pdo, (int)$booking_id);
+        $peerUid = $ids['peer_user_id'];
+        $headUid = $ids['head_user_id'];
 
-        // Notify head
-        $stmt_user->execute([$head_teacher_id]);
-        $head_user_id = $stmt_user->fetchColumn();
-        if ($head_user_id) {
-            $msg = "คุณได้รับการเลือกให้เป็นครูผู้นิเทศ โดย อ. " . $_SESSION['username'] . " ในวันที่ " . $booking_date;
-            $pdo->prepare("INSERT INTO notifications (user_id, title, message, status) VALUES (?, 'คำเชิญเป็นกรรมการนิเทศ', ?, 'unread')")
-                ->execute([$head_user_id, $msg]);
+        if ($booking_id > 0 && isset($existing)) {
+            // Edit booking — notify peer + head about the change
+            $editMsg = "ข้อมูลการนิเทศการสอน (จอง #{$booking_id}) ถูกแก้ไขโดยครูผู้รับการนิเทศ วันที่สอน: {$booking_date}";
+            supervisionNotify($pdo, [$peerUid, $headUid], 'แก้ไขข้อมูลการนิเทศ', $editMsg, 'supervision_booking.html');
+        } else {
+            // New booking
+            $newPeerMsg = "คุณได้รับการเลือกเป็นครูผู้ร่วมนิเทศ วิชา {$subject_name} วันที่ {$booking_date}";
+            supervisionNotify($pdo, [$peerUid], 'คำเชิญเป็นกรรมการนิเทศ', $newPeerMsg, 'supervision_booking.html');
+            $newHeadMsg = "คุณได้รับการเลือกเป็นครูผู้นิเทศ วิชา {$subject_name} วันที่ {$booking_date}";
+            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ', $newHeadMsg, 'supervision_booking.html');
         }
-    } catch (Exception $e_notif) {
-        // Suppress notification insert errors so booking doesn't roll back
+    } catch (Throwable $e_notif) {
+        error_log('[supervision_book notify] ' . $e_notif->getMessage());
     }
 
     echo json_encode([

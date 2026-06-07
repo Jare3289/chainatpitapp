@@ -117,12 +117,26 @@ try {
     $stmt_total->execute([$date]);
     $total_school_bookings = (int)$stmt_total->fetchColumn();
 
+    // 5. Get existing bookings for this day
+    $stmt_exist = $pdo->prepare("SELECT b.booking_period, t.first_name_th, t.last_name_th, b.subject_code, b.room_number FROM supervision_bookings b JOIN teachers t ON b.teacher_id = t.id WHERE b.booking_date = ? AND b.status != 'cancelled' ORDER BY b.booking_period ASC");
+    $stmt_exist->execute([$date]);
+    $existing_bookings = [];
+    while($row = $stmt_exist->fetch(PDO::FETCH_ASSOC)) {
+        $existing_bookings[] = [
+            'booking_period' => $row['booking_period'],
+            'teacher_name' => $row['first_name_th'] . ' ' . $row['last_name_th'],
+            'subject_code' => $row['subject_code'],
+            'room_number' => $row['room_number']
+        ];
+    }
+
     echo json_encode([
         'success' => true,
         'my_teacher_id' => $my_teacher_id,
         'my_department' => $my_dept,
         'my_sub_department' => $my_sub_dept,
         'total_school_bookings' => $total_school_bookings,
+        'existing_bookings' => $existing_bookings,
         'teachers' => $available_peers,
         'department_teachers' => $available_heads
     ]);

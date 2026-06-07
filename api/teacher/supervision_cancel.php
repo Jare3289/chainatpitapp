@@ -6,6 +6,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/supervision_notify.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
@@ -51,8 +52,8 @@ try {
 
     $teacher_id = $me['id'];
 
-    // 2. Verify ownership and status
-    $stmt = $pdo->prepare("SELECT status FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
+    // 2. Verify ownership and status (also fetch peer/head for notifications)
+    $stmt = $pdo->prepare("SELECT status, peer_teacher_id, head_teacher_id FROM supervision_bookings WHERE id = ? AND teacher_id = ?");
     $stmt->execute([$booking_id, $teacher_id]);
     $booking = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -62,15 +63,24 @@ try {
         exit;
     }
 
-    if ($booking['status'] !== 'pending') {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'error' => 'ไม่สามารถยกเลิกได้ เนื่องจากคิวถูกดำเนินการไปแล้ว']);
+    if ($booking['status'] === 'cancelled') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'รายการนี้ถูกยกเลิกไปแล้ว']);
         exit;
     }
 
     // 3. Cancel
     $stmt = $pdo->prepare("UPDATE supervision_bookings SET status = 'cancelled' WHERE id = ?");
     $stmt->execute([$booking_id]);
+
+    // 4. Notify peer + head
+    try {
+        $ids = supervisionBookingUserIds($pdo, $booking_id);
+        $msg = "การจองคิวนิเทศ #ต{$booking_id} ถูกยกเลิกโดยครูผู้รับการนิเทศ";
+        supervisionNotify($pdo, [$ids['peer_user_id'], $ids['head_user_id']], 'ยกเลิกการจองนิเทศ', $msg, 'supervision_booking.html');
+    } catch (Throwable $e_n) {
+        error_log('[supervision_cancel notify] ' . $e_n->getMessage());
+    }
 
     echo json_encode(['success' => true, 'message' => 'ยกเลิกการจองคิวสำเร็จ']);
 

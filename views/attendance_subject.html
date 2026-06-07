@@ -85,9 +85,6 @@
                             <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="window.location.href='subject_attendance_stats.html'">
                                 <i class="bi bi-pie-chart-fill me-1"></i> ดูสถิติรายวิชา
                             </button>
-                            <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="openAddSubject()">
-                                <i class="bi bi-plus-lg me-1"></i> เพิ่มวิชาใหม่
-                            </button>
                         </div>
                     </div>
 
@@ -403,19 +400,28 @@
                 const existing = {};
                 (j.attendance || []).forEach(a => existing[a.student_id] = { status: a.status, remark: a.remark || '' });
 
-                // Pre-load daily homeroom attendance as fallback default
+                // ดึงข้อมูลโฮมรูม (ครูที่ปรึกษา) ของวันนั้นมาเป็นค่าตั้งต้น — ทุกสถานะ
                 const dailyStatus = {};
+                const dailyRemark = {};
+                let hasDailyData = false;
                 try {
                     const dr = await fetch(`../api/teacher/attendance.php?type=daily&class_name=${encodeURIComponent(className)}&date=${date}`);
                     const dj = await dr.json();
                     if (dj.success) {
-                        (dj.students || []).forEach(s => { if (s.status) dailyStatus[s.id] = s.status; });
+                        (dj.students || []).forEach(s => {
+                            if (s.status) {
+                                dailyStatus[s.id] = s.status;
+                                dailyRemark[s.id] = s.remark || '';
+                                hasDailyData = true;
+                            }
+                        });
                     }
-                } catch (_) { /* ถ้าโหลดไม่ได้ก็ใช้ค่า default */ }
+                } catch (_) { /* ignore */ }
 
-                // Default: ใช้ค่าจากโฮมรูมถ้ายังไม่เคยบันทึกวิชา
+                // ใช้ข้อมูลวิชาถ้ามี ถ้าไม่มีให้ใช้ข้อมูลโฮมรูมทุกสถานะ (ไม่ default เป็น 'มา')
                 studentData = (j.students || []).map(s => {
                     const ex = existing[s.id];
+                    const fromDaily = dailyStatus[s.id] || null;
                     return {
                         id:               s.id,
                         student_id:       s.student_id,
@@ -424,10 +430,21 @@
                         last_name_th:     s.last_name_th  || s.last_name  || '',
                         nickname:         s.nickname      || '',
                         number_in_class:  s.number_in_class,
-                        status:           ex ? ex.status : (dailyStatus[s.id] || 'มา'),
-                        remark:           ex ? ex.remark : '',
+                        status:           ex ? ex.status : fromDaily,
+                        remark:           ex ? ex.remark : (dailyRemark[s.id] || ''),
+                        fromHomeroom:     !ex && !!fromDaily,   // flag บอกว่ามาจากโฮมรูม
                     };
                 });
+
+                // แจ้งว่าดึงจากโฮมรูมมา
+                if (hasDailyData && !Object.keys(existing).length) {
+                    Swal.fire({
+                        toast: true, position: 'top-end', icon: 'info',
+                        title: 'ดึงข้อมูลจากโฮมรูมวันนี้มาแสดงแล้ว',
+                        text: 'สถานะที่เห็นมาจากครูที่ปรึกษา กรุณาตรวจสอบและบันทึก',
+                        timer: 3500, showConfirmButton: false
+                    });
+                }
 
                 renderStudents();
                 document.getElementById('stats-container').classList.remove('d-none');
@@ -457,8 +474,10 @@
                     { key:'ด', label:'โดดเรียน' },
                 ];
                 const btns = statuses.map(st =>
-                    `<button class="status-btn ${s.status === st.label ? 'active-'+st.key : ''}" onclick="setStatus(${s.id}, '${st.label}')">${st.key}</button>`
+                    `<button class="status-btn ${s.status === st.label ? 'active-'+st.key : ''}" onclick="setStatus(${s.id}, '${st.label}')" title="${st.label}">${st.key}</button>`
                 ).join('');
+
+
 
                 const html = `
                     <tr data-student-id="${s.id}">

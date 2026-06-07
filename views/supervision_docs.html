@@ -74,7 +74,7 @@
                 <div class="container-fluid">
                     <!-- Back Button and Header -->
                     <div class="d-flex align-items-center gap-3 mb-4">
-                        <a href="teacher_supervision.html" class="btn btn-light rounded-circle shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                        <a href="teacher_supervision.html" id="back-btn" class="btn btn-light rounded-circle shadow-sm border" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                             <i class="bi bi-arrow-left fs-5"></i>
                         </a>
                         <div>
@@ -247,19 +247,15 @@
                         return;
                     }
                 }
-
                 const activeBooking = isOwner ? myBooking : dutyBooking;
-                if (isOwner && activeBooking.status === 'pending') {
-                    document.getElementById('no-booking-alert').innerHTML = '<i class="bi bi-hourglass-split me-2"></i> คิวนิเทศของคุณกำลังรออนุมัติจากกรรมการวิชาการ ยังไม่สามารถอัปโหลดเอกสารได้';
-                    document.getElementById('no-booking-alert').classList.remove('d-none');
-                    return;
-                }
-
                 if (isEvaluator) {
                     const headerEl = document.querySelector('h4');
                     if (headerEl) headerEl.innerHTML = `<i class="bi bi-shield-check text-navy me-2"></i>ตรวจสอบเอกสารการนิเทศ`;
                     const subHeaderEl = document.querySelector('.text-muted.small.mb-0');
                     if (subHeaderEl) subHeaderEl.innerHTML = `ผู้รับนิเทศ: <span class="text-navy fw-bold">${activeBooking.teacher_name}</span> &middot; วิชา: ${activeBooking.subject_code} ${activeBooking.subject_name}`;
+                    
+                    const backBtn = document.getElementById('back-btn');
+                    if (backBtn) backBtn.href = 'supervision_evaluate.html';
                 }
 
                 document.querySelectorAll('.booking-id-input').forEach(el => el.value = currentBookingId);
@@ -466,6 +462,14 @@
                         };
                         
                         xhr.onload = () => {
+                            let serverError = 'เซิร์ฟเวอร์ขัดข้อง (' + xhr.status + ')';
+                            try {
+                                const tempRes = JSON.parse(xhr.responseText);
+                                if (tempRes && tempRes.error) {
+                                    serverError = tempRes.error;
+                                }
+                            } catch (e) {}
+
                             if (xhr.status >= 200 && xhr.status < 300) {
                                 try {
                                     const res = JSON.parse(xhr.responseText);
@@ -475,7 +479,7 @@
                                     reject(new Error('เซิร์ฟเวอร์ตอบกลับไม่ถูกต้อง'));
                                 }
                             } else {
-                                reject(new Error('เซิร์ฟเวอร์ขัดข้อง (' + xhr.status + ')'));
+                                reject(new Error(serverError));
                             }
                         };
                         

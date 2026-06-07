@@ -492,15 +492,7 @@
                                 </div>
                             </div>
                                     
-                                    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 50px; text-align: center; font-size: 16pt; line-height: 1.25;">
-                                        <div style="width: 320px; margin-left: auto;">
-                                            ลงชื่อ.......................................................<br>
-                                            ผู้รับการประเมิน<br>
-                                            ( <span class="preview-teacher-name">[ผู้รับการนิเทศ]</span> )<br>
-                                            ตำแหน่ง <span class="preview-teacher-position">[ตำแหน่ง]</span><span class="preview-teacher-standing-comma">[วิทยฐานะ]</span><br>
-                                            <span id="preview-sign-date-thai">[วันที่]</span>
-                                        </div>
-                                    </div>
+
                                 </div>
 
                                 <!-- PAGE 3: PHOTOS -->
@@ -1066,7 +1058,10 @@
             document.querySelectorAll('.preview-doc-quality').forEach(el => el.innerText = docQualText);
             document.querySelectorAll('.preview-class-quality').forEach(el => el.innerText = classQualText);
 
-            document.getElementById('preview-sign-date-thai').innerText = formatThaiDate(postRecord.sign_date || memoDateVal);
+            const signDateEl = document.getElementById('preview-sign-date-thai');
+            if (signDateEl) {
+                signDateEl.innerText = formatThaiDate(postRecord.sign_date || memoDateVal);
+            }
 
             // Photos container updates
             const teachingContainer = document.getElementById('photo-teaching-container');

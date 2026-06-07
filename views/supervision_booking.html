@@ -56,6 +56,41 @@
         .btn-group-modern { display: flex; gap: 4px; background: #f1f5f9; padding: 4px; border-radius: 12px; width: fit-content; flex-wrap: wrap; }
         .btn-group-modern .btn { border: none; border-radius: 9px !important; font-weight: 700; font-size: 0.8rem; padding: 8px 14px; color: #64748b; background: transparent; transition: 0.2s; }
         .btn-check:checked + .btn-outline-primary { background: #1e3a8a !important; color: white !important; border-color: #1e3a8a !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        /* Slots Styles */
+        .vacant-slot-card {
+            border: 2px dashed #cbd5e1 !important;
+            background-color: #ffffff;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        .vacant-slot-card:hover {
+            border-color: #3b82f6 !important;
+            background-color: #eff6ff !important;
+            color: #1e40af !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.08) !important;
+        }
+        .booked-slot-card {
+            transition: all 0.2s ease-in-out;
+        }
+        .booked-slot-card.my-booking-card {
+            cursor: pointer;
+        }
+        .booked-slot-card.my-booking-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        }
+        .vacant-slot-card.selected-slot,
+        .booked-slot-card.selected-slot {
+            border: 2px solid #0d6efd !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15) !important;
+        }
+        .vacant-slot-card.selected-slot {
+            background-color: #eff6ff !important;
+            color: #0b5ed7 !important;
+        }
     </style>
 </head>
 
@@ -81,8 +116,67 @@
                     <div class="row g-4">
                         <!-- Booking Form Column -->
                         <div class="col-lg-8" id="booking-form-col">
-                            <div class="dashboard-panel">
-                                <h5 class="fw-black text-navy mb-4"><i class="bi bi-calendar-plus me-2 text-primary"></i>กรอกข้อมูลการจองคิว</h5>
+                            <!-- Read-only Booking Details Card -->
+                            <div class="dashboard-panel" id="my-booking-details-card" style="display:none;">
+                                <h5 class="fw-black text-navy mb-4"><i class="bi bi-calendar-check me-2 text-success"></i>ข้อมูลการจองคิวของคุณ</h5>
+                                <div class="alert bg-success bg-opacity-10 text-success border border-success border-opacity-20 rounded-4 mb-4 fw-bold p-3 text-center" id="my-booking-alert-status">
+                                    คุณมีรายการจองคิวนิเทศการสอนแล้ว
+                                </div>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-4 h-100">
+                                            <div class="text-muted small fw-bold mb-2">ข้อมูลผู้รับการนิเทศ</div>
+                                            <table class="table table-borderless table-sm mb-0 small">
+                                                <tr><td class="text-muted" width="40%">ชื่อผู้รับนิเทศ:</td><td class="fw-bold" id="detail-teacher-name">-</td></tr>
+                                                <tr><td class="text-muted">กลุ่มสาระฯ:</td><td class="fw-bold" id="detail-teacher-dept">-</td></tr>
+                                                <tr><td class="text-muted">ตำแหน่ง:</td><td class="fw-bold" id="detail-teacher-pos">-</td></tr>
+                                                <tr><td class="text-muted">วิทยฐานะ:</td><td class="fw-bold" id="detail-teacher-standing">-</td></tr>
+                                                <tr><td class="text-muted">ประเมินเพื่อ:</td><td class="fw-bold text-primary" id="detail-evaluation-purpose">-</td></tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-4 h-100">
+                                            <div class="text-muted small fw-bold mb-2">รายละเอียดการสอน</div>
+                                            <table class="table table-borderless table-sm mb-0 small">
+                                                <tr><td class="text-muted" width="40%">วันที่นิเทศ:</td><td class="fw-bold" id="detail-booking-date">-</td></tr>
+                                                <tr><td class="text-muted">คาบเรียน:</td><td class="fw-bold" id="detail-booking-period">-</td></tr>
+                                                <tr><td class="text-muted">รหัสวิชา:</td><td class="fw-bold" id="detail-subject-code">-</td></tr>
+                                                <tr><td class="text-muted">ชื่อวิชา:</td><td class="fw-bold" id="detail-subject-name">-</td></tr>
+                                                <tr><td class="text-muted">ห้องเรียน:</td><td class="fw-bold" id="detail-classroom">-</td></tr>
+                                                <tr><td class="text-muted">หัวข้อการประเมิน:</td><td class="fw-bold text-navy" id="detail-lesson-topic">-</td></tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="p-3 bg-light rounded-4">
+                                            <div class="text-muted small fw-bold mb-2">คณะกรรมการนิเทศ</div>
+                                            <div class="row g-3">
+                                                <div class="col-md-4">
+                                                    <div class="small text-muted">ครูผู้ร่วมนิเทศ (Peer)</div>
+                                                    <div class="fw-bold text-navy" id="detail-peer-name">-</div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="small text-muted">ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</div>
+                                                    <div class="fw-bold text-navy" id="detail-head-name">-</div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="small text-muted">กรรมการวิชาการ</div>
+                                                    <div class="fw-bold text-navy" id="detail-academic-name">-</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-4">
+                                    <button type="button" class="btn btn-navy rounded-pill fw-bold px-4 py-2" onclick="window.showEditForm()"><i class="bi bi-pencil-square me-2"></i> แก้ไขการจอง</button>
+                                    <button type="button" class="btn btn-outline-danger rounded-pill fw-bold px-4 py-2" id="detail-cancel-btn"><i class="bi bi-trash me-2"></i> ยกเลิกคิวนี้</button>
+                                </div>
+                            </div>
+
+                            <!-- Booking Form Panel -->
+                            <div class="dashboard-panel" id="booking-form-panel">
+                                <h5 class="fw-black text-navy mb-4" id="booking-form-title"><i class="bi bi-calendar-plus me-2 text-primary"></i>ข้อมูลการจองคิว</h5>
                                 
                                 <div class="calendar-badge" id="calendar-allowed-badge">
                                     <i class="bi bi-calendar-event fs-4"></i>
@@ -115,8 +209,8 @@
                                                             <label class="btn btn-outline-primary" for="pos_kru">ครู</label>
                                                             <input type="radio" class="btn-check" name="teacher_position" id="pos_asst" value="ครูผู้ช่วย">
                                                             <label class="btn btn-outline-primary" for="pos_asst">ครูผู้ช่วย</label>
-                                                            <input type="radio" class="btn-check" name="teacher_position" id="pos_temp" value="ครูอัตราจั้ง">
-                                                            <label class="btn btn-outline-primary" for="pos_temp">ครูอัตราจั้ง</label>
+                                                            <input type="radio" class="btn-check" name="teacher_position" id="pos_temp" value="ครูอัตราจ้าง">
+                                                            <label class="btn btn-outline-primary" for="pos_temp">ครูอัตราจ้าง</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
@@ -162,7 +256,7 @@
                                                 </h6>
                                                 <div class="row g-4">
                                                     <div class="col-12">
-                                                        <label class="text-muted small fw-bold mb-2 d-block">1. เลือกวันที่นัดหมาย (วันที่ระบุไว้ในปฏิทิน)</label>
+                                                        <label class="text-muted small fw-bold mb-2 d-block">1. เลือกวันที่และคิวนิเทศที่ว่าง (คลิกช่อง "ว่าง" สีเทา หรือ "การจองของคุณ" สีเขียว)</label>
                                                         <div id="booking_date_container" class="row g-2">
                                                             <div class="text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังโหลดวันที่...</div>
                                                         </div>
@@ -179,9 +273,9 @@
 
                                                     <!-- Hidden Manual Inputs -->
                                                     <div style="display:none;">
-                                                        <input type="hidden" id="subject_code" onchange="onSubjectChange()" required>
+                                                        <input type="hidden" id="subject_code" required>
                                                         <input type="hidden" id="subject_name" required>
-                                                        <input type="hidden" id="classroom" onchange="onClassChange()" required>
+                                                        <input type="hidden" id="classroom" required>
                                                         <input type="hidden" id="room_number" required>
                                                         <input type="hidden" id="booking_period" required>
                                                     </div>
@@ -264,7 +358,6 @@
     <script src="../public/js/main.js"></script>
     <script>
         let currentUser = null;
-        let mySubjects = [];
 
         // Allowed date schedules based on department / sub_department
         const supervisionSchedules = {
@@ -284,19 +377,25 @@
         document.addEventListener('DOMContentLoaded', async () => {
             currentUser = await checkAuth(['teacher', 'admin']);
             if (currentUser) {
-                await loadSubjects();
-                await loadBookingData();
                 await initializeTeacherInfo();
+                await loadBookingData();
 
                 // Generate period buttons
                 const periodContainer = document.getElementById('booking_period_container');
-                periodContainer.innerHTML = '';
-                for (let i = 1; i <= 9; i++) {
-                    const id = 'period_' + i;
-                    periodContainer.innerHTML += `
-                        <input type="radio" class="btn-check" name="booking_period_radio" id="${id}" value="${i}" onchange="selectPeriod(this)">
-                        <label class="btn btn-outline-primary px-3 py-2" for="${id}">คาบ ${i}</label>
-                    `;
+                if (periodContainer) {
+                    periodContainer.innerHTML = '';
+                    for (let i = 1; i <= 9; i++) {
+                        const id = 'period_' + i;
+                        periodContainer.innerHTML += `
+                            <input type="radio" class="btn-check" name="booking_period_radio" id="${id}" value="${i}" onchange="selectPeriod(this)">
+                            <label class="btn btn-outline-primary px-3 py-2" for="${id}">คาบ ${i}</label>
+                        `;
+                    }
+                }
+
+                // Prefill form if booking exists
+                if (window.currentMyBooking) {
+                    await prefillBookingForm(window.currentMyBooking);
                 }
             }
         });
@@ -311,10 +410,8 @@
                 const res = await fetch('../api/teacher/supervision_get.php');
                 const data = await res.json();
                 if (data.success) {
-                    renderBookingStatus(data.booking);
-                    if (data.duties && data.duties.length > 0) {
-                        renderDuties(data.duties);
-                    }
+                    renderBookingStatus(data.booking, data.duties);
+                    renderDuties(data.duties || []);
                 }
             } catch (err) {
                 console.error("Error loading booking details: ", err);
@@ -327,104 +424,85 @@
             panel.style.display = 'block';
             box.innerHTML = '';
 
-            duties.forEach(d => {
-                const badgeClass = d.status === 'completed' ? 'bg-success' : 'bg-primary';
-                const html = `
-                    <div class="card border-0 shadow-sm rounded-4 mb-3">
-                        <div class="card-body p-3">
-                            <div class="d-flex align-items-center mb-2">
-                                <img src="${d.teacher_photo ? '../public/uploads/profiles/' + d.teacher_photo : '../public/images/default-avatar.png'}" class="rounded-circle me-2 object-fit-cover" width="32" height="32">
-                                <div>
-                                    <div class="fw-bold small text-navy">${d.teacher_name}</div>
-                                    <div class="text-muted" style="font-size:0.7rem;">${d.department || ''}</div>
-                                </div>
-                            </div>
-                            <div class="small fw-bold text-dark mt-2 mb-1">${d.subject_code || ''} ${d.subject_name || ''}</div>
-                            <div class="text-muted mb-2" style="font-size:0.75rem;">
-                                <div><i class="bi bi-calendar-event"></i> ${thDate(d.booking_date)} (คาบ ${d.booking_period})</div>
-                                <div><i class="bi bi-person-video3"></i> ม.${d.classroom} | ห้อง ${d.room_number}</div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.replace('bg-','')} border border-${badgeClass.replace('bg-','')}">${d.role_th}</span>
-                            </div>
-                        </div>
+            if (!duties || duties.length === 0) {
+                box.innerHTML = `
+                    <div class="text-center py-4 text-muted small bg-light rounded-4">
+                        <i class="bi bi-people text-muted display-6 mb-2 d-block"></i>
+                        คุณไม่มีภาระงานไปนิเทศผู้อื่นในภาคเรียนนี้
                     </div>
                 `;
-                box.innerHTML += html;
+                return;
+            }
+
+            let grouped = { 'peer': [], 'head': [], 'academic': [] };
+            duties.forEach(d => {
+                if (grouped[d.role]) grouped[d.role].push(d);
             });
-        }
 
-        async function loadSubjects() {
-            try {
-                const url = '../api/teacher/get-subjects.php';
-                const r = await fetch(url);
-                const j = await r.json();
-                mySubjects = j.my_subjects || [];
-                
-                const container = document.getElementById('subject_code_container');
-                container.innerHTML = '';
+            let html = '';
+            const roleTitles = {
+                'peer': 'ครูผู้ร่วมนิเทศ (Peer)',
+                'head': 'ครูผู้นิเทศ (หัวหน้า/รอง)',
+                'academic': 'คณะกรรมการวิชาการ'
+            };
 
-                if (mySubjects.length > 0) {
-                    mySubjects.forEach(s => {
-                        const id = 'subj_' + s.subject_code;
-                        const btn = `
-                            <input type="radio" class="btn-check" name="subject_code_radio" id="${id}" value="${s.subject_code}" data-name="${s.subject_name || ''}" data-rooms="${s.room || ''}" onchange="selectSubject(this)">
-                            <label class="btn btn-outline-primary text-start" for="${id}">
-                                <div class="fw-bold">${s.subject_code}</div>
-                                <div class="small" style="font-size:0.75rem;">${s.subject_name || ''}</div>
-                            </label>
+            ['peer', 'head', 'academic'].forEach(role => {
+                if (grouped[role].length > 0) {
+                    html += `<h6 class="fw-bold text-secondary mt-3 mb-2">${roleTitles[role]}</h6>`;
+                    grouped[role].forEach(d => {
+                        const badgeClass = d.status === 'completed' ? 'bg-success' : 'bg-primary';
+                        
+                        let statusText = 'รอดำเนินการ';
+                        let statusBadgeStyle = 'bg-warning bg-opacity-10 text-warning border-warning';
+                        if (d.status === 'pending') {
+                            statusText = 'รออนุมัติ';
+                            statusBadgeStyle = 'bg-warning bg-opacity-10 text-warning border border-warning';
+                        } else if (d.status === 'approved') {
+                            statusText = 'อนุมัติแล้ว (รอส่งแผน)';
+                            statusBadgeStyle = 'bg-info bg-opacity-10 text-info border border-info';
+                        } else if (d.status === 'doc_submitted') {
+                            statusText = 'ส่งแผนแล้ว';
+                            statusBadgeStyle = 'bg-primary bg-opacity-10 text-primary border border-primary';
+                        } else if (d.status === 'completed') {
+                            statusText = 'เสร็จสิ้น';
+                            statusBadgeStyle = 'bg-success bg-opacity-10 text-success border border-success';
+                        }
+
+                        html += `
+                            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="${d.teacher_photo ? '../public/uploads/profiles/' + d.teacher_photo : '../public/images/default-avatar.png'}" class="rounded-circle me-2 object-fit-cover" width="32" height="32">
+                                        <div>
+                                            <div class="fw-bold small text-navy">${d.teacher_name}</div>
+                                            <div class="text-muted" style="font-size:0.7rem;">${d.department || ''}</div>
+                                        </div>
+                                    </div>
+                                    <div class="small fw-bold text-dark mt-2 mb-1">${d.subject_code || ''} ${d.subject_name || ''}</div>
+                                    <div class="text-muted mb-2" style="font-size:0.75rem;">
+                                        <div><i class="bi bi-calendar-event"></i> ${thDate(d.booking_date)} (คาบ ${d.booking_period})</div>
+                                        <div><i class="bi bi-person-video3"></i> ม.${d.classroom} | ห้อง ${d.room_number}</div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                        <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.replace('bg-','')} border border-${badgeClass.replace('bg-','')}">${d.role_th}</span>
+                                        <span class="badge ${statusBadgeStyle}" style="font-size:0.65rem;">${statusText}</span>
+                                    </div>
+                                </div>
+                            </div>
                         `;
-                        container.innerHTML += btn;
                     });
-                } else {
-                    container.innerHTML = '<div class="text-muted small">ไม่มีข้อมูลรายวิชา</div>';
                 }
-            } catch (e) {
-                console.error("Error loading subjects: ", e);
-            }
+            });
+            box.innerHTML = html;
         }
 
-        function selectSubject(radio) {
-            document.getElementById('subject_code').value = radio.value;
-            onSubjectChange(radio);
-        }
-
-        function onSubjectChange(radio) {
-            const classContainer = document.getElementById('classroom_container');
-            const classSection = document.getElementById('classroom_section');
-            classContainer.innerHTML = '';
-            document.getElementById('classroom').value = '';
-            document.getElementById('room_number').value = '';
-            
-            if (radio && radio.value) {
-                document.getElementById('subject_name').value = radio.dataset.name || '';
-                
-                const rooms = radio.dataset.rooms || '';
-                if (rooms) {
-                    classSection.style.display = 'block';
-                    const roomList = rooms.split(',').map(r => r.trim()).filter(r => r !== '');
-                    roomList.forEach(rm => {
-                        const id = 'room_' + rm.replace(/\//g, '_');
-                        const btn = `
-                            <input type="radio" class="btn-check" name="classroom_radio" id="${id}" value="${rm}" onchange="selectClass(this)">
-                            <label class="btn btn-outline-primary" for="${id}">ม.${rm}</label>
-                        `;
-                        classContainer.innerHTML += btn;
-                    });
-                } else {
-                    classSection.style.display = 'none';
-                }
-            } else {
-                document.getElementById('subject_name').value = '';
-                classSection.style.display = 'none';
-            }
-            checkAvailableTeachers();
-        }
-
-        function selectClass(radio) {
-            document.getElementById('classroom').value = radio.value;
-            document.getElementById('room_number').value = radio.value;
-            checkAvailableTeachers();
+        function getDayName(dateStr) {
+            const days = ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'];
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return '';
+            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            return days[d.getDay()] || '';
         }
 
         async function initializeTeacherInfo() {
@@ -445,29 +523,87 @@
                     const dateContainer = document.getElementById('booking_date_container');
                     dateContainer.innerHTML = '';
                     if (data.allowed_dates_info && Array.isArray(data.allowed_dates_info)) {
-                        data.allowed_dates_info.forEach((info, index) => {
-                            const remaining = info.max - info.count;
-                            const isFull = remaining <= 0;
-                            const id = 'date_' + index;
+                        data.allowed_dates_info.forEach((info, dateIndex) => {
                             
-                            const badgeClass = isFull ? 'bg-danger' : (remaining <= 2 ? 'bg-warning text-dark' : 'bg-success');
-                            const badgeText = isFull ? 'เต็ม' : `ว่าง ${remaining}`;
-                            const disabledAttr = isFull ? 'disabled' : '';
-                            const btnClass = isFull ? 'btn-outline-secondary opacity-50' : 'btn-outline-primary bg-white';
-                            
-                            const btn = `
-                                <div class="col-6 col-md-4">
-                                    <input type="radio" class="btn-check" name="booking_date_radio" id="${id}" value="${info.date}" onchange="selectDate(this)" ${disabledAttr}>
-                                    <label class="btn ${btnClass} w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100" for="${id}">
-                                        <div class="small fw-bold mb-1" style="font-size:0.85rem;">${thDate(info.date).split(' ')[0]} ${thDate(info.date).split(' ')[1]}</div>
-                                        <div style="font-size: 0.7rem;" class="text-muted">${thDate(info.date).split(' ').slice(2).join(' ')}</div>
-                                        <span class="position-absolute top-0 end-0 translate-middle badge rounded-pill ${badgeClass}" style="font-size:0.65rem;">
-                                            ${badgeText}
-                                        </span>
-                                    </label>
+                            // Render date header
+                            let dateHtml = `
+                                <div class="mt-4 mb-2 pb-1 border-bottom d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-navy" style="font-size:0.85rem;">
+                                        <i class="bi bi-calendar-event text-primary me-2"></i>${getDayName(info.date)}ที่ ${thDate(info.date)}
+                                    </span>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-30" style="font-size:0.75rem;">
+                                        จองแล้ว ${info.count} / 4 คิว
+                                    </span>
                                 </div>
+                                <div class="row g-2 mb-3">
                             `;
-                            dateContainer.innerHTML += btn;
+
+                            for (let p = 1; p <= 4; p++) {
+                                const b = info.bookings ? info.bookings[p - 1] : null;
+                                if (b) {
+                                    const isMine = parseInt(b.teacher_id) === parseInt(data.my_teacher_id);
+                                    const cardBg = isMine ? 'bg-success bg-opacity-10 border border-success border-opacity-30' : 'bg-light border border-secondary border-opacity-25';
+                                    const mineBadge = isMine ? '<span class="badge bg-success ms-1" style="font-size:0.6rem;">การจองของคุณ</span>' : '';
+                                    const badgeColor = isMine ? 'success' : 'danger';
+                                    const badgeText = isMine ? 'การจองของคุณ' : 'จองแล้ว';
+                                    const topicText = b.lesson_topic ? `<div class="text-muted mt-1 text-truncate" style="font-size:0.68rem;" title="${b.lesson_topic}"><i class="bi bi-info-circle me-1"></i>เรื่อง: ${b.lesson_topic}</div>` : '';
+                                    
+                                    const slotId = `booked_slot_${dateIndex}_${p}`;
+                                    const clickAction = isMine ? `onclick="window.selectSlotDate('${info.date}', '${slotId}')"` : '';
+                                    const extraClass = isMine ? 'my-booking-card' : '';
+                                    
+                                    dateHtml += `
+                                        <div class="col-12 col-md-6 col-lg-3">
+                                            <div class="p-2 px-3 rounded-3 booked-slot-card ${cardBg} ${extraClass} h-100 d-flex flex-column justify-content-between shadow-sm"
+                                                 id="${slotId}"
+                                                 ${clickAction}>
+                                                <div>
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span class="fw-bold text-navy" style="font-size:0.78rem;">คิวที่ ${p} (คาบ ${b.period})</span>
+                                                        <span class="badge bg-${badgeColor} bg-opacity-10 text-${badgeColor} border border-${badgeColor} border-opacity-30" style="font-size:0.58rem;">
+                                                            ${badgeText}
+                                                        </span>
+                                                    </div>
+                                                    <div class="fw-bold text-dark text-truncate" style="font-size:0.78rem;" title="${b.teacher_name}">${b.teacher_name}</div>
+                                                    <div class="text-muted text-truncate" style="font-size:0.7rem;">
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20" style="font-size:0.6rem;">${b.subject_code}</span>
+                                                        <span class="ms-1">ม.${b.classroom} ห้อง ${b.room_number}</span>
+                                                    </div>
+                                                </div>
+                                                ${topicText}
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
+                                    // Empty slot - clickable if date is not full
+                                    const isDateFull = info.count >= info.max;
+                                    const slotId = `vacant_slot_${dateIndex}_${p}`;
+                                    const clickAction = isDateFull ? `onclick="Swal.fire({icon:'error', title:'ไม่สามารถเลือกได้', text:'วันนี้มีคิวจองเต็มแล้ว (4/4 คิว)', confirmButtonColor:'#1e3a8a'})"` : `onclick="window.selectSlotDate('${info.date}', '${slotId}')"`;
+                                    const cursorStyle = isDateFull ? 'cursor: not-allowed; opacity: 0.5;' : '';
+                                    
+                                    dateHtml += `
+                                        <div class="col-12 col-md-6 col-lg-3">
+                                            <div class="p-2 px-3 rounded-3 vacant-slot-card h-100 d-flex flex-column justify-content-between shadow-sm" 
+                                                 id="${slotId}"
+                                                 ${clickAction}
+                                                 style="${cursorStyle} min-height: 85px;">
+                                                <div>
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span class="fw-bold" style="font-size:0.78rem;">คิวที่ ${p}</span>
+                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-30" style="font-size:0.58rem;">ว่าง</span>
+                                                    </div>
+                                                    <div class="text-center py-2" style="font-size:0.72rem;">
+                                                        <i class="bi bi-plus-circle me-1"></i> ${isDateFull ? 'คิวเต็มแล้ว' : 'คลิกเลือกช่องนี้'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }
+                            }
+
+                            dateHtml += `</div>`;
+                            dateContainer.innerHTML += dateHtml;
                         });
                     }
                 }
@@ -476,14 +612,14 @@
             }
         }
 
-        function selectDate(radio) {
+        async function selectDate(radio) {
             document.getElementById('booking_date').value = radio.value;
             // Also determine day of week and load timetable
             const d = new Date(radio.value);
             const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay(); // 1=Mon, 7=Sun
-            loadTimetable(dayOfWeek);
+            await loadTimetable(dayOfWeek);
             
-            checkAvailableTeachers();
+            await checkAvailableTeachers();
         }
 
         async function loadTimetable(dayOfWeek) {
@@ -598,11 +734,20 @@
                 
                 if (data.success) {
                     const totalSchool = data.total_school_bookings || 0;
-                    if (totalSchool >= 5) {
-                        if(dateHelp) dateHelp.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> วันนี้มีคิวจองเต็มแล้ว (${totalSchool}/5) กรุณาเลือกวันอื่น</span>`;
+                    if (totalSchool >= 4) {
+                        if(dateHelp) dateHelp.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> วันนี้มีคิวจองเต็มแล้ว (${totalSchool}/4) กรุณาเลือกวันอื่น</span>`;
                         if(submitBtn) submitBtn.disabled = true;
                     } else {
-                        if(dateHelp) dateHelp.innerHTML = `<span class="text-primary"><i class="bi bi-info-circle"></i> จำนวนคิวโรงเรียนวันนี้: ${totalSchool}/5</span>`;
+                        if(dateHelp) dateHelp.innerHTML = `<span class="text-primary"><i class="bi bi-info-circle"></i> จำนวนคิวโรงเรียนวันนี้: ${totalSchool}/4</span>`;
+                    }
+
+                    if (data.existing_bookings && data.existing_bookings.length > 0) {
+                        let html = '<div class="mt-2 p-2 bg-white rounded border small text-muted"><div class="fw-bold text-dark mb-1"><i class="bi bi-list-check"></i> คิวที่มีผู้จองแล้ววันนี้</div><ul class="mb-0 ps-3" style="font-size: 0.8rem;">';
+                        data.existing_bookings.forEach(b => {
+                            html += `<li>คาบ ${b.booking_period} : ${b.teacher_name} (${b.subject_code} ห้อง ${b.room_number})</li>`;
+                        });
+                        html += '</ul></div>';
+                        if(dateHelp) dateHelp.innerHTML += html;
                     }
 
                     peerContainer.innerHTML = '';
@@ -648,14 +793,67 @@
             }
         }
 
-        function renderBookingStatus(booking) {
+        function renderBookingStatus(booking, duties) {
             const statusBox = document.getElementById('booking-status-box');
             const formCol = document.getElementById('booking-form-col');
+            const detailsCard = document.getElementById('my-booking-details-card');
+            const formPanel = document.getElementById('booking-form-panel');
+
+            // --- Update UI visibility based on booking ---
+            if (booking) {
+                // User has booked! Show detailsCard, hide formPanel
+                if (detailsCard) detailsCard.style.display = 'block';
+                if (formPanel) formPanel.style.display = 'none';
+                
+                // Populate detailsCard
+                document.getElementById('detail-teacher-name').textContent = document.getElementById('requester_name').value || ((booking.teacher_prefix || '') + (booking.teacher_first || '') + ' ' + (booking.teacher_last || '')) || '-';
+                document.getElementById('detail-teacher-dept').textContent = document.getElementById('requester_department').value || '-';
+                document.getElementById('detail-teacher-pos').textContent = booking.teacher_position || '-';
+                document.getElementById('detail-teacher-standing').textContent = booking.academic_standing || '-';
+                document.getElementById('detail-evaluation-purpose').textContent = booking.evaluation_purpose || '-';
+                
+                document.getElementById('detail-booking-date').textContent = getDayName(booking.booking_date) + 'ที่ ' + thDate(booking.booking_date);
+                document.getElementById('detail-booking-period').textContent = 'คาบที่ ' + booking.booking_period;
+                document.getElementById('detail-subject-code').textContent = booking.subject_code || '-';
+                document.getElementById('detail-subject-name').textContent = booking.subject_name || '-';
+                document.getElementById('detail-classroom').textContent = (booking.classroom ? `ม.${booking.classroom}` : '') + (booking.room_number ? ` ห้อง ${booking.room_number}` : '');
+                document.getElementById('detail-lesson-topic').textContent = booking.lesson_topic || '-';
+
+                document.getElementById('detail-peer-name').textContent = booking.peer_name || '-';
+                document.getElementById('detail-head-name').textContent = booking.head_name || '-';
+                document.getElementById('detail-academic-name').textContent = booking.academic_name || 'รอมอบหมาย';
+
+                // Edit button logic:
+                const editBtn = detailsCard.querySelector('button[onclick="window.showEditForm()"]');
+                if (editBtn) {
+                    if (booking.status !== 'completed' && booking.status !== 'cancelled') {
+                        editBtn.style.display = 'inline-block';
+                    } else {
+                        editBtn.style.display = 'none';
+                    }
+                }
+                
+                // Set click action for Cancel button
+                const cancelBtn = document.getElementById('detail-cancel-btn');
+                if (cancelBtn) {
+                    cancelBtn.onclick = () => window.cancelBooking(booking.id);
+                }
+
+                window.currentMyBooking = booking;
+            } else {
+                // No booking: show formPanel, hide detailsCard
+                if (detailsCard) detailsCard.style.display = 'none';
+                if (formPanel) formPanel.style.display = 'block';
+                document.getElementById('booking_id').value = '';
+                window.currentMyBooking = null;
+            }
+
+            if (formCol) formCol.style.display = 'block';
+
+            // --- Update Right Column Status ---
+            let html = '';
 
             if (booking) {
-                window.currentMyBooking = booking;
-                formCol.style.display = 'none';
-                
                 let badgeClass = 'bg-warning bg-opacity-10 text-warning border-warning';
                 let statusText = '⏳ รออนุมัติโดยคณะกรรมการวิชาการ';
                 if (booking.status === 'approved' || booking.status === 'doc_submitted') {
@@ -666,45 +864,29 @@
                     statusText = '✨ เสร็จสิ้นกระบวนการทั้งหมด';
                 }
 
-                statusBox.innerHTML = `
-                    <div class="alert ${badgeClass} border text-center rounded-4 mb-4 fw-bold p-3">
+                html += `
+                    <div class="alert ${badgeClass} border text-center rounded-4 mb-3 fw-bold p-3" style="font-size:0.85rem;">
                         ${statusText}
                     </div>
-                    <div class="p-3 bg-light rounded-4 small">
-                        <table class="table table-borderless mb-0">
-                            <tr><td class="text-muted fw-bold">รหัสวิชา:</td><td>${booking.subject_code}</td></tr>
-                            <tr><td class="text-muted fw-bold">ชื่อวิชา:</td><td>${booking.subject_name}</td></tr>
-                            <tr><td class="text-muted fw-bold">ระดับชั้น:</td><td>ม. ${booking.classroom}</td></tr>
-                            <tr><td class="text-muted fw-bold">ห้องที่สอน:</td><td>ห้อง ${booking.room_number}</td></tr>
-                            <tr><td class="text-muted fw-bold">เรื่องที่จะสอน:</td><td>${booking.lesson_topic || '-'}</td></tr>
-                            <tr><td class="text-muted fw-bold">วันที่นิเทศ:</td><td>${thDate(booking.booking_date)}</td></tr>
-                            <tr><td class="text-muted fw-bold">คาบเรียน:</td><td>คาบที่ ${booking.booking_period}</td></tr>
-                            <tr><td class="text-muted fw-bold">ครูผู้ร่วมนิเทศ:</td><td>${booking.peer_name || '-'}</td></tr>
-                            <tr><td class="text-muted fw-bold">ครูผู้นิเทศ:</td><td>${booking.head_name || '-'}</td></tr>
-                            <tr><td class="text-muted fw-bold">กรรมการวิชาการ:</td><td>${booking.academic_name || 'รอมอบหมาย'}</td></tr>
+                    <div class="p-3 bg-light rounded-4 small mb-3">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr><td colspan="2" class="fw-bold text-navy mb-1" style="font-size:0.8rem;"><i class="bi bi-people-fill text-primary"></i> คณะกรรมการผู้นิเทศเรา:</td></tr>
+                            <tr><td class="text-muted ps-2" width="45%">ครูผู้ร่วมนิเทศ (Peer):</td><td class="fw-medium">${booking.peer_name || '-'}</td></tr>
+                            <tr><td class="text-muted ps-2">ครูผู้นิเทศ (หัวหน้า):</td><td class="fw-medium">${booking.head_name || '-'}</td></tr>
+                            <tr><td class="text-muted ps-2">กรรมการวิชาการ:</td><td class="fw-medium">${booking.academic_name || 'รอมอบหมาย'}</td></tr>
                         </table>
                     </div>
-                    ${(booking.status === 'pending' || booking.status === 'approved') ? `
-                        <div class="row g-2 mt-4">
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-primary w-100 rounded-pill fw-bold" onclick="window.editBooking()"><i class="bi bi-pencil-square"></i> แก้ไขการจอง</button>
-                            </div>
-                            <div class="col-6">
-                                <button type="button" class="btn btn-outline-danger w-100 rounded-pill fw-bold" onclick="window.cancelBooking(${booking.id})"><i class="bi bi-trash"></i> ยกเลิกคิวนี้</button>
-                            </div>
-                        </div>
-                    ` : ''}
                 `;
             } else {
-                formCol.style.display = 'block';
-                document.getElementById('booking_id').value = '';
-                statusBox.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-calendar-event text-muted display-4 mb-3 d-block"></i>
-                        <div class="text-muted small">คุณยังไม่มีประวัติการจองคิวนิเทศในภาคเรียนนี้</div>
+                html += `
+                    <div class="text-center py-4 text-muted small bg-light rounded-4 mb-4">
+                        <i class="bi bi-calendar-x display-6 mb-2 d-block"></i>
+                        คุณยังไม่มีประวัติการจองคิวนิเทศในภาคเรียนนี้
                     </div>
                 `;
             }
+
+            statusBox.innerHTML = html;
         }
 
         async function submitBooking() {
@@ -763,7 +945,7 @@
                 const result = await res.json();
                 if (result.success) {
                     Swal.fire({ icon: 'success', title: 'จองสำเร็จ!', text: result.message, confirmButtonColor: '#1e3a8a' }).then(() => {
-                        window.location.href = 'teacher_supervision.html';
+                        window.location.reload();
                     });
                 } else {
                     Swal.fire({ icon: 'error', title: 'ไม่สามารถจองได้', text: result.error, confirmButtonColor: '#1e3a8a' });
@@ -801,92 +983,228 @@
             }
         }
 
+        window.showEditForm = async function() {
+            const detailsCard = document.getElementById('my-booking-details-card');
+            const formPanel = document.getElementById('booking-form-panel');
+            
+            let isApproved = false;
+            if (window.currentMyBooking && window.currentMyBooking.status !== 'pending' && window.currentMyBooking.status !== 'cancelled') {
+                isApproved = true;
+                const confirm = await Swal.fire({
+                    title: 'ยืนยันการแก้ไขข้อมูล?',
+                    text: 'เนื่องจากคิวนิเทศของคุณได้รับการอนุมัติแล้ว หากทำการแก้ไขข้อมูล ระบบจะรีเซ็ตสถานะเป็น "รออนุมัติ" และคุณจะต้องส่งขออนุมัติใหม่อีกครั้ง',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1e3a8a',
+                    cancelButtonColor: '#aaa',
+                    confirmButtonText: 'ยืนยัน แก้ไขข้อมูล',
+                    cancelButtonText: 'ยกเลิก'
+                });
+                if (!confirm.isConfirmed) return;
+            }
+
+            if (detailsCard) detailsCard.style.display = 'none';
+            if (formPanel) {
+                formPanel.style.display = 'block';
+                
+                if (window.currentMyBooking) {
+                    await prefillBookingForm(window.currentMyBooking);
+                }
+                
+                formPanel.scrollIntoView({ behavior: 'smooth' });
+                
+                if (isApproved) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'เข้าสู่โหมดแก้ไขข้อมูล (ขออนุมัติใหม่)',
+                        text: 'กรุณาแก้ไขข้อมูลในแบบฟอร์มแล้วกด "บันทึกการแก้ไข" เพื่อส่งคำขออนุมัติอีกครั้ง',
+                        confirmButtonColor: '#1e3a8a'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'โหมดแก้ไขการจอง',
+                        text: 'ข้อมูลเดิมได้ถูกดึงมาใส่ในแบบฟอร์มแล้ว ท่านสามารถแก้ไขและกด "บันทึกการแก้ไข" เพื่อยืนยัน',
+                        confirmButtonColor: '#1e3a8a'
+                    });
+                }
+            }
+        };
+
         function editBooking() {
+            window.showEditForm();
+        }
+
+        async function prefillBookingForm(booking) {
             try {
-                const booking = window.currentMyBooking;
-                if (!booking) {
-                    Swal.fire('Error', 'No booking data found', 'error');
-                    return;
+                if (!booking) return;
+
+                document.getElementById('booking_id').value = booking.id;
+                
+                if (booking.evaluation_purpose) {
+                    document.getElementById('evaluation_purpose').value = booking.evaluation_purpose;
+                }
+                if (booking.lesson_topic) {
+                    document.getElementById('lesson_topic').value = booking.lesson_topic;
+                }
+                
+                if (booking.teacher_position) {
+                    const r = document.querySelector(`input[name="teacher_position"][value="${booking.teacher_position}"]`);
+                    if (r) r.checked = true;
+                }
+                if (booking.academic_standing) {
+                    const r = document.querySelector(`input[name="academic_standing"][value="${booking.academic_standing}"]`);
+                    if (r) r.checked = true;
                 }
 
-                const formCol = document.getElementById('booking-form-col');
-                if (!formCol) {
-                    Swal.fire('Error', 'form col not found', 'error');
-                    return;
+                // Select date and load timetable
+                if (booking.booking_date) {
+                    document.getElementById('booking_date').value = booking.booking_date;
+                    const d = new Date(booking.booking_date);
+                    const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay(); // 1=Mon, 7=Sun
+                    await loadTimetable(dayOfWeek);
                 }
-                formCol.style.display = 'block';
-                document.getElementById('booking_id').value = booking.id;
-            
-            if (booking.evaluation_purpose) {
-                document.getElementById('evaluation_purpose').value = booking.evaluation_purpose;
-            }
-            if (booking.lesson_topic) {
-                document.getElementById('lesson_topic').value = booking.lesson_topic;
-            }
-            if (booking.booking_date) {
-                document.getElementById('booking_date').value = booking.booking_date;
-            }
-            if (booking.booking_period) {
-                document.getElementById('booking_period').value = booking.booking_period;
-            }
-            if (booking.subject_code) {
-                document.getElementById('subject_code').value = booking.subject_code;
-            }
-            if (booking.subject_name) {
-                document.getElementById('subject_name').value = booking.subject_name;
-            }
-            if (booking.classroom) {
-                document.getElementById('classroom').value = booking.classroom;
-            }
-            if (booking.room_number) {
-                document.getElementById('room_number').value = booking.room_number;
-            }
-            // For evaluators
-            if (booking.peer_teacher_id) {
-                document.getElementById('peer_teacher_id').value = booking.peer_teacher_id;
-                const r = document.querySelector(`input[name="peer_teacher_radio"][value="${booking.peer_teacher_id}"]`);
-                if (r) r.checked = true;
-                else {
-                    const c = document.getElementById('peer_teacher_container');
-                    c.innerHTML = `<div><input type="radio" class="btn-check" name="peer_teacher_radio" id="peer_old" value="${booking.peer_teacher_id}" checked onchange="document.getElementById('peer_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="peer_old">${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</label></div>`;
+
+                // Set hidden values unconditionally to prevent empty data
+                document.getElementById('subject_code').value = booking.subject_code || '';
+                document.getElementById('subject_name').value = booking.subject_name || '';
+                document.getElementById('classroom').value = booking.classroom || '';
+                document.getElementById('room_number').value = booking.room_location || booking.room_number || '';
+                document.getElementById('booking_period').value = booking.booking_period || '';
+
+                // Select timetable slot radio
+                if (booking.booking_period && window.currentDaySchedule) {
+                    const period = parseInt(booking.booking_period);
+                    const slotIndex = window.currentDaySchedule.findIndex(slot => parseInt(slot.period) === period && (slot.subject_code || '').trim() === (booking.subject_code || '').trim());
+                    if (slotIndex !== -1) {
+                        const rSlot = document.getElementById('slot_' + slotIndex);
+                        if (rSlot) {
+                            rSlot.checked = true;
+                        }
+                    } else {
+                        // If slot not found in timetable, insert a dummy selected slot so user sees it
+                        const container = document.getElementById('timetable_container');
+                        if (container) {
+                            const btn = `
+                                <div class="col-6 col-md-4">
+                                    <input type="radio" class="btn-check" name="timetable_slot" id="slot_dummy" value="dummy" checked>
+                                    <label class="btn btn-outline-primary bg-white w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100 border-primary" for="slot_dummy">
+                                        <div class="fw-bold text-navy mb-1" style="font-size:0.9rem;">คาบที่ ${booking.booking_period}</div>
+                                        <div class="small text-dark fw-bold text-truncate">${booking.subject_code} ${booking.subject_name}</div>
+                                        <div style="font-size: 0.75rem;" class="text-muted"><i class="bi bi-person-video3"></i> ม.${booking.classroom} | <i class="bi bi-geo-alt"></i> ${booking.room_number}</div>
+                                    </label>
+                                </div>
+                            `;
+                            container.innerHTML = btn + container.innerHTML;
+                        }
+                    }
                 }
-            }
-            if (booking.head_teacher_id) {
-                document.getElementById('head_teacher_id').value = booking.head_teacher_id;
-                const r = document.querySelector(`input[name="head_teacher_radio"][value="${booking.head_teacher_id}"]`);
-                if (r) r.checked = true;
-                else {
-                    const c = document.getElementById('head_teacher_container');
-                    c.innerHTML = `<div><input type="radio" class="btn-check" name="head_teacher_radio" id="head_old" value="${booking.head_teacher_id}" checked onchange="document.getElementById('head_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="head_old">${booking.head_name || 'ครูผู้นิเทศเดิม'}</label></div>`;
+
+                // Select peer teacher radio
+                if (booking.peer_teacher_id) {
+                    document.getElementById('peer_teacher_id').value = booking.peer_teacher_id;
+                    const rPeer = document.querySelector(`input[name="peer_teacher_radio"][value="${booking.peer_teacher_id}"]`);
+                    if (rPeer) {
+                        rPeer.checked = true;
+                    } else {
+                        const container = document.getElementById('peer_teacher_container');
+                        if (container) {
+                            container.innerHTML = `<div><input type="radio" class="btn-check" name="peer_teacher_radio" id="peer_old" value="${booking.peer_teacher_id}" checked onchange="document.getElementById('peer_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="peer_old">${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</label></div>`;
+                        }
+                    }
                 }
-            }
-            if (booking.teacher_position) {
-                const r = document.querySelector(`input[name="teacher_position"][value="${booking.teacher_position}"]`);
-                if (r) r.checked = true;
-            }
-            if (booking.academic_standing) {
-                const r = document.querySelector(`input[name="academic_standing"][value="${booking.academic_standing}"]`);
-                if (r) r.checked = true;
-            }
-            
-            document.getElementById('booking-form-col').scrollIntoView({ behavior: 'smooth' });
-            
-            const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
-            if (submitBtn) {
-                submitBtn.innerHTML = '<i class="bi bi-save-fill me-2"></i> บันทึกการแก้ไข';
-            }
-            
-            Swal.fire({
-                icon: 'info',
-                title: 'โหมดแก้ไขการจอง',
-                text: 'กรุณาเลือกวันที่ คาบเรียน และเรื่องที่จะสอนใหม่ จากนั้นกด "บันทึกการแก้ไข"',
-                confirmButtonColor: '#1e3a8a'
-            });
+
+                // Select head teacher radio
+                if (booking.head_teacher_id) {
+                    document.getElementById('head_teacher_id').value = booking.head_teacher_id;
+                    const rHead = document.querySelector(`input[name="head_teacher_radio"][value="${booking.head_teacher_id}"]`);
+                    if (rHead) {
+                        rHead.checked = true;
+                    } else {
+                        const container = document.getElementById('head_teacher_container');
+                        if (container) {
+                            container.innerHTML = `<div><input type="radio" class="btn-check" name="head_teacher_radio" id="head_old" value="${booking.head_teacher_id}" checked onchange="document.getElementById('head_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="head_old">${booking.head_name || 'ครูผู้นิเทศเดิม'}</label></div>`;
+                        }
+                    }
+                }
+
+                if (booking.booking_date && booking.booking_period) {
+                    await checkAvailableTeachers();
+                    if (booking.peer_teacher_id) {
+                        const rPeer = document.querySelector(`input[name="peer_teacher_radio"][value="${booking.peer_teacher_id}"]`);
+                        if (rPeer) {
+                            rPeer.checked = true;
+                        } else {
+                            const container = document.getElementById('peer_teacher_container');
+                            if (container) {
+                                container.innerHTML += `<div><input type="radio" class="btn-check" name="peer_teacher_radio" id="peer_old_2" value="${booking.peer_teacher_id}" checked onchange="document.getElementById('peer_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="peer_old_2">${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</label></div>`;
+                            }
+                        }
+                    }
+                    if (booking.head_teacher_id) {
+                        const rHead = document.querySelector(`input[name="head_teacher_radio"][value="${booking.head_teacher_id}"]`);
+                        if (rHead) {
+                            rHead.checked = true;
+                        } else {
+                            const container = document.getElementById('head_teacher_container');
+                            if (container) {
+                                container.innerHTML += `<div><input type="radio" class="btn-check" name="head_teacher_radio" id="head_old_2" value="${booking.head_teacher_id}" checked onchange="document.getElementById('head_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="head_old_2">${booking.head_name || 'ครูผู้นิเทศเดิม'}</label></div>`;
+                            }
+                        }
+                    }
+                }
+
+                // Highlight our own booking card in the grid
+                const myCard = document.querySelector('.my-booking-card');
+                if (myCard) {
+                    myCard.classList.add('selected-slot');
+                }
+
+                const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="bi bi-save-fill me-2"></i> บันทึกการแก้ไข';
+                }
             } catch (err) {
-                Swal.fire('Error in editBooking', err.message, 'error');
-                console.error(err);
+                console.error("Error in prefillBookingForm: ", err);
             }
         }
+
+        window.selectSlotDate = async function(date, slotId) {
+            const formPanel = document.getElementById('booking-form-panel');
+            if (formPanel && formPanel.style.display === 'none') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ท่านมีคิวจองที่จองแล้ว',
+                    text: 'หากต้องการแก้ไข กรุณากด "แก้ไขการจอง" ก่อน',
+                    confirmButtonColor: '#1e3a8a'
+                });
+                return;
+            }
+
+            document.getElementById('booking_date').value = date;
+
+            // Highlight selected slot in UI
+            document.querySelectorAll('.vacant-slot-card, .booked-slot-card').forEach(el => {
+                el.classList.remove('selected-slot');
+            });
+            const clickedCard = document.getElementById(slotId);
+            if (clickedCard) {
+                clickedCard.classList.add('selected-slot');
+            }
+
+            // Determine day of week and load timetable
+            const d = new Date(date);
+            const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay(); // 1=Mon, 7=Sun
+            await loadTimetable(dayOfWeek);
+            
+            await checkAvailableTeachers();
+
+            // Scroll to timetable section
+            const tSection = document.getElementById('timetable_section');
+            if (tSection) {
+                tSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
 
     </script>
 </body>

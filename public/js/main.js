@@ -368,7 +368,12 @@ function renderSidebar(role, user, settings = {}) {
         }
         html += _navItem('academic_calendar.html', 'bi bi-calendar3 text-warning', 'ปฏิทินวิชาการ', a('academic_calendar.html'));
         if (role === 'admin') {
-            html += _navItem('supervision.html', 'bi bi-person-video3 text-primary', 'นิเทศการสอน', a('supervision.html'));
+            const supervisionItems = [
+                { href: 'admin_supervision.html', icon: 'bi bi-bar-chart-fill', label: 'สถิติภาพรวมนิเทศ', active: a('admin_supervision.html') },
+                { href: 'admin_supervision_booking.html', icon: 'bi bi-calendar-check-fill', label: 'จัดการคิวและกรรมการ', active: a('admin_supervision_booking.html') }
+            ];
+            const isSupervisionActive = ['admin_supervision.html', 'admin_supervision_booking.html', 'supervision.html'].some(x => a(x));
+            html += _navGroup('bi bi-person-video3 text-primary', 'ระบบนิเทศการสอน', supervisionItems, isSupervisionActive);
         } else if (role === 'teacher') {
             const supervisionItems = [
                 { href: 'teacher_supervision.html', icon: 'bi bi-house-door', label: 'ภาพรวมนิเทศ', active: a('teacher_supervision.html') },
@@ -378,7 +383,15 @@ function renderSidebar(role, user, settings = {}) {
                 { href: 'supervision_post_teach.html', icon: 'bi bi-pencil-square', label: 'บันทึกหลังแผน', active: a('supervision_post_teach.html') },
                 { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
             ];
-            const isSupervisionActive = ['teacher_supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html'].some(x => a(x));
+
+            if (user && user.id === 518) {
+                supervisionItems.push(
+                    { href: 'admin_supervision.html', icon: 'bi bi-bar-chart-fill text-warning', label: 'สถิติภาพรวมนิเทศ (แอดมิน)', active: a('admin_supervision.html') },
+                    { href: 'admin_supervision_booking.html', icon: 'bi bi-calendar-check-fill text-warning', label: 'จัดการคิวและกรรมการ (แอดมิน)', active: a('admin_supervision_booking.html') }
+                );
+            }
+
+            const isSupervisionActive = ['teacher_supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html', 'admin_supervision.html', 'admin_supervision_booking.html'].some(x => a(x));
             html += _navGroup('bi bi-person-video3 text-primary', 'นิเทศการสอน', supervisionItems, isSupervisionActive);
         }
 
@@ -460,7 +473,20 @@ async function checkAuth(expectedRole) {
         let roles = [];
         if (expectedRole) roles = Array.isArray(expectedRole) ? expectedRole : [expectedRole];
 
-        if (roles.length > 0 && !roles.includes(data.user.role)) {
+        let hasAccess = false;
+        if (roles.length === 0) {
+            hasAccess = true;
+        } else {
+            if (roles.includes(data.user.role)) {
+                hasAccess = true;
+            }
+            // Special exemption: Teacher ID 518 (Penprapha) can access admin pages
+            if (roles.includes('admin') && data.user.role === 'teacher' && data.user.id === 518) {
+                hasAccess = true;
+            }
+        }
+
+        if (!hasAccess) {
             window.location.href = '../';
             return null;
         }

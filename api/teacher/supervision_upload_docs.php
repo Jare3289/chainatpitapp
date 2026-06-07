@@ -6,6 +6,7 @@
 header('Content-Type: application/json');
 require_once '../../config.php';
 require_once '../../inc/security.php';
+require_once '../../inc/supervision_notify.php';
 session_start();
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'teacher') {
@@ -62,9 +63,9 @@ try {
         exit;
     }
 
-    if ($booking['status'] !== 'approved' && $booking['status'] !== 'doc_submitted') {
+    if ($booking['status'] !== 'pending' && $booking['status'] !== 'approved' && $booking['status'] !== 'doc_submitted') {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'สถานะคำร้องยังไม่ผ่านการอนุมัติหรือไม่สามารถอัปโหลดได้ในสถานะนี้']);
+        echo json_encode(['success' => false, 'error' => 'สถานะคำร้องไม่ถูกต้องสำหรับการอัปโหลดเอกสาร']);
         exit;
     }
 
@@ -84,10 +85,10 @@ try {
         exit;
     }
 
-    // Max 15MB file size
-    if ($file['size'] > 15 * 1024 * 1024) {
+    // Max 50MB file size
+    if ($file['size'] > 50 * 1024 * 1024) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'ไฟล์ต้องมีขนาดไม่เกิน 15MB']);
+        echo json_encode(['success' => false, 'error' => 'ไฟล์ต้องมีขนาดไม่เกิน 50MB']);
         exit;
     }
 
@@ -148,6 +149,22 @@ try {
             'doc_path' => $db_path,
             'all_uploaded' => $all_uploaded
         ]);
+
+        // Notify peer + head about the new document
+        try {
+            $docLabels = [
+                'doc_subject_structure' => 'โครงสร้างรายวิชา',
+                'doc_unit_structure'   => 'โครงสร้างหน่วยการเรียนรู้',
+                'doc_unit_plan'        => 'แผนหน่วยการเรียนรู้',
+                'doc_lesson_plan'      => 'แผนการจัดการเรียนรู้',
+            ];
+            $docLabel = $docLabels[$doc_type] ?? $doc_type;
+            $ids = supervisionBookingUserIds($pdo, $booking_id);
+            $msg = "ครูผู้รับการนิเทศ อัปโหลดเอกสาร '{$docLabel}' สำหรับการจองนิเทศ #{$booking_id} แล้ว";
+            supervisionNotify($pdo, [$ids['peer_user_id'], $ids['head_user_id']], 'อัปโหลดเอกสารนิเทศ', $msg, 'supervision_evaluate.html?id=' . $booking_id);
+        } catch (Throwable $e_n) {
+            error_log('[supervision_upload_docs notify] ' . $e_n->getMessage());
+        }
     } else {
         http_response_code(500);
         echo json_encode(['success' => false, 'error' => 'ไม่สามารถคัดลอกไฟล์ไปยังโฟลเดอร์เซิร์ฟเวอร์ได้']);
