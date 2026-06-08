@@ -994,9 +994,9 @@ async function loadTimetable() {
         if (currentTimetableMode === 'class') {
             const cr = document.getElementById('filterClassroom').value;
             if (cr) {
-                const gradeNum = cr.charAt(0);
-                params.set('grade_level', 'ม.' + gradeNum);
                 params.set('class_name', cr);
+                // ไม่ส่ง grade_level แยก — cnp_timetable_homeroom_where_sql จัดการ variant ให้เองแล้ว
+                // การส่งทั้งสองพร้อมกันทำให้ query AND กันจนกรองข้อมูลที่ grade_level=NULL หายหมด
             } else {
                 showLoading(false);
                 showEmpty(true);

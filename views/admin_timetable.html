@@ -57,6 +57,9 @@
                                     <button class="btn btn-success fw-bold rounded-3" onclick="openImport()">
                                         <i class="bi bi-cloud-arrow-up me-1"></i> นำเข้า Excel
                                     </button>
+                                    <button class="btn btn-danger fw-bold rounded-3" onclick="openReplaceImport()">
+                                        <i class="bi bi-arrow-repeat me-1"></i> แทนที่ทั้งหมด
+                                    </button>
                                     <button class="btn btn-warning fw-bold rounded-3" onclick="openAddModal()">
                                         <i class="bi bi-plus-lg me-1"></i> เพิ่มคาบสอน
                                     </button>
@@ -273,6 +276,24 @@ function openImport() {
         templateBaseUrl: '../api/admin/download-template.php?type=timetable',
         onSuccess: loadData
     });
+}
+
+async function openReplaceImport() {
+    const result = await Swal.fire({
+        icon: 'warning',
+        title: 'แทนที่ตารางสอนทั้งหมด?',
+        html: `<div class="text-start small">
+            <p>การดำเนินการนี้จะ <strong class="text-danger">ลบข้อมูลตารางสอนทั้งหมด</strong> ออกจากระบบก่อน แล้วนำเข้าข้อมูลจากไฟล์ที่เลือก</p>
+            <p class="mb-0 text-muted">เหมาะสำหรับการอัปเดตตารางสอนใหม่ทั้งภาคเรียน</p>
+        </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยัน นำเข้าแบบแทนที่',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#dc3545',
+    });
+    if (!result.isConfirmed) return;
+    window.__importReplaceAll = true;
+    openImport();
 }
 
 async function loadTeachers() {

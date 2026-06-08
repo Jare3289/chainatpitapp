@@ -1327,6 +1327,12 @@
             await silentSyncStudentPhotos();
             await loadData();
 
+            const pendingTab = sessionStorage.getItem('adminStudentsOpenTab');
+            if (pendingTab) {
+                sessionStorage.removeItem('adminStudentsOpenTab');
+                switchAdminTab(pendingTab);
+            }
+
             document.getElementById('editFromProfBtn')?.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 if (id) {

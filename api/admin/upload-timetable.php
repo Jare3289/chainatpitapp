@@ -7,6 +7,8 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once '../../config.php';
 require_once '../../inc/classroom_codes.php';
+require_once '../../inc/subject_lookup.php';
+$subjectLookup = cnp_subject_lookup();
 // ต้องปิด error อีกรอบหลังจากเรียก config.php เพราะในนั้นอาจจะสั่งเปิดไว้
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -99,6 +101,7 @@ if (empty($rows)) {
 
 // ── Process ──────────────────────────────────────────────────────────
 $dryRun      = ($_POST['dry_run'] ?? '0') === '1';
+$replaceAll  = ($_POST['replace_all'] ?? '0') === '1';
 $insertCount = 0;
 $updateCount = 0;
 $skipCount   = 0;
@@ -134,7 +137,13 @@ try {
         $existingMap[$key] = (int)$tt['id'];
     }
 
-    if (!$dryRun) $pdo->beginTransaction();
+    if (!$dryRun) {
+        $pdo->beginTransaction();
+        if ($replaceAll) {
+            $pdo->exec("DELETE FROM timetable");
+            $existingMap = []; // map is now empty
+        }
+    }
     $batch = 0;
 
     foreach ($rows as $idx => $raw) {
@@ -191,25 +200,57 @@ try {
             $skipCount++; $skipReasons[] = "แถวที่ $rowNo: เลขคาบไม่ถูกต้อง ($periodRaw)"; continue;
         }
 
-        $className = col($raw, ['ห้องเรียน', 'รหัสห้อง', 'ห้องตามสมุด', 'class_name', 'กลุ่มเรียน']);
-        $grade_level = col($raw, ['ระดับชั้น', 'ชั้นเรียน']);
+        // Resolve subject code vs subject name
+        $subjectCode = col($raw, ['รหัสวิชา', 'รหัส', 'subject_code']);
+        if ($subjectCode === '' && isset($subjectLookup[$subject])) {
+            // Column contains only the subject code — look up the real name
+            $subjectCode = $subject;
+            $subject     = $subjectLookup[$subject];
+        } elseif ($subjectCode !== '' && isset($subjectLookup[$subjectCode]) && $subject === '') {
+            // Have an explicit code column but no name column — look up from code
+            $subject = $subjectLookup[$subjectCode];
+        }
+
+        // ชั้น = กลุ่มเรียน/ห้องนักเรียน (เช่น 205 = ม.2 ห้อง 5)
+        // ห้องเรียน = ห้องที่ครูไปสอนจริง (เช่น 321 = ห้อง 321 ในอาคาร)
+        // ถ้ามีทั้งสองคอลัมน์: ชั้น → class_name, ห้องเรียน → room_location
+        // ถ้ามีแค่ ห้องเรียน: ตรวจสอบว่าเป็นรหัสห้องเรียน หรือ ห้องสอน
+        $className     = col($raw, ['รหัสห้อง', 'ห้องตามสมุด', 'class_name', 'กลุ่มเรียน']);
+        $grade_level   = col($raw, ['ระดับชั้น', 'ชั้นเรียน']);
         $room_location = col($raw, ['ห้องที่สอน', 'ห้องสอน', 'สถานที่สอน', 'อาคาร/ห้อง']);
         $chan = col($raw, ['ชั้น']);
         $hong = col($raw, ['ห้อง']);
 
-        // คอลัมน์ "ชั้น" ใน Excel บางไฟล์ใส่รหัสห้อง (101) — อย่าใส่ใน grade_level
+        // "ชั้น" มีลำดับความสำคัญสูงสุดสำหรับ class_name
         if ($chan !== '') {
             $chanIsHomeroom = cnp_classroom_canonical_code($chan) !== null
                 || (bool) preg_match('/^ม\.?\s*\d+\s*\/\s*\d+/u', $chan);
             if ($chanIsHomeroom) {
-                if ($className === '') {
-                    $className = $chan;
-                }
+                if ($className === '') $className = $chan;
             } elseif ($grade_level === '') {
                 $grade_level = $chan;
             }
         }
-        // "ห้อง" แบบรวม: ถ้าเป็นรหัสห้อง → class_name; ถ้าเป็นข้อความที่ตั้ง → room_location
+
+        // "ห้องเรียน": ถ้า ชั้น ได้ set class_name ไปแล้ว → ห้องเรียน คือห้องที่สอนจริง
+        //              ถ้า ชั้น ว่าง → ใช้ ห้องเรียน เป็น class_name (backward compat)
+        $hongRaw = col($raw, ['ห้องเรียน']);
+        if ($hongRaw !== '') {
+            if ($className !== '') {
+                // ชั้น ให้ class_name แล้ว → ห้องเรียน = ที่ตั้งห้องสอน
+                if ($room_location === '') $room_location = $hongRaw;
+            } else {
+                $hongIsHomeroom = cnp_classroom_canonical_code($hongRaw) !== null
+                    || (bool) preg_match('/^ม\.?\s*\d+\s*\/\s*\d+/u', $hongRaw);
+                if ($hongIsHomeroom) {
+                    $className = $hongRaw;
+                } elseif ($room_location === '') {
+                    $room_location = $hongRaw;
+                }
+            }
+        }
+
+        // "ห้อง" (generic column): ถ้าเป็นรหัสห้อง → class_name; ถ้าเป็นชื่อ → room_location
         if ($hong !== '') {
             $hongIsHomeroom = cnp_classroom_canonical_code($hong) !== null
                 || (bool) preg_match('/^ม\.?\s*\d+\s*\/\s*\d+/u', $hong);
@@ -250,12 +291,12 @@ try {
             }
 
             if ($existId) {
-                $pdo->prepare("UPDATE timetable SET subject_name=?, grade_level=?, class_name=?, room_location=?, academic_year=?, semester=?, note=? WHERE id=?")
-                    ->execute([$subject, $grade_level ?: null, $className ?: null, $room_location ?: null, $year, $semester, col($raw, ['หมายเหตุ']), $existId]);
+                $pdo->prepare("UPDATE timetable SET subject_name=?, subject_code=?, grade_level=?, class_name=?, room_location=?, academic_year=?, semester=?, note=? WHERE id=?")
+                    ->execute([$subject, $subjectCode ?: null, $grade_level ?: null, $className ?: null, $room_location ?: null, $year, $semester, col($raw, ['หมายเหตุ']), $existId]);
                 $updateCount++;
             } else {
-                $pdo->prepare("INSERT INTO timetable (teacher_id, day_of_week, period, subject_name, grade_level, class_name, room_location, academic_year, semester, note) VALUES (?,?,?,?,?,?,?,?,?,?)")
-                    ->execute([$teacherPk, $day, $period, $subject, $grade_level ?: null, $className ?: null, $room_location ?: null, $year, $semester, col($raw, ['หมายเหตุ'])]);
+                $pdo->prepare("INSERT INTO timetable (teacher_id, day_of_week, period, subject_name, subject_code, grade_level, class_name, room_location, academic_year, semester, note) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
+                    ->execute([$teacherPk, $day, $period, $subject, $subjectCode ?: null, $grade_level ?: null, $className ?: null, $room_location ?: null, $year, $semester, col($raw, ['หมายเหตุ'])]);
                 
                 // อัปเดต Map เพื่อป้องกันการเพิ่มซ้ำในไฟล์เดียวกัน
                 $insertId = $pdo->lastInsertId();

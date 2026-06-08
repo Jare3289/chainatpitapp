@@ -58,39 +58,6 @@ try {
         }
     }
 
-    // Fetch department head name
-    $dept_head_name = '.......................................................';
-    if (!empty($booking['t_dept'])) {
-        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
-        $stmt_dept->execute([$booking['t_dept']]);
-        $dept_row = $stmt_dept->fetch();
-        if ($dept_row && !empty($dept_row['head_name'])) {
-            $dept_head_name = $dept_row['head_name'];
-        }
-    }
-
-    // Fetch department head name
-    $dept_head_name = '.......................................................';
-    if (!empty($booking['t_dept'])) {
-        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
-        $stmt_dept->execute([$booking['t_dept']]);
-        $dept_row = $stmt_dept->fetch();
-        if ($dept_row && !empty($dept_row['head_name'])) {
-            $dept_head_name = $dept_row['head_name'];
-        }
-    }
-
-    // Fetch department head name
-    $dept_head_name = '.......................................................';
-    if (!empty($booking['t_dept'])) {
-        $stmt_dept = $pdo->prepare("SELECT head_name FROM departments WHERE name_th = ?");
-        $stmt_dept->execute([$booking['t_dept']]);
-        $dept_row = $stmt_dept->fetch();
-        if ($dept_row && !empty($dept_row['head_name'])) {
-            $dept_head_name = $dept_row['head_name'];
-        }
-    }
-
     // Security check: Must be Evaluatee, one of the 3 evaluators, or admin
     $is_allowed = ($curr_user['role'] === 'admin') 
         || ((int)$booking['teacher_id'] === $my_teacher_id)
