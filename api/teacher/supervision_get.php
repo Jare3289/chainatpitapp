@@ -264,6 +264,15 @@ try {
                 $docs_uploaded = true;
             }
 
+            // Parse classroom code: "205" → grade_level="ม.2", class_name="05"
+            $classroom = trim($d['classroom'] ?? '');
+            $grade_level = '';
+            $class_name_parsed = '';
+            if (preg_match('/^([1-6])(\d{2})$/', $classroom, $m)) {
+                $grade_level = 'ม.' . $m[1];
+                $class_name_parsed = (int)$m[2];
+            }
+
             $duty_item = [
                 'id'             => (int)$d['id'],
                 'status'         => $d['status'],
@@ -272,7 +281,10 @@ try {
                 'subject_code'   => $d['subject_code'] ?? '',
                 'subject_name'   => $d['subject_name'] ?? '',
                 'booking_date'   => $d['booking_date'],
-                'class_name'     => $d['class_name'] ?? '',
+                'booking_period' => $d['booking_period'] ?? '',
+                'grade_level'    => $grade_level,
+                'class_name'     => $class_name_parsed,
+                'room_location'  => trim($d['room_number'] ?? ''),
                 'role'           => $role,
                 'role_th'        => $role_th,
                 'docs_uploaded'  => $docs_uploaded,

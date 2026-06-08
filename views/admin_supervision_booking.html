@@ -610,7 +610,7 @@
                                 <strong>วิชา:</strong> ${b.subject_code} ${b.subject_name}
                             </div>
                             <div class="col-12 col-sm-6">
-                                <strong>ชั้น:</strong> ม.${b.classroom} · ห้อง ${b.room_number || '-'}
+                                <strong>ชั้น:</strong> ${b.grade_level}${b.class_name ? '/' + String(b.class_name).padStart(2, '0') : ''} · ห้อง ${b.room_location || '-'}
                             </div>
                             <div class="col-12 col-sm-6 mt-1">
                                 <strong>วันที่:</strong> ${thDate(b.booking_date)}
@@ -626,17 +626,17 @@
                             <div class="col-12 col-md-4 d-flex align-items-center gap-2">
                                 <span class="evaluator-slot-number" style="background:#6366f1; width: 18px; height: 18px; font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; flex-shrink: 0;">1</span>
                                 <span class="text-muted" style="font-size: 0.75rem;">คู่หู:</span>
-                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.peer_name || 'ยังไม่มอบหมาย'}">${b.peer_name && b.peer_name !== '-' ? b.peer_name.split(' ').slice(1).join(' ') || b.peer_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.peer_name || 'ยังไม่มอบหมาย'}">${b.peer_name && b.peer_name !== '-' ? b.peer_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
                             </div>
                             <div class="col-12 col-md-4 d-flex align-items-center gap-2">
                                 <span class="evaluator-slot-number" style="background:#0ea5e9; width: 18px; height: 18px; font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; flex-shrink: 0;">2</span>
                                 <span class="text-muted" style="font-size: 0.75rem;">หัวหน้า:</span>
-                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.head_name || 'ยังไม่มอบหมาย'}">${b.head_name && b.head_name !== '-' ? b.head_name.split(' ').slice(1).join(' ') || b.head_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.head_name || 'ยังไม่มอบหมาย'}">${b.head_name && b.head_name !== '-' ? b.head_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
                             </div>
                             <div class="col-12 col-md-4 d-flex align-items-center gap-2">
                                 <span class="evaluator-slot-number" style="background:#059669; width: 18px; height: 18px; font-size: 0.65rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; flex-shrink: 0;">3</span>
                                 <span class="text-muted" style="font-size: 0.75rem;">วิชาการ:</span>
-                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.academic_name || 'ยังไม่มอบหมาย'}">${b.academic_name && b.academic_name !== '-' ? b.academic_name.split(' ').slice(1).join(' ') || b.academic_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 130px;" title="${b.academic_name || 'ยังไม่มอบหมาย'}">${b.academic_name && b.academic_name !== '-' ? b.academic_name : '<span class="text-muted fw-normal">ยังไม่มอบหมาย</span>'}</span>
                             </div>
                         </div>
                     </div>
@@ -674,7 +674,8 @@
         document.getElementById('wsTeacherMeta').textContent = `${bk.t_dept || ''} · ${bk.t_standing || 'ไม่มีวิทยฐานะ'}`;
         document.getElementById('wsDate').textContent = thDate(bk.booking_date);
         document.getElementById('wsPeriod').textContent = `คาบที่ ${bk.booking_period}`;
-        document.getElementById('wsSubject').textContent = `${bk.subject_code} ${bk.subject_name} (ม.${bk.classroom})`;
+        const classLabel = bk.class_name ? `${bk.grade_level}/${String(bk.class_name).padStart(2, '0')}` : bk.grade_level;
+        document.getElementById('wsSubject').textContent = `${bk.subject_code} ${bk.subject_name} (${classLabel})`;
 
         if (bk.lesson_topic) {
             document.getElementById('wsTopic').textContent = bk.lesson_topic;
@@ -735,6 +736,16 @@
     function populateDropdowns(bk) {
         const teachers = availableData.teachers || [];
         const academicList = availableData.academic_teachers || [];
+        const isMeetingPeriod = availableData.is_meeting_period || false;
+
+        // Hide/disable academic evaluator section if it's a meeting period
+        const acadSlot = document.querySelector('.evaluator-slot:has(#selectAcademic)');
+        if (isMeetingPeriod) {
+            if (acadSlot) acadSlot.style.display = 'none';
+            document.getElementById('selectAcademic').value = '';
+        } else {
+            if (acadSlot) acadSlot.style.display = '';
+        }
 
         // ── Peer (same dept, not evaluatee) ──
         let peerHtml = '<option value="">-- เลือกครูคู่หู --</option>';

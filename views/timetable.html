@@ -594,9 +594,10 @@ const PERIOD_COLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf
 // สีประจำวันแบบไทย (จันทร์=เหลือง, อังคาร=ชมพู, พุธ=เขียว, พฤหัส=ส้ม, ศุกร์=ฟ้า, เสาร์=ม่วง, อาทิตย์=แดง)
 const DAY_COLORS = ['#fbbf24','#ec4899','#10b981','#f97316','#3b82f6','#a855f7','#ef4444'];
 
-// ล็อกคาบประจำ — วันพุธ (3) คาบ 8 = ชุมนุม
+// ล็อกคาบประจำ — วันพุธ (3) คาบ 8 = ชุมนุม, วันพฤหัส (4) คาบ 8 = ลูกเสือเนตรนารี
 const LOCKED_SLOTS = [
-    { day_of_week: 3, period: 8, subject_name: 'ชุมนุม', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true }
+    { day_of_week: 3, period: 8, subject_name: 'ชุมนุม', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true },
+    { day_of_week: 4, period: 8, subject_name: 'ลูกเสือเนตรนารี', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true }
 ];
 
 const todayDow = new Date().getDay(); // 0=Sun
@@ -1182,9 +1183,11 @@ function buildMap(data) {
 function getPeriodRange() {
     if (currentUserRole === 'student') return { startP: 1, endP: 9 };
     if (currentUserRole === 'admin' && currentTimetableMode === 'class') return { startP: 1, endP: 9 };
+    if (currentUserRole === 'admin' && currentTimetableMode === 'room') return { startP: 1, endP: 9 };
     // ครูดูตารางเรียน (ห้องที่สอน / ห้องที่ปรึกษา) → ใช้ช่วงคาบเดียวกับนักเรียน
     if (currentUserRole === 'teacher' && (roleViewMode === 'other' || roleViewMode === 'middle')) return { startP: 1, endP: 9 };
-    return { startP: 0, endP: 10 };
+    // Admin teacher mode + teacher self mode → 0–11
+    return { startP: 0, endP: 11 };
 }
 
 async function loadRoomLocationOptions() {
