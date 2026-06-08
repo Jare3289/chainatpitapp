@@ -141,6 +141,37 @@ try {
 
     echo "<p style='color:green;'>✓ ปรับปรุงโครงสร้างคอลัมน์ประเมินผลแผน 41 ข้อ สำเร็จ</p>";
 
+    // 3. Create supervision_docs table (เก็บ path ไฟล์ PDF ทั้ง 4 ประเภท)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `supervision_docs` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `booking_id` INT NOT NULL UNIQUE,
+      `doc_subject_structure` VARCHAR(500) DEFAULT NULL,
+      `doc_unit_structure`    VARCHAR(500) DEFAULT NULL,
+      `doc_unit_plan`         VARCHAR(500) DEFAULT NULL,
+      `doc_lesson_plan`       VARCHAR(500) DEFAULT NULL,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX (`booking_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    echo "<p style='color:green;'>✓ สร้างตาราง supervision_docs สำเร็จ</p>";
+
+    // 4. Create supervision_doc_reads table (เก็บว่ากรรมการอ่านเอกสารแล้วหรือยัง)
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `supervision_doc_reads` (
+      `id` INT AUTO_INCREMENT PRIMARY KEY,
+      `booking_id` INT NOT NULL,
+      `evaluator_id` INT NOT NULL,
+      `role` VARCHAR(20) NOT NULL,
+      `read_subject_structure` TIMESTAMP NULL DEFAULT NULL,
+      `read_unit_structure`    TIMESTAMP NULL DEFAULT NULL,
+      `read_unit_plan`         TIMESTAMP NULL DEFAULT NULL,
+      `read_lesson_plan`       TIMESTAMP NULL DEFAULT NULL,
+      `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY `booking_evaluator` (`booking_id`, `evaluator_id`),
+      INDEX (`booking_id`),
+      INDEX (`evaluator_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    echo "<p style='color:green;'>✓ สร้างตาราง supervision_doc_reads สำเร็จ</p>";
 
     // Create upload directory for documents if not exists
     $upload_dir = '../uploads/supervision';

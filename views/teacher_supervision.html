@@ -5,314 +5,180 @@
     <meta charset="UTF-8" />
     <title>ระบบนิเทศการสอน | CNP APP</title>
     <meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
-    
-    <!-- Fonts & Icons -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700;900&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <!-- Core CSS -->
     <link rel="stylesheet" href="../public/css/style.css">
-    
+
     <style>
         body { font-family: 'Google Sans', 'Sarabun', sans-serif; background-color: #f4f7fa; color: #1e293b; }
-        
-        .bg-gradient-navy {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        }
+
+        .bg-gradient-navy { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
         .banner-icon-bg {
-            position: absolute;
-            right: -30px;
-            bottom: -30px;
-            font-size: 12rem;
-            opacity: 0.1;
-            transform: rotate(-15deg);
-            color: white;
-            pointer-events: none;
-            z-index: 0;
+            position: absolute; right: -30px; bottom: -30px;
+            font-size: 12rem; opacity: 0.1; transform: rotate(-15deg);
+            color: white; pointer-events: none; z-index: 0;
         }
         .text-navy { color: #1e3a8a; }
 
-        /* Advice Box - Premium Light Theme */
         .advice-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-left: 5px solid #3b82f6;
-            border-radius: 16px;
-            padding: 20px 25px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
+            background: #f8fafc; border: 1px solid #e2e8f0;
+            border-left: 5px solid #3b82f6; border-radius: 16px;
+            padding: 20px 25px; display: flex; gap: 20px; align-items: center;
         }
-        .advice-icon { 
-            font-size: 1.8rem; 
-            color: #3b82f6; 
-            background: #eff6ff;
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+        .advice-icon {
+            font-size: 1.8rem; color: #3b82f6; background: #eff6ff;
+            width: 50px; height: 50px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         .advice-content h6 { color: #1e3a8a; font-weight: 900; margin-bottom: 5px; font-size: 1.05rem; }
         .advice-content p { font-size: 0.9rem; color: #475569; margin-bottom: 0; line-height: 1.6; }
-        
+
         .advice-toggle-btn {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            margin-top: 25px;
-            transition: all 0.3s;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;
+            padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            margin-top: 25px; transition: all 0.3s;
         }
         .advice-toggle-btn:hover { background: #f1f5f9; }
         .advice-toggle-btn[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
         .advice-icon-small {
-            color: #3b82f6;
-            background: #eff6ff;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
+            color: #3b82f6; background: #eff6ff; width: 36px; height: 36px;
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.2rem; flex-shrink: 0;
         }
 
-        /* Horizontal Stepper */
+        /* Stepper */
         .super-stepper {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-            margin-bottom: 30px;
-            margin-top: 10px;
-            z-index: 2;
+            display: flex; justify-content: space-between; position: relative;
+            margin-bottom: 30px; margin-top: 10px; z-index: 2;
         }
         .stepper-line {
-            position: absolute;
-            top: 25px;
-            left: 30px;
-            right: 30px;
-            height: 4px;
-            background: #f1f5f9;
-            border-radius: 2px;
-            z-index: 1;
+            position: absolute; top: 25px; left: 30px; right: 30px;
+            height: 4px; background: #f1f5f9; border-radius: 2px; z-index: 1;
         }
         .stepper-line-active {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: #10b981;
-            width: 0%;
-            border-radius: 2px;
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: #10b981; width: 0%; border-radius: 2px;
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         @keyframes pulse-blue {
-            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
-            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
+            100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
         }
         .super-step {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            flex: 1;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
+            position: relative; z-index: 2; text-align: center;
+            flex: 1; cursor: pointer; transition: all 0.2s ease-in-out;
         }
-        .super-step:hover {
-            transform: translateY(-2px);
-        }
+        .super-step:hover { transform: translateY(-2px); }
         .step-circle {
-            width: 50px;
-            height: 50px;
-            background: #f8fafc;
-            border: 3px solid #e2e8f0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            font-size: 1.2rem;
-            color: #94a3b8;
-            transition: all 0.3s ease;
+            width: 50px; height: 50px; background: #f8fafc; border: 3px solid #e2e8f0;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 10px; font-size: 1.2rem; color: #94a3b8; transition: all 0.3s ease;
         }
         .super-step:hover .step-circle {
-            transform: scale(1.15);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-color: #3b82f6;
-            color: #3b82f6;
+            transform: scale(1.15); box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-color: #3b82f6; color: #3b82f6;
         }
-        .super-step.completed .step-circle {
-            background: #10b981;
-            border-color: #10b981;
-            color: white;
-        }
-        .super-step.completed:hover .step-circle {
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-            border-color: #10b981;
-            color: white;
-        }
+        .super-step.completed .step-circle { background: #10b981; border-color: #10b981; color: white; }
+        .super-step.completed:hover .step-circle { box-shadow: 0 5px 15px rgba(16,185,129,0.3); border-color: #10b981; color: white; }
         .super-step.active .step-circle {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
-            animation: pulse-blue 2s infinite;
-            transform: scale(1.1);
+            background: #3b82f6; border-color: #3b82f6; color: white;
+            animation: pulse-blue 2s infinite; transform: scale(1.1);
         }
-        .super-step.active:hover .step-circle {
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-            border-color: #3b82f6;
-            color: white;
-        }
+        .super-step.active:hover .step-circle { box-shadow: 0 5px 15px rgba(59,130,246,0.4); }
         .step-label { font-weight: 800; font-size: 0.85rem; margin-bottom: 2px; color: #1e293b; }
         .step-subtext { font-size: 0.7rem; color: #64748b; font-weight: 600; }
 
-        /* Action Cards Grid */
+        /* Action Cards */
         .action-grid-5 {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 15px; margin-bottom: 30px;
         }
         .action-box {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            text-decoration: none !important;
-            transition: all 0.3s;
+            background: white; border-radius: 20px; padding: 20px;
+            border: 1px solid #e2e8f0; display: flex; align-items: center;
+            gap: 15px; text-decoration: none !important; transition: all 0.3s;
         }
-        .action-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(30, 58, 138, 0.08);
-            border-color: #3b82f6;
-        }
+        .action-box:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(30,58,138,0.08); border-color: #3b82f6; }
         .action-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 12px;
-            background: #eff6ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: #3b82f6;
-            flex-shrink: 0;
+            width: 45px; height: 45px; border-radius: 12px; background: #eff6ff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; color: #3b82f6; flex-shrink: 0;
         }
-        .action-box:hover .action-icon {
-            background: #1e3a8a;
-            color: white;
-        }
+        .action-box:hover .action-icon { background: #1e3a8a; color: white; }
         .action-info h6 { font-weight: 900; font-size: 0.95rem; margin-bottom: 2px; color: #1e293b; }
         .action-info p { font-size: 0.75rem; color: #64748b; margin-bottom: 0; font-weight: 600; }
         .action-arrow { margin-left: auto; color: #cbd5e1; font-size: 0.85rem; }
 
-        /* Circular Progress Indicator - Widget Style */
+        /* Progress Widget */
         .circular-progress-widget {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            background: white; border-radius: 24px; padding: 30px;
+            border: 1px solid #e2e8f0; text-align: center; height: 100%;
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
         .progress-circle {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 12px solid #f1f5f9;
-            border-top: 12px solid #10b981;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 2.2rem;
-            margin: 0 auto 20px;
-            color: #1e3a8a;
-            position: relative;
+            width: 140px; height: 140px; border-radius: 50%;
+            border: 12px solid #f1f5f9; border-top: 12px solid #10b981;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; font-weight: 900; font-size: 2.2rem;
+            margin: 0 auto 20px; color: #1e3a8a; position: relative;
         }
         .progress-circle small { font-size: 0.9rem; opacity: 0.6; font-weight: 600; margin-top: -5px; }
 
         /* Bottom Sections */
-        .section-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .section-title h5 { font-weight: 800; font-size: 1.1rem; margin-bottom: 0; }
         .tab-badge {
-            font-size: 0.75rem;
-            font-weight: 850;
-            padding: 2px 10px;
-            border-radius: 50px;
-            margin-left: 6px;
+            font-size: 0.75rem; font-weight: 850; padding: 2px 10px;
+            border-radius: 50px; margin-left: 6px;
         }
-        
         .dashboard-panel {
-            background: white;
-            border-radius: 24px;
-            padding: 25px;
-            border: 1px solid #e2e8f0;
-            height: 100%;
+            background: white; border-radius: 24px; padding: 25px;
+            border: 1px solid #e2e8f0; height: 100%;
         }
 
-        .list-item-modern {
-            padding: 15px 0;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            position: relative;
+        /* Supervision Role Cards */
+        .super-role-card {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;
+            padding: 15px; margin-bottom: 12px; transition: all 0.2s;
         }
-        .list-item-modern:last-child { border-bottom: none; }
-        
-        .date-badge {
-            width: 45px;
-            background: #f8fafc;
-            border-radius: 10px;
-            text-align: center;
-            padding: 8px 0;
-            flex-shrink: 0;
-        }
-        .date-day { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; }
-        .date-num { display: block; font-size: 1.2rem; font-weight: 900; color: #1e3a8a; line-height: 1; }
+        .super-role-card:last-child { margin-bottom: 0; }
+        .super-role-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.07); }
+        .super-role-card a { text-decoration: none; color: inherit; }
 
-        .pending-tag {
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 2px 10px;
-            border-radius: 4px;
-            background: #fde6e6;
-            color: #ef4444;
-            display: inline-block;
+        .eval-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.68rem; font-weight: 700; padding: 3px 9px;
+            border-radius: 20px; white-space: nowrap;
         }
-        .pending-tag.yellow {
-            background: #fef9c3;
-            color: #a16207;
+        .eval-done { background: #dcfce7; color: #16a34a; }
+        .eval-pending { background: #fef9c3; color: #a16207; }
+        .eval-waiting { background: #f1f5f9; color: #64748b; }
+
+        /* Who-supervises-me evaluator card */
+        .evaluator-row {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+        }
+        .evaluator-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .evaluator-avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            object-fit: cover; flex-shrink: 0;
+            border: 2px solid #e2e8f0;
+        }
+        .role-pill {
+            font-size: 0.65rem; font-weight: 800; padding: 2px 8px;
+            border-radius: 20px; background: #eff6ff; color: #1d4ed8;
+            white-space: nowrap;
         }
 
-        @media (max-width: 1200px) {
-            .action-grid-5 { grid-template-columns: repeat(3, 1fr); }
-        }
+        @media (max-width: 1200px) { .action-grid-5 { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 992px) {
             .action-grid-5 { grid-template-columns: repeat(2, 1fr); }
             .circular-progress-widget { height: auto; padding: 25px; }
@@ -331,13 +197,13 @@
         <main class="main-panel d-flex flex-column min-vh-100" id="main">
             <div class="app-content page-content flex-grow-1">
                 <div class="container-fluid">
-                    
+
                     <!-- Header Banner -->
                     <div class="row g-4 mb-4">
                         <div class="col-12">
                             <div class="card border-0 bg-gradient-navy rounded-4 position-relative overflow-hidden shadow-lg">
                                 <i class="fas fa-chalkboard-teacher banner-icon-bg"></i>
-                                <div class="card-body p-4 p-md-5 text-white position-relative" style="z-index: 1;">
+                                <div class="card-body p-4 p-md-5 text-white position-relative" style="z-index:1;">
                                     <h1 class="display-5 fw-black mb-1">ภาพรวมการนิเทศการสอน</h1>
                                     <p class="lead mb-0 opacity-75">ปีการศึกษา 2569 | ภาคเรียนที่ 1</p>
                                 </div>
@@ -345,17 +211,16 @@
                         </div>
                     </div>
 
-                    <!-- Process & Progress Section -->
+                    <!-- Stepper & Progress -->
                     <div class="row g-4 mb-4">
-                        <!-- Stepper & Advice -->
                         <div class="col-lg-8">
                             <div class="dashboard-panel">
-                                <div class="text-muted small fw-bold mb-4" id="stepper-title-desc">ขั้นตอนกระบวนการนิเทศการสอนของคุณ</div>
-                                
-                                <!-- Stepper (6 Steps) -->
+                                <div class="text-muted small fw-bold mb-4">ขั้นตอนกระบวนการนิเทศการสอนของคุณ</div>
+
+                                <!-- Stepper (5 Steps) -->
                                 <div class="super-stepper" id="stepper-container">
                                     <div class="stepper-line">
-                                        <div class="stepper-line-active" id="stepper-line-progress" style="width: 0%;"></div>
+                                        <div class="stepper-line-active" id="stepper-line-progress" style="width:0%;"></div>
                                     </div>
                                     <div class="super-step" id="step-1">
                                         <div class="step-circle"><i class="bi bi-calendar-plus"></i></div>
@@ -364,48 +229,40 @@
                                     </div>
                                     <div class="super-step" id="step-2">
                                         <div class="step-circle"><i class="bi bi-file-earmark-arrow-up"></i></div>
-                                        <div class="step-label">รอส่งแผน</div>
+                                        <div class="step-label">ส่งแผน</div>
                                         <div class="step-subtext">ครูผู้รับนิเทศ</div>
                                     </div>
                                     <div class="super-step" id="step-3">
-                                        <div class="step-circle"><i class="bi bi-file-earmark-check"></i></div>
-                                        <div class="step-label">ตรวจแผน</div>
-                                        <div class="step-subtext">กรรมการตรวจ</div>
+                                        <div class="step-circle"><i class="bi bi-eye"></i></div>
+                                        <div class="step-label">นิเทศการสอน</div>
+                                        <div class="step-subtext">ประเมินเอกสาร&amp;ชั้นเรียน</div>
                                     </div>
                                     <div class="super-step" id="step-4">
-                                        <div class="step-circle"><i class="bi bi-eye"></i></div>
-                                        <div class="step-label">การนิเทศ</div>
-                                        <div class="step-subtext">นิเทศห้องเรียน</div>
-                                    </div>
-                                    <div class="super-step" id="step-5">
                                         <div class="step-circle"><i class="bi bi-pencil-square"></i></div>
                                         <div class="step-label">หลังสอน</div>
                                         <div class="step-subtext">บันทึกหลังแผน</div>
                                     </div>
-                                    <div class="super-step" id="step-6">
+                                    <div class="super-step" id="step-5">
                                         <div class="step-circle"><i class="bi bi-check-all"></i></div>
                                         <div class="step-label">พิมพ์เล่ม</div>
                                         <div class="step-subtext">เสร็จกระบวนการ</div>
                                     </div>
                                 </div>
 
-                                <!-- Advice Box (Collapsible) -->
-                                <button class="btn w-100 text-start advice-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#adviceCollapse" aria-expanded="false" aria-controls="adviceCollapse">
+                                <!-- Advice (Collapsible) -->
+                                <button class="btn w-100 text-start advice-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#adviceCollapse" aria-expanded="false">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="advice-icon-small"><i class="bi bi-stars"></i></div>
                                         <div class="flex-grow-1">
-                                            <h6 class="mb-0 fw-bold text-navy" style="font-size: 0.9rem;">คำแนะนำจากระบบสำหรับการดำเนินงานขณะนี้</h6>
-                                            <div class="text-muted small" style="font-size: 0.75rem;">แตะเพื่อดูรายละเอียดคำแนะนำ...</div>
+                                            <h6 class="mb-0 fw-bold text-navy" style="font-size:0.9rem;">คำแนะนำจากระบบสำหรับการดำเนินงานขณะนี้</h6>
+                                            <div class="text-muted small" style="font-size:0.75rem;">แตะเพื่อดูรายละเอียด...</div>
                                         </div>
-                                        <i class="bi bi-chevron-down text-muted" style="transition: 0.3s;"></i>
+                                        <i class="bi bi-chevron-down text-muted" style="transition:0.3s;"></i>
                                     </div>
                                 </button>
-                                
                                 <div class="collapse mt-3" id="adviceCollapse">
                                     <div class="advice-box" id="advice-content-box">
-                                        <div class="advice-icon">
-                                            <i class="bi bi-stars"></i>
-                                        </div>
+                                        <div class="advice-icon"><i class="bi bi-stars"></i></div>
                                         <div class="advice-content">
                                             <p class="mb-0">กำลังวิเคราะห์ข้อมูลขั้นตอนนิเทศของคุณ...</p>
                                         </div>
@@ -414,12 +271,11 @@
                             </div>
                         </div>
 
-                        <!-- Overall Progress Widget -->
                         <div class="col-lg-4">
                             <div class="circular-progress-widget">
                                 <div class="text-muted small fw-black mb-3">ความคืบหน้าโดยรวม</div>
                                 <div class="progress-circle" id="overall-progress-circle">
-                                    <span id="overall-steps-text">0/6</span>
+                                    <span id="overall-steps-text">0/5</span>
                                     <small>ขั้นตอน</small>
                                 </div>
                                 <div class="fw-black fs-2 text-navy" id="overall-percent-text">0%</div>
@@ -428,87 +284,83 @@
                         </div>
                     </div>
 
-                    <!-- 5 Action Menu Cards -->
-                    <div class="action-grid-5 animate-up" style="animation-delay: 0.15s">
+                    <!-- Action Cards -->
+                    <div class="action-grid-5 animate-up" style="animation-delay:0.15s">
                         <a href="supervision_booking.html" class="action-box">
                             <div class="action-icon"><i class="bi bi-calendar-check"></i></div>
-                            <div class="action-info">
-                                <h6>จองคิวนิเทศ</h6>
-                                <p>กำหนดและนัดวัน</p>
-                            </div>
+                            <div class="action-info"><h6>จองคิวนิเทศ</h6><p>กำหนดและนัดวัน</p></div>
                             <i class="bi bi-chevron-right action-arrow"></i>
                         </a>
                         <a href="supervision_docs.html" class="action-box">
                             <div class="action-icon"><i class="bi bi-file-earmark-pdf"></i></div>
-                            <div class="action-info">
-                                <h6>เอกสารนิเทศ</h6>
-                                <p>ส่งแผนการสอน</p>
-                            </div>
+                            <div class="action-info"><h6>เอกสารนิเทศ</h6><p>ส่งแผนการสอน</p></div>
                             <i class="bi bi-chevron-right action-arrow"></i>
                         </a>
                         <a href="supervision_evaluate.html" class="action-box">
                             <div class="action-icon"><i class="bi bi-star"></i></div>
-                            <div class="action-info">
-                                <h6>การประเมินผล</h6>
-                                <p>บันทึกคะแนนประเมิน</p>
-                            </div>
+                            <div class="action-info"><h6>ประเมินผล</h6><p>บันทึกคะแนนประเมิน</p></div>
                             <i class="bi bi-chevron-right action-arrow"></i>
                         </a>
                         <a href="supervision_post_teach.html" class="action-box">
                             <div class="action-icon"><i class="bi bi-pencil-square"></i></div>
-                            <div class="action-info">
-                                <h6>บันทึกหลังแผน</h6>
-                                <p>บันทึกหลังการสอน</p>
-                            </div>
+                            <div class="action-info"><h6>บันทึกหลังแผน</h6><p>บันทึกหลังการสอน</p></div>
                             <i class="bi bi-chevron-right action-arrow"></i>
                         </a>
                         <a href="supervision_print.html" class="action-box">
                             <div class="action-icon"><i class="bi bi-printer"></i></div>
-                            <div class="action-info">
-                                <h6>พิมพ์รายงาน</h6>
-                                <p>ดาวน์โหลดเล่มนิเทศ</p>
-                            </div>
+                            <div class="action-info"><h6>พิมพ์รายงาน</h6><p>ดาวน์โหลดเล่มนิเทศ</p></div>
                             <i class="bi bi-chevron-right action-arrow"></i>
                         </a>
                     </div>
 
-                    <!-- Bottom Grid Details -->
-                    <div class="row g-4 animate-up" style="animation-delay: 0.2s">
-                        <!-- Column 1: Pending Tasks (งานค้างทำ) -->
+                    <!-- Bottom: 3 คอลัมน์ -->
+                    <div class="row g-4 animate-up" style="animation-delay:0.2s">
+
+                        <!-- ภาระงานที่ต้องทำ -->
                         <div class="col-lg-4">
                             <div class="section-title">
-                                <h5><i class="bi bi-clipboard-check text-danger me-2"></i>งานค้างทำ <span class="tab-badge bg-danger bg-opacity-10 text-danger" id="pending-count">0</span></h5>
+                                <h5>
+                                    <i class="bi bi-clipboard-check text-danger me-2"></i>ภาระงานที่ต้องทำ
+                                    <span class="tab-badge bg-danger bg-opacity-10 text-danger" id="pending-count">0</span>
+                                </h5>
                             </div>
                             <div class="dashboard-panel">
                                 <div id="pending-tasks-list">
-                                    <div class="text-center py-5 text-muted small">กำลังโหลดรายการงานค้าง...</div>
+                                    <div class="text-center py-5 text-muted small">กำลังโหลด...</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Column 2: Upcoming Schedule (กำลังจะมาถึง) -->
+                        <!-- เป็นกรรมการนิเทศให้กับ -->
                         <div class="col-lg-4">
                             <div class="section-title">
-                                <h5><i class="bi bi-calendar3 text-primary me-2"></i>กำหนดการที่จะมาถึง</h5>
-                            </div>
-                            <div class="dashboard-panel">
-                                <div id="upcoming-list">
-                                    <div class="text-center py-5 text-muted small">ไม่มีคิวนิเทศเร็วๆ นี้</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Column 3: Observees / Duties (ผู้ที่ฉันต้องนิเทศ) -->
-                        <div class="col-lg-4">
-                            <div class="section-title">
-                                <h5><i class="bi bi-people text-success me-2"></i>ผู้ที่ฉันต้องนิเทศ <span class="tab-badge bg-success bg-opacity-10 text-success" id="supervise-count">0</span></h5>
+                                <h5>
+                                    <i class="bi bi-people text-primary me-2"></i>เป็นกรรมการนิเทศให้กับ
+                                    <span class="tab-badge bg-primary bg-opacity-10 text-primary" id="supervise-count">0</span>
+                                </h5>
                             </div>
                             <div class="dashboard-panel">
                                 <div id="supervise-list">
-                                    <div class="text-center py-5 text-muted small">ไม่มีภาระงานนิเทศผู้อื่น</div>
+                                    <div class="text-center py-5 text-muted small">กำลังโหลด...</div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- รับการนิเทศจาก -->
+                        <div class="col-lg-4">
+                            <div class="section-title">
+                                <h5>
+                                    <i class="bi bi-person-check text-success me-2"></i>รับการนิเทศจาก
+                                    <span class="tab-badge bg-success bg-opacity-10 text-success" id="evaluator-count">0</span>
+                                </h5>
+                            </div>
+                            <div class="dashboard-panel">
+                                <div id="evaluator-list">
+                                    <div class="text-center py-5 text-muted small">กำลังโหลด...</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
@@ -517,7 +369,6 @@
         </main>
     </div>
 
-    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../public/js/main.js"></script>
@@ -526,9 +377,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             currentUser = await checkAuth(['teacher', 'admin']);
-            if (currentUser) {
-                await loadDashboardData();
-            }
+            if (currentUser) await loadDashboardData();
         });
 
         async function loadDashboardData() {
@@ -536,307 +385,269 @@
                 const res = await fetch('../api/teacher/supervision_get.php');
                 const data = await res.json();
                 if (data.success) {
-                    // Update Stepper
-                    let step = 1;
-                    let allCompleted = false;
-                    if (data.booking) {
-                        if (data.booking.status === 'pending') {
-                            step = 2; // Step 1 (จองคิว) is completed, currently at Step 2 (waiting for queue approval)
-                        } else if (data.booking.status === 'completed' || (data.current_step === 6 && data.booking.post_teaching_record)) {
-                            step = 6;
-                            allCompleted = true; // All steps completed
-                        } else {
-                            step = data.current_step;
-                        }
-                    }
-                    updateStepper(step, !!data.booking, data.booking, allCompleted);
-                    
-                    // Render Pending Tasks
+                    updateStepper(data.current_step, !!data.booking, data.booking);
                     renderPendingTasks(data);
-                    
-                    // Render Upcoming Lists
-                    renderUpcoming(data.booking);
-
-                    // Render Observees (Duties)
-                    renderObservees(data.duties);
+                    renderSupervising(data.duties);
+                    renderSupervisors(data.booking, data.evaluations_status);
                 }
             } catch (err) {
-                console.error("Error loading supervision dashboard data: ", err);
+                console.error('supervision dashboard error:', err);
             }
         }
 
-        function updateStepper(step, hasBooking = true, booking = null, allCompleted = false) {
-            const stepsCount = 6;
-            let progress = ((step - 1) / (stepsCount - 1)) * 100;
-            if (allCompleted) {
-                progress = 100;
-            }
-            
-            const line = document.getElementById('stepper-line-progress');
-            if (line) line.style.width = progress + '%';
+        // Map API current_step (1-6) → display step (1-5)
+        // API: 1=จอง, 2=รอส่งแผน, 3=ตรวจแผน, 4=นิเทศห้อง, 5=หลังสอน, 6=พิมพ์
+        // New: 1=จอง,    2=ส่งแผน,     3=นิเทศการสอน(3&4),    4=หลังสอน,   5=พิมพ์
+        function apiStepToDisplay(apiStep) {
+            if (apiStep <= 2) return apiStep;
+            if (apiStep <= 4) return 3; // ตรวจแผน + นิเทศห้องเรียน → "นิเทศการสอน"
+            if (apiStep === 5) return 4;
+            return 5;
+        }
 
-            const stepIcons = [
-                'bi-calendar-plus',
-                'bi-file-earmark-arrow-up',
-                'bi-file-earmark-check',
-                'bi-eye',
-                'bi-pencil-square',
-                'bi-check-all'
-            ];
+        function updateStepper(apiStep, hasBooking, booking) {
+            const STEPS = 5;
+            const allCompleted = apiStep === 6 && booking && booking.post_teaching_record;
+            const displayStep = allCompleted ? STEPS + 1 : apiStepToDisplay(apiStep);
+            const progress = allCompleted ? 100 : ((displayStep - 1) / (STEPS - 1)) * 100;
 
-            const subtexts = [
-                'รออนุมัติ',
-                'ครูผู้รับนิเทศ',
-                'กรรมการตรวจ',
-                'นิเทศห้องเรียน',
-                'บันทึกหลังแผน',
-                'เสร็จกระบวนการ'
-            ];
+            document.getElementById('stepper-line-progress').style.width = progress + '%';
 
-            const stepLinks = [
-                'supervision_booking.html',
-                'supervision_docs.html',
-                'supervision_docs.html',
-                'supervision_evaluate.html',
-                'supervision_post_teach.html',
-                'supervision_print.html'
-            ];
+            const icons    = ['bi-calendar-plus','bi-file-earmark-arrow-up','bi-eye','bi-pencil-square','bi-check-all'];
+            const subtexts = ['รออนุมัติ','ครูผู้รับนิเทศ','ประเมินเอกสาร&ชั้นเรียน','บันทึกหลังแผน','เสร็จกระบวนการ'];
+            const links    = ['supervision_booking.html','supervision_docs.html','supervision_evaluate.html','supervision_post_teach.html','supervision_print.html'];
 
-            for (let i = 1; i <= stepsCount; i++) {
-                const stepEl = document.getElementById('step-' + i);
-                if (!stepEl) continue;
+            for (let i = 1; i <= STEPS; i++) {
+                const el = document.getElementById('step-' + i);
+                if (!el) continue;
+                el.classList.remove('active', 'completed');
+                el.onclick = () => { window.location.href = links[i - 1]; };
 
-                stepEl.classList.remove('active', 'completed');
-                
-                // Add click redirection to make each step card interactive
-                stepEl.onclick = () => {
-                    window.location.href = stepLinks[i - 1];
-                };
-
-                if (allCompleted || i < step) {
-                    stepEl.classList.add('completed');
-                    stepEl.querySelector('.step-circle').innerHTML = '<i class="bi bi-check-lg"></i>';
-                    stepEl.querySelector('.step-subtext').innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>เสร็จแล้ว</span>';
-                } else if (i === step) {
-                    stepEl.classList.add('active');
-                    stepEl.querySelector('.step-circle').innerHTML = `<i class="bi ${stepIcons[i - 1]}"></i>`;
+                if (allCompleted || i < displayStep) {
+                    el.classList.add('completed');
+                    el.querySelector('.step-circle').innerHTML = '<i class="bi bi-check-lg"></i>';
+                    el.querySelector('.step-subtext').innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>เสร็จแล้ว</span>';
+                } else if (i === displayStep) {
+                    el.classList.add('active');
+                    el.querySelector('.step-circle').innerHTML = `<i class="bi ${icons[i-1]}"></i>`;
                     if (i === 1 && !hasBooking) {
-                        stepEl.querySelector('.step-subtext').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i>ยังไม่ได้จอง</span>';
-                    } else if (i === 2 && booking && booking.status === 'pending') {
-                        stepEl.querySelector('.step-subtext').innerHTML = '<span class="text-warning fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px; border-width: 2px;"></i>รออนุมัติคิว</span>';
+                        el.querySelector('.step-subtext').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i>ยังไม่ได้จอง</span>';
+                    } else if (i === 1 && booking?.status === 'pending') {
+                        el.querySelector('.step-subtext').innerHTML = '<span class="text-warning fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;border-width:2px;"></i>รออนุมัติคิว</span>';
                     } else {
-                        stepEl.querySelector('.step-subtext').innerHTML = `<span class="text-primary fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width: 10px; height: 10px; border-width: 2px;"></i>กำลังทำ</span>`;
+                        el.querySelector('.step-subtext').innerHTML = `<span class="text-primary fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;border-width:2px;"></i>กำลังทำ</span>`;
                     }
                 } else {
-                    stepEl.querySelector('.step-circle').innerHTML = `<i class="bi ${stepIcons[i - 1]}"></i>`;
-                    stepEl.querySelector('.step-subtext').textContent = subtexts[i - 1];
+                    el.querySelector('.step-circle').innerHTML = `<i class="bi ${icons[i-1]}"></i>`;
+                    el.querySelector('.step-subtext').textContent = subtexts[i - 1];
                 }
             }
 
-            const percent = Math.round(progress);
-            const completedCount = allCompleted ? stepsCount : (step - (booking && booking.status === 'pending' ? 1 : 0));
-            document.getElementById('overall-steps-text').textContent = `${completedCount}/${stepsCount}`;
-            document.getElementById('overall-percent-text').textContent = `${percent}%`;
-            
-            const desc = document.getElementById('overall-status-desc');
-            const descriptions = [
-                'จองคิวนิเทศสำเร็จ (รออนุมัติ)',
-                'ผ่านการอนุมัติ (รอบันทึก/ส่งแผนการสอน)',
-                'ประเมินแผนการจัดการเรียนรู้ (อยู่ระหว่างการประเมิน)',
-                'การนิเทศในห้องเรียนเสร็จสิ้น (รอกรรมการลงผล)',
-                'รอส่งรายงานบันทึกผลสะท้อนหลังการจัดการเรียนรู้',
-                'เสร็จสิ้นกระบวนการนิเทศทั้งหมด เรียบร้อยแล้ว'
-            ];
-            
-            if (!hasBooking) {
-                desc.textContent = 'ยังไม่ได้เริ่มต้นจองคิวนิเทศ';
-            } else if (allCompleted) {
-                desc.textContent = 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด เรียบร้อยแล้ว';
-            } else if (booking && booking.status === 'pending') {
-                desc.textContent = 'จองคิวนิเทศสำเร็จ (รออนุมัติ)';
-            } else {
-                desc.textContent = descriptions[step - 1] || 'รอเริ่มต้นการจอง';
-            }
+            // Progress widget
+            const completedCount = allCompleted ? STEPS : (displayStep - 1);
+            document.getElementById('overall-steps-text').textContent = `${completedCount}/${STEPS}`;
+            document.getElementById('overall-percent-text').textContent = `${Math.round(progress)}%`;
 
-            // AI Advice Box
-            const adviceBox = document.getElementById('advice-content-box');
+            const statusDescs = [
+                'ยังไม่ได้เริ่มต้นจองคิวนิเทศ',
+                'จองคิวสำเร็จ (รออนุมัติหรือรอส่งแผน)',
+                'อยู่ระหว่างการนิเทศการสอน',
+                'รอบันทึกผลสะท้อนหลังการสอน',
+                'เสร็จสิ้นกระบวนการนิเทศทั้งหมด',
+            ];
+            document.getElementById('overall-status-desc').textContent = allCompleted
+                ? 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด'
+                : (statusDescs[displayStep - 1] || 'รอเริ่มต้นการจอง');
+
+            // Advice
             const advices = [
-                'กรุณาเตรียมรหัสวิชา วันเวลาห้องเรียน และรายชื่อกรรมการ เพื่อกรอกจองคิวจัดตารางการนิเทศ',
-                'ฝ่ายวิชาการอนุมัติวันนิเทศเรียบร้อยแล้ว กรุณาทำการอัปโหลดไฟล์แผนการจัดการเรียนรู้ (PDF/DOCX) ส่งต่อให้คณะกรรมการประเมินล่วงหน้า',
-                'ส่งแผนการจัดการเรียนรู้เรียบร้อย คณะกรรมการอยู่ระหว่างการตรวจและบันทึกคะแนนแผนการประเมินเอกสาร',
-                'วันจัดกิจกรรมมาถึง คณะกรรมการจะเข้าร่วมสังเกตการสอนและประเมินทักษะในชั้นเรียนผ่านระบบ',
-                'การนิเทศในชั้นเรียนเสร็จสิ้นแล้ว กรุณากรอกบันทึกสรุปผลหลังการจัดการเรียนรู้ของท่านเพื่อจบกระบวนการ',
-                'เสร็จสิ้นกระบวนการนิเทศการจัดการเรียนรู้เรียบร้อยแล้ว ท่านสามารถเข้าดาวน์โหลดหรือสั่งพิมพ์เอกสารรายงานผลนิเทศ (Booklet) เก็บไว้ประกอบหลักฐานวิทยฐานะได้ทันที'
+                'กรุณาเตรียมรหัสวิชา วันเวลาห้องเรียน และรายชื่อกรรมการ เพื่อกรอกจองคิวการนิเทศการสอน',
+                'ได้รับอนุมัติวันนิเทศแล้ว กรุณาอัปโหลดไฟล์แผนการจัดการเรียนรู้ (PDF) ส่งให้คณะกรรมการล่วงหน้า',
+                'อยู่ระหว่างกระบวนการนิเทศการสอน — กรรมการจะประเมินเอกสารและเข้านิเทศชั้นเรียนของท่าน',
+                'การนิเทศในชั้นเรียนเสร็จสิ้นแล้ว กรุณากรอกบันทึกสรุปผลหลังการจัดการเรียนรู้เพื่อจบกระบวนการ',
+                'เสร็จสิ้นกระบวนการนิเทศแล้ว สามารถดาวน์โหลดหรือพิมพ์เอกสารรายงานผลนิเทศเก็บไว้เป็นหลักฐานได้',
             ];
-            
+            const adviceBox = document.getElementById('advice-content-box');
             if (adviceBox) {
-                let adviceText = advices[step - 1] || 'ยินดีต้อนรับเข้าสู่ระบบนิเทศการสอน';
-                if (step === 1 && !hasBooking) {
-                    adviceText = 'คุณยังไม่มีรายการจองคิวนิเทศในภาคเรียนนี้ กรุณาคลิกเพื่อทำการจองคิวระบบจัดตารางเวลาและกำหนดคณะกรรมการนิเทศการสอนของท่าน';
-                } else if (step === 2 && booking && booking.status === 'pending') {
-                    adviceText = 'คุณได้ส่งคำขอจองคิวนิเทศแล้ว ขณะนี้อยู่ระหว่างรอฝ่ายวิชาการดำเนินการตรวจสอบและอนุมัติวันนิเทศการสอนของท่าน';
-                }
+                let text = advices[displayStep - 1] || 'ยินดีต้อนรับเข้าสู่ระบบนิเทศการสอน';
+                if (displayStep === 1 && !hasBooking)
+                    text = 'คุณยังไม่มีรายการจองคิวนิเทศในภาคเรียนนี้ กรุณาคลิก "จองคิวนิเทศ" เพื่อเริ่มกระบวนการ';
                 adviceBox.querySelector('.advice-content').innerHTML = `
-                    <h6 class="fw-bold mb-1">คำแนะนำสำหรับขั้นตอนที่ ${step}</h6>
-                    <p class="mb-0 small">${adviceText}</p>
-                `;
+                    <h6 class="fw-bold mb-1">คำแนะนำสำหรับขั้นตอนที่ ${displayStep}</h6>
+                    <p class="mb-0 small">${text}</p>`;
             }
         }
 
+        // ─── ภาระงานที่ต้องทำ ───────────────────────────────────────────────────
         function renderPendingTasks(data) {
             const container = document.getElementById('pending-tasks-list');
             const b = data.booking;
             const duties = data.duties || [];
-            
-            let pendingItems = [];
+            const items = [];
 
-            // 1. Check evaluatee booking status
+            // งานของตัวเอง (ฐานะผู้รับนิเทศ)
             if (!b) {
-                pendingItems.push({
-                    text: 'กรุณาขอจองคิวการนิเทศการสอนในภาคเรียนนี้',
-                    tag: 'จองคิว',
-                    link: 'supervision_booking.html',
-                    color: 'danger'
-                });
+                items.push({ text: 'จองคิวการนิเทศการสอนในภาคเรียนนี้', tag: 'จองคิว', link: 'supervision_booking.html', color: 'danger' });
             } else {
                 if (b.status === 'pending') {
-                    pendingItems.push({
-                        text: 'รอดำเนินการอนุมัติคิวนิเทศจากคณะกรรมการวิชาการ',
-                        tag: 'รอวิชาการ',
-                        link: 'supervision_booking.html',
-                        color: 'warning'
-                    });
+                    items.push({ text: 'รอฝ่ายวิชาการอนุมัติคิวนิเทศ', tag: 'รออนุมัติ', link: 'supervision_booking.html', color: 'warning' });
                 } else if (b.status === 'approved' && !b.lesson_plan_doc) {
-                    pendingItems.push({
-                        text: 'กรุณาส่งอัปโหลดไฟล์แผนการจัดการเรียนรู้ประกอบนิเทศ',
-                        tag: 'ส่งแผนการสอน',
-                        link: 'supervision_docs.html',
-                        color: 'danger'
-                    });
-                } else if (b.status === 'doc_submitted' && data.current_step === 5) {
-                    pendingItems.push({
-                        text: 'กรุณาบันทึกผลสะท้อนหลังการจัดการเรียนรู้ (บันทึกหลังสอน)',
-                        tag: 'หลังการสอน',
-                        link: 'supervision_post_teach.html',
-                        color: 'danger'
-                    });
+                    items.push({ text: 'อัปโหลดแผนการจัดการเรียนรู้ (PDF) ให้กรรมการ', tag: 'ส่งแผน', link: 'supervision_docs.html', color: 'danger' });
+                } else if ((b.status === 'doc_submitted' || b.status === 'completed') && !b.post_teaching_record && data.current_step === 5) {
+                    items.push({ text: 'บันทึกผลสะท้อนหลังการจัดการเรียนรู้', tag: 'หลังสอน', link: 'supervision_post_teach.html', color: 'danger' });
                 }
             }
 
-            // 2. Check evaluator duties
+            // งานกรรมการ (ฐานะผู้นิเทศผู้อื่น)
             duties.forEach(d => {
-                if (d.status === 'approved' || d.status === 'doc_submitted') {
-                    if (!d.doc_done && d.lesson_plan_doc) {
-                        pendingItems.push({
-                            text: `กรุณาตรวจและลงคะแนนแผนการสอนของ อ. ${d.teacher_name}`,
-                            tag: 'ตรวจแผน',
-                            link: 'supervision_evaluate.html',
-                            color: 'warning'
-                        });
+                if (d.status === 'approved' || d.status === 'doc_submitted' || d.status === 'completed') {
+                    if (!d.doc_done && d.docs_uploaded) {
+                        items.push({ text: `ประเมินเอกสารแผนการสอนของ ${d.teacher_name}`, tag: 'ตรวจแผน', link: `supervision_evaluate.html?id=${d.id}`, color: 'warning' });
                     }
-                    if (!d.class_done) {
-                        pendingItems.push({
-                            text: `กรุณาบันทึกประเมินผลสอนในห้องของ อ. ${d.teacher_name}`,
-                            tag: 'นิเทศห้องเรียน',
-                            link: 'supervision_evaluate.html',
-                            color: 'warning'
-                        });
+                    if (!d.class_done && d.status !== 'pending') {
+                        items.push({ text: `ประเมินการสอนในชั้นเรียนของ ${d.teacher_name}`, tag: 'นิเทศชั้นเรียน', link: `supervision_evaluate.html?id=${d.id}`, color: 'warning' });
                     }
                 }
             });
 
-            // Update pending count badge
-            document.getElementById('pending-count').textContent = pendingItems.length;
+            document.getElementById('pending-count').textContent = items.length;
 
-            if (pendingItems.length === 0) {
+            if (items.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-5 text-muted small">
                         <i class="bi bi-check2-circle display-4 text-success mb-2 d-block"></i>
-                        ไม่มีงานค้างประเมินในขณะนี้
-                    </div>
-                `;
+                        ไม่มีงานค้างดำเนินการ
+                    </div>`;
                 return;
             }
 
-            container.innerHTML = pendingItems.map(item => {
-                const tagColor = item.color === 'danger' ? 'bg-danger bg-opacity-10 text-danger' : 'bg-warning bg-opacity-10 text-warning';
+            container.innerHTML = items.map(item => {
+                const tagCls = item.color === 'danger'
+                    ? 'bg-danger bg-opacity-10 text-danger'
+                    : 'bg-warning bg-opacity-10 text-warning';
                 return `
-                    <a href="${item.link}" class="list-item-modern text-decoration-none d-block">
+                    <a href="${item.link}" class="text-decoration-none d-block py-3 border-bottom border-light">
                         <div class="d-flex align-items-center justify-content-between mb-1">
-                            <span class="badge ${tagColor} rounded-pill" style="font-size:0.65rem;">${item.tag}</span>
+                            <span class="badge ${tagCls} rounded-pill" style="font-size:0.65rem;">${item.tag}</span>
                             <i class="bi bi-chevron-right text-muted" style="font-size:0.8rem;"></i>
                         </div>
                         <div class="text-navy small fw-semibold">${item.text}</div>
-                    </a>
-                `;
+                    </a>`;
             }).join('');
         }
 
-        function renderUpcoming(booking) {
-            const container = document.getElementById('upcoming-list');
+        // ─── เป็นกรรมการนิเทศให้กับ ─────────────────────────────────────────────
+        function renderSupervising(duties) {
+            const container = document.getElementById('supervise-list');
+            const active = (duties || []).filter(d => d.status !== 'cancelled');
+            document.getElementById('supervise-count').textContent = active.length;
 
-            if (!booking) {
-                container.innerHTML = `
-                    <div class="text-center py-5 text-muted small">ยังไม่มีตารางประเมินของคุณเร็วๆ นี้</div>
-                `;
+            if (active.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-muted small"><i class="bi bi-people display-4 mb-2 d-block opacity-25"></i>ไม่มีรายชื่อภาระงานนิเทศผู้อื่น</div>`;
                 return;
             }
 
-            // Render my booking schedule
-            const parts = booking.booking_date.split('-');
-            const dayNum = parts[2];
-            const months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-            const monthText = months[parseInt(parts[1])];
+            container.innerHTML = active.map(d => {
+                const avatar = d.teacher_photo ? `../${d.teacher_photo}` : '../public/img/default-avatar.png';
+                const canEval = d.status !== 'pending';
 
-            container.innerHTML = `
-                <div class="list-item-modern">
-                    <div class="date-badge bg-primary bg-opacity-10 text-primary">
-                        <span class="date-day">${monthText}</span>
-                        <span class="date-num">${dayNum}</span>
+                const docBadge = d.doc_done
+                    ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินเอกสาร</span>`
+                    : (d.docs_uploaded
+                        ? `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอประเมินเอกสาร</span>`
+                        : `<span class="eval-badge eval-waiting"><i class="bi bi-file-earmark-x"></i>ยังไม่ส่งเอกสาร</span>`);
+
+                const classBadge = d.class_done
+                    ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินชั้นเรียน</span>`
+                    : `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอประเมินชั้นเรียน</span>`;
+
+                const rolePill = `<span class="role-pill">${d.role_th}</span>`;
+
+                const inner = `
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'"
+                            style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;flex-shrink:0;">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-bold small text-navy text-truncate">${d.teacher_name}</div>
+                            <div class="text-muted" style="font-size:0.72rem;">${d.subject_code} • ${thDate(d.booking_date)}</div>
+                        </div>
+                        ${rolePill}
                     </div>
-                    <div class="flex-grow-1">
-                        <div class="fw-bold small text-navy">${booking.subject_code} ${booking.subject_name}</div>
-                        <div class="text-muted" style="font-size: 0.75rem;">มัธยมศึกษาปีที่ ${booking.classroom} • คาบที่ ${booking.booking_period}</div>
-                        <div class="text-muted mt-1" style="font-size: 0.7rem;"><i class="bi bi-geo-alt"></i> ห้องเรียน ${booking.room_number}</div>
-                    </div>
-                </div>
-            `;
+                    <div class="d-flex flex-wrap gap-2 ms-1">
+                        ${docBadge}
+                        ${classBadge}
+                    </div>`;
+
+                if (!canEval) {
+                    return `<div class="super-role-card">${inner}<div class="mt-2"><span class="eval-badge eval-waiting"><i class="bi bi-hourglass-split"></i>รออนุมัติจากฝ่ายวิชาการ</span></div></div>`;
+                }
+                return `<div class="super-role-card"><a href="supervision_evaluate.html?id=${d.id}">${inner}</a></div>`;
+            }).join('');
         }
 
-        function renderObservees(duties) {
-            const container = document.getElementById('supervise-list');
-            
-            // Filter observees that are currently active
-            const activeDuties = duties.filter(d => d.status !== 'completed');
-            
-            document.getElementById('supervise-count').textContent = activeDuties.length;
+        // ─── ใครนิเทศเรา ────────────────────────────────────────────────────────
+        function renderSupervisors(booking, evalStatus) {
+            const container = document.getElementById('evaluator-list');
 
-            if (activeDuties.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-5 text-muted small">ไม่มีรายชื่อภาระงานประเมินในขณะนี้</div>
-                `;
+            if (!booking || !evalStatus) {
+                container.innerHTML = `<div class="text-center py-5 text-muted small"><i class="bi bi-person-check display-4 mb-2 d-block opacity-25"></i>ยังไม่มีการจองคิวนิเทศ</div>`;
+                document.getElementById('evaluator-count').textContent = '0';
                 return;
             }
 
-            container.innerHTML = activeDuties.map(d => {
-                const avatar = d.teacher_photo ? `../${d.teacher_photo}` : '../public/img/default-avatar.png';
-                let statusBadge = '';
-                if (d.status === 'pending') {
-                    statusBadge = `<span class="badge bg-warning bg-opacity-10 text-warning rounded-pill ms-1" style="font-size:0.65rem;">รออนุมัติ</span>`;
+            const roles = [
+                { key: 'peer',     label: 'ครูผู้ร่วมนิเทศ' },
+                { key: 'head',     label: 'ครูผู้นิเทศ (หัวหน้า/รอง)' },
+                { key: 'academic', label: 'คณะกรรมการวิชาการ' }
+            ];
+
+            const rows = roles.filter(r => evalStatus[r.key]?.name);
+            document.getElementById('evaluator-count').textContent = rows.length;
+
+            if (rows.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-muted small">ยังไม่มีกรรมการนิเทศ</div>`;
+                return;
+            }
+
+            container.innerHTML = rows.map(r => {
+                const ev = evalStatus[r.key];
+                const name = ev.name || '-';
+                const photo = ev.eval?.photo ? `../${ev.eval.photo}` : '../public/img/default-avatar.png';
+
+                const docBadge = ev.doc_done
+                    ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินเอกสารแล้ว</span>`
+                    : `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอประเมินเอกสาร</span>`;
+
+                const classBadge = ev.class_done
+                    ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินชั้นเรียนแล้ว</span>`
+                    : `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอประเมินชั้นเรียน</span>`;
+
+                // คะแนนรวม (ถ้ามี)
+                let scoreHtml = '';
+                if (ev.eval && ev.class_done) {
+                    const classScores = [1,2,3,4,5,6,7,8,9,10].map(n => parseInt(ev.eval[`class_score_${n}`] || 0));
+                    const classTotal = classScores.reduce((a,b) => a+b, 0);
+                    scoreHtml = `<div class="mt-2 d-flex gap-2 align-items-center">
+                        <span class="text-muted" style="font-size:0.72rem;">คะแนนชั้นเรียน:</span>
+                        <span class="fw-black text-navy" style="font-size:0.9rem;">${classTotal}<span class="text-muted fw-normal">/50</span></span>
+                    </div>`;
                 }
+
                 return `
-                    <a href="${d.status === 'pending' ? '#' : 'supervision_evaluate.html'}" class="list-item-modern text-decoration-none d-flex align-items-center gap-3" ${d.status === 'pending' ? 'onclick="Swal.fire({icon:\'warning\', title:\'รอการอนุมัติ\', text:\'คำร้องของ อ. \' + ' + JSON.stringify(d.teacher_name) + ' + \' อยู่ระหว่างรอการอนุมัติจากฝ่ายวิชาการ จึงยังไม่สามารถบันทึกการประเมินได้\', confirmButtonColor:\'#1e3a8a\'}); return false;"' : ''}>
-                        <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
-                        <div class="flex-grow-1">
-                            <div class="fw-bold small text-navy mb-0">${d.teacher_name}</div>
-                            <div class="text-muted" style="font-size: 0.72rem;">${d.subject_code} • วันที่นิเทศ: ${thDate(d.booking_date)}</div>
+                    <div class="evaluator-row">
+                        <img src="${photo}" onerror="this.src='../public/img/default-avatar.png'" class="evaluator-avatar">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                <span class="fw-bold small text-navy">${name}</span>
+                                <span class="role-pill">${r.label}</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                ${docBadge}
+                                ${classBadge}
+                            </div>
+                            ${scoreHtml}
                         </div>
-                        <div class="text-end">
-                            <span class="badge bg-success bg-opacity-10 text-success rounded-pill d-block mb-1" style="font-size:0.65rem;">${d.role_th}</span>
-                            ${statusBadge}
-                        </div>
-                    </a>
-                `;
+                    </div>`;
             }).join('');
         }
     </script>
