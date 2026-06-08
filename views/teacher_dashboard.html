@@ -239,6 +239,17 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="col-6 col-md-6 col-lg">
+                                            <div class="d-flex align-items-center p-2 p-md-3 rounded-3 clickable-action-item" onclick="goToHomeVisitMap()" style="background: #f8fafc; cursor: pointer; transition: all 0.2s ease;">
+                                                <div class="action-icon-container text-white rounded-3 d-flex align-items-center justify-content-center me-2 me-md-3" style="width: 44px; height: 44px; font-size: 1.15rem; flex-shrink: 0; background: #0891b2;">
+                                                    <i class="bi bi-geo-alt-fill"></i>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <h6 class="fw-black text-navy mb-0 text-truncate" style="font-size: 0.85rem;">เยี่ยมบ้านนักเรียน</h6>
+                                                    <span class="text-muted d-none d-md-block" style="font-size: 0.72rem;">แผนที่นำทาง</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -411,10 +422,10 @@
             chart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['มา', 'ขาด', 'สาย', 'ลา', 'ป่วย'],
+                    labels: ['มา', 'ขาด', 'สาย', 'ลาเรียน'],
                     datasets: [{
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6'],
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#7c3aed'],
                         hoverOffset: 15,
                         borderWidth: 0,
                         borderRadius: 10
@@ -457,14 +468,13 @@
                 $('#stat_present').text(data.today.present || 0);
                 $('#stat_absent').text(data.today.absent || 0);
                 $('#stat_late').text(data.today.late || 0);
-                $('#stat_leave').text(data.today.leave || 0);
+                $('#stat_leave').text((data.today.leave || 0) + (data.today.sick || 0));
 
                 chart.data.datasets[0].data = [
-                    data.today.present || 0, 
-                    data.today.absent || 0, 
-                    data.today.late || 0, 
-                    data.today.leave || 0,
-                    data.today.sick || 0
+                    data.today.present || 0,
+                    data.today.absent || 0,
+                    data.today.late || 0,
+                    (data.today.leave || 0) + (data.today.sick || 0)
                 ];
                 chart.update();
 
@@ -682,6 +692,11 @@
                 if (typeof fetchNotifications === 'function') fetchNotifications();
                 showAllNotifications();
             } catch (e) { console.error(e); }
+        }
+
+        function goToHomeVisitMap() {
+            sessionStorage.setItem('adminStudentsOpenTab', 'map');
+            window.location.href = 'admin_students.html';
         }
     </script>
 </body>

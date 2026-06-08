@@ -38,7 +38,7 @@ try {
         $year = 2569;
 
         // Fetch all bookings
-        $stmt = $pdo->prepare("SELECT b.*, 
+        $stmt = $pdo->prepare("SELECT b.*,
             t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.department as t_dept, t.academic_standing as t_standing,
             tp.prefix as p_prefix, tp.first_name_th as p_first, tp.last_name_th as p_last, tp.department as p_dept,
             th.prefix as h_prefix, th.first_name_th as h_first, th.last_name_th as h_last, th.department as h_dept,
@@ -53,12 +53,24 @@ try {
         $stmt->execute([$semester, $year]);
         $bookings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Format names
+        // Format names and classroom info
         foreach ($bookings as &$b) {
-            $b['teacher_name'] = trim(($b['t_prefix'] ?? '') . $b['t_first'] . ' ' . $b['t_last']);
-            $b['peer_name'] = $b['peer_teacher_id'] ? trim(($b['p_prefix'] ?? '') . $b['p_first'] . ' ' . $b['p_last']) : '-';
-            $b['head_name'] = $b['head_teacher_id'] ? trim(($b['h_prefix'] ?? '') . $b['h_first'] . ' ' . $b['h_last']) : '-';
-            $b['academic_name'] = $b['academic_teacher_id'] ? trim(($b['a_prefix'] ?? '') . $b['a_first'] . ' ' . $b['a_last']) : '-';
+            // ชื่อผู้รับประเมิน: ชื่อแรกเท่านั้น (first name only)
+            $b['teacher_name'] = trim($b['t_first'] ?? '');
+            $b['peer_name'] = $b['peer_teacher_id'] ? trim($b['p_first'] ?? '') : '-';
+            $b['head_name'] = $b['head_teacher_id'] ? trim($b['h_first'] ?? '') : '-';
+            $b['academic_name'] = $b['academic_teacher_id'] ? trim($b['a_first'] ?? '') : '-';
+
+            // Parse classroom code: "205" → grade=2, class=05
+            $classroom = trim($b['classroom'] ?? '');
+            if (preg_match('/^([1-6])(\d{2})$/', $classroom, $m)) {
+                $b['grade_level'] = 'ม.' . $m[1];
+                $b['class_name'] = (int)$m[2];
+            } else {
+                $b['grade_level'] = $classroom ?: 'ไม่ระบุ';
+                $b['class_name'] = '';
+            }
+            $b['room_location'] = trim($b['room_number'] ?? '');
         }
         unset($b);
 
@@ -91,6 +103,14 @@ try {
 
         // Get day of week (1 = Monday, 7 = Sunday)
         $day_of_week = date('N', strtotime($date));
+
+        // Check if this period is a "meeting period" (has subject like "ประชุม", "ชุมนุม", etc.)
+        $stmt_check_meeting = $pdo->prepare("
+            SELECT COUNT(*) FROM timetable
+            WHERE day_of_week = ? AND period = ? AND subject_name LIKE ?
+        ");
+        $stmt_check_meeting->execute([$day_of_week, $period, '%ประชุม%']);
+        $isMeetingPeriod = $stmt_check_meeting->fetchColumn() > 0;
 
         // 1. Fetch busy teachers from timetable
         $stmt_busy = $pdo->prepare("SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ?");
@@ -131,20 +151,35 @@ try {
         $teachers = $stmt_teachers->fetchAll(PDO::FETCH_ASSOC);
 
         $all_teachers = [];
-        $academic_teachers = []; // กรรมการคนลำดับที่ 3: ตัวแทนคณะกรรมการวิชาการ
+        $academic_teachers = []; // กรรมการคนลำดับที่ 3: ตัวแทนคณะกรรมการวิชาการ (15 คน: 11 ครู + 4 รองผู้อำนวยการ)
 
-        // ตำแหน่งที่มีสิทธิ์เป็นกรรมการวิชาการ (ครูไทยประจำ และผู้บริหาร)
-        $academic_allowed_positions = ['ครู', 'ครูผู้ช่วย', 'พนักงานราชการ', 'ผู้บริหาร'];
+        // List of 15 eligible academic evaluators (11 teachers + 4 deputy directors)
+        // ต้องระบุคนโดยชื่อเต็มหรือ teacher_id
+        $allowed_academic_names = [
+            // 11 ครู
+            'ครูวิลาวรรณ',
+            'ครูเพ็ญประภา',
+            'ครูปวีณ์นุช',
+            'ครูจิตรดา',
+            'ครูสุภัค',
+            'ครูปณิตา',
+            'ครูสุชาดา',
+            'ครูอังคณา',
+            'ครูสันธินี',
+            'ครูสาธิต',
+            // 4 รองผู้อำนวยการ
+            'รองผู้อำนวยการ'
+        ];
 
         foreach ($teachers as $t) {
             $t_id = (int)$t['id'];
             $t['full_name'] = trim(($t['prefix'] ?? '') . $t['first_name_th'] . ' ' . $t['last_name_th']);
-            
+
             $is_busy_timetable = in_array($t_id, $busy_timetable_teacher_ids);
             $is_busy_booking = isset($conflict_map[$t_id]);
-            
+
             $t['is_busy'] = ($is_busy_timetable || $is_busy_booking);
-            
+
             $reasons = [];
             if ($is_busy_timetable) {
                 $reasons[] = "มีสอนตามตารางสอนในคาบนี้";
@@ -152,29 +187,35 @@ try {
             if ($is_busy_booking) {
                 $reasons[] = $conflict_map[$t_id];
             }
-            
+
             $t['busy_reason'] = implode(' และ ', $reasons);
-            
+
             $all_teachers[] = $t;
 
-            // --- กรองสำหรับกรรมการวิชาการ (เฉพาะที่ว่าง + ไม่ใช่ครูต่างชาติ/อัตราจ้าง/ฝึกสอน) ---
+            // --- กรองสำหรับกรรมการวิชาการ: เฉพาะคนในรายชื่อที่กำหนด + ว่าง ---
             $pos = trim($t['position'] ?? '');
-            $nat = trim($t['nationality'] ?? 'ไทย');
+            $is_in_allowed_list = false;
 
-            // ต้องไม่เป็นครูต่างชาติ (สัญชาติไม่ใช่ไทย)
-            $is_foreign = ($nat !== '' && $nat !== 'ไทย');
-            // ต้องไม่เป็นครูอัตราจ้าง / นักศึกษาฝึกสอน
-            $is_temp = (stripos($pos, 'อัตราจ้าง') !== false
-                     || stripos($pos, 'ฝึกสอน') !== false
-                     || stripos($pos, 'ฝึกประสบการณ์') !== false);
-            // ต้องเป็นตำแหน่งที่อนุญาต
-            $is_eligible = in_array($pos, $academic_allowed_positions);
-            // ต้องว่าง
+            // Check if in allowed list by position (รองผู้อำนวยการ)
+            if (stripos($pos, 'รองผู้อำนวยการ') !== false) {
+                $is_in_allowed_list = true;
+            }
+            // Check if in allowed list by first name (11 ครู)
+            $fname = trim($t['first_name_th'] ?? '');
+            foreach ($allowed_academic_names as $name) {
+                if (stripos($fname, trim(str_replace('ครู', '', $name))) !== false) {
+                    $is_in_allowed_list = true;
+                    break;
+                }
+            }
+
+            // ต้องว่างในคาบนั้น
             $is_available = !$t['is_busy'];
             // ต้องไม่เป็นครูที่รับประเมินเอง
             $is_evaluatee = isset($evaluatee_teacher_id) && ($t_id === (int)$evaluatee_teacher_id);
 
-            if ($is_eligible && !$is_foreign && !$is_temp && $is_available && !$is_evaluatee) {
+            // Add to academic_teachers ถ้า: ในรายชื่อ + ว่าง + ไม่ใช่ผู้รับประเมิน
+            if ($is_in_allowed_list && $is_available && !$is_evaluatee) {
                 $academic_teachers[] = $t;
             }
         }
@@ -182,7 +223,8 @@ try {
         echo json_encode([
             'success' => true,
             'teachers' => $all_teachers,
-            'academic_teachers' => $academic_teachers
+            'academic_teachers' => $academic_teachers,
+            'is_meeting_period' => $isMeetingPeriod
         ]);
 
     } elseif ($action === 'assign') {

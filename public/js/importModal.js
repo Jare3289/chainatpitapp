@@ -325,6 +325,10 @@ async function importConfirm() {
     const fd = new FormData();
     fd.append('excelFile', fileInput.files[0]);
     fd.append('dry_run', '0');
+    if (window.__importReplaceAll) {
+        fd.append('replace_all', '1');
+        window.__importReplaceAll = false;
+    }
 
     try {
         const res = await fetch(window.__importApiUrl, { method: 'POST', body: fd });

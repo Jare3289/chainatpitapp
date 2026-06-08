@@ -563,13 +563,16 @@
 
                 const rolePill = `<span class="role-pill">${d.role_th}</span>`;
 
+                const classLabel = d.class_name ? `${d.grade_level}/${String(d.class_name).padStart(2, '0')}` : d.grade_level || 'ไม่ระบุ';
+                const roomLabel = d.room_location || '-';
                 const inner = `
                     <div class="d-flex align-items-center gap-3 mb-2">
                         <img src="${avatar}" onerror="this.src='../public/img/default-avatar.png'"
                             style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;flex-shrink:0;">
                         <div class="flex-grow-1 min-w-0">
                             <div class="fw-bold small text-navy text-truncate">${d.teacher_name}</div>
-                            <div class="text-muted" style="font-size:0.72rem;">${d.subject_code} • ${thDate(d.booking_date)}</div>
+                            <div class="text-muted" style="font-size:0.72rem;">${d.subject_code} ${d.subject_name} • ${thDate(d.booking_date)} (คาบ ${d.booking_period})</div>
+                            <div class="text-muted" style="font-size:0.70rem;">${classLabel} | ห้อง ${roomLabel}</div>
                         </div>
                         ${rolePill}
                     </div>
