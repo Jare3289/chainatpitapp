@@ -29,14 +29,16 @@ echo [App] Starting Sub App on Port 8005...
 start /b php -S localhost:8005
 
 :: Run phpMyAdmin on Port 8080
-:: start /b php -S localhost:8080 -t D:\phpMyAdmin-5.2.3-all-languages
+echo [DB] Starting phpMyAdmin on Port 8080...
+start /b php -S localhost:8080 -t D:\phpMyAdmin-5.2.3-all-languages
 
 echo.
 echo ===================================
 echo Servers are running!
 echo [1] Main App: http://localhost:8000
 echo [2] Sub App:  http://localhost:8005
-echo [3] Database: Port 3306 (Running)
+echo [3] phpMyAdmin: http://localhost:8080
+echo [4] Database: Port 3306 (Running)
 echo ===================================
 echo.
 echo (Press any key to close this window, servers will keep running in background)
