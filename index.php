@@ -14,22 +14,25 @@ $_cnp_dashboard = [
     'student' => 'views/student_dashboard.html',
 ];
 
-// 1. มี session ที่ active อยู่แล้ว → redirect ทันที
-if (!empty($_SESSION['user_id']) && !empty($_SESSION['role'])) {
-    $dest = $_cnp_dashboard[$_SESSION['role']] ?? null;
-    if ($dest) { header('Location: ' . $dest); exit; }
-}
+// ถ้า DB พร้อม → ลอง session / persistent-token redirect
+if ($pdo !== null) {
+    // 1. มี session ที่ active อยู่แล้ว → redirect ทันที
+    if (!empty($_SESSION['user_id']) && !empty($_SESSION['role'])) {
+        $dest = $_cnp_dashboard[$_SESSION['role']] ?? null;
+        if ($dest) { header('Location: ' . $dest); exit; }
+    }
 
-// 2. ไม่มี session แต่มี persistent token (cnp_auth) → auto-login แล้ว redirect
-if (!empty($_COOKIE['cnp_auth'])) {
-    try {
-        $userId = cnp_auth_token_check($pdo);
-        if ($userId && !empty($_SESSION['role'])) {
-            $dest = $_cnp_dashboard[$_SESSION['role']] ?? null;
-            if ($dest) { header('Location: ' . $dest); exit; }
+    // 2. ไม่มี session แต่มี persistent token (cnp_auth) → auto-login แล้ว redirect
+    if (!empty($_COOKIE['cnp_auth'])) {
+        try {
+            $userId = cnp_auth_token_check($pdo);
+            if ($userId && !empty($_SESSION['role'])) {
+                $dest = $_cnp_dashboard[$_SESSION['role']] ?? null;
+                if ($dest) { header('Location: ' . $dest); exit; }
+            }
+        } catch (Exception $e) {
+            error_log('[index] auto-login failed: ' . $e->getMessage());
         }
-    } catch (Exception $e) {
-        error_log('[index] auto-login failed: ' . $e->getMessage());
     }
 }
 // ถ้าไม่เข้าเงื่อนไขใดเลย → แสดงหน้า login ตามปกติ
@@ -473,6 +476,14 @@ if (!empty($_COOKIE['cnp_auth'])) {
             </div>
         </div>
     </div>
+
+    <?php if ($DB_ERROR): ?>
+    <div id="dbErrorBanner" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#dc2626;color:white;text-align:center;padding:10px 20px;font-weight:700;font-size:0.9rem;font-family:'Google Sans','Sarabun',sans-serif;">
+        <i class="fas fa-triangle-exclamation me-2"></i>
+        ไม่สามารถเชื่อมต่อฐานข้อมูลได้ — กรุณาตรวจสอบการตั้งค่า DB ใน .env
+        <span style="font-weight:400;opacity:0.85;margin-left:8px;font-size:0.8rem;"><?= $IS_PROD ? '' : htmlspecialchars($DB_ERROR) ?></span>
+    </div>
+    <?php endif; ?>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

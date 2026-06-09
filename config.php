@@ -119,14 +119,28 @@ $options = [
     PDO::ATTR_EMULATE_PREPARES   => false,
 ];
 
+$pdo = null;
+$DB_ERROR = null;
+
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (\PDOException $e) {
     error_log('[config] DB connect failed: ' . $e->getMessage());
+    $DB_ERROR = $e->getMessage();
+}
+
+/**
+ * เรียกจาก API endpoint ที่ต้องการ DB
+ * ถ้า DB ต่อไม่ได้จะ return JSON error และหยุดทันที
+ */
+function cnp_require_db(): void {
+    global $pdo, $DB_ERROR, $IS_PROD;
+    if ($pdo !== null) return;
     http_response_code(503);
     if ($IS_PROD) {
-        die('ระบบขัดข้องชั่วคราว: ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+        echo json_encode(['error' => 'ระบบขัดข้องชั่วคราว: ไม่สามารถเชื่อมต่อฐานข้อมูลได้']);
     } else {
-        die('Database Error (Local): ' . $e->getMessage());
+        echo json_encode(['error' => 'Database Error: ' . $DB_ERROR]);
     }
+    exit;
 }

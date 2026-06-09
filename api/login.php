@@ -6,6 +6,7 @@ require_once '../inc/security.php';
 session_start();
 
 cnp_verify_origin();
+cnp_require_db();
 
 $data = json_decode(file_get_contents('php://input'), true);
 
