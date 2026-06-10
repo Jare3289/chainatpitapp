@@ -182,7 +182,7 @@
         const classQuestions = [
             "การนำเข้าสู่บทเรียนเชื่อมโยงเนื้อหาเดิมและเร้าความสนใจ",
             "การจัดบรรยากาศที่ส่งเสริมการมีส่วนร่วมของนักเรียน",
-            "ครูจัดกิจกรรมการเรียนรู้ตามขั้นตอนในแผน",
+            "ครูจัดกิจกรรมการเรียนรู้ตามขั้นตอน in แผน",
             "ครูอธิบายเนื้อหาถูกต้อง ชัดเจน เข้าใจง่าย",
             "การใช้คำถามกระตุ้นความคิดและการแก้ปัญหา",
             "การใช้สื่อการสอน/เทคโนโลยีส่งเสริมการเรียนรู้",
@@ -201,96 +201,18 @@
             }
         });
 
-        function getUrlBookingId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return parseInt(urlParams.get('booking_id')) || 0;
-        }
-
         async function loadEvaluationsData() {
             try {
-                const bookingId = getUrlBookingId();
-                if (currentUser.role === 'admin' && bookingId === 0) {
-                    document.getElementById('my-eval-results-box').innerHTML = `
-                        <div class="alert alert-info border-0 shadow-sm rounded-4" style="background-color: #ebf5ff; border-left: 4px solid #1e3a8a !important; color: #1e3a8a;">
-                            <i class="bi bi-info-circle-fill me-2 fs-5"></i> กรุณาเลือกรายการคิวนิเทศจากแถบด้านบนเพื่อดูรายละเอียดคะแนนประเมิน
-                        </div>
-                    `;
-                    document.getElementById('my-duties-list-box').innerHTML = `
-                        <div class="alert alert-info border-0 shadow-sm rounded-4" style="background-color: #ebf5ff; border-left: 4px solid #1e3a8a !important; color: #1e3a8a;">
-                            <i class="bi bi-info-circle-fill me-2 fs-5"></i> กรุณาเลือกรายการคิวนิเทศจากแถบด้านบนเพื่อเริ่มบันทึกคะแนนประเมิน
-                        </div>
-                    `;
-                    return;
-                }
-
-                const url = bookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${bookingId}` : '../api/teacher/supervision_get.php';
-                const res = await fetch(url);
+                const res = await fetch('../api/teacher/supervision_get.php');
                 const data = await res.json();
                 if (data.success) {
                     supervisionData = data;
                     renderMyEvaluations(data.booking);
-                    if (currentUser.role === 'admin') {
-                        renderAdminDuties(data.booking);
-                    } else {
-                        renderMyDuties(data.duties);
-                    }
+                    renderMyDuties(data.duties);
                 }
             } catch (err) {
                 console.error("Error loading evaluations data: ", err);
             }
-        }
-
-        function renderAdminDuties(booking) {
-            const dutiesBox = document.getElementById('my-duties-list-box');
-            if (!booking) {
-                dutiesBox.innerHTML = `<div class="text-center py-5 text-muted small">ไม่พบคิวนิเทศ</div>`;
-                return;
-            }
-
-            if (booking.status === 'pending') {
-                dutiesBox.innerHTML = `
-                    <div class="alert alert-warning border-0 shadow-sm rounded-4 mb-0 text-center py-4">
-                        <i class="bi bi-exclamation-triangle-fill fs-3 mb-2 d-block text-warning"></i>
-                        <span class="small fw-bold">คิวนิเทศนี้ยังไม่ได้รับการอนุมัติ</span>
-                        <div class="small text-muted mt-1">กรุณาอนุมัติคิวนิเทศก่อนทำประเมิน</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const status = supervisionData.evaluations_status;
-            const roles = [
-                { key: 'peer', label: 'ครูผู้ร่วมนิเทศ (Peer)', name: booking.peer_name || 'ไม่ได้ระบุ' },
-                { key: 'head', label: 'ครูผู้นิเทศ (Head)', name: booking.head_name || 'ไม่ได้ระบุ' },
-                { key: 'academic', label: 'ฝ่ายวิชาการ (Academic)', name: booking.academic_name || 'ไม่ได้ระบุ' }
-            ];
-
-            dutiesBox.innerHTML = `
-                <div class="d-flex flex-column gap-3">
-                    ${roles.map(r => {
-                        const info = status[r.key] || {};
-                        const done = info.class_done;
-                        return `
-                            <div class="p-3 bg-light rounded-4 shadow-sm border border-light d-flex align-items-center justify-content-between">
-                                <div>
-                                    <div class="fw-black text-navy small">${r.label}</div>
-                                    <div class="text-muted" style="font-size:0.75rem;">ผู้ประเมิน: ${r.name}</div>
-                                    <div class="mt-1">
-                                        <span class="badge ${done ? 'bg-success' : 'bg-secondary'} bg-opacity-10 ${done ? 'text-success' : 'text-secondary'}" style="font-size:0.65rem;">
-                                            ${done ? 'ประเมินห้องเรียนแล้ว' : 'ยังไม่ได้ประเมิน'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <a href="supervision_evaluate_class.html?booking_id=${booking.id}&role=${r.key}" class="btn btn-sm ${done ? 'btn-outline-success' : 'btn-primary'} rounded-pill fw-bold shadow-sm" style="font-size:0.75rem;">
-                                        <i class="bi bi-eye"></i> ${done ? 'แก้ไขการประเมิน' : 'ประเมินห้องเรียน'}
-                                    </a>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
         }
 
         function getQualityText(avg) {
@@ -668,6 +590,14 @@
                 btn.innerHTML = originalHtml;
                 btn.disabled = false;
             }
+        }
+
+        function thDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543} เวลา ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')} น.`;
         }
     </script>
 </body>

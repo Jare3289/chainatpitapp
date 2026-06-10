@@ -138,7 +138,7 @@
 <body>
     <div class="wrapper">
         <div class="sidebar" id="mainSidebar"></div>
-
+ 
         <main class="app-main main-panel d-flex flex-column min-vh-100" style="background-color: #f8fafc;" id="main">
             <div class="app-content page-content flex-grow-1 py-4">
                 <div class="container-fluid">
@@ -150,7 +150,7 @@
                             <li class="breadcrumb-item active" aria-current="page">สถิติภาพรวมการนิเทศ</li>
                         </ol>
                     </nav>
-
+ 
                     <!-- BANNER -->
                     <div class="row g-4 mb-4">
                         <div class="col-12">
@@ -163,7 +163,7 @@
                             </div>
                         </div>
                     </div>
-
+ 
                     <!-- KPI CARDS -->
                     <div class="row g-4 mb-4">
                         <div class="col-6 col-lg-3">
@@ -215,7 +215,7 @@
                             </div>
                         </div>
                     </div>
-
+ 
                     <!-- CHARTS & SUMMARY SCORING -->
                     <div class="row g-4 mb-4">
                         <!-- Chart Section -->
@@ -232,7 +232,7 @@
                                 </div>
                             </div>
                         </div>
-
+ 
                         <!-- Scoring averages section -->
                         <div class="col-xl-6">
                             <div class="card card-premium p-4 h-100">
@@ -242,7 +242,7 @@
                                         <span>คะแนนประเมินเฉลี่ยแต่ละด้าน (เต็ม 5.00)</span>
                                     </div>
                                 </div>
-
+ 
                                 <ul class="nav nav-tabs border-bottom mb-3" id="scoreTab" role="tablist">
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link active fw-bold text-dark" id="doc-tab" data-bs-toggle="tab" data-bs-target="#doc-score" type="button" role="tab">การประเมินแผนจัดการเรียนรู้</button>
@@ -251,7 +251,7 @@
                                         <button class="nav-link fw-bold text-dark" id="class-tab" data-bs-toggle="tab" data-bs-target="#class-score" type="button" role="tab">การสังเกตการจัดการเรียนรู้ในห้องเรียน</button>
                                     </li>
                                 </ul>
-
+ 
                                 <div class="tab-content" id="scoreTabContent">
                                     <!-- Document evaluation scores -->
                                     <div class="tab-pane fade show active" id="doc-score" role="tabpanel">
@@ -263,7 +263,7 @@
                                             <!-- Javascript renders -->
                                         </div>
                                     </div>
-
+ 
                                     <!-- Classroom teaching scores -->
                                     <div class="tab-pane fade" id="class-score" role="tabpanel">
                                         <div class="text-center py-2 mb-3 bg-light rounded-4">
@@ -275,11 +275,11 @@
                                         </div>
                                     </div>
                                 </div>
-
+ 
                             </div>
                         </div>
                     </div>
-
+ 
                     <!-- MONTHLY SUPERVISION TIMETABLE CALENDAR -->
                     <div class="row g-4">
                         <div class="col-12">
@@ -298,14 +298,14 @@
                                         <button class="btn btn-sm btn-light border rounded-pill px-3 fw-bold" onclick="changeMonth(1)">เดือนถัดไป <i class="bi bi-chevron-right"></i></button>
                                     </div>
                                 </div>
-
+ 
                                 <!-- Legend -->
                                 <div class="d-flex flex-wrap gap-3 mb-3 small fw-bold">
                                     <div class="d-flex align-items-center gap-1"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background-color: #fafafa; border: 1px dashed #cbd5e1;"></span> กำหนดการนิเทศหลัก</div>
                                     <div class="d-flex align-items-center gap-1"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background-color: #f0fdf4; border: 1px solid #86efac;"></span> มีคิวการจองแล้ว</div>
                                     <div class="d-flex align-items-center gap-1"><span style="width: 12px; height: 12px; border-radius: 3px; display: inline-block; background-color: #ffe4e6; border: 1px solid #b91c1c;"></span> คิวเต็มในวันนั้น (4 คาบ)</div>
                                 </div>
-
+ 
                                 <div class="calendar-header"></div>
                                 <div class="calendar-grid mb-3">
                                     <div class="calendar-day-label">อา.</div>
@@ -322,14 +322,14 @@
                             </div>
                         </div>
                     </div>
-
+ 
                 </div>
             </div>
             
             <footer id="footer-container" class="app-footer text-center text-md-start mt-auto pb-4"></footer>
         </main>
     </div>
-
+ 
     <!-- Modal for showing booking details on a specific date -->
     <div class="modal fade" id="dateBookingsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -347,7 +347,7 @@
             </div>
         </div>
     </div>
-
+ 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -358,7 +358,7 @@
         let statsData = null;
         let currentMonth = new Date(2026, 5, 1); // Start with June 2026
         let deptChart = null;
-
+ 
         function thDate(dateStr) {
             if (!dateStr) return '-';
             const d = new Date(dateStr);
@@ -366,7 +366,7 @@
             const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
             return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
         }
-
+ 
         document.addEventListener('DOMContentLoaded', async () => {
             const user = await checkAuth('admin');
             if (user) {
@@ -377,7 +377,7 @@
                 await loadStats();
             }
         });
-
+ 
         async function loadStats() {
             try {
                 const res = await fetch('../api/admin/supervision_stats.php');
@@ -395,7 +395,7 @@
                 console.error("Error loading stats API:", err);
             }
         }
-
+ 
         function populateSummaryCards(stats) {
             document.getElementById('stat-total-bookings').textContent = stats.total;
             document.getElementById('stat-completed-bookings').textContent = stats.completed;
@@ -405,7 +405,7 @@
             const pct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
             document.getElementById('stat-completed-pct').innerHTML = `<i class="bi bi-check2"></i> ${pct}% ของคิวทั้งหมด`;
         }
-
+ 
         function renderDepartmentChart(departments) {
             const ctx = document.getElementById('deptChart').getContext('2d');
             
@@ -416,7 +416,7 @@
             if (deptChart) {
                 deptChart.destroy();
             }
-
+ 
             deptChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -449,7 +449,7 @@
                 }
             });
         }
-
+ 
         function getQualityBadge(avg) {
             if (avg >= 4.21) return '<span class="badge badge-qual bg-success text-white">ยอดเยี่ยม</span>';
             if (avg >= 3.41) return '<span class="badge badge-qual bg-info text-white">ดีเลิศ</span>';
@@ -458,7 +458,7 @@
             if (avg >= 1.00) return '<span class="badge badge-qual bg-secondary text-white">กำลังพัฒนา</span>';
             return '<span class="badge badge-qual bg-danger text-white">ปรับปรุงเร่งด่วน</span>';
         }
-
+ 
         function getQualityColor(avg) {
             if (avg >= 4.21) return '#10b981'; // Green
             if (avg >= 3.41) return '#06b6d4'; // Cyan/Info
@@ -467,7 +467,7 @@
             if (avg >= 1.00) return '#64748b'; // Slate
             return '#ef4444'; // Red
         }
-
+ 
         function renderScoringAverages(averages) {
             // Render Document
             document.getElementById('doc-eval-count').textContent = `${averages.doc.count} เล่ม`;
@@ -477,7 +477,7 @@
                 { title: "ด้านที่ 2: การประเมินแผนการจัดการเรียนรู้รายคาบ (25 ข้อ)", score: averages.doc.plan_avg },
                 { title: "คะแนนเฉลี่ยรวมการประเมินเอกสารแผนการจัดสอน", score: averages.doc.overall_avg, isOverall: true }
             ];
-
+ 
             document.getElementById('doc-aspect-list').innerHTML = docAspects.map(a => {
                 const pct = (a.score / 5) * 100;
                 const color = getQualityColor(a.score);
@@ -496,10 +496,10 @@
                     </div>
                 `;
             }).join('');
-
+ 
             // Render Classroom
             document.getElementById('class-eval-count').textContent = `${averages.class.count} คาบ`;
-
+ 
             const classAspects = [
                 { title: "ตอนที่ 1: การเตรียมการสอน/ขั้นนำ (6 ข้อ)", score: averages.class.p1_avg },
                 { title: "ตอนที่ 2: ด้านการจัดการเรียนรู้ (13 ข้อ)", score: averages.class.p2_avg },
@@ -509,7 +509,7 @@
                 { title: "ตอนที่ 6: บุคลิกภาพ ร่างกาย อารมณ์ (4 ข้อ)", score: averages.class.p6_avg },
                 { title: "คะแนนเฉลี่ยรวมการสังเกตการสอนในชั้นเรียน", score: averages.class.overall_avg, isOverall: true }
             ];
-
+ 
             document.getElementById('class-aspect-list').innerHTML = classAspects.map(a => {
                 const pct = (a.score / 5) * 100;
                 const color = getQualityColor(a.score);
@@ -529,33 +529,33 @@
                 `;
             }).join('');
         }
-
+ 
         function changeMonth(delta) {
             currentMonth.setMonth(currentMonth.getMonth() + delta);
             renderCalendar();
         }
-
+ 
         function renderCalendar() {
             if (!statsData) return;
-
+ 
             const monthsThai = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
             const yearThai = currentMonth.getFullYear() + 543;
             document.getElementById('calendarMonthTitle').textContent = `${monthsThai[currentMonth.getMonth()]} ${yearThai}`;
-
+ 
             const container = document.getElementById('calendarDaysContainer');
             container.innerHTML = '';
-
+ 
             const year = currentMonth.getFullYear();
             const month = currentMonth.getMonth();
-
+ 
             // First day of month (0 = Sunday, 6 = Saturday)
             const firstDayIndex = new Date(year, month, 1).getDay();
             // Total days in month
             const totalDays = new Date(year, month + 1, 0).getDate();
-
+ 
             // Previous month total days to fill beginning cells
             const prevMonthTotalDays = new Date(year, month, 0).getDate();
-
+ 
             // 1. Render blank or inactive days from previous month
             for (let i = firstDayIndex - 1; i >= 0; i--) {
                 const dayNum = prevMonthTotalDays - i;
@@ -564,15 +564,15 @@
                 cell.innerHTML = `<span class="calendar-date-number">${dayNum}</span>`;
                 container.appendChild(cell);
             }
-
+ 
             // Map API calendar data by date string
             const calendarMap = {};
             statsData.calendar.forEach(c => {
                 calendarMap[c.date] = c;
             });
-
+ 
             const todayStr = new Date().toISOString().split('T')[0];
-
+ 
             // 2. Render actual days of the current month
             for (let day = 1; day <= totalDays; day++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -582,9 +582,9 @@
                 if (dateStr === todayStr) {
                     cell.classList.add('today');
                 }
-
+ 
                 let contentHtml = `<span class="calendar-date-number">${day}</span>`;
-
+ 
                 // Check if this date has a schedule mapped
                 if (calendarMap[dateStr]) {
                     const cInfo = calendarMap[dateStr];
@@ -596,7 +596,7 @@
                             cell.classList.add('is-full');
                         }
                     }
-
+ 
                     // Render short label
                     let deptNameShort = cInfo.department.replace('และเทคโนโลยี', '').replace('ศาสนา และวัฒนธรรม', '');
                     contentHtml += `
@@ -610,24 +610,24 @@
                                 return `<span class="calendar-booking-chip ${statusClass}" onclick="event.stopPropagation(); showBookingsForDate('${cInfo.date}')" title="คาบ ${b.period} · ${b.teacher_name} · ${b.subject_code}">
                                             คาบ ${b.period} ${b.teacher_name.split(' ')[0]}
                                         </span>`;
-                            }).join('')}
+                             }).join('')}
                             ${cInfo.bookings_count > 2 ? `<span class="text-muted text-center" style="font-size: 0.55rem; font-weight: 700;">+ อีก ${cInfo.bookings_count - 2} คิว</span>` : ''}
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-1">
                             <span class="calendar-slots">${cInfo.bookings_count}/4 คาบ</span>
                         </div>
                     `;
-
+ 
                     cell.onclick = () => showBookingsForDate(cInfo.date);
                 } else {
                     // Plain date cell
                     contentHtml += `<div></div><div class="calendar-slots"></div>`;
                 }
-
+ 
                 cell.innerHTML = contentHtml;
                 container.appendChild(cell);
             }
-
+ 
             // 3. Render grid elements to wrap up the grid to full row if necessary (42 cells total for clean layout)
             const totalCellsRendered = firstDayIndex + totalDays;
             const remainingCells = 42 - totalCellsRendered;
@@ -638,19 +638,19 @@
                 container.appendChild(cell);
             }
         }
-
+ 
         function showBookingsForDate(dateStr) {
             const calendarMap = {};
             statsData.calendar.forEach(c => {
                 calendarMap[c.date] = c;
             });
-
+ 
             const dayInfo = calendarMap[dateStr];
             if (!dayInfo) return;
-
+ 
             document.getElementById('modalDateTitle').textContent = `คิวการนิเทศวันที่ ${thDate(dateStr)} (${dayInfo.department})`;
             const body = document.getElementById('modalBookingsBody');
-
+ 
             if (dayInfo.bookings_count === 0) {
                 body.innerHTML = `
                     <div class="text-center py-4 text-muted">
@@ -673,7 +673,7 @@
                                 badgeClass = 'bg-success bg-opacity-10 text-success';
                                 badgeText = 'นิเทศแล้ว';
                             }
-
+ 
                             return `
                                 <div class="p-3 border rounded-3 bg-light bg-opacity-50">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
@@ -686,7 +686,7 @@
                                         
                                         <div class="col-4 fw-bold">กลุ่มสาระฯ:</div>
                                         <div class="col-8">${b.department}</div>
-
+ 
                                         <div class="col-4 fw-bold">วิชา:</div>
                                         <div class="col-8">${b.subject_code} ${b.subject_name}</div>
                                         
@@ -699,7 +699,7 @@
                     </div>
                 `;
             }
-
+ 
             const myModal = new bootstrap.Modal(document.getElementById('dateBookingsModal'));
             myModal.show();
         }

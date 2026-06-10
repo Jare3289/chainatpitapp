@@ -563,7 +563,7 @@
 
                 const rolePill = `<span class="role-pill">${d.role_th}</span>`;
 
-                const classLabel = d.class_name ? `${d.grade_level}/${String(d.class_name).padStart(2, '0')}` : d.grade_level || 'ไม่ระบุ';
+                const classLabel = d.classroom ? `ม.${d.classroom}` : 'ไม่ระบุ';
                 const roomLabel = d.room_location || '-';
                 const inner = `
                     <div class="d-flex align-items-center gap-3 mb-2">
@@ -628,11 +628,11 @@
                 // คะแนนรวม (ถ้ามี)
                 let scoreHtml = '';
                 if (ev.eval && ev.class_done) {
-                    const classScores = [1,2,3,4,5,6,7,8,9,10].map(n => parseInt(ev.eval[`class_score_${n}`] || 0));
+                    const classScores = Array.from({length: 31}, (_, i) => i + 1).map(n => parseInt(ev.eval[`class_score_${n}`] || 0));
                     const classTotal = classScores.reduce((a,b) => a+b, 0);
                     scoreHtml = `<div class="mt-2 d-flex gap-2 align-items-center">
                         <span class="text-muted" style="font-size:0.72rem;">คะแนนชั้นเรียน:</span>
-                        <span class="fw-black text-navy" style="font-size:0.9rem;">${classTotal}<span class="text-muted fw-normal">/50</span></span>
+                        <span class="fw-black text-navy" style="font-size:0.9rem;">${classTotal}<span class="text-muted fw-normal">/155</span></span>
                     </div>`;
                 }
 

@@ -1520,7 +1520,7 @@
             
             document.querySelectorAll('.preview-subject-name').forEach(el => el.innerText = toThaiNum(bookingData.subject_name) || '-');
             document.querySelectorAll('.preview-subject-code').forEach(el => el.innerText = toThaiNum(bookingData.subject_code) || '-');
-            document.querySelectorAll('.preview-classroom').forEach(el => el.innerText = toThaiNum(bookingData.classroom) || '-');
+            document.querySelectorAll('.preview-classroom').forEach(el => el.innerText = bookingData.classroom || '-');
             document.querySelectorAll('.preview-booking-date-thai').forEach(el => el.innerText = toThaiNum(formatThaiDate(bookingData.booking_date)));
 
             document.querySelectorAll('.preview-peer-name').forEach(el => el.innerText = bookingData.peer_name || '.......................................................');

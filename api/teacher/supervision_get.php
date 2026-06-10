@@ -191,7 +191,7 @@ try {
         // 3. Fetch my evaluations duties (where I am Peer, Head, or Academic evaluator)
         // Only fetch bookings in active stages: approved, doc_submitted, completed
         $stmt_duties = $pdo->prepare("SELECT b.*, 
-            t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept,
+            t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept, t.position as t_pos, t.academic_standing as t_standing,
             e.doc_evaluated_at, e.class_evaluated_at,
             e.doc_comments, e.class_comments,
             e.doc_score_1, e.doc_score_2, e.doc_score_3, e.doc_score_4, e.doc_score_5,
@@ -284,7 +284,13 @@ try {
                 'booking_period' => $d['booking_period'] ?? '',
                 'grade_level'    => $grade_level,
                 'class_name'     => $class_name_parsed,
+                'classroom'      => $d['classroom'] ?? '',
+                'room_number'    => $d['room_number'] ?? '',
                 'room_location'  => trim($d['room_number'] ?? ''),
+                'academic_standing'  => $d['t_standing'] ?? 'ไม่มีวิทยฐานะ',
+                'teacher_position'   => $d['t_pos'] ?? 'ครู',
+                'department'         => $d['t_dept'] ?? '-',
+                'evaluation_purpose' => $d['evaluation_purpose'] ?? 'ไม่มีวิทยฐานะ',
                 'role'           => $role,
                 'role_th'        => $role_th,
                 'docs_uploaded'  => $docs_uploaded,

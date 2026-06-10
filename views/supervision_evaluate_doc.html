@@ -298,14 +298,72 @@
                         </div>
                     </div>
 
+                    <!-- Dynamic Evaluator Role Selector Card -->
+                    <div class="profile-card shadow-sm mt-3" id="evaluator-role-card">
+                        <h6 class="fw-bold text-navy border-bottom pb-2 mb-3"><i class="bi bi-person-check-fill me-2"></i>ตำแหน่งและสถานะของผู้ประเมิน (กรุณาเลือก/ระบุให้ตรงตามจริง)</h6>
+                        <div id="evaluator-role-selector-container">
+                            <div class="text-muted small"><i class="spinner-border spinner-border-sm me-2"></i>กำลังตรวจสอบสิทธิ์บทบาท...</div>
+                        </div>
+                    </div>
+
                     <!-- Instruction Card -->
-                    <div class="alert alert-light border shadow-sm rounded-4 mb-4 small">
-                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle-fill text-primary me-2"></i>คำชี้แจงการประเมิน</h6>
-                        <ol class="mb-0 text-muted ps-3">
-                            <li>ให้ผู้ประเมินตรวจสอบองค์ประกอบของแผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้รายชั่วโมง แล้วคลิกเลือกระดับคุณภาพ 0-5 ตามความเป็นจริง</li>
-                            <li>ระดับคุณภาพ: <strong>5 = ยอดเยี่ยม, 4 = ดีเลิศ, 3 = ดี, 2 = ปานกลาง, 1 = กำลังพัฒนา, 0 = ไม่ปฏิบัติ</strong></li>
-                            <li>การประเมินในข้อที่ระบุมาตรฐานวิทยฐานะ (ตอนที่ 2 ข้อ 22) ระบบจะเปิดให้ประเมินเฉพาะข้อที่ตรงตามวิทยฐานะของผู้รับการประเมินเท่านั้น</li>
-                        </ol>
+                    <div class="alert alert-light border shadow-sm rounded-4 mb-4 p-4" style="font-size: 0.9rem; line-height: 1.7;">
+                        <div class="text-center mb-4 border-bottom pb-3">
+                            <h5 class="fw-bold text-navy mb-1" style="font-family: 'Sarabun', sans-serif;">คำชี้แจงการนิเทศและการแปลผล</h5>
+                            <p class="text-muted mb-0 fw-bold">แบบประเมินแผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-navy"><i class="bi bi-info-circle-fill text-primary me-2"></i>คำชี้แจง</h6>
+                            <ol class="text-muted ps-3 mb-0">
+                                <li>ให้ผู้ประเมิน (ครูผู้สอน/ครูผู้ร่วมนิเทศ /หัวหน้ากลุ่มสาระการเรียนรู้ /รองหัวหน้ากลุ่มสาระการเรียนรู้/ คณะกรรมการกลุ่มบริหารวิชาการ) ติดตามและประเมินผลการเรียนการสอน พร้อมกับผู้ที่เกี่ยวข้องดำเนินการประเมิน แผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้ (รายชั่วโมง) ดังนี้:
+                                    <ul class="ps-3 mt-2 list-unstyled text-dark">
+                                        <li><i class="bi bi-check2-square text-success me-2"></i><strong>1.1</strong> ตรวจสอบองค์ประกอบของแผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้ (รายชั่วโมง) โดยใช้แบบประเมิน ในตอนที่ 1-2 ตามรายการที่กำหนด แล้วทำคะแนนในช่องระดับคุณภาพตามความเป็นจริง</li>
+                                        <li><i class="bi bi-check2-square text-success me-2"></i><strong>1.2</strong> กรณีครูไม่ปฏิบัติประเด็นใด ให้ทำเครื่องหมายในช่องไม่ปฏิบัติ ถือว่าคะแนนในประเด็นนั้น เป็น <strong>ศูนย์ (0)</strong></li>
+                                        <li><i class="bi bi-check2-square text-success me-2"></i><strong>1.3</strong> บันทึกข้อคิดเห็น/ข้อเสนอแนะในการปรับปรุง/แก้ไข เพื่อให้ครูผู้สอนนำไปใช้ประโยชน์ในการปรับปรุง และพัฒนาการจัดทำแผนหน่วยการเรียนรู้และแผนการจัดการเรียนรู้ (รายชั่วโมง) ต่อไป</li>
+                                        <li><i class="bi bi-check2-square text-success me-2"></i><strong>1.4</strong> การประเมินในข้อที่ระบุมาตรฐานวิทยฐานะให้ผู้ประเมินประเมินเฉพาะข้อที่ตรงตามวิทยฐานะของครูผู้รับการประเมินเท่านั้น</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 border-end">
+                                <h6 class="fw-bold text-navy"><i class="bi bi-star-fill text-warning me-2"></i>การให้ระดับคุณภาพ</h6>
+                                <ul class="list-unstyled text-muted ps-2 mb-0" style="line-height: 1.8;">
+                                    <li><span class="badge bg-primary bg-opacity-10 text-primary me-1">ระดับ 5</span> ครบถ้วน/ถูกต้อง/สอดคล้อง/เชื่อมโยง/เหมาะสมระดับยอดเยี่ยม</li>
+                                    <li><span class="badge bg-success bg-opacity-10 text-success me-1">ระดับ 4</span> ครบถ้วน/ถูกต้อง/สอดคล้อง/เชื่อมโยง/เหมาะสมระดับดีเลิศ</li>
+                                    <li><span class="badge bg-info bg-opacity-10 text-info me-1">ระดับ 3</span> ครบถ้วน/ถูกต้อง/สอดคล้อง/เชื่อมโยง/เหมาะสมระดับดี</li>
+                                    <li><span class="badge bg-warning bg-opacity-10 text-warning me-1">ระดับ 2</span> ครบถ้วน/ถูกต้อง/สอดคล้อง/เชื่อมโยง/เหมาะสมระดับปานกลาง</li>
+                                    <li><span class="badge bg-danger bg-opacity-10 text-danger me-1">ระดับ 1</span> ครบถ้วน/ถูกต้อง/สอดคล้อง/เชื่อมโยง/เหมาะสมระดับกำลังพัฒนา</li>
+                                    <li><span class="badge bg-secondary bg-opacity-10 text-secondary me-1">ระดับ 0</span> ไม่ปฏิบัติ</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6 ps-md-4">
+                                <h6 class="fw-bold text-navy"><i class="bi bi-calculator text-success me-2"></i>การแปลความหมายระดับคุณภาพ</h6>
+                                <table class="table table-sm table-borderless mb-0 text-muted" style="line-height: 1.8;">
+                                    <tr><td>คะแนนเฉลี่ย <strong>4.21 - 5.00</strong></td><td class="fw-bold text-primary">ยอดเยี่ยม</td></tr>
+                                    <tr><td>คะแนนเฉลี่ย <strong>3.41 - 4.20</strong></td><td class="fw-bold text-success">ดีเลิศ</td></tr>
+                                    <tr><td>คะแนนเฉลี่ย <strong>2.61 - 3.40</strong></td><td class="fw-bold text-info">ดี</td></tr>
+                                    <tr><td>คะแนนเฉลี่ย <strong>1.81 - 2.60</strong></td><td class="fw-bold text-warning">ปานกลาง</td></tr>
+                                    <tr><td>คะแนนเฉลี่ย <strong>1.00 - 1.80</strong></td><td class="fw-bold text-danger">กำลังพัฒนา</td></tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3">
+                            <h6 class="fw-bold text-navy"><i class="bi bi-file-earmark-arrow-up-fill text-danger me-2"></i>2. เอกสารที่ต้องส่งพร้อมกับแผนการจัดการเรียนรู้</h6>
+                            <div class="row g-2 text-muted ps-2 mt-1">
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>1. โครงสร้างรายวิชา</div>
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>2. โครงสร้างหน่วยที่รับการนิเทศ</div>
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>3. แบบประเมินคุณลักษณะที่พึงประสงค์</div>
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>4. แบบประเมินสมรรถนะที่สำคัญของผู้เรียน</div>
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>5. แบบประเมินทักษะในศตวรรษที่ 21</div>
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>6. แบบประเมินภาระงาน/ชิ้นงาน/ร่องรอยหลักฐานการเรียนรู้</div>
+                                <div class="col-sm-6"><i class="bi bi-file-earmark-check me-2"></i>7. อื่นๆ (ระบุ..............................)</div>
+                            </div>
+                            <div class="text-danger small mt-2 fw-bold"><i class="bi bi-exclamation-circle-fill me-1"></i>หมายเหตุ: แบบประเมิน ข้อที่ 3-5 สามารถจัดทำอยู่ร่วมกันได้ ใน 1 หน้า</div>
+                        </div>
                     </div>
 
                     <form id="evaluationForm">
@@ -737,10 +795,102 @@
                     }
                     summaryEl.value = paragraph;
                 } else if (dutyRecord && dutyRecord.doc_comments) {
-                    summaryEl.value = dutyRecord.doc_comments;
+                    let rawComments = dutyRecord.doc_comments;
+                    if (rawComments.startsWith('[ผู้ประเมิน: ')) {
+                        const closeIdx = rawComments.indexOf(']');
+                        if (closeIdx > 12) {
+                            rawComments = rawComments.substring(closeIdx + 1).trim();
+                        }
+                    }
+                    summaryEl.value = rawComments;
                 } else {
                     summaryEl.value = '';
                 }
+            }
+        }
+
+        function renderEvaluatorRoleSelector(role, roleInfo) {
+            const container = document.getElementById('evaluator-role-selector-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (role === 'peer') {
+                const pos = roleInfo ? (roleInfo.position || '') : (currentUser.position || 'ครู');
+                const standing = roleInfo ? (roleInfo.standing || '') : (currentUser.academic_standing || '-');
+                container.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">ตำแหน่งผู้ประเมิน</label>
+                            <input type="text" class="form-control border shadow-sm rounded-3 py-2 px-3" id="peer_position" placeholder="เช่น ครู, ครูผู้ช่วย" value="${pos}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">วิทยฐานะผู้ประเมิน</label>
+                            <input type="text" class="form-control border shadow-sm rounded-3 py-2 px-3" id="peer_standing" placeholder="เช่น ชำนาญการพิเศษ (ไม่มีใส่ -)" value="${standing}">
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'head') {
+                const subRole = roleInfo ? (roleInfo.sub_role || '') : '2.1 หัวหน้ากลุ่มสาระการเรียนรู้';
+                container.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted d-block mb-2">ตำแหน่งผู้นิเทศ</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="head_sub_role" id="head_sub_1" value="2.1 หัวหน้ากลุ่มสาระการเรียนรู้" ${subRole === '2.1 หัวหน้ากลุ่มสาระการเรียนรู้' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="head_sub_1">
+                                    2.1 หัวหน้ากลุ่มสาระการเรียนรู้
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="head_sub_role" id="head_sub_2" value="2.2 รองหัวหน้ากลุ่มสาระการเรียนรู้" ${subRole === '2.2 รองหัวหน้ากลุ่มสาระการเรียนรู้' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="head_sub_2">
+                                    2.2 รองหัวหน้ากลุ่มสาระการเรียนรู้
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'academic') {
+                const subRole = roleInfo ? (roleInfo.sub_role || '') : '3.1 รองผู้อำนวยการกลุ่มบริหารวิชาการ';
+                const customRole = (roleInfo && roleInfo.custom_role) ? roleInfo.custom_role : '';
+                container.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted d-block mb-2">ตำแหน่งคณะกรรมการกลุ่มบริหารวิชาการ</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="academic_sub_role" id="acad_sub_1" value="3.1 รองผู้อำนวยการกลุ่มบริหารวิชาการ" ${subRole === '3.1 รองผู้อำนวยการกลุ่มบริหารวิชาการ' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="acad_sub_1">
+                                    3.1 รองผู้อำนวยการกลุ่มบริหารวิชาการ
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="academic_sub_role" id="acad_sub_2" value="3.2 หัวหน้ากลุ่มบริหารวิชาการ" ${subRole === '3.2 หัวหน้ากลุ่มบริหารวิชาการ' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="acad_sub_2">
+                                    3.2 หัวหน้ากลุ่มบริหารวิชาการ
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="academic_sub_role" id="acad_sub_3" value="3.3 หัวหน้างานนิเทศการศึกษา" ${subRole === '3.3 หัวหน้างานนิเทศการศึกษา' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="acad_sub_3">
+                                    3.3 หัวหน้างานนิเทศการศึกษา
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="academic_sub_role" id="acad_sub_4" value="3.4 กรรมการนิเทศการศึกษา" ${subRole === '3.4 กรรมการนิเทศการศึกษา' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="acad_sub_4">
+                                    3.4 กรรมการนิเทศการศึกษา
+                                </label>
+                            </div>
+                            <div class="form-check d-flex align-items-center gap-2 flex-wrap">
+                                <input class="form-check-input" type="radio" name="academic_sub_role" id="acad_sub_other" value="อื่น ๆ" ${subRole === 'อื่น ๆ' ? 'checked' : ''}>
+                                <label class="form-check-label fw-bold" for="acad_sub_other" style="white-space: nowrap; margin-bottom: 0;">
+                                    อื่น ๆ
+                                </label>
+                                <input type="text" class="form-control border shadow-sm rounded-3 py-1 px-3" id="academic_sub_other_text" placeholder="ระบุตำแหน่งอื่น ๆ..." value="${customRole}" style="max-width: 250px;">
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -840,7 +990,7 @@
                     document.getElementById('info-teacher-standing').innerText = dutyRecord.academic_standing || 'ไม่มีวิทยฐานะ';
                     document.getElementById('info-teacher-dept').innerText = dutyRecord.department || '-';
                     document.getElementById('info-subject').innerText = `${dutyRecord.subject_code} ${dutyRecord.subject_name}`;
-                    document.getElementById('info-classroom').innerText = `ชั้น ม.${dutyRecord.classroom} (ห้องสอน: ${dutyRecord.room_number})`;
+                    document.getElementById('info-classroom').innerText = `ชั้น ม.${dutyRecord.classroom || ''} (ห้องสอน: ${dutyRecord.room_number || '-'})`;
                     document.getElementById('info-topic').innerText = dutyRecord.lesson_topic || 'ยังไม่กำหนดชื่อเรื่อง';
                     document.getElementById('info-date').innerText = formatThaiDate(dutyRecord.booking_date);
                     document.getElementById('info-evaluator').innerText = `${currentUser.prefix || ''}${currentUser.first_name_th} ${currentUser.last_name_th} (${dutyRecord.role_th})`;
@@ -850,7 +1000,28 @@
                     renderPart2();
                     
                     // Render comments
-                    if (dutyRecord.doc_comments) {
+                    savedData = dutyRecord;
+                    let commentsText = '';
+                    let roleInfo = null;
+                    if (dutyRecord.doc_comments && dutyRecord.doc_comments.startsWith('[ผู้ประเมิน: ')) {
+                        const closeIdx = dutyRecord.doc_comments.indexOf(']');
+                        if (closeIdx > 12) {
+                            try {
+                                roleInfo = JSON.parse(dutyRecord.doc_comments.substring(12, closeIdx));
+                                commentsText = dutyRecord.doc_comments.substring(closeIdx + 1).trim();
+                            } catch (e) {
+                                commentsText = dutyRecord.doc_comments;
+                            }
+                        } else {
+                            commentsText = dutyRecord.doc_comments;
+                        }
+                    } else {
+                        commentsText = dutyRecord.doc_comments || '';
+                    }
+
+                    renderEvaluatorRoleSelector(dutyRecord.role, roleInfo);
+
+                    if (commentsText) {
                         const planText = dutyRecord.plan_integration || '';
                         let hasStructured = false;
                         if (planText) {
@@ -869,7 +1040,7 @@
                         
                         const summaryEl = document.getElementById('doc_comments_summary');
                         if (summaryEl) {
-                            summaryEl.value = dutyRecord.doc_comments;
+                            summaryEl.value = commentsText;
                         }
                     }
                     
@@ -1867,10 +2038,37 @@
                 doc_comments_structured: commentsStructured
             });
             
+            let roleInfo = {};
+            if (dutyRecord.role === 'peer') {
+                roleInfo = {
+                    type: 'peer',
+                    position: document.getElementById('peer_position') ? document.getElementById('peer_position').value.trim() : 'ครู',
+                    standing: document.getElementById('peer_standing') ? document.getElementById('peer_standing').value.trim() : '-'
+                };
+            } else if (dutyRecord.role === 'head') {
+                const checked = document.querySelector('input[name="head_sub_role"]:checked');
+                roleInfo = {
+                    type: 'head',
+                    sub_role: checked ? checked.value : '2.1 หัวหน้ากลุ่มสาระการเรียนรู้'
+                };
+            } else if (dutyRecord.role === 'academic') {
+                const checked = document.querySelector('input[name="academic_sub_role"]:checked');
+                const selectedVal = checked ? checked.value : '3.1 รองผู้อำนวยการกลุ่มบริหารวิชาการ';
+                roleInfo = {
+                    type: 'academic',
+                    sub_role: selectedVal
+                };
+                if (selectedVal === 'อื่น ๆ') {
+                    roleInfo.custom_role = document.getElementById('academic_sub_other_text') ? document.getElementById('academic_sub_other_text').value.trim() : '';
+                }
+            }
+            
+            const commentsPrefix = `[ผู้ประเมิน: ${JSON.stringify(roleInfo)}] `;
+
             const payload = {
                 booking_id: bookingId,
                 eval_type: 'doc',
-                doc_comments: docCommentsVal,
+                doc_comments: commentsPrefix + docCommentsVal,
                 unit_integration: unitIntegrationVal,
                 plan_integration: planIntegrationVal
             };
