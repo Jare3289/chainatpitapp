@@ -57,42 +57,54 @@ try {
         $my_full_name = $me ? trim(($me['prefix'] ?? '') . ($me['first_name_th'] ?? '') . ' ' . ($me['last_name_th'] ?? '')) : '';
     }
 
-    // 2. Fetch all teachers (for Peer selection)
-    $stmt = $pdo->query("SELECT id, prefix, first_name_th, last_name_th, department, sub_department FROM teachers ORDER BY first_name_th ASC");
+    // 2. Fetch all teachers excluding admins (for reference / heads list base)
+    $base_sql = "SELECT t.id, t.prefix, t.first_name_th, t.last_name_th, t.department, t.sub_department, t.department_position
+                 FROM teachers t
+                 LEFT JOIN users u ON u.id = t.user_id
+                 WHERE (u.role IS NULL OR u.role != 'admin')
+                 ORDER BY t.first_name_th ASC";
+    $stmt = $pdo->query($base_sql);
     $all_teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Format display names
     foreach ($all_teachers as &$t) {
         $t['full_name'] = trim(($t['prefix'] ?? '') . $t['first_name_th'] . ' ' . $t['last_name_th']);
     }
     unset($t);
 
-    // 3. Fetch teachers in the same department (for Head/Deputy selection)
+    // 3. Fetch same-department teachers (excluding admins) for Peer and Head selection
     $dept_teachers = [];
     if (!empty($my_dept)) {
-        // Find teachers in the same department
-        // Note: Computer department teachers have sub_department = 'คอมพิวเตอร์และเทคโนโลยี'
-        // Science department teachers have department = 'วิทยาศาสตร์และเทคโนโลยี'
-        // If logged-in user is computer, show computer teachers. If science, science.
+        $dept_base = "SELECT t.id, t.prefix, t.first_name_th, t.last_name_th, t.department, t.sub_department, t.department_position
+                      FROM teachers t
+                      LEFT JOIN users u ON u.id = t.user_id
+                      WHERE (u.role IS NULL OR u.role != 'admin')";
+
         if ($my_sub_dept === 'คอมพิวเตอร์และเทคโนโลยี') {
-            $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department FROM teachers WHERE sub_department = ? ORDER BY first_name_th ASC");
+            $stmt = $pdo->prepare($dept_base . " AND t.sub_department = ? ORDER BY t.first_name_th ASC");
             $stmt->execute([$my_sub_dept]);
+        } elseif ($my_dept === 'วิทยาศาสตร์และเทคโนโลยี') {
+            $stmt = $pdo->prepare($dept_base . " AND t.department = ? AND (t.sub_department != 'คอมพิวเตอร์และเทคโนโลยี' OR t.sub_department IS NULL) ORDER BY t.first_name_th ASC");
+            $stmt->execute([$my_dept]);
         } else {
-            // Science teachers (excl computer) or any other department
-            if ($my_dept === 'วิทยาศาสตร์และเทคโนโลยี') {
-                $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department FROM teachers WHERE department = ? AND (sub_department != 'คอมพิวเตอร์และเทคโนโลยี' OR sub_department IS NULL) ORDER BY first_name_th ASC");
-                $stmt->execute([$my_dept]);
-            } else {
-                $stmt = $pdo->prepare("SELECT id, prefix, first_name_th, last_name_th, department, sub_department FROM teachers WHERE department = ? ORDER BY first_name_th ASC");
-                $stmt->execute([$my_dept]);
-            }
+            $stmt = $pdo->prepare($dept_base . " AND t.department = ? ORDER BY t.first_name_th ASC");
+            $stmt->execute([$my_dept]);
         }
         $dept_teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($dept_teachers as &$t) {
             $t['full_name'] = trim(($t['prefix'] ?? '') . $t['first_name_th'] . ' ' . $t['last_name_th']);
+            $t['position_label'] = $t['department_position'] ?: 'กรรมการ';
         }
         unset($t);
     }
+
+    // peers = same-dept teachers, exclude self
+    $peers = array_values(array_filter($dept_teachers, fn($t) => (int)$t['id'] !== $my_teacher_id));
+
+    // heads = same-dept teachers who have a department_position, exclude self
+    $heads = array_values(array_filter($dept_teachers, function($t) use ($my_teacher_id) {
+        if ((int)$t['id'] === $my_teacher_id) return false;
+        return !empty($t['department_position'] ?? '');
+    }));
 
     // Determine user's allowed dates
     $schedule_key = '';
@@ -152,6 +164,8 @@ try {
         'my_sub_department' => $my_sub_dept,
         'allowed_dates' => $allowed_dates,
         'allowed_dates_info' => $allowed_dates_with_counts,
+        'peers' => $peers,
+        'heads' => $heads,
         'teachers' => $all_teachers,
         'department_teachers' => $dept_teachers
     ]);

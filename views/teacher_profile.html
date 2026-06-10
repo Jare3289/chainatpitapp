@@ -469,12 +469,6 @@
                                         <div class="profile-avatar-wrapper">
                                             <img id="displayAvatar" src="../public/img/default-avatar.png"
                                                 class="profile-avatar" alt="avatar">
-                                            <button type="button" class="change-photo-btn shadow-sm"
-                                                onclick="document.getElementById('photoInput').click()">
-                                                <i class="bi bi-camera-fill" style="font-size:0.85rem;"></i>
-                                            </button>
-                                            <input type="file" id="photoInput" class="d-none" accept="image/*"
-                                                onchange="previewPhoto(this)">
                                         </div>
                                     </div>
                                     <div class="id-badge-body">
@@ -978,7 +972,6 @@
 
     <script>
         // ──── State ────
-        let currentPhotoFile = null;
         let isEditing = false;
         let canvas, signaturePad;
         let addressProvinces = [];
@@ -1426,39 +1419,6 @@
             }
         }
 
-        // ──── Photo ────
-        function previewPhoto(i) {
-            if (i.files && i.files[0]) {
-                const r = new FileReader();
-                r.onload = async e => {
-                    document.getElementById('displayAvatar').src = e.target.result;
-                    currentPhotoFile = e.target.result;
-                    // ถ้าอยู่ในโหมดดู ให้บันทึกรูปทันทีโดยไม่ต้องกดแก้ไขทั้งหมด
-                    const form = document.getElementById('profileForm');
-                    if (form && form.classList.contains('view-mode')) {
-                        try {
-                            Swal.fire({ title: 'กำลังบันทึกรูปภาพ...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-                            const res = await fetch('../api/teacher/profile.php', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ photo_base64: currentPhotoFile })
-                            });
-                            const result = await res.json();
-                            if (result.success) {
-                                currentPhotoFile = null;
-                                await Swal.fire({ icon: 'success', title: 'บันทึกรูปภาพสำเร็จ', timer: 1200, showConfirmButton: false });
-                            } else {
-                                Swal.fire('ผิดพลาด', result.error || 'บันทึกรูปไม่สำเร็จ', 'error');
-                            }
-                        } catch (err) {
-                            Swal.fire('ผิดพลาด', 'ระบบขัดข้อง กรุณาลองใหม่', 'error');
-                        }
-                    }
-                };
-                r.readAsDataURL(i.files[0]);
-            }
-        }
-
         // ──── Save ────
         async function saveProfile(e) {
             e.preventDefault();
@@ -1524,8 +1484,6 @@
             disabled.forEach(el => el.disabled = false);
             const data = Object.fromEntries(new FormData(form).entries());
             disabled.forEach(el => el.disabled = true);
-            if (currentPhotoFile) data.photo_base64 = currentPhotoFile;
-
             Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
             try {
                 const res = await fetch('../api/teacher/profile.php', {
@@ -1536,7 +1494,7 @@
                 const result = await res.json();
                 if (result.success) {
                     await Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: result.message || 'บันทึกข้อมูลเรียบร้อย', timer: 1500, showConfirmButton: false });
-                    await fetchProfile();
+                    location.reload();
                 } else {
                     Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกได้', 'error');
                 }
