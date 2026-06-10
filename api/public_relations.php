@@ -11,6 +11,11 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'] ?? '';
 
+// One-time migration: add gallery_images column if missing
+try {
+    $pdo->exec("ALTER TABLE public_relations ADD COLUMN IF NOT EXISTS gallery_images TEXT NULL DEFAULT NULL");
+} catch (PDOException $e) { /* already exists or unsupported — ignore */ }
+
 // Determine author name for creating posts
 function getAuthorName($pdo, $uid, $uRole) {
     if ($uRole === 'admin') return 'ผู้ดูแลระบบ';
@@ -32,6 +37,31 @@ function getAuthorName($pdo, $uid, $uRole) {
     $stmt->execute([$uid]);
     $u = $stmt->fetch(PDO::FETCH_ASSOC);
     return $u['username'] ?? 'ผู้ใช้ทั่วไป';
+}
+
+// Handle gallery uploads — returns array of relative web paths
+function handleGalleryUploads(): array {
+    $paths    = [];
+    $maxSize  = 5 * 1024 * 1024;
+    $allowed  = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $extMap   = ['image/jpeg'=>'jpg','image/png'=>'png','image/gif'=>'gif','image/webp'=>'webp'];
+    $finfo    = new finfo(FILEINFO_MIME_TYPE);
+    $uploadDir = __DIR__ . '/../public/uploads/pr_images/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    foreach ($_FILES as $key => $f) {
+        if (!preg_match('/^gallery_\d+$/', $key)) continue;
+        if ($f['error'] !== UPLOAD_ERR_OK)          continue;
+        if ($f['size'] > $maxSize)                   continue;
+        $mime = $finfo->file($f['tmp_name']);
+        if (!in_array($mime, $allowed, true))         continue;
+        $ext      = $extMap[$mime] ?? 'jpg';
+        $filename = uniqid('prg_', true) . '.' . $ext;
+        if (move_uploaded_file($f['tmp_name'], $uploadDir . $filename)) {
+            $paths[] = 'public/uploads/pr_images/' . $filename;
+        }
+    }
+    return $paths;
 }
 
 // Handle image upload — returns relative web path or null
@@ -128,23 +158,27 @@ try {
             }
 
             // Handle optional image upload
-            $imagePath = null;
+            $imagePath   = null;
+            $galleryJson = null;
             if ($isMultipart) {
-                $imagePath = handleImageUpload(); // may throw
+                $imagePath    = handleImageUpload();
+                $galleryPaths = handleGalleryUploads();
+                if (!empty($galleryPaths)) {
+                    $galleryJson = json_encode($galleryPaths);
+                }
             }
-            
+
             $authorName = getAuthorName($pdo, $user_id, $role);
-            // Admins posts are automatically approved, others start as pending
             $status      = ($role === 'admin') ? 'approved' : 'pending';
             $approved_at = ($role === 'admin') ? date('Y-m-d H:i:s') : null;
             $approved_by = ($role === 'admin') ? $user_id : null;
-            
+
             $stmt = $pdo->prepare("
-                INSERT INTO public_relations (title, content, category, visibility, image_path, author_id, author_role, author_name, status, approved_at, approved_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO public_relations (title, content, category, visibility, image_path, gallery_images, author_id, author_role, author_name, status, approved_at, approved_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $success = $stmt->execute([
-                $title, $content, $category, $visibility, $imagePath,
+                $title, $content, $category, $visibility, $imagePath, $galleryJson,
                 $user_id, $role, $authorName, $status, $approved_at, $approved_by
             ]);
             

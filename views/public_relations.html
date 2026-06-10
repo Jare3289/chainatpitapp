@@ -242,6 +242,47 @@
             margin-bottom: 1.25rem;
             display: none;
         }
+
+        /* Gallery Upload Slots */
+        .gallery-upload-slot {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-subtle);
+            cursor: pointer;
+            transition: all 0.22s ease;
+            position: relative;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 76px;
+            overflow: hidden;
+        }
+        .gallery-upload-slot:hover { border-color: var(--primary); background: var(--primary-soft); }
+        .gallery-upload-slot input[type=file] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+            width: 100%; height: 100%; z-index: 2;
+        }
+        .gallery-slot-preview { position: absolute; inset: 0; z-index: 1; }
+        .gallery-slot-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .gallery-slot-remove {
+            position: absolute; top: 4px; right: 4px;
+            background: rgba(239,68,68,0.9); color: white; border: none;
+            border-radius: 50%; width: 22px; height: 22px; font-size: 0.65rem;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 3; transition: transform 0.2s;
+        }
+        .gallery-slot-remove:hover { transform: scale(1.15); }
+        .gallery-slot-num { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; margin-top: 4px; }
+
+        /* Detail modal gallery grid */
+        .detail-gallery-img {
+            width: 100%; aspect-ratio: 1; object-fit: cover;
+            border-radius: var(--radius-md); cursor: pointer;
+            transition: transform 0.25s ease;
+        }
+        .detail-gallery-img:hover { transform: scale(1.04); }
     </style>
 </head>
 <body>
@@ -452,23 +493,39 @@
                         <textarea class="cnp-form-input" id="postContent" rows="6" placeholder="กรอกข่าวสาร ประกาศ ตารางเวลา สถานที่จัดงาน และข้อความอื่นๆ..." required></textarea>
                     </div>
 
-                    <!-- IMAGE UPLOAD ZONE -->
-                    <div class="mb-2">
-                        <label class="cnp-form-label"><i class="bi bi-image me-1 text-primary"></i> แนบรูปภาพประกอบ (ไม่บังคับ)</label>
+                    <!-- COVER IMAGE UPLOAD -->
+                    <div class="mb-3">
+                        <label class="cnp-form-label"><i class="bi bi-image-fill me-1 text-primary"></i> รูปปก <span class="text-muted fw-normal">(ภาพหลักของข่าว · ไม่บังคับ)</span></label>
                         <div class="img-upload-zone" id="imgUploadZone">
                             <input type="file" id="postImageFile" accept="image/jpeg,image/png,image/gif,image/webp" onchange="handleImageSelect(this)">
                             <div id="imgUploadPlaceholder">
                                 <i class="bi bi-cloud-arrow-up-fill text-primary" style="font-size:2rem;"></i>
-                                <p class="mb-0 mt-2 fw-bold text-navy" style="font-size:0.88rem;">คลิกหรือลากวางรูปภาพที่นี่</p>
-                                <p class="text-muted mb-0" style="font-size:0.75rem;">รองรับ JPG, PNG, GIF, WEBP · ขนาดสูงสุด 5 MB</p>
+                                <p class="mb-0 mt-2 fw-bold text-navy" style="font-size:0.88rem;">คลิกหรือลากวางรูปปก</p>
+                                <p class="text-muted mb-0" style="font-size:0.75rem;">JPG, PNG, GIF, WEBP · สูงสุด 5 MB</p>
                             </div>
                         </div>
                         <div id="imgPreviewArea" class="text-center mt-2" style="display:none;">
                             <div class="img-preview-box">
-                                <img id="imgPreviewImg" src="" alt="ตัวอย่างรูปภาพ">
-                                <button type="button" class="btn-remove-img" onclick="clearImageUpload()" title="ลบรูปภาพ"><i class="bi bi-x"></i></button>
+                                <img id="imgPreviewImg" src="" alt="รูปปก">
+                                <button type="button" class="btn-remove-img" onclick="clearImageUpload()" title="ลบรูปปก"><i class="bi bi-x"></i></button>
                             </div>
                             <p class="text-muted small mt-1 mb-0" id="imgPreviewName"></p>
+                        </div>
+                    </div>
+
+                    <!-- GALLERY IMAGES -->
+                    <div class="mb-2">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="cnp-form-label mb-0">
+                                <i class="bi bi-images me-1 text-primary"></i> รูปประกอบ
+                                <span class="text-muted fw-normal" style="font-size:0.78rem;">(ไม่บังคับ · สูงสุด 8 รูป)</span>
+                            </label>
+                            <button type="button" class="btn btn-light border rounded-pill btn-sm px-3 fw-bold small" onclick="addGallerySlot()" id="btnAddGallery">
+                                <i class="bi bi-plus me-1"></i> เพิ่มรูป
+                            </button>
+                        </div>
+                        <div id="galleryContainer" class="row g-2">
+                            <!-- Gallery slots populated by JS -->
                         </div>
                     </div>
                 </form>
@@ -494,6 +551,11 @@
             <div class="modal-body p-4 bg-white">
                 <!-- Hero image (shown when post has image) -->
                 <img id="detailHeroImg" src="" alt="ภาพประกอบข่าว" class="mb-3">
+                <!-- Gallery images -->
+                <div id="detailGallerySection" style="display:none;" class="mb-3">
+                    <div class="small fw-bold text-muted mb-2"><i class="bi bi-images me-1"></i>รูปประกอบ</div>
+                    <div class="row g-2" id="detailGalleryGrid"></div>
+                </div>
 
                 <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-light rounded-4">
                     <img src="" onerror="this.src='../public/img/default-avatar.png'" class="cnp-avatar cnp-avatar--lg" id="detailAuthorPhoto">
@@ -534,6 +596,96 @@
     let allPrPosts = [];
     let selectedCategoryFilter = '';
     let searchQuery = '';
+
+    /* ── GALLERY MANAGEMENT ── */
+    let galleryFiles = {};  // { slotIndex: File }
+    let gallerySlotCount = 3;
+    const MAX_GALLERY_SLOTS = 8;
+
+    function initGallerySlots() {
+        galleryFiles = {};
+        gallerySlotCount = 3;
+        const container = document.getElementById('galleryContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        for (let i = 0; i < gallerySlotCount; i++) {
+            container.appendChild(createGallerySlotEl(i));
+        }
+        updateAddGalleryBtn();
+    }
+
+    function createGallerySlotEl(index) {
+        const col = document.createElement('div');
+        col.className = 'col-4 col-md-3 col-lg-2';
+        col.id = `gcol-${index}`;
+        col.innerHTML = `
+            <div class="gallery-upload-slot" id="gslot-${index}">
+                <input type="file" id="ginput-${index}" accept="image/jpeg,image/png,image/gif,image/webp"
+                       onchange="handleGallerySelect(${index}, this)">
+                <div id="gph-${index}" style="text-align:center;">
+                    <i class="bi bi-plus-circle" style="font-size:1.3rem;color:#94a3b8;"></i>
+                    <div class="gallery-slot-num">${index + 1}</div>
+                </div>
+                <div class="gallery-slot-preview d-none" id="gprev-${index}">
+                    <img id="gimg-${index}" src="" alt="">
+                </div>
+            </div>`;
+        return col;
+    }
+
+    function handleGallerySelect(index, input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            Swal.fire({ icon: 'warning', title: 'ไฟล์ใหญ่เกินไป', text: 'รูปประกอบต้องไม่เกิน 5 MB' });
+            input.value = '';
+            return;
+        }
+        galleryFiles[index] = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById(`gimg-${index}`).src = e.target.result;
+            document.getElementById(`gph-${index}`).classList.add('d-none');
+            document.getElementById(`gprev-${index}`).classList.remove('d-none');
+            const slot = document.getElementById(`gslot-${index}`);
+            if (!slot.querySelector('.gallery-slot-remove')) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'gallery-slot-remove';
+                btn.title = 'ลบรูป';
+                btn.innerHTML = '<i class="bi bi-x"></i>';
+                btn.onclick = (e) => { e.stopPropagation(); removeGalleryFile(index); };
+                slot.appendChild(btn);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeGalleryFile(index) {
+        delete galleryFiles[index];
+        document.getElementById(`ginput-${index}`).value = '';
+        document.getElementById(`gph-${index}`).classList.remove('d-none');
+        document.getElementById(`gprev-${index}`).classList.add('d-none');
+        const btn = document.getElementById(`gslot-${index}`)?.querySelector('.gallery-slot-remove');
+        if (btn) btn.remove();
+    }
+
+    function addGallerySlot() {
+        if (gallerySlotCount >= MAX_GALLERY_SLOTS) return;
+        const container = document.getElementById('galleryContainer');
+        container.appendChild(createGallerySlotEl(gallerySlotCount));
+        gallerySlotCount++;
+        updateAddGalleryBtn();
+    }
+
+    function updateAddGalleryBtn() {
+        const btn = document.getElementById('btnAddGallery');
+        if (btn) btn.disabled = gallerySlotCount >= MAX_GALLERY_SLOTS;
+    }
+
+    function clearGallery() {
+        initGallerySlots();
+    }
 
     // Initialize local storage features (Likes, private Bookmarks and Views counter)
     const store = {
@@ -970,6 +1122,24 @@
         } else {
             heroImg.style.display = 'none';
         }
+
+        // Gallery images
+        const galSection = document.getElementById('detailGallerySection');
+        const galGrid = document.getElementById('detailGalleryGrid');
+        let galPaths = [];
+        try { galPaths = post.gallery_images ? JSON.parse(post.gallery_images) : []; } catch(e) { galPaths = []; }
+        if (galPaths.length > 0) {
+            galGrid.innerHTML = galPaths.map(p =>
+                `<div class="col-4 col-md-3">
+                    <img src="../${escapeHtml(p)}" class="detail-gallery-img" loading="lazy"
+                         onerror="this.parentElement.style.display='none'"
+                         onclick="window.open('../${escapeHtml(p)}','_blank')">
+                 </div>`
+            ).join('');
+            galSection.style.display = 'block';
+        } else {
+            galSection.style.display = 'none';
+        }
         
         const likesMap = store.getLikes();
         document.getElementById('detailLikesCount').textContent = likesMap[postId] || 0;
@@ -1004,6 +1174,7 @@
     function openNewPostModal() {
         document.getElementById('newPostForm').reset();
         clearImageUpload();
+        clearGallery();
         new bootstrap.Modal(document.getElementById('newPostModal')).show();
     }
 
@@ -1073,7 +1244,11 @@
         if (imageFile) {
             formData.append('image', imageFile);
         }
-        
+        // Append gallery images
+        Object.entries(galleryFiles).forEach(([index, file]) => {
+            formData.append(`gallery_${index}`, file);
+        });
+
         try {
             const res = await fetch('../api/public_relations.php?action=create', {
                 method: 'POST',

@@ -1279,7 +1279,17 @@
             if (p === 'น.ส.') return 'นางสาว';
             return p;
         }
-        
+
+        function syncPrefixToBirthSex(prefixEl) {
+            const p = prefixEl.value;
+            const form = prefixEl.closest('form') || prefixEl.closest('#editStudentForm');
+            if (!form) return;
+            const birthSexEl = form.querySelector('[name="birth_sex"]');
+            if (!birthSexEl) return;
+            if (['นาย','เด็กชาย','ด.ช.'].includes(p)) birthSexEl.value = 'ชาย';
+            else if (['นางสาว','นาง','เด็กหญิง','ด.ญ.','น.ส.'].includes(p)) birthSexEl.value = 'หญิง';
+        }
+
         let activeFilters = {
             grade: '',
             gender: '',
@@ -2331,7 +2341,7 @@
                                     <div class="col-md-4"><label class="small fw-bold">คณะ (Faculty)</label><select name="house" class="form-select"><option value="">--เลือก--</option>${buildOptions(['ขุนสรรค์','เจ้ายี่','ขุนศรี','ธรรมจักร'], 'house')}</select></div>
                                     
                                     <h6 class="fw-bold text-navy border-bottom pb-2 mt-4">ข้อมูลส่วนตัว</h6>
-                                    <div class="col-md-3"><label class="small fw-bold">คำนำหน้า</label><select name="prefix" class="form-select"><option value="">--เลือก--</option>${buildOptions(TH_PREFIXES_STD, 'prefix')}</select></div>
+                                    <div class="col-md-3"><label class="small fw-bold">คำนำหน้า</label><select name="prefix" class="form-select" onchange="syncPrefixToBirthSex(this)"><option value="">--เลือก--</option>${buildOptions(TH_PREFIXES_STD, 'prefix')}</select></div>
                                     <div class="col-md-3"><label class="small fw-bold">ชื่อ (TH)</label><input type="text" name="first_name_th" class="form-control" value="${getVal('first_name_th')}"></div>
                                     <div class="col-md-3"><label class="small fw-bold">นามสกุล (TH)</label><input type="text" name="last_name_th" class="form-control" value="${getVal('last_name_th')}"></div>
                                     <div class="col-md-3"><label class="small fw-bold">ชื่อจริง (TH)</label><input type="text" name="full_name_th" class="form-control" value="${getVal('full_name_th')}"></div>
@@ -2340,7 +2350,7 @@
                                     <div class="col-md-4"><label class="small fw-bold">Surname (EN)</label><input type="text" name="last_name_en" class="form-control" value="${getVal('last_name_en')}" oninput="this.value = this.value.toUpperCase()"></div>
                                     <div class="col-md-4"><label class="small fw-bold">ชื่อเล่น</label><input type="text" name="nickname" class="form-control" value="${getVal('nickname')}"></div>
                                     
-                                    <div class="col-md-3"><label class="small fw-bold">เลขประจำตัวประชาชน</label><input type="text" name="id_card" class="form-control" value="${getVal('id_card')}" maxlength="13" pattern="\d{13}" title="กรุณากรอกตัวเลข 13 หลัก"></div>
+                                    <div class="col-md-3"><label class="small fw-bold">เลขประจำตัวประชาชน</label><input type="text" name="id_card" class="form-control" value="${getVal('id_card')}" maxlength="13" inputmode="numeric"></div>
                                     <div class="col-md-3"><label class="small fw-bold">วันเกิด</label><input type="date" name="birth_date" class="form-control" value="${getVal('birth_date')}"></div>
                                     <div class="col-md-3"><label class="small fw-bold">เพศกำเนิด</label><select name="birth_sex" class="form-select"><option value="">--เลือก--</option>${buildOptions(BIRTH_SEX, 'birth_sex')}</select></div>
                                     <div class="col-md-3"><label class="small fw-bold">เพศวิถี</label><select name="gender" class="form-select"><option value="">--เลือก--</option>${buildOptions(GENDERS, 'gender')}</select></div>

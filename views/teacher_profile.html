@@ -358,9 +358,7 @@
             display: none !important;
         }
 
-        #profileForm.view-mode .change-photo-btn {
-            display: none !important;
-        }
+        /* ครูสามารถเปลี่ยนรูปได้เสมอ ไม่ต้องเข้า edit-mode */
 
         /* ซ่อน "ไม่มีวิทยฐานะ" ในโหมดดู — แสดงเฉพาะเวลาแก้ไข */
         #profileForm.view-mode label[for="standing_none"] {
@@ -1432,7 +1430,31 @@
         function previewPhoto(i) {
             if (i.files && i.files[0]) {
                 const r = new FileReader();
-                r.onload = e => { document.getElementById('displayAvatar').src = e.target.result; currentPhotoFile = e.target.result; };
+                r.onload = async e => {
+                    document.getElementById('displayAvatar').src = e.target.result;
+                    currentPhotoFile = e.target.result;
+                    // ถ้าอยู่ในโหมดดู ให้บันทึกรูปทันทีโดยไม่ต้องกดแก้ไขทั้งหมด
+                    const form = document.getElementById('profileForm');
+                    if (form && form.classList.contains('view-mode')) {
+                        try {
+                            Swal.fire({ title: 'กำลังบันทึกรูปภาพ...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+                            const res = await fetch('../api/teacher/profile.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ photo_base64: currentPhotoFile })
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                currentPhotoFile = null;
+                                await Swal.fire({ icon: 'success', title: 'บันทึกรูปภาพสำเร็จ', timer: 1200, showConfirmButton: false });
+                            } else {
+                                Swal.fire('ผิดพลาด', result.error || 'บันทึกรูปไม่สำเร็จ', 'error');
+                            }
+                        } catch (err) {
+                            Swal.fire('ผิดพลาด', 'ระบบขัดข้อง กรุณาลองใหม่', 'error');
+                        }
+                    }
+                };
                 r.readAsDataURL(i.files[0]);
             }
         }

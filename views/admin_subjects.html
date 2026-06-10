@@ -85,10 +85,14 @@
                             <h4 class="fw-black text-navy mb-1" style="letter-spacing: -0.5px;">จัดการข้อมูลรายวิชา</h4>
                             <p class="text-muted small mb-0">เพิ่ม ลบ แก้ไข และอัปโหลดข้อมูลรายวิชาทั้งหมดในระบบ</p>
                         </div>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 flex-wrap">
                             <button class="btn btn-navy-subtle rounded-pill px-4 fw-bold shadow-sm"
                                 onclick="openUploadModal()">
                                 <i class="bi bi-cloud-upload me-2"></i> อัปโหลดข้อมูล
+                            </button>
+                            <button class="btn btn-outline-success rounded-pill px-4 fw-bold shadow-sm"
+                                onclick="syncFromTimetable()" id="btnSyncTimetable" title="อัปเดตครูผู้สอนจากตารางสอนสำหรับวิชาที่ยังไม่มีครู">
+                                <i class="bi bi-arrow-repeat me-2"></i> ซิงค์ครูจากตารางสอน
                             </button>
                             <button class="btn btn-navy rounded-pill px-4 fw-bold shadow-sm" onclick="openAddModal()">
                                 <i class="bi bi-plus-lg me-2"></i> เพิ่มรายวิชา
@@ -170,6 +174,33 @@
             } catch (e) { console.error(e); }
         }
 
+        async function syncFromTimetable() {
+            const btn = document.getElementById('btnSyncTimetable');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> กำลังซิงค์...';
+            try {
+                const year = document.getElementById('yearFilter').value;
+                const semester = document.getElementById('semesterFilter').value;
+                const res = await fetch('../api/admin/subjects.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'sync_from_timetable', academic_year: year, semester })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'ซิงค์สำเร็จ', text: data.message, confirmButtonColor: '#1e3a8a' });
+                    loadSubjects();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: data.error || 'ไม่สามารถซิงค์ได้' });
+                }
+            } catch (e) {
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้' });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat me-2"></i> ซิงค์ครูจากตารางสอน';
+            }
+        }
+
         function openUploadModal() {
             initImportModal({
                 type: 'subject',
@@ -233,13 +264,20 @@
             Object.keys(grouped).sort().forEach(dept => {
                 html += `<tr><td colspan="5" class="dept-header"><i class="bi bi-folder2-open me-2"></i>${dept}</td></tr>`;
                 grouped[dept].forEach(s => {
-                    const teacherName = s.first_name_th ? `${s.prefix || ''}${s.first_name_th} ${s.last_name_th}` : '<span class="text-danger small">ไม่พบครูในระบบ</span>';
-                    const rooms = s.rooms ? s.rooms.split(',').map(r => `<span class="badge bg-light text-navy border me-1">${r}</span>`).join('') : (s.room ? s.room.split(',').map(r => `<span class="badge bg-light text-navy border me-1">${r}</span>`).join('') : '-');
+                    const inTt = s.in_timetable == 1;
+                    const teacherName = s.first_name_th
+                        ? `${s.prefix || ''}${s.first_name_th} ${s.last_name_th}`
+                        : (inTt ? '<span class="text-warning small"><i class="bi bi-exclamation-circle me-1"></i>ยังไม่ระบุครู</span>'
+                                : '<span class="text-muted small fst-italic">ไม่มีในตารางสอน</span>');
+                    const rooms = s.rooms ? s.rooms.split(',').map(r => `<span class="badge bg-light text-navy border me-1">${r.trim()}</span>`).join('')
+                                         : (s.room ? s.room.split(',').map(r => `<span class="badge bg-light text-navy border me-1">${r.trim()}</span>`).join('') : '-');
+                    const rowStyle = inTt ? '' : 'opacity:0.45;';
+                    const codeHtml = s.subject_code ? `<span class="subject-code-badge">${s.subject_code}</span>` : '<span class="text-muted small fst-italic">ไม่มีรหัส</span>';
 
                     html += `
-                        <tr>
-                            <td class="ps-4"><span class="subject-code-badge">${s.subject_code}</span></td>
-                            <td class="fw-bold text-navy">${s.subject_name}</td>
+                        <tr style="${rowStyle}">
+                            <td class="ps-4">${codeHtml}</td>
+                            <td class="fw-bold ${inTt ? 'text-navy' : 'text-muted'}">${s.subject_name}${inTt ? '' : ' <span class="badge bg-light text-muted border ms-1" style="font-size:0.65rem;">ไม่มีในตาราง</span>'}</td>
                             <td>${rooms}</td>
                             <td class="small fw-bold">${teacherName}</td>
                             <td class="text-end pe-4">

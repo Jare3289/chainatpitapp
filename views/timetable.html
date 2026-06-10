@@ -99,6 +99,24 @@
         .btn-primary-navy:hover { background:#1d4ed8 !important; color:#fff !important; }
         .transition-all { transition: all 0.2s ease-in-out; }
 
+        /* ── Subject display mode toggle ── */
+        .smode-btn { border:none; background:transparent; color:#64748b; padding:5px 14px; border-radius:20px; font-size:0.78rem; font-weight:700; cursor:pointer; transition:all 0.18s; }
+        .smode-btn.active { background:#1e3a8a; color:#fff; }
+        .smode-btn:hover:not(.active) { background:#e2e8f0; color:#1e3a8a; }
+
+        /* ── Subject code secondary line in cells ── */
+        .tt-cell .subject-code-line { font-size:0.62rem; color:#94a3b8; line-height:1.2; margin-top:1px; }
+        .tt-cell .subject-emphasis-code { font-size:0.82rem; font-weight:800; color:#1e3a8a; line-height:1.3; }
+        .tt-cell .subject-emphasis-name-sm { font-size:0.62rem; color:#64748b; margin-top:1px; }
+
+        /* ── Swap simulation mini-table ── */
+        .swap-mini-tbl { border-collapse:separate; border-spacing:2px; width:100%; font-size:0.6rem; table-layout:fixed; }
+        .swap-mini-tbl th { background:#f1f5f9; border-radius:5px; padding:3px 2px; text-align:center; color:#64748b; font-weight:800; white-space:nowrap; }
+        .swap-mini-tbl th.swp-day-hd { background:#1e3a8a; color:#fff; width:20px; }
+        .swap-mini-tbl td { background:#fff; border-radius:5px; border:1px solid #f1f5f9; padding:2px; text-align:center; vertical-align:middle; }
+        .swap-mini-tbl td.swp-empty { background:#f8fafc; border:1px dashed #e2e8f0; }
+        .swap-mini-tbl td .swp-subj { font-weight:700; color:#0f172a; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60px; display:block; }
+
         /* ── Skeleton Shimmer Animation ── */
         .skeleton {
             background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
@@ -391,6 +409,29 @@
                     </div>
                 </div>
 
+                <!-- MAIN TAB NAVIGATION (teacher: 2 tabs) -->
+                <div id="timetableTabNav" class="d-none mb-3 d-flex align-items-center gap-2 border-bottom pb-3">
+                    <button id="tab-btn-timetable" class="btn btn-primary-navy rounded-pill px-4 fw-bold small border-0" onclick="switchTimetableTab('timetable')">
+                        <i class="bi bi-table me-1"></i> ตารางสอน/เรียน
+                    </button>
+                    <button id="tab-btn-swap" class="btn bg-transparent text-secondary rounded-pill px-4 fw-bold small border-0" onclick="switchTimetableTab('swap')">
+                        <i class="bi bi-arrow-left-right me-1"></i> จำลองการแลกคาบ
+                    </button>
+                </div>
+
+                <!-- TIMETABLE PANE -->
+                <div id="paneTimetable">
+
+                <!-- Subject mode toggle — top of pane, visible after data loads -->
+                <div id="subjectModeToggle" class="d-none d-flex align-items-center gap-2 mb-3 flex-wrap">
+                    <span class="small fw-bold text-muted">แสดงในช่อง:</span>
+                    <div class="bg-light border rounded-pill p-1 d-inline-flex gap-1">
+                        <button class="smode-btn active" id="smode-name" onclick="setSubjectMode('name')">ชื่อวิชา</button>
+                        <button class="smode-btn" id="smode-code" onclick="setSubjectMode('code')">รหัสวิชา</button>
+                        <button class="smode-btn" id="smode-both" onclick="setSubjectMode('both')">ทั้งคู่</button>
+                    </div>
+                </div>
+
                 <!-- LOADING SKELETON -->
                 <div id="loadingState" class="mb-4">
                     <!-- Desktop Skeleton Grid (Hidden on Mobile) -->
@@ -551,6 +592,69 @@
                     <div id="dayCards"></div>
                 </div>
 
+                </div><!-- /paneTimetable -->
+
+                <!-- SWAP SIMULATION PANE (Tab 2 — Teacher only) -->
+                <div id="paneSwap" class="d-none mt-2">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="p-3 text-white d-flex align-items-center gap-2"
+                             style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);">
+                            <i class="bi bi-arrow-down-up"></i>
+                            <span class="fw-bold">ตารางจำลองการแลกคาบ / จัดสอนแทน</span>
+                        </div>
+                        <div class="p-4">
+                            <!-- ฝั่งที่ 1 -->
+                            <div class="mb-1">
+                                <label class="fw-bold small text-muted mb-1 d-block">ฝั่งที่ 1</label>
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
+                                    <select class="form-select form-select-sm rounded-3" id="swapLeftMode" onchange="onSwapModeChange('left')" style="max-width:190px;">
+                                        <option value="self">ตารางสอนของฉัน</option>
+                                        <option value="class">ตารางเรียน</option>
+                                        <option value="teacher">ตารางสอนครูอื่น</option>
+                                    </select>
+                                    <select class="form-select form-select-sm rounded-3 flex-grow-1 d-none" id="swapLeftSelect" onchange="onSwapSelectChange('left')">
+                                        <option value="">-- เลือก --</option>
+                                    </select>
+                                </div>
+                                <div class="border rounded-3 overflow-hidden mt-2">
+                                    <div class="bg-light border-bottom px-3 py-2 fw-bold small text-navy" id="swapLeftLabel">ตารางสอนของฉัน</div>
+                                    <div class="p-2" id="swapLeftTable" style="overflow-x:auto;min-height:60px;">
+                                        <div class="text-center text-muted py-3 small">กำลังโหลดตาราง...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="text-center my-3">
+                                <span class="badge rounded-pill px-3 py-2 fw-bold text-white" style="background:#1e3a8a;">
+                                    <i class="bi bi-arrow-down-up me-1"></i> เทียบตาราง
+                                </span>
+                            </div>
+
+                            <!-- ฝั่งที่ 2 -->
+                            <div>
+                                <label class="fw-bold small text-muted mb-1 d-block">ฝั่งที่ 2</label>
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
+                                    <select class="form-select form-select-sm rounded-3" id="swapRightMode" onchange="onSwapModeChange('right')" style="max-width:190px;">
+                                        <option value="class">ตารางเรียน</option>
+                                        <option value="self">ตารางสอนของฉัน</option>
+                                        <option value="teacher">ตารางสอนครูอื่น</option>
+                                    </select>
+                                    <select class="form-select form-select-sm rounded-3 flex-grow-1" id="swapRightSelect" onchange="onSwapSelectChange('right')">
+                                        <option value="">-- เลือก --</option>
+                                    </select>
+                                </div>
+                                <div class="border rounded-3 overflow-hidden mt-2">
+                                    <div class="bg-light border-bottom px-3 py-2 fw-bold small text-navy" id="swapRightLabel">ตารางเรียน</div>
+                                    <div class="p-2" id="swapRightTable" style="overflow-x:auto;min-height:60px;">
+                                        <div class="text-center text-muted py-3 small">เลือกห้องด้านบนเพื่อดูตาราง</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         <footer id="footer-container" class="mt-auto"></footer>
@@ -591,14 +695,18 @@ const DAYS = ['จันทร์','อังคาร','พุธ','พฤห�
 const PERIODS = 12; // 0–11
 const PERIOD_COLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7'];
 
-// สีประจำวันแบบไทย (จันทร์=เหลือง, อังคาร=ชมพู, พุธ=เขียว, พฤหัส=ส้ม, ศุกร์=ฟ้า, เสาร์=ม่วง, อาทิตย์=แดง)
+// สีประจำวันแบบไทย
 const DAY_COLORS = ['#fbbf24','#ec4899','#10b981','#f97316','#3b82f6','#a855f7','#ef4444'];
 
-// ล็อกคาบประจำ — วันพุธ (3) คาบ 8 = ชุมนุม, วันพฤหัส (4) คาบ 8 = ลูกเสือเนตรนารี
+// ล็อกคาบประจำ — วันพุธ (3) คาบ 8 = ชุมนุม (ทุกชั้น)
+//                  วันพฤหัส (4) คาบ 8 = ลูกเสือเนตรนารี (เฉพาะ ม.1–3)
 const LOCKED_SLOTS = [
-    { day_of_week: 3, period: 8, subject_name: 'ชุมนุม', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true },
-    { day_of_week: 4, period: 8, subject_name: 'ลูกเสือเนตรนารี', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true }
+    { day_of_week: 3, period: 8, subject_name: 'ชุมนุม', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true, _gradeMax: 99 },
+    { day_of_week: 4, period: 8, subject_name: 'ลูกเสือเนตรนารี', grade_level: '', class_name: '', room_location: '', teacher_name: '', teacher_first_name: '', _locked: true, _gradeMin: 1, _gradeMax: 3 }
 ];
+
+// Subject display mode: 'name' | 'code' | 'both'
+let subjectDisplayMode = 'name';
 
 const todayDow = new Date().getDay(); // 0=Sun
 const todayTimetableDay = todayDow === 0 ? 7 : todayDow; // 1=Mon…7=Sun
@@ -659,6 +767,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('role-tab-middle-label').textContent = 'ตารางเรียนที่สอนทุกห้อง';
             document.getElementById('role-tab-middle-icon').className = 'bi bi-collection me-1';
             otherLabel.textContent = 'ตารางเรียนห้องที่ปรึกษา';
+            // Show swap simulation section
+            document.getElementById('timetableTabNav')?.classList.remove('d-none');
+            // Pre-populate right side suggestions when admin rooms are available
+            onSwapModeChange('right');
         } else if (user.role === 'student') {
             toggleBar.classList.remove('d-none');
             selfLabel.textContent  = 'ตารางเรียนของฉัน';
@@ -1158,7 +1270,8 @@ function clearFilters() {
 }
 
 /* ── Build lookup map: day → period → [cells] ── */
-function buildMap(data) {
+function buildMap(data, gradeLevel) {
+    const grade = parseInt(gradeLevel) || 0;
     const map = {};
     for (let d = 1; d <= 7; d++) {
         map[d] = {};
@@ -1170,13 +1283,54 @@ function buildMap(data) {
         if (!Number.isFinite(d) || !Number.isFinite(p) || d < 1 || d > 7 || p < 0 || p >= PERIODS) return;
         if (map[d] && map[d][p] !== undefined) map[d][p].push(row);
     });
-    // Override locked slots (ชุมนุม วันพุธ คาบ 8)
+    // Apply locked slots only for class/student view — teacher self-view shows actual timetable data
+    const isTeacherSelf = (currentUserRole === 'teacher' && (roleViewMode === 'self' || roleViewMode === 'middle'))
+                       || (currentUserRole === 'admin' && currentTimetableMode === 'teacher');
     LOCKED_SLOTS.forEach(slot => {
-        if (map[slot.day_of_week] && map[slot.day_of_week][slot.period] !== undefined) {
+        if (isTeacherSelf) return; // ครูดูตารางตัวเอง → ไม่ inject ล็อก
+        if (!map[slot.day_of_week] || map[slot.day_of_week][slot.period] === undefined) return;
+        const minG = slot._gradeMin ?? 0;
+        const maxG = slot._gradeMax ?? 99;
+        if (grade === 0 || (grade >= minG && grade <= maxG)) {
             map[slot.day_of_week][slot.period] = [slot];
         }
+        // else: leave real DB data untouched (ม.4-6 see actual subjects)
     });
     return map;
+}
+
+/* ── Detect grade level of currently viewed timetable ── */
+function getCurrentViewGradeLevel() {
+    if (currentUserRole === 'admin' && currentTimetableMode === 'class') {
+        const cr = (document.getElementById('filterClassroom')?.value || '').replace(/^ม\./, '').trim();
+        if (cr) return parseInt(cr[0]) || 0;
+    }
+    if (currentUserRole === 'teacher' && roleViewMode === 'other') {
+        const room = (currentUser.classroom || '').replace(/^ม\./, '').trim();
+        return parseInt(room[0]) || 0;
+    }
+    if (currentUserRole === 'teacher' && roleViewMode === 'middle' && teacherSelectedClassname) {
+        const room = teacherSelectedClassname.replace(/^ม\./, '').trim();
+        return parseInt(room[0]) || 0;
+    }
+    if (currentUserRole === 'student' && allData.length > 0) {
+        const gl = allData[0].grade_level || '';
+        const m = gl.match(/\d+/);
+        return m ? parseInt(m[0]) : 0;
+    }
+    return 0; // teacher self-view: grade unknown, locked slots apply
+}
+
+/* ── Subject display mode toggle ── */
+function setSubjectMode(mode) {
+    subjectDisplayMode = mode;
+    ['name','code','both'].forEach(m => {
+        document.getElementById('smode-' + m)?.classList.toggle('active', m === mode);
+    });
+    if (allData.length) {
+        renderDesktop(allData);
+        renderMobile(allData);
+    }
 }
 
 /* ── Period range based on role: student = 1–9, others = 0–11 ── */
@@ -1248,7 +1402,9 @@ async function loadRoomLocationOptions() {
 
 /* ── DESKTOP ── */
 function renderDesktop(data) {
-    const map = buildMap(data);
+    const map = buildMap(data, getCurrentViewGradeLevel());
+    // Show subject mode toggle
+    document.getElementById('subjectModeToggle')?.classList.remove('d-none');
     // Which days have data?
     const activeDays = [1,2,3,4,5,6,7].filter(d => Object.values(map[d]).some(arr => arr.length > 0));
     if (!activeDays.length) { showEmpty(true); return; }
@@ -1345,9 +1501,26 @@ function renderDesktop(data) {
                     const classNames = [...new Set(c.classes)].filter(n => n !== '');
                     const classLabel = classNames.join(', ');
                     
+                    // Subject display based on mode
+                    const subjCode = (c.subject_code || '').trim();
+                    const subjName = (c.subject_name || '').trim();
+                    let subjHtml = '';
+                    if (subjectDisplayMode === 'code') {
+                        if (subjCode) {
+                            subjHtml = `<div class="subject-emphasis-code mb-0">${subjCode}</div><div class="subject-emphasis-name-sm">${subjName}</div>`;
+                        } else {
+                            subjHtml = `<div class="subject">${subjName}</div>`;
+                        }
+                    } else if (subjectDisplayMode === 'both') {
+                        subjHtml = `<div class="subject">${subjName}</div>`;
+                        if (subjCode) subjHtml += `<div class="subject-code-line">${subjCode}</div>`;
+                    } else {
+                        subjHtml = `<div class="subject">${subjName}</div>`;
+                    }
+
                     inner += `
                         <div style="margin-bottom:${Object.keys(groupedBySubject).length > 1 ? '8px' : '0'}; padding-bottom:${Object.keys(groupedBySubject).length > 1 ? '8px' : '0'}; border-bottom:${Object.keys(groupedBySubject).length > 1 ? '1px solid #f1f5f9' : 'none'};">
-                            <div class="subject mb-1">${c.subject_name}</div>
+                            ${subjHtml}
                             <div class="meta d-flex flex-wrap gap-1 justify-content-center">
                                 ${classLabel ? `<span class="badge bg-light text-dark border text-wrap"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
                                 ${(c.room_location && currentTimetableMode !== 'room') ? `<span class="badge bg-light text-secondary border text-wrap"><i class="bi bi-geo-alt me-1"></i>${c.room_location}</span>` : ''}
@@ -1371,7 +1544,7 @@ function renderDesktop(data) {
 
 /* ── MOBILE ── */
 function renderMobile(data) {
-    const map = buildMap(data);
+    const map = buildMap(data, getCurrentViewGradeLevel());
     const activeDays = [1,2,3,4,5,6,7].filter(d => Object.values(map[d]).some(arr => arr.length > 0));
     if (!activeDays.length) return;
 
@@ -1460,13 +1633,34 @@ function renderDayCards(day, map) {
             const classNames = [...new Set(c.classes)].filter(n => n !== '');
             const classLabel = classNames.join(', ');
 
+            // Subject code display for mobile
+            const mSubjCode = (c.subject_code || '').trim();
+            const mSubjName = (c.subject_name || '').trim();
+            let mSubjHtml = '';
+            if (!isBreak && !isLocked) {
+                if (subjectDisplayMode === 'code') {
+                    if (mSubjCode) {
+                        mSubjHtml = `<div class="subject mb-0" style="color:#1e3a8a;">${mSubjCode}</div><div style="font-size:0.7rem;color:#64748b;">${mSubjName}</div>`;
+                    } else {
+                        mSubjHtml = `<div class="subject mb-0">${mSubjName}</div>`;
+                    }
+                } else if (subjectDisplayMode === 'both') {
+                    mSubjHtml = `<div class="subject mb-0">${mSubjName}</div>`;
+                    if (mSubjCode) mSubjHtml += `<div style="font-size:0.68rem;font-weight:700;color:#3b82f6;">${mSubjCode}</div>`;
+                } else {
+                    mSubjHtml = `<div class="subject mb-0">${mSubjName}</div>`;
+                }
+            } else {
+                mSubjHtml = `<div class="subject mb-1" style="${isLocked ? 'color:#92400e;' : ''}">${slotPrefix}${mSubjName}</div>`;
+            }
+
             html += `
             <div class="mobile-slot ${isBreak ? 'is-break' : ''} ${isCurrentP ? 'current-period-slot' : ''}" style="${slotExtraStyle}">
                 <div class="slot-period">
                     <div class="period-badge" style="background:${badgeColor}; ${isCurrentP ? 'box-shadow:0 0 0 3px rgba(59,130,246,0.35);' : ''}">${p}</div>
                 </div>
                 <div class="slot-body">
-                    <div class="subject mb-1" style="${isLocked ? 'color:#92400e;' : ''}">${slotPrefix}${c.subject_name}</div>
+                    ${mSubjHtml}
                     ${(isBreak || isLocked) ? '' : `
                         <div class="meta d-flex flex-wrap gap-1 align-items-center">
                             ${classLabel ? `<span class="badge bg-light text-dark border"><i class="bi bi-people me-1"></i>${classLabel}</span>` : ''}
@@ -1602,6 +1796,175 @@ function renderTeacherMyClassesPicker(classes, selectedClass) {
         container.appendChild(btn);
     });
 }
+
+/* ── SWAP SIMULATION ── */
+let swapClassesCached = [];
+let swapTeachersCached = [];
+
+async function ensureSwapCaches() {
+    const promises = [];
+    if (swapClassesCached.length === 0) {
+        promises.push(
+            fetch('../api/timetable.php?get_classes=1', { credentials: 'same-origin' })
+                .then(r => r.json()).then(d => { if (d.success) swapClassesCached = d.classes || []; })
+                .catch(() => {
+                    // admin fallback: use allRoomsCached
+                    if (allRoomsCached.length > 0)
+                        swapClassesCached = [...new Set(allRoomsCached.map(r => r.classroom_code))].sort();
+                })
+        );
+    }
+    if (swapTeachersCached.length === 0) {
+        promises.push(
+            fetch('../api/timetable.php?get_teachers=1', { credentials: 'same-origin' })
+                .then(r => r.json()).then(d => { if (d.success) swapTeachersCached = d.teachers || []; })
+                .catch(() => {
+                    if (allTeachersCached.length > 0)
+                        swapTeachersCached = allTeachersCached.map(t => ({ id: t.teachers_id || t.id, name: t.name, first_name_th: t.first_name_th || '' }));
+                })
+        );
+    }
+    await Promise.all(promises);
+}
+
+function populateSwapSelect(side) {
+    const mode = document.getElementById(`swap${cap(side)}Mode`).value;
+    const sel  = document.getElementById(`swap${cap(side)}Select`);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- เลือก --</option>';
+    if (mode === 'class') {
+        swapClassesCached.forEach(cls => {
+            const opt = document.createElement('option');
+            opt.value = cls; opt.textContent = cls;
+            sel.appendChild(opt);
+        });
+    } else if (mode === 'teacher') {
+        swapTeachersCached.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            const firstName = t.first_name_th || (t.name || '').replace(/^(นาย|นางสาว|นาง|เด็กชาย|เด็กหญิง)\s*/,'').split(' ')[0];
+            opt.textContent = 'ครู' + firstName;
+            sel.appendChild(opt);
+        });
+    }
+}
+
+function switchTimetableTab(tab) {
+    const isSwap = tab === 'swap';
+    document.getElementById('paneTimetable')?.classList.toggle('d-none', isSwap);
+    document.getElementById('paneSwap')?.classList.toggle('d-none', !isSwap);
+    const ACTIVE = 'btn btn-primary-navy rounded-pill px-4 fw-bold small border-0';
+    const IDLE   = 'btn bg-transparent text-secondary rounded-pill px-4 fw-bold small border-0';
+    const btnT = document.getElementById('tab-btn-timetable');
+    const btnS = document.getElementById('tab-btn-swap');
+    if (btnT) btnT.className = isSwap ? IDLE : ACTIVE;
+    if (btnS) btnS.className = isSwap ? ACTIVE : IDLE;
+    if (isSwap) {
+        ensureSwapCaches().then(() => {
+            onSwapModeChange('left');
+            onSwapModeChange('right');
+        });
+    }
+}
+
+function toggleSwapBody() { /* ใช้ switchTimetableTab('swap') แทนแล้ว */ }
+
+function onSwapModeChange(side) {
+    const mode = document.getElementById(`swap${cap(side)}Mode`).value;
+    const sel  = document.getElementById(`swap${cap(side)}Select`);
+    document.getElementById(`swap${cap(side)}Label`).textContent =
+        mode === 'self' ? 'ตารางสอนของฉัน' : mode === 'class' ? 'ตารางเรียน' : 'ตารางสอนครูอื่น';
+    if (sel) {
+        sel.classList.toggle('d-none', mode === 'self');
+        if (mode !== 'self') {
+            populateSwapSelect(side);
+            sel.value = '';
+            document.getElementById(`swap${cap(side)}Table`).innerHTML =
+                '<div class="text-center text-muted py-3 small">เลือกจากรายการด้านบน</div>';
+        }
+    }
+    if (mode === 'self') loadSwapSelf(side);
+}
+
+async function onSwapSelectChange(side) {
+    const mode = document.getElementById(`swap${cap(side)}Mode`).value;
+    const val  = document.getElementById(`swap${cap(side)}Select`).value;
+    if (!val) return;
+    const tableEl = document.getElementById(`swap${cap(side)}Table`);
+    tableEl.innerHTML = '<div class="text-center text-muted py-3 small"><i class="bi bi-hourglass-split me-1"></i>กำลังโหลด...</div>';
+    const label = document.getElementById(`swap${cap(side)}Select`).options[document.getElementById(`swap${cap(side)}Select`).selectedIndex]?.text || val;
+    document.getElementById(`swap${cap(side)}Label`).textContent = mode === 'class' ? `ตารางเรียน ${val}` : `ตารางสอน ${label}`;
+    try {
+        const param = mode === 'class' ? `class_name=${encodeURIComponent(val)}` : `teacher_id=${val}`;
+        const res  = await fetch(`../api/timetable.php?${param}`, { credentials: 'same-origin' });
+        const json = await res.json();
+        renderSwapMiniTable(json.data || [], `swap${cap(side)}Table`);
+    } catch(e) {
+        tableEl.innerHTML = '<div class="text-danger text-center small py-3">โหลดข้อมูลไม่ได้</div>';
+    }
+}
+
+async function loadSwapSelf(side) {
+    document.getElementById(`swap${cap(side)}Label`).textContent = 'ตารางสอนของฉัน';
+    const tableEl = document.getElementById(`swap${cap(side)}Table`);
+    tableEl.innerHTML = '<div class="text-center text-muted py-3 small"><i class="bi bi-hourglass-split me-1"></i>กำลังโหลด...</div>';
+    try {
+        const res  = await fetch('../api/timetable.php', { credentials: 'same-origin' });
+        const json = await res.json();
+        renderSwapMiniTable(json.data || [], `swap${cap(side)}Table`);
+    } catch(e) {
+        tableEl.innerHTML = '<div class="text-danger text-center small py-3">โหลดข้อมูลไม่ได้</div>';
+    }
+}
+
+function renderSwapMiniTable(data, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!data.length) {
+        container.innerHTML = '<div class="text-muted text-center small py-3">ไม่พบข้อมูลตาราง</div>';
+        return;
+    }
+
+    const daySet = new Set(), periodSet = new Set();
+    const mapS = {};
+    data.forEach(row => {
+        const d = parseInt(row.day_of_week), p = parseInt(row.period);
+        if (isNaN(d) || isNaN(p) || p < 1 || p > 9) return;
+        daySet.add(d); periodSet.add(p);
+        if (!mapS[d]) mapS[d] = {};
+        if (!mapS[d][p]) mapS[d][p] = [];
+        mapS[d][p].push(row);
+    });
+
+    const sortedDays    = [...daySet].sort((a,b) => a - b);
+    const sortedPeriods = [...periodSet].sort((a,b) => a - b);
+    if (!sortedDays.length) { container.innerHTML = '<div class="text-muted text-center small py-3">ไม่พบข้อมูล</div>'; return; }
+
+    let html = '<table class="swap-mini-tbl"><thead><tr>';
+    html += '<th class="swp-day-hd">วัน</th>';
+    sortedPeriods.forEach(p => { html += `<th>${p}</th>`; });
+    html += '</tr></thead><tbody>';
+
+    sortedDays.forEach(d => {
+        const dayLabel = (DAYS[d-1] || '').slice(0,2);
+        html += `<tr><td class="swp-day-hd" style="background:#${['fbbf24','ec4899','10b981','f97316','3b82f6','a855f7','ef4444'][d-1]||'1e3a8a'};color:#fff;border-radius:5px;text-align:center;">${dayLabel}</td>`;
+        sortedPeriods.forEach(p => {
+            const cells = (mapS[d] && mapS[d][p]) ? mapS[d][p] : [];
+            if (!cells.length) {
+                html += '<td class="swp-empty"></td>';
+            } else {
+                const names = [...new Set(cells.map(c => (c.subject_name||'').slice(0,5)))].join('/');
+                const title = cells.map(c => c.subject_name).join(', ');
+                html += `<td title="${title}"><span class="swp-subj">${names}</span></td>`;
+            }
+        });
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+}
+
+function cap(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 
 function updateLessonStatus(data) {
     const activeSchedule = window.__cnpActiveSchedule || 'normal';
