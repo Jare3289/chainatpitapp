@@ -335,6 +335,21 @@
                                 </div>
                             </div>
                             
+                            <!-- Department Bookings Panel -->
+                            <div class="dashboard-panel mt-4" id="dept-bookings-panel" style="display:none;">
+                                <h5 class="fw-black text-navy mb-3"><i class="bi bi-calendar2-week me-2 text-info"></i>จองในกลุ่มสาระเดียวกัน</h5>
+                                <div id="dept-bookings-box">
+                                    <div class="text-center py-3 text-muted small">กำลังโหลด...</div>
+                                </div>
+                            </div>
+
+                            <!-- Full Schedule Overview -->
+                            <div class="dashboard-panel mt-4">
+                                <h5 class="fw-black text-navy mb-1"><i class="bi bi-table me-2 text-success"></i>ปฏิทินนิเทศรวม 2569</h5>
+                                <div class="text-muted mb-3" style="font-size:0.72rem;"><i class="bi bi-info-circle me-1"></i>ไม่เกินวันละ 4 คาบ · ผู้นิเทศ = หัวหน้า/รองหัวหน้ากลุ่มสาระ</div>
+                                <div id="full-schedule-table"></div>
+                            </div>
+
                             <!-- Evaluation Duties -->
                             <div class="dashboard-panel mt-4" id="duties-panel" style="display:none;">
                                 <h5 class="fw-black text-navy mb-4"><i class="bi bi-person-badge me-2 text-primary"></i>ภาระงานประเมินของคุณ</h5>
@@ -362,7 +377,7 @@
         // Allowed date schedules based on department / sub_department
         const supervisionSchedules = {
             'คอมพิวเตอร์และเทคโนโลยี': '15 - 16 มิถุนายน 2569 (2 วัน)',
-            'วิทยาศาสตร์และเทคโนโลยี': '19, 21, 24, 25, 26 สิงหาคม 2569 (5 วัน)',
+            'วิทยาศาสตร์และเทคโนโลยี': '19, 20, 21, 24, 25, 26 สิงหาคม 2569 (6 วัน)',
             'สุขศึกษาและพลศึกษา': '17 - 18 มิถุนายน 2569 (2 วัน)',
             'แนะแนว': '18 - 19 มิถุนายน 2569 (2 วัน)',
             'ศิลปะ': '22 - 23 มิถุนายน 2569 (2 วัน)',
@@ -373,6 +388,62 @@
             'สังคมศึกษาศาสนาและวัฒนธรรม': '10, 11, 13, 14, 17 สิงหาคม 2569 (5 วัน)',
             'สังคมศึกษา ศาสนา และวัฒนธรรม': '10, 11, 13, 14, 17 สิงหาคม 2569 (5 วัน)'
         };
+
+        // Full schedule reference for overview table
+        const allDeptSchedules = [
+            { dept: 'คอมพิวเตอร์และเทคโนโลยี',        dates: '15 - 16 มิ.ย.',     days: 2,  note: '' },
+            { dept: 'สุขศึกษาและพลศึกษา',             dates: '17 - 18 มิ.ย.',     days: 2,  note: 'วันที่ 18 ใช้ตารางร่วมกับแนะแนว' },
+            { dept: 'แนะแนว',                         dates: '18 - 19 มิ.ย.',     days: 2,  note: 'วันที่ 18 ใช้ตารางร่วมกับสุขศึกษาฯ' },
+            { dept: 'ศิลปะ',                          dates: '22 - 23 มิ.ย.',     days: 2,  note: '' },
+            { dept: 'ภาษาต่างประเทศ',                 dates: '24, 25, 29, 30 มิ.ย. · 1 ก.ค.', days: 5, note: 'อัตราจ้างไม่ได้สอน' },
+            { dept: 'การงานอาชีพ',                    dates: '2 - 3 ก.ค.',        days: 2,  note: '' },
+            { dept: 'ภาษาไทย',                        dates: '6 - 9 ก.ค.',        days: 4,  note: '' },
+            { dept: 'คณิตศาสตร์',                     dates: '20, 21, 22, 23, 27 ก.ค.', days: 5, note: '' },
+            { dept: 'สังคมศึกษาฯ',                    dates: '10, 11, 13, 14, 17 ส.ค.', days: 5, note: '' },
+            { dept: 'วิทยาศาสตร์และเทคโนโลยี',        dates: '19, 20, 21, 24, 25, 26 ส.ค.', days: 6, note: '' },
+        ];
+
+        function renderFullScheduleTable() {
+            const container = document.getElementById('full-schedule-table');
+            if (!container) return;
+
+            // determine current user's dept key for highlighting
+            const myDeptKey = (window._mySubDept === 'คอมพิวเตอร์และเทคโนโลยี')
+                ? 'คอมพิวเตอร์และเทคโนโลยี'
+                : (window._myDept || '');
+
+            let rows = '';
+            allDeptSchedules.forEach((s, i) => {
+                const isMe = s.dept === myDeptKey ||
+                    (myDeptKey === 'วิทยาศาสตร์และเทคโนโลยี' && s.dept === 'วิทยาศาสตร์และเทคโนโลยี') ||
+                    (myDeptKey === 'สังคมศึกษา ศาสนา และวัฒนธรรม' && s.dept === 'สังคมศึกษาฯ') ||
+                    (myDeptKey === 'สังคมศึกษาศาสนาและวัฒนธรรม' && s.dept === 'สังคมศึกษาฯ');
+                const rowBg = isMe ? 'background:#eff6ff;border-left:3px solid #1e40af;' : '';
+                const noteHtml = s.note ? `<div class="text-danger mt-1" style="font-size:0.65rem;"><i class="bi bi-exclamation-circle me-1"></i>${s.note}</div>` : '';
+                rows += `
+                    <tr style="${rowBg}">
+                        <td class="text-center fw-bold text-muted" style="font-size:0.7rem;width:24px;">${i + 1}</td>
+                        <td style="font-size:0.72rem;" class="fw-bold ${isMe ? 'text-primary' : 'text-navy'}">${s.dept}${isMe ? ' <i class="bi bi-star-fill text-warning" style="font-size:0.6rem;"></i>' : ''}</td>
+                        <td style="font-size:0.7rem;">
+                            <div class="text-dark">${s.dates}</div>
+                            <div class="text-muted">(${s.days} วัน)</div>
+                            ${noteHtml}
+                        </td>
+                    </tr>`;
+            });
+
+            container.innerHTML = `
+                <table class="table table-sm table-borderless mb-0" style="font-size:0.75rem;">
+                    <thead>
+                        <tr class="border-bottom">
+                            <th class="text-muted fw-bold" style="font-size:0.68rem;">#</th>
+                            <th class="text-muted fw-bold" style="font-size:0.68rem;">กลุ่มสาระฯ</th>
+                            <th class="text-muted fw-bold" style="font-size:0.68rem;">ช่วงเวลา</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             currentUser = await checkAuth(['teacher', 'admin']);
@@ -405,16 +476,9 @@
             checkAvailableTeachers();
         }
 
-        function getUrlBookingId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            return parseInt(urlParams.get('booking_id')) || 0;
-        }
-
         async function loadBookingData() {
             try {
-                const bookingId = getUrlBookingId();
-                const url = bookingId > 0 ? `../api/teacher/supervision_get.php?booking_id=${bookingId}` : '../api/teacher/supervision_get.php';
-                const res = await fetch(url);
+                const res = await fetch('../api/teacher/supervision_get.php');
                 const data = await res.json();
                 if (data.success) {
                     renderBookingStatus(data.booking, data.duties);
@@ -488,7 +552,7 @@
                                     <div class="small fw-bold text-dark mt-2 mb-1">${d.subject_code || ''} ${d.subject_name || ''}</div>
                                     <div class="text-muted mb-2" style="font-size:0.75rem;">
                                         <div><i class="bi bi-calendar-event"></i> ${thDate(d.booking_date)} (คาบ ${d.booking_period})</div>
-                                        <div><i class="bi bi-person-video3"></i> ม.${d.classroom} | ห้อง ${d.room_number}</div>
+                                        <div><i class="bi bi-person-video3"></i> ม.${d.classroom || ''} | ห้อง ${d.room_number || '-'}</div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                                         <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.replace('bg-','')} border border-${badgeClass.replace('bg-','')}">${d.role_th}</span>
@@ -508,27 +572,41 @@
             if (!dateStr) return '';
             const parts = dateStr.split('-');
             if (parts.length !== 3) return '';
-            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
             return days[d.getDay()] || '';
         }
 
         async function initializeTeacherInfo() {
             try {
                 // Fetch info without date/period to get department name and allowed dates
-                const bookingId = getUrlBookingId();
-                const url = bookingId > 0 ? `../api/teacher/supervision_get_teachers.php?booking_id=${bookingId}` : '../api/teacher/supervision_get_teachers.php';
-                const res = await fetch(url);
+                const res = await fetch('../api/teacher/supervision_get_teachers.php');
                 const data = await res.json();
                 if (data.success) {
                     let key = data.my_sub_department === 'คอมพิวเตอร์และเทคโนโลยี' ? 'คอมพิวเตอร์และเทคโนโลยี' : data.my_department;
                     document.getElementById('my-allowed-dates-text').textContent = supervisionSchedules[key] || 'ไม่ระบุช่วงเวลา';
                     document.getElementById('requester_department').value = data.my_department || 'ไม่ระบุกลุ่มสาระ';
+                    window._myDept = data.my_department;
+                    window._mySubDept = data.my_sub_department;
+                    renderFullScheduleTable();
                     if (data.my_full_name) {
                         document.getElementById('requester_name').value = data.my_full_name;
                     } else {
                         document.getElementById('requester_name').value = currentUser.fullName || currentUser.username;
                     }
                     
+                    // Build department bookings summary
+                    const allDeptBookings = [];
+                    if (data.allowed_dates_info && Array.isArray(data.allowed_dates_info)) {
+                        data.allowed_dates_info.forEach(info => {
+                            if (info.bookings) {
+                                info.bookings.forEach(b => {
+                                    if (b) allDeptBookings.push({ ...b, date: info.date });
+                                });
+                            }
+                        });
+                    }
+                    renderDeptBookings(allDeptBookings, data.my_teacher_id);
+
                     const dateContainer = document.getElementById('booking_date_container');
                     dateContainer.innerHTML = '';
                     if (data.allowed_dates_info && Array.isArray(data.allowed_dates_info)) {
@@ -576,7 +654,7 @@
                                                     <div class="fw-bold text-dark text-truncate" style="font-size:0.78rem;" title="${b.teacher_name}">${b.teacher_name}</div>
                                                     <div class="text-muted text-truncate" style="font-size:0.7rem;">
                                                         <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20" style="font-size:0.6rem;">${b.subject_code}</span>
-                                                        <span class="ms-1">ม.${b.classroom} ห้อง ${b.room_number}</span>
+                                                        <span class="ms-1">ม.${b.classroom || ''} ห้อง ${b.room_number || '-'}</span>
                                                     </div>
                                                 </div>
                                                 ${topicText}
@@ -596,113 +674,167 @@
                                                  id="${slotId}"
                                                  ${clickAction}
                                                  style="${cursorStyle} min-height: 85px;">
-                                                <div>
-                                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                                        <span class="fw-bold" style="font-size:0.78rem;">คิวที่ ${p}</span>
-                                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-30" style="font-size:0.58rem;">ว่าง</span>
-                                                    </div>
-                                                    <div class="text-center py-2" style="font-size:0.72rem;">
-                                                        <i class="bi bi-plus-circle me-1"></i> ${isDateFull ? 'คิวเต็มแล้ว' : 'คลิกเลือกช่องนี้'}
-                                                    </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-1 w-100">
+                                                    <span class="fw-bold text-secondary" style="font-size:0.78rem;">คิวที่ ${p}</span>
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-30" style="font-size:0.58rem;">ว่าง</span>
                                                 </div>
+                                                <div class="text-center text-muted small py-2 w-100" style="font-size: 0.72rem;">คลิกเพื่อเลือกคิวนี้</div>
                                             </div>
                                         </div>
                                     `;
                                 }
                             }
 
-                            dateHtml += `</div>`;
+                            dateHtml += `
+                                </div>
+                            `;
                             dateContainer.innerHTML += dateHtml;
                         });
                     }
                 }
             } catch (err) {
-                console.error("Error loading teacher info: ", err);
+                console.error("Error in initializeTeacherInfo: ", err);
             }
-        }
-
-        async function selectDate(radio) {
-            document.getElementById('booking_date').value = radio.value;
-            // Also determine day of week and load timetable
-            const d = new Date(radio.value);
-            const dayOfWeek = d.getDay() === 0 ? 7 : d.getDay(); // 1=Mon, 7=Sun
-            await loadTimetable(dayOfWeek);
-            
-            await checkAvailableTeachers();
         }
 
         async function loadTimetable(dayOfWeek) {
             const container = document.getElementById('timetable_container');
-            const section = document.getElementById('timetable_section');
-            section.style.display = 'block';
-            container.innerHTML = '<div class="col-12 text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังโหลดตารางสอน...</div>';
+            container.innerHTML = '<div class="text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังดึงข้อมูลตารางสอน...</div>';
             
+            document.getElementById('timetable_section').style.display = 'block';
+
             try {
-                const bookingId = getUrlBookingId();
-                const url = `../api/teacher/get-timetable-by-day.php?day=${dayOfWeek}` + (bookingId > 0 ? `&booking_id=${bookingId}` : '');
-                const res = await fetch(url);
-                const text = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch(e) {
-                    console.error("Non-JSON response from API: ", text);
-                    throw new Error("Invalid JSON response");
-                }
+                const res = await fetch(`../api/teacher/get-timetable-by-day.php?day=${dayOfWeek}`);
+                const data = await res.json();
                 
-                if (data.success) {
-                    container.innerHTML = '';
-                    if (!data.schedule || data.schedule.length === 0) {
-                        container.innerHTML = '<div class="col-12 text-muted small"><i class="bi bi-info-circle me-1"></i>ไม่มีตารางสอนในวันนี้ (หากต้องการจอง กรุณาติดต่อผู้ดูแลระบบ)</div>';
-                        return;
-                    }
+                container.innerHTML = '';
+                
+                if (data.success && data.schedule && data.schedule.length > 0) {
+                    window.currentDaySchedule = data.schedule;
                     
                     data.schedule.forEach((slot, index) => {
                         const id = 'slot_' + index;
-                        // slot contains period, subject_code, subject_name, class_name, room_location
-                        const subjectCode = slot.subject_code || '';
-                        if (!subjectCode || !/\d{5}/.test(subjectCode)) return; // Filter out subjects without 5-digit code
-                        const subjectName = slot.subject_name || '';
-                        const className = slot.class_name ? `ม.${slot.class_name}` : '';
-                        const roomLoc = slot.room_location || '';
                         
-                        const classRoomHtml = className || roomLoc ? `<div style="font-size: 0.75rem;" class="text-muted"><i class="bi bi-person-video3"></i> ${className} | <i class="bi bi-geo-alt"></i> ${roomLoc}</div>` : '';
-                        
-                        const btn = `
+                        const slotCode  = (slot.subject_code  || '').trim();
+                        const slotName  = (slot.subject_name  || '').trim();
+                        const slotClass = (slot.class_name    || slot.classroom || '').trim();
+                        const slotRoom  = (slot.room_location || slot.room_number || '').trim();
+
+                        const valueStr = JSON.stringify({
+                            code: slotCode,
+                            name: slotName,
+                            classroom: slotClass,
+                            room: slotRoom,
+                            period: slot.period
+                        });
+
+                        const roomDisplay = slotRoom
+                            ? `<i class="bi bi-geo-alt-fill text-danger me-1"></i>${slotRoom}`
+                            : '<span class="text-muted">ไม่ระบุห้อง</span>';
+
+                        container.innerHTML += `
                             <div class="col-6 col-md-4">
-                                <input type="radio" class="btn-check" name="timetable_slot" id="${id}" value="${index}" onchange="selectTimetableSlot(this)">
+                                <input type="radio" class="btn-check" name="timetable_slot" id="${id}" value='${valueStr}' onchange="selectTimetableSlot(this)">
                                 <label class="btn btn-outline-primary bg-white w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100" for="${id}">
                                     <div class="fw-bold text-navy mb-1" style="font-size:0.9rem;">คาบที่ ${slot.period}</div>
-                                    <div class="small text-dark fw-bold text-truncate">${subjectCode} ${subjectName}</div>
-                                    ${classRoomHtml}
+                                    <div class="small text-dark fw-bold text-truncate" title="${slotCode} ${slotName}">${slotCode} ${slotName}</div>
+                                    <div style="font-size:0.73rem;" class="text-muted mt-1">
+                                        <div><i class="bi bi-people-fill me-1"></i>ม.${slotClass || '-'}</div>
+                                        <div>${roomDisplay}</div>
+                                    </div>
                                 </label>
                             </div>
                         `;
-                        container.innerHTML += btn;
                     });
-                    
-                    // Store schedule in a global variable for easy access
-                    window.currentDaySchedule = data.schedule;
                 } else {
-                    container.innerHTML = `<div class="col-12 text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>${data.error}</div>`;
+                    window.currentDaySchedule = [];
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-warning border-warning bg-warning bg-opacity-10 small rounded-3 mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>คุณไม่มีตารางการจัดการเรียนการสอนในวันนี้ หรือวันนี้เป็นวันหยุดราชการ
+                            </div>
+                        </div>
+                    `;
                 }
             } catch (err) {
                 console.error("Error loading timetable: ", err);
-                container.innerHTML = '<div class="col-12 text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>ไม่สามารถโหลดตารางสอนได้</div>';
+                container.innerHTML = '<div class="col-12"><div class="alert alert-danger small rounded-3 mb-0">เกิดข้อผิดพลาดในการโหลดตารางสอน</div></div>';
             }
         }
 
         function selectTimetableSlot(radio) {
-            const index = radio.value;
-            const slot = window.currentDaySchedule[index];
-            if (slot) {
-                document.getElementById('subject_code').value = slot.subject_code || '';
-                document.getElementById('subject_name').value = slot.subject_name || '';
-                document.getElementById('classroom').value = slot.class_name || '';
-                document.getElementById('room_number').value = slot.room_location || '';
-                document.getElementById('booking_period').value = slot.period;
-                
+            try {
+                const info = JSON.parse(radio.value);
+                document.getElementById('subject_code').value = info.code;
+                document.getElementById('subject_name').value = info.name;
+                document.getElementById('classroom').value = info.classroom;
+                document.getElementById('room_number').value = info.room;
+                document.getElementById('booking_period').value = info.period;
+
                 checkAvailableTeachers();
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        // Store full lists so we can re-render with exclusions
+        let _allPeers = [];
+        let _allHeads = [];
+
+        function renderPeerList(excludeId) {
+            const container = document.getElementById('peer_teacher_container');
+            const helpText = document.getElementById('peer_help_text');
+            const currentPeer = document.getElementById('peer_teacher_id').value;
+            const available = _allPeers.filter(t => String(t.id) !== String(excludeId));
+
+            container.innerHTML = '';
+            if (available.length === 0) {
+                container.innerHTML = '<div class="text-danger small py-2">ไม่มีเพื่อนครูว่างในคาบเรียนนี้</div>';
+                helpText.innerHTML = '<i class="bi bi-exclamation-circle-fill text-danger"></i> ไม่มีเพื่อนครูว่างกรุณาเลือกคาบอื่น';
+                helpText.className = 'form-text text-danger small mt-1';
+                return;
+            }
+            available.forEach((t, idx) => {
+                const id = 'peer_radio_' + idx;
+                const checked = String(t.id) === String(currentPeer) ? 'checked' : '';
+                container.innerHTML += `
+                    <div>
+                        <input type="radio" class="btn-check" name="peer_teacher_radio" id="${id}" value="${t.id}" ${checked}
+                            onchange="document.getElementById('peer_teacher_id').value=this.value; renderHeadList(this.value);">
+                        <label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="${id}">${t.full_name}</label>
+                    </div>`;
+            });
+            helpText.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> พบเพื่อนครู ${available.length} ท่าน`;
+            helpText.className = 'form-text text-success small mt-1';
+            // clear peer selection if excluded teacher was previously selected
+            if (String(currentPeer) === String(excludeId)) {
+                document.getElementById('peer_teacher_id').value = '';
+            }
+        }
+
+        function renderHeadList(excludeId) {
+            const container = document.getElementById('head_teacher_container');
+            const currentHead = document.getElementById('head_teacher_id').value;
+            const available = _allHeads.filter(t => String(t.id) !== String(excludeId));
+
+            container.innerHTML = '';
+            if (available.length === 0) {
+                container.innerHTML = '<div class="text-danger small py-2">ไม่มีหัวหน้า/คณะกรรมการฯ ว่างในคาบเรียนนี้</div>';
+                return;
+            }
+            available.forEach((t, idx) => {
+                const id = 'head_radio_' + idx;
+                const checked = String(t.id) === String(currentHead) ? 'checked' : '';
+                container.innerHTML += `
+                    <div>
+                        <input type="radio" class="btn-check" name="head_teacher_radio" id="${id}" value="${t.id}" ${checked}
+                            onchange="document.getElementById('head_teacher_id').value=this.value; renderPeerList(this.value);">
+                        <label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="${id}">${t.full_name} (${t.position_label || 'กรรมการ'})</label>
+                    </div>`;
+            });
+            // clear head selection if excluded teacher was previously selected
+            if (String(currentHead) === String(excludeId)) {
+                document.getElementById('head_teacher_id').value = '';
             }
         }
 
@@ -710,99 +842,35 @@
             const date = document.getElementById('booking_date').value;
             const period = document.getElementById('booking_period').value;
 
-            const helpText = document.getElementById('peer_help_text');
+            if (!date || !period) return;
+
             const peerContainer = document.getElementById('peer_teacher_container');
             const headContainer = document.getElementById('head_teacher_container');
 
-            const dateHelp = document.getElementById('booking_date_help');
-            if(dateHelp) dateHelp.innerHTML = '';
-            const submitBtn = document.querySelector('button[onclick="submitBooking()"]');
-            if(submitBtn) submitBtn.disabled = false;
+            peerContainer.innerHTML = '<div class="text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังตรวจสอบรายชื่อครู...</div>';
+            headContainer.innerHTML = '<div class="text-muted small py-2"><i class="spinner-border spinner-border-sm me-2"></i>กำลังตรวจสอบรายชื่อครู...</div>';
 
-            if (!date || !period) {
-                peerContainer.innerHTML = '<div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>';
-                headContainer.innerHTML = '<div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>';
-                document.getElementById('peer_teacher_id').value = '';
-                document.getElementById('head_teacher_id').value = '';
-                helpText.innerHTML = '<i class="bi bi-info-circle"></i> เลือกวันที่และคาบเรียนเพื่อดูครูที่ว่าง';
-                helpText.className = 'form-text text-primary small mt-1';
-                return;
-            }
-
-            helpText.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังตรวจสอบตารางสอน...';
-            helpText.className = 'form-text text-warning small mt-1';
+            // Reset selections when date/period changes
+            document.getElementById('peer_teacher_id').value = '';
+            document.getElementById('head_teacher_id').value = '';
 
             try {
-                const bookingId = getUrlBookingId();
-                const url = `../api/teacher/supervision_get_available_teachers.php?date=${date}&period=${period}` + (bookingId > 0 ? `&booking_id=${bookingId}` : '');
-                const res = await fetch(url);
-                const text = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch(e) {
-                    console.error("Non-JSON response from API: ", text);
-                    throw new Error("Invalid JSON response");
-                }
-                
+                const res = await fetch(`../api/teacher/supervision_get_teachers.php?date=${date}&period=${period}`);
+                const data = await res.json();
+
                 if (data.success) {
-                    const totalSchool = data.total_school_bookings || 0;
-                    if (totalSchool >= 4) {
-                        if(dateHelp) dateHelp.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> วันนี้มีคิวจองเต็มแล้ว (${totalSchool}/4) กรุณาเลือกวันอื่น</span>`;
-                        if(submitBtn) submitBtn.disabled = true;
-                    } else {
-                        if(dateHelp) dateHelp.innerHTML = `<span class="text-primary"><i class="bi bi-info-circle"></i> จำนวนคิวโรงเรียนวันนี้: ${totalSchool}/4</span>`;
-                    }
-
-                    if (data.existing_bookings && data.existing_bookings.length > 0) {
-                        let html = '<div class="mt-2 p-2 bg-white rounded border small text-muted"><div class="fw-bold text-dark mb-1"><i class="bi bi-list-check"></i> คิวที่มีผู้จองแล้ววันนี้</div><ul class="mb-0 ps-3" style="font-size: 0.8rem;">';
-                        data.existing_bookings.forEach(b => {
-                            html += `<li>คาบ ${b.booking_period} : ${b.teacher_name} (${b.subject_code} ห้อง ${b.room_number})</li>`;
-                        });
-                        html += '</ul></div>';
-                        if(dateHelp) dateHelp.innerHTML += html;
-                    }
-
-                    peerContainer.innerHTML = '';
-                    let peerCount = 0;
-                    data.teachers.forEach(t => {
-                        if (t.is_busy) return;
-                        peerCount++;
-                        const id = 'peer_' + t.id;
-                        peerContainer.innerHTML += `
-                            <div>
-                                <input type="radio" class="btn-check" name="peer_teacher_radio" id="${id}" value="${t.id}" onchange="document.getElementById('peer_teacher_id').value=this.value">
-                                <label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="${id}">${t.full_name}</label>
-                            </div>
-                        `;
-                    });
-                    if (peerCount === 0) peerContainer.innerHTML = '<div class="text-muted small py-2">ไม่มีครูที่ว่างในคาบนี้</div>';
-
-                    headContainer.innerHTML = '';
-                    let headCount = 0;
-                    data.department_teachers.forEach(t => {
-                        if (t.is_busy) return;
-                        headCount++;
-                        const id = 'head_' + t.id;
-                        headContainer.innerHTML += `
-                            <div>
-                                <input type="radio" class="btn-check" name="head_teacher_radio" id="${id}" value="${t.id}" onchange="document.getElementById('head_teacher_id').value=this.value">
-                                <label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="${id}">${t.full_name}</label>
-                            </div>
-                        `;
-                    });
-                    if (headCount === 0) headContainer.innerHTML = '<div class="text-muted small py-2">ไม่มีครูที่ว่างในคาบนี้</div>';
-
-                    helpText.innerHTML = `<i class="bi bi-check-circle"></i> แสดงรายชื่อครู (Peer ว่าง ${peerCount} คน)`;
-                    helpText.className = 'form-text text-success small mt-1';
+                    _allPeers = data.peers || [];
+                    _allHeads = data.heads || [];
+                    renderPeerList(null);
+                    renderHeadList(null);
                 } else {
-                    helpText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ตรวจสอบข้อมูลไม่สำเร็จ';
-                    helpText.className = 'form-text text-danger small mt-1';
+                    peerContainer.innerHTML = '<div class="text-danger small">ไม่สามารถโหลดข้อมูลผู้ประเมินได้</div>';
+                    headContainer.innerHTML = '<div class="text-danger small">ไม่สามารถโหลดข้อมูลผู้ประเมินได้</div>';
                 }
             } catch (err) {
-                console.error("Error loading available teachers: ", err);
-                helpText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ขัดข้องในการเชื่อมต่อ';
-                helpText.className = 'form-text text-danger small mt-1';
+                console.error("Error checking teachers: ", err);
+                peerContainer.innerHTML = '<div class="text-danger small">ขัดข้องในการตรวจสอบ</div>';
+                headContainer.innerHTML = '<div class="text-danger small">ขัดข้องในการตรวจสอบ</div>';
             }
         }
 
@@ -829,7 +897,8 @@
                 document.getElementById('detail-booking-period').textContent = 'คาบที่ ' + booking.booking_period;
                 document.getElementById('detail-subject-code').textContent = booking.subject_code || '-';
                 document.getElementById('detail-subject-name').textContent = booking.subject_name || '-';
-                document.getElementById('detail-classroom').textContent = (booking.classroom ? `ม.${booking.classroom}` : '') + (booking.room_number ? ` ห้อง ${booking.room_number}` : '');
+                const formattedCls = booking.classroom ? `ม.${booking.classroom}` : '';
+                document.getElementById('detail-classroom').textContent = (formattedCls ? `${formattedCls}` : '') + (booking.room_number ? ` ห้อง ${booking.room_number}` : '');
                 document.getElementById('detail-lesson-topic').textContent = booking.lesson_topic || '-';
 
                 document.getElementById('detail-peer-name').textContent = booking.peer_name || '-';
@@ -1104,7 +1173,7 @@
                                     <label class="btn btn-outline-primary bg-white w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100 border-primary" for="slot_dummy">
                                         <div class="fw-bold text-navy mb-1" style="font-size:0.9rem;">คาบที่ ${booking.booking_period}</div>
                                         <div class="small text-dark fw-bold text-truncate">${booking.subject_code} ${booking.subject_name}</div>
-                                        <div style="font-size: 0.75rem;" class="text-muted"><i class="bi bi-person-video3"></i> ม.${booking.classroom} | <i class="bi bi-geo-alt"></i> ${booking.room_number}</div>
+                                         <div style="font-size: 0.75rem;" class="text-muted"><i class="bi bi-person-video3"></i> ม.${booking.classroom || ''} | <i class="bi bi-geo-alt"></i> ${booking.room_number}</div>
                                     </label>
                                 </div>
                             `;
@@ -1219,6 +1288,46 @@
             }
         };
 
+        function renderDeptBookings(bookings, myTeacherId) {
+            const panel = document.getElementById('dept-bookings-panel');
+            const box   = document.getElementById('dept-bookings-box');
+            panel.style.display = 'block';
+
+            if (!bookings || bookings.length === 0) {
+                box.innerHTML = `<div class="text-center py-3 text-muted small">
+                    <i class="bi bi-calendar-x d-block mb-1 fs-4"></i>ยังไม่มีเพื่อนครูในกลุ่มสาระจองคิวนิเทศ
+                </div>`;
+                return;
+            }
+
+            box.innerHTML = bookings.map(b => {
+                const isMine = parseInt(b.teacher_id) === parseInt(myTeacherId);
+                const rowBg  = isMine ? 'bg-success bg-opacity-10' : '';
+                const badge  = isMine ? '<span class="badge bg-success ms-1" style="font-size:0.6rem;">คุณ</span>' : '';
+                return `
+                <div class="d-flex align-items-center gap-2 py-2 border-bottom border-light ${rowBg} px-2 rounded-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width:32px;height:32px;">
+                        <i class="bi bi-person-fill text-primary" style="font-size:0.85rem;"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-bold small text-navy text-truncate">${b.teacher_name || '-'}${badge}</div>
+                        <div class="text-muted" style="font-size:0.72rem;">
+                            ${thDate(b.date)} &nbsp;·&nbsp; คาบ ${b.period}
+                            &nbsp;·&nbsp; ${b.subject_code || ''} &nbsp; ม.${b.classroom || '-'}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function thDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return dateStr;
+            const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear() + 543}`;
+        }
     </script>
 </body>
 

@@ -103,22 +103,78 @@ try {
     ];
 
     $class_items = [
-        "1. การนำเข้าสู่บทเรียนเชื่อมโยงเนื้อหาเดิมและเร้าความสนใจ",
-        "2. การจัดบรรยากาศที่ส่งเสริมการมีส่วนร่วมของนักเรียน",
-        "3. ครูจัดกิจกรรมการเรียนรู้ตามขั้นตอนในแผน",
-        "4. ครูอธิบายเนื้อหาถูกต้อง ชัดเจน เข้าใจง่าย",
-        "5. การใช้คำถามกระตุ้นความคิดและการแก้ปัญหา",
-        "6. การใช้สื่อการสอน/เทคโนโลยีส่งเสริมการเรียนรู้",
-        "7. ครูดูแล ควบคุมชั้นเรียน และช่วยเหลือนักเรียนทั่วถึง",
-        "8. มีการวัดและประเมินผลระหว่างเรียนเป็นระยะ",
-        "9. นักเรียนบรรลุวัตถุประสงค์การเรียนรู้ในคาบนั้น",
-        "10. บุคลิกภาพ น้ำเสียง และการจัดสรรเวลาอย่างเหมาะสม"
+        "1.1 จัดทำแผนการจัดการเรียนรู้เสร็จล่วงหน้าและถูกต้องสมบูรณ์ (ดูจากคะแนนภาพรวมของการประเมินแผนการจัดการเรียนรู้รายชั่วโมง)",
+        "1.2 ห้องเรียนสะอาด เรียบร้อย เหมาะสำหรับการจัดการเรียนรู้",
+        "1.3 เช็คชื่อนักเรียน ซักถามเหตุผลของนักเรียนที่เข้าห้องเรียนสายหรือติดตามนักเรียนที่ขาดเรียน",
+        "1.4 เตรียมวัสดุ-อุปกรณ์ สื่อ กิจกรรมตามแผนฯ ก่อนเข้าสอน",
+        "1.5 ใช้วิธีการนำเข้าสู่บทเรียนที่น่าสนใจเหมาะสมกับเวลาและเนื้อหา ตามแผนการจัดการเรียนรู้ โดยมีการทบทวนความรู้ ทักษะ หรือประสบการณ์เดิม เช่น การใช้คำถาม แบบฝึก กิจกรรม หรือ เกมสั้น ๆ ฯลฯ",
+        "1.6 แจ้งหรือบอกผลการเรียนรู้/จุดประสงค์การเรียนรู้และแนวทางการเรียน ที่นักเรียนมีส่วนร่วมในการกำหนด",
+        "2.1 เนื้อหา/มโนทัศน์ที่สอนหรือจัดให้ผู้เรียนเรียนรู้ หรือฝึกฝนมีความถูกต้อง และสอดคล้องกับผลการเรียนรู้/จุดประสงค์การเรียนรู้ตรงตามหลักสูตร",
+        "2.2 จัดกิจกรรมการเรียนรู้สอดคล้องตาม ตัวชี้วัด/ผลการเรียนรู้และจุดประสงค์การเรียนรู้ ของหลักสูตรรายวิชา",
+        "2.3 ครูดำเนินการสอนตามขั้นตอนที่กำหนดไว้ในแผนการจัดการเรียนรู้",
+        "2.4 ใช้วิธีการ/เทคนิคการสอนเหมาะสมกับเนื้อหา มีความท้าทายและมีระดับความยากง่ายเหมาะสมกับวัยและพัฒนาการของนักเรียน",
+        "2.5 กิจกรรมการเรียนรู้หรือตัวอย่างที่ใช้ประกอบเรื่องที่สอน มีความหลากหลาย เหมาะกับเนื้อหา เชื่อมโยง สอดคล้องและสัมพันธ์กับชีวิตจริงของนักเรียนหรือบริบทชุมชน",
+        "2.6 จัดกิจกรรมการเรียนรู้เพื่อให้นักเรียนมีผลงานหรือผลการปฏิบัติสะท้อนถึงความสามารถในการเรียนรู้ (Cognitive Abilities) เน้นให้นักเรียนได้เรียนรู้โดยผ่านกระบวนการคิด ได้แก่ ความยืดหยุ่นในการคิดหรือการคิดเชื่อมโยงสิ่งต่าง ๆ ความคิดสร้างสรรค์ หรือการคิดเชิงนวัตกรรม กระบวนการสืบเสาะหาความหมายหรือกระบวนการตัดสินใจ กระบวนการคิดเชิงเหตุผลหรือการให้เหตุผลเชิงตรรกะ กระบวนการคิดเชิงระบบ โดยให้นักเรียนลงมือปฏิบัติกิจกรรมที่ต้องใช้ความรู้หรือบูรณาการทักษะหลากหลายต่าง ๆ ลงสู่การปฏิบัติกิจกรรมการเรียนรู้ตามจุดประสงค์การเรียนรู้และผู้เรียนได้ประยุกต์ใช้ทักษะที่ได้รับการพัฒนาในสถานการณ์หรือแก้ปัญหาใหม่ๆ",
+        "2.7 ตรวจสอบความเข้าใจของนักเรียนระหว่างการสอน ด้วยการสังเกตหรือค้นหาข้อผิดพลาดในการปฏิบัติหรือมโนทัศน์ที่คลาดเคลื่อนของนักเรียนในระหว่างการเรียนรู้โดยการใช้คำถาม ฯลฯ",
+        "2.8 มีการประเมินผลระหว่างการเรียนรู้โดยใช้วิธีการที่เหมาะสม เช่น การใช้คำถามแบบทดสอบ การปฏิบัติ ฯลฯ",
+        "2.9 มีการนำผลการสังเกต หรือผลการค้นหา หรือผลการประเมินระหว่างเรียนรู้สะท้อนกลับให้ผู้เรียน",
+        "2.10 จัดกิจกรรมการเรียนรู้ เพื่อให้ผู้เรียนมีผลงานหรือผลการปฏิบัติสะท้อนการได้รับการพัฒนาทักษะพื้นฐาน (Basic Skills) ผู้เรียนได้รับการฝึกทักษะการแสดงออกและทักษะการสื่อสาร โดยการนำเสนอผลงาน ด้วยการพูด การเขียน หรือการแสดงออกในรูปแบบอื่น ๆ อย่างเป็นระบบ น่าสนใจ มีความถูกต้อง ความคล่องแคล่ว หรือความชำนาญ",
+        "2.11 ผู้เรียนได้รับการฝึกทักษะให้สรุปองค์ความรู้หรือประสบการณ์ใหม่ด้วยตนเอง เช่น แผนที่ความคิด ตารางวิเคราะห์ การทดลองปฏิบัติ การนำเสนอ ฯลฯ",
+        "2.12 ใช้สื่อการสอนที่หลากหลายได้อย่างเหมาะสมและคุ้มค่า ช่วยกระตุ้นให้นักเรียน คิดวิเคราะห์ เปรียบเทียบจากสื่อการเรียนหรือตัวอย่าง และช่วยในการเรียนรู้ของนักเรียนให้บรรลุวัตถุประสงค์ของบทเรียน",
+        "2.13 มอบหมายงานหรือแบบฝึกหัดเป็นไปตามเป้าหมายหรือวัตถุประสงค์การเรียนรู้ที่กำหนดไว้ในแผนการจัดการเรียนรู้ เหมาะสมกับวัย พัฒนาการ บริบทของนักเรียนและชั้นเรียน คุ้มค่าและเป็นประโยชน์ต่อการเรียนรู้ของนักเรียนเป็นรายบุคคล หรือรายกลุ่ม",
+        "3.1 จัดกิจกรรมการเรียนรู้ เพื่อให้ผลงานหรือผลการปฏิบัติสะท้อนทักษะชีวิตและทักษะในการทำงาน (Cross-functional Skills) ตามที่กำหนดไว้",
+        "3.2 ให้ความสนใจนักเรียนอย่างทั่วถึง โดยมีการเข้าถึงผู้เรียนที่ยังไม่พร้อมที่จะเรียนรู้ใหม่ และช่วยเหลือเด็กนักเรียนที่เรียนช้า หรือส่งเสริมเด็กนักเรียนที่เรียนเก่ง",
+        "3.3 อบรมบ่มนิสัยให้ผู้เรียนมีคุณธรรมจริยธรรม ค่านิยมที่ดีงาม คุณลักษณะอันพึงประสงค์ สมรรถนะที่สำคัญ และทักษะในศตวรรษที่ 21 ตามที่กำหนดไว้ในแผนการจัดการเรียนรู้ อย่างครบถ้วน",
+        "3.4 มีการบริหารจัดการชั้นเรียน โดยการเสริมแรงแก่นักเรียนอย่างเหมาะสม โดยเน้นการมีปฏิสัมพันธ์เชิงบวก เพื่อกระตุ้นให้นักเรียนเกิดแรงจูงใจในการเรียนรู้",
+        "4.1 สรุปบทเรียนได้กระชับ ชัดเจน ช่วยให้นักเรียนเกิดแนวคิดตรงจุดประสงค์การเรียนรู้",
+        "4.2 สั่งงานหรือให้นักเรียนเตรียมตัวล่วงหน้าสำหรับการเรียนครั้งต่อไป เพื่อให้นักเรียนได้รับการกระตุ้นให้ศึกษา ค้นคว้า ฝึกฝนเพิ่มเติมภายหลังจบบทเรียน",
+        "5.1 ใช้วิธีการวัดผลการเรียนรู้ที่หลากหลาย เน้นสภาพจริงและตรงตามจุดประสงค์ โดยให้นักเรียนได้ประเมินตนเองหรือเพื่อนประเมิน",
+        "5.2 ประสิทธิภาพของการใช้เวลาในการสอน/สอนเต็มเวลา ใช้เวลาเหมาะสมกับเนื้อหา",
+        "6.1 การควบคุมอารมณ์ขณะสอนและพฤติกรรมการแสดงออกเป็นแบบอย่างที่ดี",
+        "6.2 การใช้ภาษา น้ำเสียงเหมาะสมและชัดเจนเป็นแบบอย่างที่ดี",
+        "6.3 การยอมรับความคิดเห็นของนักเรียนและให้เกียรตินักเรียน",
+        "6.4 การแต่งกายสุภาพเรียบร้อยเป็นแบบอย่างที่ดี"
     ];
 
     function calculate_average($scores) {
-        $valid_scores = array_filter($scores, function($s) { return $s > 0; });
+        $valid_scores = array_filter($scores, function($s) { return $s > -1 && $s !== null && $s !== ''; });
         if (count($valid_scores) === 0) return 0;
         return array_sum($valid_scores) / count($valid_scores);
+    }
+
+    function parse_evaluator_role($comments) {
+        $res = [
+            'comments' => $comments,
+            'title' => ''
+        ];
+        if (strpos($comments, '[ผู้ประเมิน: ') === 0) {
+            $close_bracket = strpos($comments, ']');
+            if ($close_bracket !== false && $close_bracket > 12) {
+                $json_str = substr($comments, 12, $close_bracket - 12);
+                $info = json_decode($json_str, true);
+                if (is_array($info)) {
+                    $res['comments'] = trim(substr($comments, $close_bracket + 1));
+                    if ($info['type'] === 'peer') {
+                        $title = '';
+                        if (!empty($info['position']) && $info['position'] !== '-') $title .= 'ตำแหน่ง ' . $info['position'];
+                        if (!empty($info['standing']) && $info['standing'] !== '-') {
+                            $title .= ($title ? ' ' : '') . 'วิทยฐานะ ' . $info['standing'];
+                        }
+                        $res['title'] = $title;
+                    } elseif ($info['type'] === 'head') {
+                        $res['title'] = 'ตำแหน่ง ' . ($info['sub_role'] ?? 'หัวหน้ากลุ่มสาระการเรียนรู้');
+                    } elseif ($info['type'] === 'academic') {
+                        $sub = $info['sub_role'] ?? '';
+                        if ($sub === 'อื่น ๆ' && !empty($info['custom_role'])) {
+                            $res['title'] = 'ตำแหน่ง ' . $info['custom_role'];
+                        } else {
+                            $res['title'] = 'ตำแหน่ง ' . $sub;
+                        }
+                    }
+                }
+            }
+        }
+        return $res;
     }
 
     // Thai Date Formatter Helper
@@ -147,12 +203,16 @@ try {
     
     foreach ($evals as $ev) {
         for ($i=1; $i<=5; $i++) {
-            $sc = (int)($ev["doc_score_$i"] ?? 0);
-            if ($sc > 0) $all_doc_scores[] = $sc;
+            $sc = $ev["doc_score_$i"];
+            if ($sc !== null && $sc !== '') {
+                $all_doc_scores[] = (int)$sc;
+            }
         }
-        for ($i=1; $i<=10; $i++) {
-            $sc = (int)($ev["class_score_$i"] ?? 0);
-            if ($sc > 0) $all_class_scores[] = $sc;
+        for ($i=1; $i<=31; $i++) {
+            $sc = $ev["class_score_$i"];
+            if ($sc !== null && $sc !== '') {
+                $all_class_scores[] = (int)$sc;
+            }
         }
     }
     
@@ -516,7 +576,7 @@ try {
                 </tr>
                 <tr>
                     <td class="bg-light fw-bold">ระดับชั้น / ห้องเรียน</td>
-                    <td>มัธยมศึกษาปีที่ <?php echo htmlspecialchars($booking['classroom']); ?> (ห้องสอน: <?php echo htmlspecialchars($booking['room_number']); ?>)</td>
+                    <td>ชั้น ม.<?php echo htmlspecialchars($booking['classroom']); ?> (ห้องสอน: <?php echo htmlspecialchars($booking['room_number']); ?>)</td>
                 </tr>
                 <tr>
                     <td class="bg-light fw-bold">วันที่และเวลาคาบเรียน</td>
@@ -551,10 +611,16 @@ try {
         foreach ([$peer_eval, $head_eval, $academic_eval] as $ev) {
             if ($ev) {
                 for ($i=1; $i<=5; $i++) {
-                    if ($ev["doc_score_$i"] > 0) $all_doc_scores[] = $ev["doc_score_$i"];
+                    $sc = $ev["doc_score_$i"];
+                    if ($sc !== null && $sc !== '') {
+                        $all_doc_scores[] = (int)$sc;
+                    }
                 }
-                for ($i=1; $i<=10; $i++) {
-                    if ($ev["class_score_$i"] > 0) $all_class_scores[] = $ev["class_score_$i"];
+                for ($i=1; $i<=31; $i++) {
+                    $sc = $ev["class_score_$i"];
+                    if ($sc !== null && $sc !== '') {
+                        $all_class_scores[] = (int)$sc;
+                    }
                 }
             }
         }
@@ -575,29 +641,47 @@ try {
 
         if ($peer_eval) {
             $p_doc_scores = [];
-            for($i=1;$i<=5;$i++) { if($peer_eval["doc_score_$i"]>0) $p_doc_scores[] = $peer_eval["doc_score_$i"]; }
+            for($i=1;$i<=5;$i++) { 
+                $sc = $peer_eval["doc_score_$i"];
+                if($sc !== null && $sc !== '') $p_doc_scores[] = (int)$sc; 
+            }
             $p_doc_avg = count($p_doc_scores) > 0 ? array_sum($p_doc_scores) / count($p_doc_scores) : 0;
             
             $p_class_scores = [];
-            for($i=1;$i<=10;$i++) { if($peer_eval["class_score_$i"]>0) $p_class_scores[] = $peer_eval["class_score_$i"]; }
+            for($i=1;$i<=31;$i++) { 
+                $sc = $peer_eval["class_score_$i"];
+                if($sc !== null && $sc !== '') $p_class_scores[] = (int)$sc; 
+            }
             $p_class_avg = count($p_class_scores) > 0 ? array_sum($p_class_scores) / count($p_class_scores) : 0;
         }
         if ($head_eval) {
             $h_doc_scores = [];
-            for($i=1;$i<=5;$i++) { if($head_eval["doc_score_$i"]>0) $h_doc_scores[] = $head_eval["doc_score_$i"]; }
+            for($i=1;$i<=5;$i++) { 
+                $sc = $head_eval["doc_score_$i"];
+                if($sc !== null && $sc !== '') $h_doc_scores[] = (int)$sc; 
+            }
             $h_doc_avg = count($h_doc_scores) > 0 ? array_sum($h_doc_scores) / count($h_doc_scores) : 0;
             
             $h_class_scores = [];
-            for($i=1;$i<=10;$i++) { if($head_eval["class_score_$i"]>0) $h_class_scores[] = $head_eval["class_score_$i"]; }
+            for($i=1;$i<=31;$i++) { 
+                $sc = $head_eval["class_score_$i"];
+                if($sc !== null && $sc !== '') $h_class_scores[] = (int)$sc; 
+            }
             $h_class_avg = count($h_class_scores) > 0 ? array_sum($h_class_scores) / count($h_class_scores) : 0;
         }
         if ($academic_eval) {
             $a_doc_scores = [];
-            for($i=1;$i<=5;$i++) { if($academic_eval["doc_score_$i"]>0) $a_doc_scores[] = $academic_eval["doc_score_$i"]; }
+            for($i=1;$i<=5;$i++) { 
+                $sc = $academic_eval["doc_score_$i"];
+                if($sc !== null && $sc !== '') $a_doc_scores[] = (int)$sc; 
+            }
             $a_doc_avg = count($a_doc_scores) > 0 ? array_sum($a_doc_scores) / count($a_doc_scores) : 0;
             
             $a_class_scores = [];
-            for($i=1;$i<=10;$i++) { if($academic_eval["class_score_$i"]>0) $a_class_scores[] = $academic_eval["class_score_$i"]; }
+            for($i=1;$i<=31;$i++) { 
+                $sc = $academic_eval["class_score_$i"];
+                if($sc !== null && $sc !== '') $a_class_scores[] = (int)$sc; 
+            }
             $a_class_avg = count($a_class_scores) > 0 ? array_sum($a_class_scores) / count($a_class_scores) : 0;
         }
         ?>
@@ -672,17 +756,19 @@ try {
             </thead>
             <tbody>
                 <?php foreach ($doc_items as $index => $item): 
-                    $p_sc = $peer_eval ? $peer_eval["doc_score_" . ($index + 1)] : 0;
-                    $h_sc = $head_eval ? $head_eval["doc_score_" . ($index + 1)] : 0;
-                    $a_sc = $academic_eval ? $academic_eval["doc_score_" . ($index + 1)] : 0;
-                    $avg = calculate_average(array_filter([$p_sc, $h_sc, $a_sc]));
+                    $p_sc = ($peer_eval && $peer_eval["doc_score_" . ($index + 1)] !== null) ? (int)$peer_eval["doc_score_" . ($index + 1)] : null;
+                    $h_sc = ($head_eval && $head_eval["doc_score_" . ($index + 1)] !== null) ? (int)$head_eval["doc_score_" . ($index + 1)] : null;
+                    $a_sc = ($academic_eval && $academic_eval["doc_score_" . ($index + 1)] !== null) ? (int)$academic_eval["doc_score_" . ($index + 1)] : null;
+                    
+                    $valid_sc = array_filter([$p_sc, $h_sc, $a_sc], function($v) { return $v !== null && $v !== ''; });
+                    $avg = count($valid_sc) > 0 ? array_sum($valid_sc) / count($valid_sc) : 0;
                 ?>
                 <tr>
                     <td><?php echo htmlspecialchars($item); ?></td>
-                    <td class="text-center"><?php echo $p_sc > 0 ? $p_sc : '-'; ?></td>
-                    <td class="text-center"><?php echo $h_sc > 0 ? $h_sc : '-'; ?></td>
-                    <td class="text-center"><?php echo $a_sc > 0 ? $a_sc : '-'; ?></td>
-                    <td class="text-center fw-bold text-navy"><?php echo $avg > 0 ? number_format($avg, 2) : '-'; ?></td>
+                    <td class="text-center"><?php echo $p_sc !== null ? $p_sc : '-'; ?></td>
+                    <td class="text-center"><?php echo $h_sc !== null ? $h_sc : '-'; ?></td>
+                    <td class="text-center"><?php echo $a_sc !== null ? $a_sc : '-'; ?></td>
+                    <td class="text-center fw-bold text-navy"><?php echo count($valid_sc) > 0 ? number_format($avg, 2) : '-'; ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -691,14 +777,20 @@ try {
         <div class="mt-4 p-3 bg-light rounded-3" style="font-size: 16pt; line-height: 1.25;">
             <strong>ข้อเสนอแนะเกี่ยวกับแผนการจัดการเรียนรู้:</strong>
             <ul class="mt-2 mb-0">
-                <?php if ($peer_eval && !empty($peer_eval['doc_comments'])): ?>
-                    <li><strong>ครูผู้ร่วมนิเทศ:</strong> <?php echo htmlspecialchars($peer_eval['doc_comments']); ?></li>
+                <?php if ($peer_eval && !empty($peer_eval['doc_comments'])): 
+                    $parsed = parse_evaluator_role($peer_eval['doc_comments']);
+                ?>
+                    <li><strong>ครูผู้ร่วมนิเทศ:</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
                 <?php endif; ?>
-                <?php if ($head_eval && !empty($head_eval['doc_comments'])): ?>
-                    <li><strong>ครูผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($head_eval['doc_comments']); ?></li>
+                <?php if ($head_eval && !empty($head_eval['doc_comments'])): 
+                    $parsed = parse_evaluator_role($head_eval['doc_comments']);
+                ?>
+                    <li><strong>ครูผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
                 <?php endif; ?>
-                <?php if ($academic_eval && !empty($academic_eval['doc_comments'])): ?>
-                    <li><strong>คณะกรรมการวิชาการ:</strong> <?php echo htmlspecialchars($academic_eval['doc_comments']); ?></li>
+                <?php if ($academic_eval && !empty($academic_eval['doc_comments'])): 
+                    $parsed = parse_evaluator_role($academic_eval['doc_comments']);
+                ?>
+                    <li><strong>คณะกรรมการวิชาการ:</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
                 <?php endif; ?>
                 <?php if (!$peer_eval && !$head_eval && !$academic_eval): ?>
                     <li class="text-muted">ไม่มีข้อเสนอแนะ</li>
@@ -725,17 +817,19 @@ try {
             </thead>
             <tbody>
                 <?php foreach ($class_items as $index => $item): 
-                    $p_sc = $peer_eval ? $peer_eval["class_score_" . ($index + 1)] : 0;
-                    $h_sc = $head_eval ? $head_eval["class_score_" . ($index + 1)] : 0;
-                    $a_sc = $academic_eval ? $academic_eval["class_score_" . ($index + 1)] : 0;
-                    $avg = calculate_average(array_filter([$p_sc, $h_sc, $a_sc]));
+                    $p_sc = ($peer_eval && $peer_eval["class_score_" . ($index + 1)] !== null) ? (int)$peer_eval["class_score_" . ($index + 1)] : null;
+                    $h_sc = ($head_eval && $head_eval["class_score_" . ($index + 1)] !== null) ? (int)$head_eval["class_score_" . ($index + 1)] : null;
+                    $a_sc = ($academic_eval && $academic_eval["class_score_" . ($index + 1)] !== null) ? (int)$academic_eval["class_score_" . ($index + 1)] : null;
+                    
+                    $valid_sc = array_filter([$p_sc, $h_sc, $a_sc], function($v) { return $v !== null && $v !== ''; });
+                    $avg = count($valid_sc) > 0 ? array_sum($valid_sc) / count($valid_sc) : 0;
                 ?>
                 <tr>
                     <td><?php echo htmlspecialchars($item); ?></td>
-                    <td class="text-center"><?php echo $p_sc > 0 ? $p_sc : '-'; ?></td>
-                    <td class="text-center"><?php echo $h_sc > 0 ? $h_sc : '-'; ?></td>
-                    <td class="text-center"><?php echo $a_sc > 0 ? $a_sc : '-'; ?></td>
-                    <td class="text-center fw-bold text-navy"><?php echo $avg > 0 ? number_format($avg, 2) : '-'; ?></td>
+                    <td class="text-center"><?php echo $p_sc !== null ? $p_sc : '-'; ?></td>
+                    <td class="text-center"><?php echo $h_sc !== null ? $h_sc : '-'; ?></td>
+                    <td class="text-center"><?php echo $a_sc !== null ? $a_sc : '-'; ?></td>
+                    <td class="text-center fw-bold text-navy"><?php echo count($valid_sc) > 0 ? number_format($avg, 2) : '-'; ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -744,16 +838,31 @@ try {
         <div class="mt-4 p-3 bg-light rounded-3" style="font-size: 16pt; line-height: 1.25;">
             <strong>ข้อเสนอแนะสำหรับการจัดกิจกรรมการเรียนรู้ในชั้นเรียน:</strong>
             <ul class="mt-2 mb-0">
-                <?php if ($peer_eval && !empty($peer_eval['class_comments'])): ?>
-                    <li><strong>ครูผู้ร่วมนิเทศ:</strong> <?php echo htmlspecialchars($peer_eval['class_comments']); ?></li>
-                <?php endif; ?>
-                <?php if ($head_eval && !empty($head_eval['class_comments'])): ?>
-                    <li><strong>ครูผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($head_eval['class_comments']); ?></li>
-                <?php endif; ?>
-                <?php if ($academic_eval && !empty($academic_eval['class_comments'])): ?>
-                    <li><strong>คณะกรรมการวิชาการ:</strong> <?php echo htmlspecialchars($academic_eval['class_comments']); ?></li>
-                <?php endif; ?>
-                <?php if (!$peer_eval && !$head_eval && !$academic_eval): ?>
+                <?php if ($peer_eval && !empty($peer_eval['class_comments'])): 
+                    $parsed = parse_evaluator_role($peer_eval['class_comments']);
+                    if (!empty($parsed['comments'])):
+                ?>
+                    <li><strong>ครูผู้ร่วมนิเทศ:</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
+                <?php endif; endif; ?>
+                <?php if ($head_eval && !empty($head_eval['class_comments'])): 
+                    $parsed = parse_evaluator_role($head_eval['class_comments']);
+                    if (!empty($parsed['comments'])):
+                ?>
+                    <li><strong>ครูผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
+                <?php endif; endif; ?>
+                <?php if ($academic_eval && !empty($academic_eval['class_comments'])): 
+                    $parsed = parse_evaluator_role($academic_eval['class_comments']);
+                    if (!empty($parsed['comments'])):
+                ?>
+                    <li><strong>คณะกรรมการวิชาการ:</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
+                <?php endif; endif; ?>
+                <?php 
+                $has_any_comment = false;
+                if ($peer_eval) { $parsed = parse_evaluator_role($peer_eval['class_comments']); if (!empty($parsed['comments'])) $has_any_comment = true; }
+                if ($head_eval) { $parsed = parse_evaluator_role($head_eval['class_comments']); if (!empty($parsed['comments'])) $has_any_comment = true; }
+                if ($academic_eval) { $parsed = parse_evaluator_role($academic_eval['class_comments']); if (!empty($parsed['comments'])) $has_any_comment = true; }
+                if (!$has_any_comment):
+                ?>
                     <li class="text-muted">ไม่มีข้อเสนอแนะ</li>
                 <?php endif; ?>
             </ul>
@@ -902,7 +1011,19 @@ try {
                 <?php endif; ?>
                 ลงชื่อ.......................................................<br>
                 ( <?php echo htmlspecialchars($booking['peer_name']); ?> )<br>
-                <strong>ครูผู้ร่วมนิเทศ (Peer)</strong>
+                <?php 
+                $peer_title = 'ครูผู้ร่วมนิเทศ (Peer)';
+                if ($peer_eval) {
+                    $parsed = parse_evaluator_role($peer_eval['class_comments']);
+                    if (empty($parsed['title'])) {
+                        $parsed = parse_evaluator_role($peer_eval['doc_comments']);
+                    }
+                    if (!empty($parsed['title'])) {
+                        $peer_title = $parsed['title'];
+                    }
+                }
+                ?>
+                <strong><?php echo htmlspecialchars($peer_title); ?></strong>
             </div>
             <div class="col-6" style="position: relative;">
                 <?php if (!empty($booking['head_signature'])): ?>
@@ -912,7 +1033,19 @@ try {
                 <?php endif; ?>
                 ลงชื่อ.......................................................<br>
                 ( <?php echo htmlspecialchars($booking['head_name']); ?> )<br>
-                <strong>ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)</strong>
+                <?php 
+                $head_title = 'ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)';
+                if ($head_eval) {
+                    $parsed = parse_evaluator_role($head_eval['class_comments']);
+                    if (empty($parsed['title'])) {
+                        $parsed = parse_evaluator_role($head_eval['doc_comments']);
+                    }
+                    if (!empty($parsed['title'])) {
+                        $head_title = $parsed['title'];
+                    }
+                }
+                ?>
+                <strong><?php echo htmlspecialchars($head_title); ?></strong>
             </div>
             <div class="col-6" style="position: relative;">
                 <?php if (!empty($booking['academic_signature'])): ?>
@@ -922,7 +1055,19 @@ try {
                 <?php endif; ?>
                 ลงชื่อ.......................................................<br>
                 ( <?php echo htmlspecialchars($booking['academic_name'] ?? '.......................................................'); ?> )<br>
-                <strong>ผู้แทนคณะกรรมการวิชาการ</strong>
+                <?php 
+                $acad_title = 'ผู้แทนคณะกรรมการวิชาการ';
+                if ($academic_eval) {
+                    $parsed = parse_evaluator_role($academic_eval['class_comments']);
+                    if (empty($parsed['title'])) {
+                        $parsed = parse_evaluator_role($academic_eval['doc_comments']);
+                    }
+                    if (!empty($parsed['title'])) {
+                        $acad_title = $parsed['title'];
+                    }
+                }
+                ?>
+                <strong><?php echo htmlspecialchars($acad_title); ?></strong>
             </div>
         </div>
     </div>    <script>

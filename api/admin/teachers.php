@@ -100,6 +100,7 @@ $method = $_SERVER['REQUEST_METHOD'];
             $sql = "UPDATE teachers SET ";
             $params = [];
             foreach ($fields as $field) {
+                if (!array_key_exists($field, $data)) continue;
                 $sql .= "`$field`=?, ";
                 $val = $data[$field] ?? '';
                 

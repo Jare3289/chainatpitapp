@@ -124,11 +124,16 @@
         }
         .progress-circle {
             width: 140px; height: 140px; border-radius: 50%;
-            border: 12px solid #f1f5f9; border-top: 12px solid #10b981;
+            background: conic-gradient(#10b981 0%, #f1f5f9 0%);
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; font-weight: 900; font-size: 2.2rem;
             margin: 0 auto 20px; color: #1e3a8a; position: relative;
         }
+        .progress-circle::before {
+            content: ''; position: absolute; inset: 12px;
+            border-radius: 50%; background: white;
+        }
+        .progress-circle > * { position: relative; z-index: 1; }
         .progress-circle small { font-size: 0.9rem; opacity: 0.6; font-weight: 600; margin-top: -5px; }
 
         /* Bottom Sections */
@@ -233,9 +238,9 @@
                                         <div class="step-subtext">ครูผู้รับนิเทศ</div>
                                     </div>
                                     <div class="super-step" id="step-3">
-                                        <div class="step-circle"><i class="bi bi-eye"></i></div>
+                                        <div class="step-circle"><i class="bi bi-eye-fill"></i></div>
                                         <div class="step-label">นิเทศการสอน</div>
-                                        <div class="step-subtext">ประเมินเอกสาร&amp;ชั้นเรียน</div>
+                                        <div class="step-subtext">ตรวจแผน+สังเกตสอน</div>
                                     </div>
                                     <div class="super-step" id="step-4">
                                         <div class="step-circle"><i class="bi bi-pencil-square"></i></div>
@@ -385,7 +390,7 @@
                 const res = await fetch('../api/teacher/supervision_get.php');
                 const data = await res.json();
                 if (data.success) {
-                    updateStepper(data.current_step, !!data.booking, data.booking);
+                    updateStepper(data.current_step, !!data.booking, data.booking, data.evaluations_status || {});
                     renderPendingTasks(data);
                     renderSupervising(data.duties);
                     renderSupervisors(data.booking, data.evaluations_status);
@@ -395,27 +400,46 @@
             }
         }
 
-        // Map API current_step (1-6) → display step (1-5)
-        // API: 1=จอง, 2=รอส่งแผน, 3=ตรวจแผน, 4=นิเทศห้อง, 5=หลังสอน, 6=พิมพ์
-        // New: 1=จอง,    2=ส่งแผน,     3=นิเทศการสอน(3&4),    4=หลังสอน,   5=พิมพ์
+        // API steps 1-6 → display steps 1-5 (steps 3+4 merged into display step 3)
+        // 1=จองคิว, 2=ส่งแผน, 3=ตรวจแผน, 4=นิเทศห้อง → both map to display 3
+        // 5=หลังสอน→4, 6=พิมพ์เล่ม→5
         function apiStepToDisplay(apiStep) {
-            if (apiStep <= 2) return apiStep;
-            if (apiStep <= 4) return 3; // ตรวจแผน + นิเทศห้องเรียน → "นิเทศการสอน"
+            if (apiStep <= 3) return apiStep;
+            if (apiStep === 4) return 3;
             if (apiStep === 5) return 4;
             return 5;
         }
 
-        function updateStepper(apiStep, hasBooking, booking) {
+        function stepCompletedDetail(stepNum, booking, evalStatus) {
+            const ev = evalStatus || {};
+            const roles = ['peer', 'head', 'academic'];
+            switch (stepNum) {
+                case 1: return `<span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>${thDate ? thDate(booking?.booking_date) : (booking?.booking_date || '')}</span>`;
+                case 2: return `<span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>ส่งแผนแล้ว</span>`;
+                case 3: {
+                    const docDone   = roles.filter(r => ev[r]?.doc_done).length;
+                    const classDone = roles.filter(r => ev[r]?.class_done).length;
+                    const total     = roles.filter(r => ev[r]?.name).length || 3;
+                    return `<span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>ตรวจ ${docDone}/${total} · สอน ${classDone}/${total}</span>`;
+                }
+                case 4: return `<span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>บันทึกแล้ว</span>`;
+                default: return `<span class="text-success small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>เสร็จแล้ว</span>`;
+            }
+        }
+
+        function updateStepper(apiStep, hasBooking, booking, evalStatus) {
             const STEPS = 5;
-            const allCompleted = apiStep === 6 && booking && booking.post_teaching_record;
+            const allCompleted = apiStep >= 6 && booking && booking.post_teaching_record;
             const displayStep = allCompleted ? STEPS + 1 : apiStepToDisplay(apiStep);
             const progress = allCompleted ? 100 : ((displayStep - 1) / (STEPS - 1)) * 100;
 
             document.getElementById('stepper-line-progress').style.width = progress + '%';
 
-            const icons    = ['bi-calendar-plus','bi-file-earmark-arrow-up','bi-eye','bi-pencil-square','bi-check-all'];
-            const subtexts = ['รออนุมัติ','ครูผู้รับนิเทศ','ประเมินเอกสาร&ชั้นเรียน','บันทึกหลังแผน','เสร็จกระบวนการ'];
-            const links    = ['supervision_booking.html','supervision_docs.html','supervision_evaluate.html','supervision_post_teach.html','supervision_print.html'];
+            const icons    = ['bi-calendar-plus','bi-file-earmark-arrow-up','bi-eye-fill','bi-pencil-square','bi-check-all'];
+            const subtexts = ['รออนุมัติ','ครูผู้รับนิเทศ','ตรวจแผน+สังเกตสอน','บันทึกหลังแผน','เสร็จกระบวนการ'];
+            // link for step 3 depends on sub-phase: API 3=docs, API 4=evaluate
+            const step3Link = (apiStep <= 3) ? 'supervision_docs.html' : 'supervision_evaluate.html';
+            const links    = ['supervision_booking.html','supervision_docs.html',step3Link,'supervision_post_teach.html','supervision_print.html'];
 
             for (let i = 1; i <= STEPS; i++) {
                 const el = document.getElementById('step-' + i);
@@ -426,7 +450,7 @@
                 if (allCompleted || i < displayStep) {
                     el.classList.add('completed');
                     el.querySelector('.step-circle').innerHTML = '<i class="bi bi-check-lg"></i>';
-                    el.querySelector('.step-subtext').innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>เสร็จแล้ว</span>';
+                    el.querySelector('.step-subtext').innerHTML = stepCompletedDetail(i, booking, evalStatus);
                 } else if (i === displayStep) {
                     el.classList.add('active');
                     el.querySelector('.step-circle').innerHTML = `<i class="bi ${icons[i-1]}"></i>`;
@@ -434,12 +458,16 @@
                         el.querySelector('.step-subtext').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i>ยังไม่ได้จอง</span>';
                     } else if (i === 1 && booking?.status === 'pending') {
                         el.querySelector('.step-subtext').innerHTML = '<span class="text-warning fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;border-width:2px;"></i>รออนุมัติคิว</span>';
+                    } else if (i === 3) {
+                        // show sub-phase label
+                        const subLabel = apiStep <= 3 ? 'กำลังตรวจแผน' : 'กำลังนิเทศห้องเรียน';
+                        el.querySelector('.step-subtext').innerHTML = `<span class="text-primary fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;border-width:2px;"></i>${subLabel}</span>`;
                     } else {
                         el.querySelector('.step-subtext').innerHTML = `<span class="text-primary fw-bold"><i class="spinner-border spinner-border-sm me-1" style="width:10px;height:10px;border-width:2px;"></i>กำลังทำ</span>`;
                     }
                 } else {
                     el.querySelector('.step-circle').innerHTML = `<i class="bi ${icons[i-1]}"></i>`;
-                    el.querySelector('.step-subtext').textContent = subtexts[i - 1];
+                    el.querySelector('.step-subtext').innerHTML = `<span class="text-secondary fst-italic" style="font-size:0.68rem;"><i class="bi bi-lock-fill me-1"></i>ให้ทำตามขั้นตอน</span>`;
                 }
             }
 
@@ -447,23 +475,28 @@
             const completedCount = allCompleted ? STEPS : (displayStep - 1);
             document.getElementById('overall-steps-text').textContent = `${completedCount}/${STEPS}`;
             document.getElementById('overall-percent-text').textContent = `${Math.round(progress)}%`;
+            document.getElementById('overall-progress-circle').style.background =
+                `conic-gradient(#10b981 ${Math.round(progress)}%, #f1f5f9 ${Math.round(progress)}%)`;
 
             const statusDescs = [
                 'ยังไม่ได้เริ่มต้นจองคิวนิเทศ',
-                'จองคิวสำเร็จ (รออนุมัติหรือรอส่งแผน)',
-                'อยู่ระหว่างการนิเทศการสอน',
-                'รอบันทึกผลสะท้อนหลังการสอน',
+                'จองคิวสำเร็จ รออนุมัติหรือรอส่งแผน',
+                'ส่งแผนแล้ว กรรมการอยู่ระหว่างตรวจเอกสาร',
+                'การนิเทศในชั้นเรียนเสร็จสิ้น รอบันทึกหลังสอน',
                 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด',
             ];
-            document.getElementById('overall-status-desc').textContent = allCompleted
-                ? 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด'
+            const statusDesc = allCompleted ? 'เสร็จสิ้นกระบวนการนิเทศทั้งหมด'
+                : apiStep === 4 ? 'กรรมการกำลังเข้านิเทศสังเกตการสอนในชั้นเรียน'
                 : (statusDescs[displayStep - 1] || 'รอเริ่มต้นการจอง');
+            document.getElementById('overall-status-desc').textContent = statusDesc;
 
             // Advice
             const advices = [
                 'กรุณาเตรียมรหัสวิชา วันเวลาห้องเรียน และรายชื่อกรรมการ เพื่อกรอกจองคิวการนิเทศการสอน',
                 'ได้รับอนุมัติวันนิเทศแล้ว กรุณาอัปโหลดไฟล์แผนการจัดการเรียนรู้ (PDF) ส่งให้คณะกรรมการล่วงหน้า',
-                'อยู่ระหว่างกระบวนการนิเทศการสอน — กรรมการจะประเมินเอกสารและเข้านิเทศชั้นเรียนของท่าน',
+                apiStep <= 3
+                    ? 'กรรมการอยู่ระหว่างอ่านและตรวจสอบเอกสารแผนการสอนของท่าน กรุณารอผลการตรวจแผนจากกรรมการ'
+                    : 'กรรมการจะเข้านิเทศสังเกตการสอนในชั้นเรียนของท่านตามวันที่นัดหมาย',
                 'การนิเทศในชั้นเรียนเสร็จสิ้นแล้ว กรุณากรอกบันทึกสรุปผลหลังการจัดการเรียนรู้เพื่อจบกระบวนการ',
                 'เสร็จสิ้นกระบวนการนิเทศแล้ว สามารถดาวน์โหลดหรือพิมพ์เอกสารรายงานผลนิเทศเก็บไว้เป็นหลักฐานได้',
             ];
@@ -554,16 +587,20 @@
                 const docBadge = d.doc_done
                     ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินเอกสาร</span>`
                     : (d.docs_uploaded
-                        ? `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอประเมินเอกสาร</span>`
+                        ? (d.i_have_read
+                            ? `<span class="eval-badge eval-pending"><i class="bi bi-eye-fill"></i>อ่านแล้ว รอบันทึกคะแนน</span>`
+                            : `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอตรวจเอกสาร</span>`)
                         : `<span class="eval-badge eval-waiting"><i class="bi bi-file-earmark-x"></i>ยังไม่ส่งเอกสาร</span>`);
 
                 const classBadge = d.class_done
                     ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินชั้นเรียน</span>`
-                    : `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอประเมินชั้นเรียน</span>`;
+                    : (d.all_docs_read_by_everyone
+                        ? `<span class="eval-badge eval-pending"><i class="bi bi-clock-history"></i>รอนิเทศชั้นเรียน</span>`
+                        : `<span class="eval-badge eval-waiting"><i class="bi bi-hourglass-split"></i>รอตรวจเอกสารก่อน</span>`);
 
                 const rolePill = `<span class="role-pill">${d.role_th}</span>`;
 
-                const classLabel = d.class_name ? `${d.grade_level}/${String(d.class_name).padStart(2, '0')}` : d.grade_level || 'ไม่ระบุ';
+                const classLabel = d.classroom ? `ม.${d.classroom}` : 'ไม่ระบุ';
                 const roomLabel = d.room_location || '-';
                 const inner = `
                     <div class="d-flex align-items-center gap-3 mb-2">
@@ -628,11 +665,11 @@
                 // คะแนนรวม (ถ้ามี)
                 let scoreHtml = '';
                 if (ev.eval && ev.class_done) {
-                    const classScores = [1,2,3,4,5,6,7,8,9,10].map(n => parseInt(ev.eval[`class_score_${n}`] || 0));
+                    const classScores = Array.from({length: 31}, (_, i) => i + 1).map(n => parseInt(ev.eval[`class_score_${n}`] || 0));
                     const classTotal = classScores.reduce((a,b) => a+b, 0);
                     scoreHtml = `<div class="mt-2 d-flex gap-2 align-items-center">
                         <span class="text-muted" style="font-size:0.72rem;">คะแนนชั้นเรียน:</span>
-                        <span class="fw-black text-navy" style="font-size:0.9rem;">${classTotal}<span class="text-muted fw-normal">/50</span></span>
+                        <span class="fw-black text-navy" style="font-size:0.9rem;">${classTotal}<span class="text-muted fw-normal">/155</span></span>
                     </div>`;
                 }
 

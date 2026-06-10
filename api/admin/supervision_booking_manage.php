@@ -175,10 +175,14 @@ try {
             $t_id = (int)$t['id'];
             $t['full_name'] = trim(($t['prefix'] ?? '') . $t['first_name_th'] . ' ' . $t['last_name_th']);
 
-            $is_busy_timetable = in_array($t_id, $busy_timetable_teacher_ids);
+            $is_deputy = stripos($t['position'] ?? '', 'รองผู้อำนวยการ') !== false;
+
+            // รองผู้อำนวยการไม่มีตารางสอนปกติ — คาบสังเกตการสอนถือว่าว่างเสมอ
+            $is_busy_timetable = $is_deputy ? false : in_array($t_id, $busy_timetable_teacher_ids);
             $is_busy_booking = isset($conflict_map[$t_id]);
 
             $t['is_busy'] = ($is_busy_timetable || $is_busy_booking);
+            $t['is_deputy'] = $is_deputy;
 
             $reasons = [];
             if ($is_busy_timetable) {

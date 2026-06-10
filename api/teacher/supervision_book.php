@@ -183,7 +183,7 @@ try {
             SET teacher_position = ?, academic_standing = ?, evaluation_purpose = ?, 
                 subject_code = ?, subject_name = ?, classroom = ?, room_number = ?, 
                 lesson_topic = ?, booking_date = ?, booking_period = ?, 
-                peer_teacher_id = ?, head_teacher_id = ?, status = 'pending', updated_at = NOW() 
+                peer_teacher_id = ?, head_teacher_id = ?, academic_teacher_id = NULL, status = 'pending', updated_at = NOW() 
             WHERE id = ?");
         $stmt_update->execute([
             $teacher_position, $academic_standing, $evaluation_purpose,

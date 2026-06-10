@@ -16,8 +16,6 @@ if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['teacher', 'ad
 }
 
 $user_id = $_SESSION['user_id'];
-$semester = 1;
-$year = 2569;
 
 try {
     // 1. Get teacher id
@@ -42,6 +40,12 @@ try {
         echo json_encode(['success' => false, 'error' => 'Teacher record not found']);
         exit;
     }
+
+    // Dynamic academic year/semester from system_settings
+    $stmt_settings = $pdo->query("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('current_academic_year','current_semester')");
+    $settings_rows = $stmt_settings->fetchAll(PDO::FETCH_KEY_PAIR);
+    $semester = isset($settings_rows['current_semester']) ? (int)$settings_rows['current_semester'] : 1;
+    $year     = isset($settings_rows['current_academic_year']) ? (int)$settings_rows['current_academic_year'] : 2569;
 
     $booking_id_input = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
     $booking = null;
@@ -191,7 +195,7 @@ try {
         // 3. Fetch my evaluations duties (where I am Peer, Head, or Academic evaluator)
         // Only fetch bookings in active stages: approved, doc_submitted, completed
         $stmt_duties = $pdo->prepare("SELECT b.*, 
-            t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept,
+            t.prefix as t_prefix, t.first_name_th as t_first, t.last_name_th as t_last, t.photo as t_photo, t.department as t_dept, t.position as t_pos, t.academic_standing as t_standing,
             e.doc_evaluated_at, e.class_evaluated_at,
             e.doc_comments, e.class_comments,
             e.doc_score_1, e.doc_score_2, e.doc_score_3, e.doc_score_4, e.doc_score_5,
@@ -284,11 +288,18 @@ try {
                 'booking_period' => $d['booking_period'] ?? '',
                 'grade_level'    => $grade_level,
                 'class_name'     => $class_name_parsed,
+                'classroom'      => $d['classroom'] ?? '',
+                'room_number'    => $d['room_number'] ?? '',
                 'room_location'  => trim($d['room_number'] ?? ''),
+                'academic_standing'  => $d['t_standing'] ?? 'ไม่มีวิทยฐานะ',
+                'teacher_position'   => $d['t_pos'] ?? 'ครู',
+                'department'         => $d['t_dept'] ?? '-',
+                'evaluation_purpose' => $d['evaluation_purpose'] ?? 'ไม่มีวิทยฐานะ',
                 'role'           => $role,
                 'role_th'        => $role_th,
                 'docs_uploaded'  => $docs_uploaded,
-                'i_have_read'    => $i_have_read,
+                'i_have_read'              => $i_have_read,
+                'all_docs_read_by_everyone' => $all_docs_read_by_everyone,
                 'doc_done'       => !empty($d['doc_evaluated_at']),
                 'class_done'     => !empty($d['class_evaluated_at']),
                 'doc_comments'   => $d['doc_comments'] ?? null,
