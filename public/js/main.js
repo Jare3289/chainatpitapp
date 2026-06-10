@@ -306,11 +306,33 @@ function renderSidebar(role, user, settings = {}) {
 
     // Static items for all logged-in staff
     const homeUrl = (role === 'admin') ? 'admin_dashboard.html' : (role === 'teacher') ? 'teacher_dashboard.html' : 'student_dashboard.html';
-    const isProfileLocked = (role === 'student' || role === 'teacher') && user.is_profile_complete === false;
+    const pct = (user.profile_completion_pct !== undefined) ? user.profile_completion_pct : (user.is_profile_complete === false ? 0 : 100);
+    const isProfileLocked = (role === 'student' || role === 'teacher') && pct < 90;
+
+    // Warn student once per session if name is still "-"
+    if (role === 'student' && !isProfileLocked && !sessionStorage.getItem('cnp_name_warned')) {
+        const firstName = (user.first_name_th || '').trim();
+        if (firstName === '-' || firstName === '—' || firstName === '') {
+            sessionStorage.setItem('cnp_name_warned', '1');
+            setTimeout(() => {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'ชื่อของคุณยังไม่ถูกต้อง',
+                        html: 'ชื่อของคุณในระบบแสดงเป็น <strong>"-"</strong><br>กรุณาอัปเดตชื่อ-นามสกุลให้ถูกต้องในโปรไฟล์ด้วยนะ',
+                        confirmButtonText: 'ไปอัปเดตโปรไฟล์',
+                        showCancelButton: true,
+                        cancelButtonText: 'ภายหลัง',
+                        confirmButtonColor: '#1e3a8a'
+                    }).then(r => { if (r.isConfirmed) window.location.href = 'student_profile.html'; });
+                }
+            }, 1500);
+        }
+    }
 
     if (isProfileLocked) {
         const profileUrl = role === 'teacher' ? 'teacher_profile.html' : 'student_profile.html';
-        html += `<li class="nav-header text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> บังคับอัปเดตข้อมูล</li>`;
+        html += `<li class="nav-header text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> บังคับอัปเดตข้อมูล (${pct}%)</li>`;
         html += _navItem(profileUrl, 'bi bi-person-circle text-warning', 'โปรไฟล์ส่วนตัว (บังคับ)', true);
         html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
     } else {
@@ -400,6 +422,7 @@ function renderSidebar(role, user, settings = {}) {
 
             const isSupervisionActive = ['teacher_supervision.html', 'supervision_booking.html', 'supervision_docs.html', 'supervision_evaluate.html', 'supervision_post_teach.html', 'supervision_print.html', 'admin_supervision.html', 'admin_supervision_booking.html'].some(x => a(x));
             html += _navGroup('bi bi-person-video3 text-primary', 'นิเทศการสอน', supervisionItems, isSupervisionActive);
+        }
         }
 
         if (role === 'student') {
@@ -1098,7 +1121,8 @@ function renderNotifications(items) {
     // Admin ไม่เห็น alert รอรับรองสาธา
     let filtered = (items || []).filter(n =>
         !(window._cnpRole === 'admin' && n.id === 'alert_ps_pending') &&
-        !dismissed.includes(n.id)
+        !dismissed.includes(n.id) &&
+        (n.is_read == 0 || n.is_read === '0' || n.type === 'system_update')
     );
     if (filtered.length === 0) {
         container.innerHTML = '<div class="noti-empty">ไม่มีการแจ้งเตือน</div>';

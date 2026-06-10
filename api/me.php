@@ -52,15 +52,17 @@ try {
                     'phone', 'email', 'line_id'
                 ];
                 
-                $is_complete = true;
+                $filled = 0;
                 foreach ($required_fields as $fld) {
                     $val = trim((string)($details[$fld] ?? ''));
-                    if ($val === '' || $val === '0000-00-00') {
-                        $is_complete = false;
-                        break;
+                    if ($val !== '' && $val !== '0000-00-00') {
+                        $filled++;
                     }
                 }
-                $details['is_profile_complete'] = $is_complete;
+                $total = count($required_fields);
+                $pct = $total > 0 ? (int)round(($filled / $total) * 100) : 0;
+                $details['profile_completion_pct'] = $pct;
+                $details['is_profile_complete'] = $pct >= 100;
             } else {
                 $details['is_profile_complete'] = true;
             }
@@ -110,14 +112,16 @@ try {
                 'internet_access', 'social_media_usage', 'talents', 'interests', 'hobbies'
             ];
 
-            $is_complete = true;
+            $filled = 0;
             foreach ($required_fields as $fld) {
-                if (!isset($details[$fld]) || trim((string)$details[$fld]) === '') {
-                    $is_complete = false;
-                    break;
+                if (isset($details[$fld]) && trim((string)$details[$fld]) !== '') {
+                    $filled++;
                 }
             }
-            $details['is_profile_complete'] = $is_complete;
+            $total = count($required_fields);
+            $pct = $total > 0 ? (int)round(($filled / $total) * 100) : 0;
+            $details['profile_completion_pct'] = $pct;
+            $details['is_profile_complete'] = $pct >= 100;
             $userData = array_merge($userData, $details);
         }
     }

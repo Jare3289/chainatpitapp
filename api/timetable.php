@@ -101,6 +101,22 @@ try {
             exit;
         }
 
+        // ── Quick exit: ดึงรายชื่อห้องทั้งหมด (ใช้ใน swap simulation) ──────────
+        if (!empty($_GET['get_classes'])) {
+            $stmt = $pdo->prepare("SELECT DISTINCT class_name FROM timetable WHERE class_name IS NOT NULL AND class_name != '' AND academic_year = ? AND semester = ? ORDER BY class_name");
+            $stmt->execute([$academicYear, $semester]);
+            echo json_encode(['success' => true, 'classes' => $stmt->fetchAll(PDO::FETCH_COLUMN)]);
+            exit;
+        }
+
+        // ── Quick exit: ดึงรายชื่อครูทั้งหมด (ใช้ใน swap simulation) ─────────
+        if (!empty($_GET['get_teachers'])) {
+            $stmt = $pdo->prepare("SELECT DISTINCT tc.id, CONCAT(COALESCE(tc.prefix,''), tc.first_name_th, ' ', tc.last_name_th) AS name, tc.first_name_th FROM timetable t JOIN teachers tc ON tc.id = t.teacher_id WHERE t.teacher_id IS NOT NULL AND t.academic_year = ? AND t.semester = ? ORDER BY tc.first_name_th");
+            $stmt->execute([$academicYear, $semester]);
+            echo json_encode(['success' => true, 'teachers' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+            exit;
+        }
+
         // ── Main query ────────────────────────────────────────────────────────────
         $where  = [];
         $params = [];
@@ -216,13 +232,22 @@ try {
             }
         }
 
+        // timetable.subject_name may store either a subject code (e.g. "อ32101") or a Thai name
+        // depending on how data was imported — support both via two JOIN passes
         $sql = "SELECT
                     t.*,
+                    COALESCE(sc.subject_name, sn.subject_name, t.subject_name) AS subject_name,
+                    COALESCE(sc.subject_code, sn.subject_code)                 AS subject_code,
                     CONCAT(COALESCE(tc.prefix,''), COALESCE(tc.first_name_th,''), ' ', COALESCE(tc.last_name_th,'')) AS teacher_name,
                     tc.first_name_th AS teacher_first_name,
                     tc.photo AS teacher_photo
                 FROM timetable t
-                LEFT JOIN teachers tc ON tc.id = t.teacher_id";
+                LEFT JOIN teachers tc ON tc.id = t.teacher_id
+                LEFT JOIN subjects sc ON sc.subject_code = t.subject_name
+                    AND t.subject_name IS NOT NULL AND t.subject_name != ''
+                LEFT JOIN subjects sn ON sn.subject_name = t.subject_name
+                    AND sc.id IS NULL
+                    AND t.subject_name IS NOT NULL AND t.subject_name != ''";
 
         if ($where) {
             $sql .= ' WHERE ' . implode(' AND ', $where);
