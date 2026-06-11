@@ -32,6 +32,15 @@ if (!$is_supervision_manager) {
 
 $action = isset($_GET['action']) ? trim($_GET['action']) : '';
 
+if (!function_exists('thDate')) {
+    function thDate(string $dateStr): string {
+        $ts = strtotime($dateStr);
+        if (!$ts) return $dateStr;
+        $months = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+        return (int)date('j', $ts) . ' ' . $months[(int)date('n', $ts)] . ' ' . ((int)date('Y', $ts) + 543);
+    }
+}
+
 try {
     if ($action === 'list') {
         $semester = 1;
@@ -115,7 +124,12 @@ try {
         // 1. Fetch busy teachers from timetable
         $stmt_busy = $pdo->prepare("SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ?");
         $stmt_busy->execute([$day_of_week, $period]);
-        $busy_timetable_teacher_ids = $stmt_busy->fetchAll(PDO::FETCH_COLUMN);
+        $busy_timetable_teacher_ids = array_map('intval', $stmt_busy->fetchAll(PDO::FETCH_COLUMN));
+
+        // รองผู้อำนวยการ: ว่างเสมอ ยกเว้นคาบที่มีรายการ "ประชุม" ในตารางสอน
+        $stmt_mtg = $pdo->prepare("SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ? AND subject_name LIKE '%ประชุม%'");
+        $stmt_mtg->execute([$day_of_week, $period]);
+        $meeting_busy_teacher_ids = array_map('intval', $stmt_mtg->fetchAll(PDO::FETCH_COLUMN));
 
         // 2. Fetch busy teachers from active supervision bookings
         // (If they are evaluatee, peer, head, or academic evaluator in another active booking on this date and period)
@@ -153,40 +167,40 @@ try {
         $all_teachers = [];
         $academic_teachers = []; // กรรมการคนลำดับที่ 3: ตัวแทนคณะกรรมการวิชาการ (15 คน: 11 ครู + 4 รองผู้อำนวยการ)
 
-        // List of 15 eligible academic evaluators (11 teachers + 4 deputy directors)
-        // ต้องระบุคนโดยชื่อเต็มหรือ teacher_id
+        // รายชื่อตัวแทนวิชาการที่อนุญาต: ครูผู้รับผิดชอบ + รองผู้อำนวยการทั้ง 4 ท่าน (ระบุชื่อตรงๆ กันแน่นอน)
         $allowed_academic_names = [
-            // 11 ครู
-            'ครูวิลาวรรณ',
-            'ครูเพ็ญประภา',
-            'ครูปวีณ์นุช',
-            'ครูจิตรดา',
-            'ครูสุภัค',
-            'ครูปณิตา',
-            'ครูสุชาดา',
-            'ครูอังคณา',
-            'ครูสันธินี',
-            'ครูสาธิต',
-            // 4 รองผู้อำนวยการ
-            'รองผู้อำนวยการ'
+            'วิลาวรรณ', 'เพ็ญประภา', 'ปวีณ์นุช', 'จิตรดา',
+            'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต',
+            // รองผู้อำนวยการ 4 ท่าน (ระบุชื่อ+นามสกุลเพื่อความแม่นยำ)
+            'บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย',
         ];
+
+        // ชื่อ+นามสกุลของรองผู้อำนวยการ (ใช้ตรวจสอบ is_deputy แม้ position ในฐานข้อมูลไม่ตรง)
+        $known_deputy_fullnames = ['บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย'];
 
         foreach ($teachers as $t) {
             $t_id = (int)$t['id'];
             $t['full_name'] = trim(($t['prefix'] ?? '') . $t['first_name_th'] . ' ' . $t['last_name_th']);
 
-            $is_deputy = stripos($t['position'] ?? '', 'รองผู้อำนวยการ') !== false;
+            // คำนวณชื่อก่อนเพื่อใช้ตรวจสอบ deputy
+            $fname        = trim($t['first_name_th'] ?? '');
+            $lname        = trim($t['last_name_th']  ?? '');
+            $fullNoPrefix = trim($fname . ' ' . $lname);
 
-            // รองผู้อำนวยการไม่มีตารางสอนปกติ — คาบสังเกตการสอนถือว่าว่างเสมอ
-            $is_busy_timetable = $is_deputy ? false : in_array($t_id, $busy_timetable_teacher_ids);
-            $is_busy_booking = isset($conflict_map[$t_id]);
+            // รองผู้อำนวยการ: ตรวจจาก position หรือจากชื่อที่รู้จักโดยตรง
+            $is_deputy = stripos($t['position'] ?? '', 'รองผู้อำนวยการ') !== false
+                      || in_array($fullNoPrefix, $known_deputy_fullnames);
+
+            // รองผู้อำนวยการ — ว่างเสมอ ยกเว้นคาบ "ประชุม" ในตาราง / ไม่นับ booking conflict
+            $is_busy_timetable = $is_deputy ? in_array($t_id, $meeting_busy_teacher_ids) : in_array($t_id, $busy_timetable_teacher_ids);
+            $is_busy_booking   = $is_deputy ? false : isset($conflict_map[$t_id]);
 
             $t['is_busy'] = ($is_busy_timetable || $is_busy_booking);
             $t['is_deputy'] = $is_deputy;
 
             $reasons = [];
             if ($is_busy_timetable) {
-                $reasons[] = "มีสอนตามตารางสอนในคาบนี้";
+                $reasons[] = $is_deputy ? "มีประชุมในคาบนี้" : "มีสอนตามตารางสอนในคาบนี้";
             }
             if ($is_busy_booking) {
                 $reasons[] = $conflict_map[$t_id];
@@ -197,19 +211,14 @@ try {
             $all_teachers[] = $t;
 
             // --- กรองสำหรับกรรมการวิชาการ: เฉพาะคนในรายชื่อที่กำหนด + ว่าง ---
-            $pos = trim($t['position'] ?? '');
-            $is_in_allowed_list = false;
+            $is_in_allowed_list = $is_deputy; // รองผู้อำนวยการเข้าลิสต์ทันที
 
-            // Check if in allowed list by position (รองผู้อำนวยการ)
-            if (stripos($pos, 'รองผู้อำนวยการ') !== false) {
-                $is_in_allowed_list = true;
-            }
-            // Check if in allowed list by first name (11 ครู)
-            $fname = trim($t['first_name_th'] ?? '');
-            foreach ($allowed_academic_names as $name) {
-                if (stripos($fname, trim(str_replace('ครู', '', $name))) !== false) {
-                    $is_in_allowed_list = true;
-                    break;
+            foreach ($allowed_academic_names as $checkName) {
+                if ($checkName === '' || $is_in_allowed_list) continue;
+                if (str_contains($checkName, ' ')) {
+                    if ($fullNoPrefix === $checkName) { $is_in_allowed_list = true; }
+                } else {
+                    if ($fname === $checkName) { $is_in_allowed_list = true; }
                 }
             }
 

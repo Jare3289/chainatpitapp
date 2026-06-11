@@ -712,9 +712,30 @@
                 if (data.success && data.schedule && data.schedule.length > 0) {
                     window.currentDaySchedule = data.schedule;
                     
-                    data.schedule.forEach((slot, index) => {
+                    // เฉพาะวิชาหลัก: code ลงท้ายด้วยตัวเลข 5 หลัก (รองรับทั้ง "21101" และ "ท21101")
+                    // และไม่ใช่กิจกรรมพิเศษ
+                    const _excludeKw = ['เข้าแถว','ชุมนุม','ลูกเสือ','ค้นคว้า','สาธา','ประชุม','โฮมรูม','homeroom','home room'];
+                    const mainSlots = data.schedule.filter(slot => {
+                        const code = (slot.subject_code || '').trim();
+                        const name = (slot.subject_name || '').toLowerCase();
+                        if (!/\d{5}$/.test(code)) return false;
+                        if (_excludeKw.some(kw => name.includes(kw.toLowerCase()))) return false;
+                        return true;
+                    });
+
+                    if (mainSlots.length === 0) {
+                        container.innerHTML = `
+                            <div class="col-12">
+                                <div class="alert alert-warning border-warning bg-warning bg-opacity-10 small rounded-3 mb-0">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>ไม่พบรายวิชาหลัก (รหัส 5 หลัก) ในตารางสอนวันนี้
+                                </div>
+                            </div>`;
+                        return;
+                    }
+
+                    mainSlots.forEach((slot, index) => {
                         const id = 'slot_' + index;
-                        
+
                         const slotCode  = (slot.subject_code  || '').trim();
                         const slotName  = (slot.subject_name  || '').trim();
                         const slotClass = (slot.class_name    || slot.classroom || '').trim();
@@ -732,12 +753,16 @@
                             ? `<i class="bi bi-geo-alt-fill text-danger me-1"></i>${slotRoom}`
                             : '<span class="text-muted">ไม่ระบุห้อง</span>';
 
+                        const subjectLabel = (slotCode || slotName)
+                            ? `${slotCode} ${slotName}`.trim()
+                            : `<span class="text-muted fst-italic" style="font-size:0.72rem;">ไม่ระบุรายวิชา</span>`;
+
                         container.innerHTML += `
                             <div class="col-6 col-md-4">
                                 <input type="radio" class="btn-check" name="timetable_slot" id="${id}" value='${valueStr}' onchange="selectTimetableSlot(this)">
                                 <label class="btn btn-outline-primary bg-white w-100 text-start p-2 position-relative shadow-sm rounded-3 h-100" for="${id}">
                                     <div class="fw-bold text-navy mb-1" style="font-size:0.9rem;">คาบที่ ${slot.period}</div>
-                                    <div class="small text-dark fw-bold text-truncate" title="${slotCode} ${slotName}">${slotCode} ${slotName}</div>
+                                    <div class="small text-dark fw-bold text-truncate" title="${slotCode} ${slotName}">${subjectLabel}</div>
                                     <div style="font-size:0.73rem;" class="text-muted mt-1">
                                         <div><i class="bi bi-people-fill me-1"></i>ม.${slotClass || '-'}</div>
                                         <div>${roomDisplay}</div>
@@ -859,6 +884,21 @@
                 const data = await res.json();
 
                 if (data.success) {
+                    // ตรวจสอบว่ามีตัวแทนวิชาการว่างในคาบนี้หรือไม่
+                    if (data.has_academic_available === false) {
+                        // ไม่มีตัวแทนวิชาการว่าง → ยกเลิกการเลือกคาบนี้
+                        document.getElementById('booking_period').value = '';
+                        document.querySelectorAll('input[name="booking_period_radio"]').forEach(r => r.checked = false);
+                        peerContainer.innerHTML = '';
+                        headContainer.innerHTML = '';
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'ไม่สามารถเลือกคาบนี้ได้',
+                            text: 'ไม่มีตัวแทนวิชาการว่างในคาบที่เลือก กรุณาเลือกคาบอื่น',
+                            confirmButtonColor: '#1e3a8a'
+                        });
+                        return;
+                    }
                     _allPeers = data.peers || [];
                     _allHeads = data.heads || [];
                     renderPeerList(null);
@@ -995,7 +1035,6 @@
             if (!data.teacher_position) missing.push("ตำแหน่ง");
             if (!data.academic_standing) missing.push("วิทยฐานะ");
             if (!data.evaluation_purpose) missing.push("สำหรับครูผู้รับการประเมินเพื่อ");
-            if (!data.subject_name) missing.push("รายวิชา (จากตารางสอน)");
             if (!data.lesson_topic) missing.push("เรื่องที่จะสอน / หัวข้อการประเมิน");
             if (!data.booking_date) missing.push("วันที่นัดหมาย");
             if (!data.booking_period) missing.push("คาบเรียน");
@@ -1182,57 +1221,13 @@
                     }
                 }
 
-                // Select peer teacher radio
-                if (booking.peer_teacher_id) {
-                    document.getElementById('peer_teacher_id').value = booking.peer_teacher_id;
-                    const rPeer = document.querySelector(`input[name="peer_teacher_radio"][value="${booking.peer_teacher_id}"]`);
-                    if (rPeer) {
-                        rPeer.checked = true;
-                    } else {
-                        const container = document.getElementById('peer_teacher_container');
-                        if (container) {
-                            container.innerHTML = `<div><input type="radio" class="btn-check" name="peer_teacher_radio" id="peer_old" value="${booking.peer_teacher_id}" checked onchange="document.getElementById('peer_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="peer_old">${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</label></div>`;
-                        }
-                    }
-                }
-
-                // Select head teacher radio
-                if (booking.head_teacher_id) {
-                    document.getElementById('head_teacher_id').value = booking.head_teacher_id;
-                    const rHead = document.querySelector(`input[name="head_teacher_radio"][value="${booking.head_teacher_id}"]`);
-                    if (rHead) {
-                        rHead.checked = true;
-                    } else {
-                        const container = document.getElementById('head_teacher_container');
-                        if (container) {
-                            container.innerHTML = `<div><input type="radio" class="btn-check" name="head_teacher_radio" id="head_old" value="${booking.head_teacher_id}" checked onchange="document.getElementById('head_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="head_old">${booking.head_name || 'ครูผู้นิเทศเดิม'}</label></div>`;
-                        }
-                    }
-                }
+                // เมื่อแก้ไขการจอง — รีเซ็ต peer/head ให้ว่างเสมอ ให้ครูเลือกใหม่เองจากลิสต์ที่ว่าง
+                document.getElementById('peer_teacher_id').value = '';
+                document.getElementById('head_teacher_id').value = '';
 
                 if (booking.booking_date && booking.booking_period) {
-                    await checkAvailableTeachers();
-                    if (booking.peer_teacher_id) {
-                        const rPeer = document.querySelector(`input[name="peer_teacher_radio"][value="${booking.peer_teacher_id}"]`);
-                        if (rPeer) {
-                            rPeer.checked = true;
-                        } else {
-                            const container = document.getElementById('peer_teacher_container');
-                            if (container) {
-                                container.innerHTML += `<div><input type="radio" class="btn-check" name="peer_teacher_radio" id="peer_old_2" value="${booking.peer_teacher_id}" checked onchange="document.getElementById('peer_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="peer_old_2">${booking.peer_name || 'ครูผู้ร่วมนิเทศเดิม'}</label></div>`;
-                            }
-                        }
-                    }
-                    if (booking.head_teacher_id) {
-                        const rHead = document.querySelector(`input[name="head_teacher_radio"][value="${booking.head_teacher_id}"]`);
-                        if (rHead) {
-                            rHead.checked = true;
-                        } else {
-                            const container = document.getElementById('head_teacher_container');
-                            if (container) {
-                                container.innerHTML += `<div><input type="radio" class="btn-check" name="head_teacher_radio" id="head_old_2" value="${booking.head_teacher_id}" checked onchange="document.getElementById('head_teacher_id').value=this.value"><label class="btn btn-outline-primary rounded-pill px-3 py-1 small" for="head_old_2">${booking.head_name || 'ครูผู้นิเทศเดิม'}</label></div>`;
-                            }
-                        }
+                    await checkAvailableTeachers(); // โหลดลิสต์ใหม่โดยไม่ pre-select
+                    if (false) { // placeholder block — peer/head ไม่ pre-select เมื่อแก้ไข
                     }
                 }
 

@@ -583,14 +583,18 @@ async function checkAuth(expectedRole) {
                         document.body.appendChild(script);
                     });
                 }
-                
+
+                const pct = data.user.profile_completion_pct ?? 0;
+                const filled = data.user.profile_filled_count ?? 0;
+                const total = data.user.profile_required_total ?? 0;
                 await Swal.fire({
                     icon: 'warning',
-                    title: '⚠️ เข้าสู่ช่วงนิเทศการสอน: กรุณาอัปเดตข้อมูลส่วนตัว',
-                    text: 'เนื่องจากระบบกำลังจะเข้าสู่ช่วงนิเทศการสอน ขอความกรุณาคุณครูทุกท่านตรวจสอบและอัปเดตข้อมูลประวัติและช่องทางติดต่อให้ครบถ้วนทุกช่องก่อน จึงจะสามารถเข้าใช้งานระบบส่วนอื่นได้ (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น)',
+                    title: '⚠️ บังคับอัปเดตข้อมูลส่วนตัว (ช่วงนิเทศการสอน)',
+                    html: `ข้อมูลของคุณกรอกแล้ว <strong style="color:#d97706">${pct}%</strong> (${filled}/${total} รายการ)<br><br>ต้องการอย่างน้อย <strong>90%</strong> จึงจะสามารถใช้งานระบบได้<br><span style="font-size:0.9em;color:#64748b">กรุณากรอกข้อมูลที่ยังขาดให้ครบ แล้วกดบันทึก</span>`,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
-                    confirmButtonText: 'ไปหน้าแก้ไขโปรไฟล์เพื่ออัปเดตข้อมูล'
+                    confirmButtonColor: '#d97706',
+                    confirmButtonText: 'ไปอัปเดตข้อมูลเลย →'
                 });
                 window.location.href = 'teacher_profile.html';
                 return null;
@@ -610,10 +614,12 @@ async function checkAuth(expectedRole) {
                             document.body.appendChild(script);
                         });
                     }
+                    const pct2 = data.user.profile_completion_pct ?? 0;
                     Swal.fire({
-                        icon: 'info',
-                        title: 'คำแนะนำการบันทึกข้อมูล',
-                        text: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น) จากนั้นกดปุ่ม "บันทึกและอัปเดตข้อมูล" ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานส่วนอื่น ๆ ของระบบ',
+                        icon: 'warning',
+                        title: `⚠️ ข้อมูลครบ ${pct2}% — ต้องการ 90%`,
+                        html: 'กรุณากรอกข้อมูลที่ยังขาดให้ครบ แล้วกดปุ่ม <strong>"บันทึกและอัปเดตข้อมูล"</strong> ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานระบบ',
+                        confirmButtonColor: '#d97706',
                         confirmButtonText: 'รับทราบ'
                     });
                 }

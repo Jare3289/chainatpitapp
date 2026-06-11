@@ -77,7 +77,8 @@ try {
         $dept_base = "SELECT t.id, t.prefix, t.first_name_th, t.last_name_th, t.department, t.sub_department, t.department_position
                       FROM teachers t
                       LEFT JOIN users u ON u.id = t.user_id
-                      WHERE (u.role IS NULL OR u.role != 'admin')";
+                      WHERE (u.role IS NULL OR u.role != 'admin')
+                        AND (t.position NOT LIKE '%นักศึกษาฝึกสอน%' AND t.position NOT LIKE '%ฝึกประสบการณ์%')";
 
         if ($my_sub_dept === 'คอมพิวเตอร์และเทคโนโลยี') {
             $stmt = $pdo->prepare($dept_base . " AND t.sub_department = ? ORDER BY t.first_name_th ASC");
@@ -105,6 +106,65 @@ try {
         if ((int)$t['id'] === $my_teacher_id) return false;
         return !empty($t['department_position'] ?? '');
     }));
+
+    // Filter peers/heads by availability + check academic evaluator availability
+    $date_param   = isset($_GET['date'])   ? trim($_GET['date'])       : '';
+    $period_param = isset($_GET['period']) ? (int)$_GET['period']      : 0;
+
+    $has_academic_available = true; // ถ้าไม่ได้ระบุ date/period ให้ถือว่าว่างก่อน
+
+    if ($date_param && $period_param > 0) {
+        $ts = strtotime($date_param);
+        if ($ts !== false) {
+            $day_of_week = (int)date('N', $ts); // 1=Monday … 7=Sunday
+
+            // ครูที่มีตารางสอนในคาบนี้ (ทุกวิชา)
+            $stmt_busy = $pdo->prepare(
+                "SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ?"
+            );
+            $stmt_busy->execute([$day_of_week, $period_param]);
+            $busy_ids = array_map('intval', array_column($stmt_busy->fetchAll(PDO::FETCH_ASSOC), 'teacher_id'));
+
+            $peers = array_values(array_filter($peers, fn($t) => !in_array((int)$t['id'], $busy_ids)));
+            $heads = array_values(array_filter($heads, fn($t) => !in_array((int)$t['id'], $busy_ids)));
+
+            // ครูที่มีรายการ "ประชุม" ในคาบนี้ (ใช้ตรวจสอบรองผู้อำนวยการ)
+            $stmt_mtg = $pdo->prepare(
+                "SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ? AND subject_name LIKE '%ประชุม%'"
+            );
+            $stmt_mtg->execute([$day_of_week, $period_param]);
+            $meeting_ids = array_map('intval', $stmt_mtg->fetchAll(PDO::FETCH_COLUMN));
+
+            // รายชื่อตัวแทนวิชาการ (ต้องตรงกับ supervision_booking_manage.php เสมอ)
+            $allowed_academic_names = [
+                'วิลาวรรณ', 'เพ็ญประภา', 'ปวีณ์นุช', 'จิตรดา',
+                'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต',
+                'บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย',
+            ];
+            $known_deputy_fullnames = ['บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย'];
+
+            $stmt_acad = $pdo->query("SELECT id, first_name_th, last_name_th, position FROM teachers");
+            $has_academic_available = false;
+            foreach ($stmt_acad->fetchAll(PDO::FETCH_ASSOC) as $at) {
+                $at_id  = (int)$at['id'];
+                $fname2 = trim($at['first_name_th'] ?? '');
+                $full2  = trim($fname2 . ' ' . ($at['last_name_th'] ?? ''));
+                $is_dep = stripos($at['position'] ?? '', 'รองผู้อำนวยการ') !== false
+                       || in_array($full2, $known_deputy_fullnames);
+                $in_list = $is_dep;
+                if (!$in_list) {
+                    foreach ($allowed_academic_names as $cn) {
+                        if (str_contains($cn, ' ') ? ($full2 === $cn) : ($fname2 === $cn)) {
+                            $in_list = true; break;
+                        }
+                    }
+                }
+                if (!$in_list) continue;
+                $is_busy = $is_dep ? in_array($at_id, $meeting_ids) : in_array($at_id, $busy_ids);
+                if (!$is_busy) { $has_academic_available = true; break; }
+            }
+        }
+    }
 
     // Determine user's allowed dates
     $schedule_key = '';
@@ -167,7 +227,8 @@ try {
         'peers' => $peers,
         'heads' => $heads,
         'teachers' => $all_teachers,
-        'department_teachers' => $dept_teachers
+        'department_teachers' => $dept_teachers,
+        'has_academic_available' => $has_academic_available,
     ]);
 
 } catch (PDOException $e) {

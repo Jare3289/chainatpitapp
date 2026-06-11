@@ -160,6 +160,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $sql = "UPDATE teachers SET " . implode(', ', $updateParts) . " WHERE user_id = ?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
+                // ทำเครื่องหมายว่าครูยืนยันข้อมูลแล้วในปีการศึกษานี้
+                try {
+                    $pdo->prepare("UPDATE teachers SET profile_confirmed_at = NOW() WHERE user_id = ?")->execute([$user_id]);
+                } catch (PDOException $e2) {
+                    error_log('[profile_confirmed_at] column missing — run migration: ' . $e2->getMessage());
+                }
             } catch (PDOException $e) {
                 error_log('[' . basename(__FILE__) . '] ' . $e->getMessage()); echo json_encode(['success' => false, 'error' => 'ระบบขัดข้องชั่วคราว']);
                 exit;

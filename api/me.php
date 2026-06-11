@@ -47,22 +47,36 @@ try {
             // Calculate teacher profile completion (required for supervision period)
             if ($role === 'teacher') {
                 $required_fields = [
-                    'prefix', 'first_name_th', 'last_name_th', 'nickname',
-                    'id_card', 'birth_date', 'position', 'department',
-                    'phone', 'email', 'line_id'
+                    // ข้อมูลส่วนตัว
+                    'prefix', 'first_name_th', 'last_name_th',
+                    'first_name_en', 'last_name_en', 'nickname',
+                    'id_card', 'birth_date',
+                    'ethnicity', 'nationality', 'religion',
+                    // ข้อมูลการงาน
+                    'position', 'department', 'academic_standing',
+                    // ช่องทางติดต่อ
+                    'phone', 'email', 'line_id',
+                    // ที่อยู่บ้าน
+                    'home_address_no', 'home_address_province',
+                    'home_address_district', 'home_address_subdistrict',
+                    // สุขภาพ
+                    'blood_group', 'weight', 'height',
                 ];
-                
+
                 $filled = 0;
                 foreach ($required_fields as $fld) {
                     $val = trim((string)($details[$fld] ?? ''));
-                    if ($val !== '' && $val !== '0000-00-00') {
+                    if ($val !== '' && $val !== '0000-00-00' && $val !== '0') {
                         $filled++;
                     }
                 }
                 $total = count($required_fields);
                 $pct = $total > 0 ? (int)round(($filled / $total) * 100) : 0;
                 $details['profile_completion_pct'] = $pct;
-                $details['is_profile_complete'] = $pct >= 100;
+                $details['profile_required_total'] = $total;
+                $details['profile_filled_count'] = $filled;
+                // ต้องกรอกข้อมูลให้ได้อย่างน้อย 90% จึงจะใช้งานระบบได้
+                $details['is_profile_complete'] = $pct >= 90;
             } else {
                 $details['is_profile_complete'] = true;
             }

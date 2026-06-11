@@ -214,19 +214,32 @@ try {
     // Notify relevant parties
     try {
         $ids = supervisionBookingUserIds($pdo, (int)$booking_id);
-        $peerUid = $ids['peer_user_id'];
-        $headUid = $ids['head_user_id'];
+        $teacherUid = $ids['teacher_user_id'];
+        $peerUid    = $ids['peer_user_id'];
+        $headUid    = $ids['head_user_id'];
+
+        // Resolve teacher display name
+        $stmtName = $pdo->prepare("SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+        $stmtName->execute([$teacher_id]);
+        $teacherDisplayName = $stmtName->fetchColumn() ?: 'ครู';
+
+        // Admin user IDs (for new booking alert)
+        $stmtAdmins = $pdo->query("SELECT id FROM users WHERE role = 'admin'");
+        $adminUids = array_column($stmtAdmins->fetchAll(PDO::FETCH_ASSOC), 'id');
+
+        $subjectLabel = trim($subject_name ?: $subject_code) ?: 'ไม่ระบุวิชา';
 
         if ($booking_id > 0 && isset($existing)) {
-            // Edit booking — notify peer + head about the change
+            // Edit booking — notify teacher (self) + peer + head
             $editMsg = "ข้อมูลการนิเทศการสอน (จอง #{$booking_id}) ถูกแก้ไขโดยครูผู้รับการนิเทศ วันที่สอน: {$booking_date}";
-            supervisionNotify($pdo, [$peerUid, $headUid], 'แก้ไขข้อมูลการนิเทศ', $editMsg, 'supervision_booking.html');
+            supervisionNotify($pdo, [$teacherUid], 'แก้ไขข้อมูลการจองสำเร็จ ✅', "บันทึกการแก้ไขคิวนิเทศวิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} เรียบร้อยแล้ว", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$peerUid, $headUid], 'แก้ไขข้อมูลการนิเทศ 📝', $editMsg, 'teacher_supervision.html');
         } else {
-            // New booking
-            $newPeerMsg = "คุณได้รับการเลือกเป็นครูผู้ร่วมนิเทศ วิชา {$subject_name} วันที่ {$booking_date}";
-            supervisionNotify($pdo, [$peerUid], 'คำเชิญเป็นกรรมการนิเทศ', $newPeerMsg, 'supervision_booking.html');
-            $newHeadMsg = "คุณได้รับการเลือกเป็นครูผู้นิเทศ วิชา {$subject_name} วันที่ {$booking_date}";
-            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ', $newHeadMsg, 'supervision_booking.html');
+            // New booking — notify teacher (self) + peer + head + admins
+            supervisionNotify($pdo, [$teacherUid], 'จองคิวนิเทศสำเร็จ ✅', "คิวนิเทศของคุณถูกบันทึกแล้ว วิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} รอฝ่ายวิชาการแต่งตั้งกรรมการ", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$peerUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นครูผู้ร่วมนิเทศ (Peer) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นครูผู้นิเทศ (หัวหน้า) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
+            supervisionNotify($pdo, $adminUids, 'มีคิวนิเทศใหม่รอแต่งตั้งกรรมการ 🔔', "{$teacherDisplayName} จองคิวนิเทศวิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} — กรุณาแต่งตั้งคณะกรรมการ", 'admin_supervision_booking.html');
         }
     } catch (Throwable $e_notif) {
         error_log('[supervision_book notify] ' . $e_notif->getMessage());

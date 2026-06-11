@@ -77,11 +77,12 @@ try {
     $stmt = $pdo->prepare("UPDATE supervision_bookings SET status = 'cancelled' WHERE id = ?");
     $stmt->execute([$booking_id]);
 
-    // 4. Notify peer + head
+    // 4. Notify teacher (self) + peer + head
     try {
         $ids = supervisionBookingUserIds($pdo, $booking_id);
-        $msg = "การจองคิวนิเทศ #ต{$booking_id} ถูกยกเลิกโดยครูผู้รับการนิเทศ";
-        supervisionNotify($pdo, [$ids['peer_user_id'], $ids['head_user_id']], 'ยกเลิกการจองนิเทศ', $msg, 'supervision_booking.html');
+        $msg = "การจองคิวนิเทศ #{$booking_id} ถูกยกเลิกโดยครูผู้รับการนิเทศ";
+        supervisionNotify($pdo, [$ids['teacher_user_id']], 'ยกเลิกการจองนิเทศสำเร็จ', "คิวนิเทศ #{$booking_id} ของคุณถูกยกเลิกเรียบร้อยแล้ว", 'teacher_supervision.html');
+        supervisionNotify($pdo, [$ids['peer_user_id'], $ids['head_user_id']], 'ยกเลิกการจองนิเทศ ❌', $msg, 'teacher_supervision.html');
     } catch (Throwable $e_n) {
         error_log('[supervision_cancel notify] ' . $e_n->getMessage());
     }
