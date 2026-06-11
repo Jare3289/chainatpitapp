@@ -161,6 +161,37 @@ try {
         exit;
     }
 
+    // 5. ตรวจสอบ peer/head ซ้ำในคาบเดียวกัน (คนนึงออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ)
+    $conflict_names = [];
+    $base_excl = "SELECT id FROM supervision_bookings
+        WHERE booking_date = ? AND booking_period = ? AND status != 'cancelled'
+        AND (peer_teacher_id = ? OR head_teacher_id = ?)" .
+        ($booking_id > 0 ? " AND id != $booking_id" : "");
+
+    if ($peer_teacher_id > 0) {
+        $stmt_c = $pdo->prepare($base_excl);
+        $stmt_c->execute([$booking_date, $booking_period, $peer_teacher_id, $peer_teacher_id]);
+        if ($stmt_c->fetch()) {
+            $stmt_n = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+            $stmt_n->execute([$peer_teacher_id]);
+            $conflict_names[] = ($stmt_n->fetchColumn() ?: 'ครูผู้ร่วมนิเทศ') . ' (ครูร่วมนิเทศ)';
+        }
+    }
+    if ($head_teacher_id > 0) {
+        $stmt_c2 = $pdo->prepare($base_excl);
+        $stmt_c2->execute([$booking_date, $booking_period, $head_teacher_id, $head_teacher_id]);
+        if ($stmt_c2->fetch()) {
+            $stmt_n2 = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+            $stmt_n2->execute([$head_teacher_id]);
+            $conflict_names[] = ($stmt_n2->fetchColumn() ?: 'ครูผู้นิเทศ') . ' (ครูผู้นิเทศ)';
+        }
+    }
+    if (!empty($conflict_names)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'ไม่สามารถจองได้: ' . implode(' และ ', $conflict_names) . ' ถูกจองในคาบนี้แล้ว — คนนึงออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ']);
+        exit;
+    }
+
     if ($booking_id > 0) {
         if ($is_admin) {
             $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ?");

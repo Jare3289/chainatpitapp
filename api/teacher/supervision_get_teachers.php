@@ -125,8 +125,27 @@ try {
             $stmt_busy->execute([$day_of_week, $period_param]);
             $busy_ids = array_map('intval', array_column($stmt_busy->fetchAll(PDO::FETCH_ASSOC), 'teacher_id'));
 
-            $peers = array_values(array_filter($peers, fn($t) => !in_array((int)$t['id'], $busy_ids)));
-            $heads = array_values(array_filter($heads, fn($t) => !in_array((int)$t['id'], $busy_ids)));
+            // ครูที่ถูกจองเป็น peer หรือ head ในคาบเดียวกัน (วันเดียวกัน + คาบเดียวกัน)
+            // ยกเว้น booking ที่กำลังแก้ไขอยู่ (booking_id)
+            $excl_sql = "SELECT peer_teacher_id AS id FROM supervision_bookings
+                         WHERE booking_date = ? AND booking_period = ? AND status != 'cancelled'";
+            $excl_params = [$date_param, $period_param];
+            if ($booking_id > 0) { $excl_sql .= " AND id != ?"; $excl_params[] = $booking_id; }
+            $excl_sql .= " UNION SELECT head_teacher_id FROM supervision_bookings
+                         WHERE booking_date = ? AND booking_period = ? AND status != 'cancelled'";
+            $excl_params = array_merge($excl_params, [$date_param, $period_param]);
+            if ($booking_id > 0) { $excl_sql .= " AND id != ?"; $excl_params[] = $booking_id; }
+
+            $stmt_committed = $pdo->prepare($excl_sql);
+            $stmt_committed->execute($excl_params);
+            $committed_ids = array_values(array_filter(
+                array_map('intval', array_column($stmt_committed->fetchAll(PDO::FETCH_ASSOC), 'id'))
+            ));
+
+            $peers = array_values(array_filter($peers, fn($t) =>
+                !in_array((int)$t['id'], $busy_ids) && !in_array((int)$t['id'], $committed_ids)));
+            $heads = array_values(array_filter($heads, fn($t) =>
+                !in_array((int)$t['id'], $busy_ids) && !in_array((int)$t['id'], $committed_ids)));
 
             // ครูที่มีรายการ "ประชุม" ในคาบนี้ (ใช้ตรวจสอบรองผู้อำนวยการ)
             $stmt_mtg = $pdo->prepare(
