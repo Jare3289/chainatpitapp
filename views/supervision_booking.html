@@ -1494,9 +1494,7 @@
                 const mineBadge = isMine
                     ? '<span class="badge rounded-pill ms-1 fw-bold" style="background:#dcfce7;color:#15803d;font-size:0.58rem;">คุณ</span>'
                     : '';
-                const photoSrc = b.teacher_photo
-                    ? (b.teacher_photo.startsWith('http') || b.teacher_photo.startsWith('/') ? b.teacher_photo : '../public/uploads/teachers/' + b.teacher_photo)
-                    : '../public/img/default-avatar.png';
+                const photoSrc = teacherPhotoUrl(b.teacher_photo);
                 return `
                     <div class="col-12 col-sm-6 col-md-4 col-xl-3">
                         <div class="p-3 rounded-4 h-100 d-flex align-items-center gap-3" style="${cardBg}">
