@@ -443,6 +443,46 @@ try {
         $val = $stmt_cur ? (int)$stmt_cur->fetchColumn() : 1;
         echo json_encode(['success' => true, 'booking_open' => (bool)$val]);
 
+    } elseif ($action === 'get_unbooked') {
+        $semester = 1;
+        $year     = 2569;
+
+        // ครูที่ยังไม่มีคิวนิเทศในภาคเรียนนี้ (ยกเว้น admin, นักศึกษาฝึกสอน)
+        $stmt_ub = $pdo->prepare("
+            SELECT t.id,
+                   CONCAT(COALESCE(t.prefix,''), t.first_name_th, ' ', t.last_name_th) AS full_name,
+                   COALESCE(NULLIF(t.sub_department,''), t.department) AS eff_dept,
+                   t.department,
+                   t.sub_department,
+                   t.photo
+            FROM teachers t
+            LEFT JOIN users u ON u.id = t.user_id
+            WHERE (u.role IS NULL OR u.role != 'admin')
+              AND (t.position NOT LIKE '%นักศึกษาฝึกสอน%'
+                   AND t.position NOT LIKE '%ฝึกประสบการณ์%')
+              AND t.id NOT IN (
+                  SELECT teacher_id FROM supervision_bookings
+                  WHERE semester = ? AND year = ? AND status != 'cancelled'
+              )
+            ORDER BY eff_dept, t.first_name_th ASC
+        ");
+        $stmt_ub->execute([$semester, $year]);
+        $rows = $stmt_ub->fetchAll(PDO::FETCH_ASSOC);
+
+        // จัด group ตาม effective dept
+        $groups = [];
+        foreach ($rows as $t) {
+            $dept = $t['eff_dept'] ?: 'ไม่ระบุกลุ่มสาระ';
+            if (!isset($groups[$dept])) $groups[$dept] = [];
+            $groups[$dept][] = ['id' => $t['id'], 'full_name' => $t['full_name'], 'photo' => $t['photo']];
+        }
+
+        echo json_encode([
+            'success' => true,
+            'total'   => count($rows),
+            'groups'  => $groups,
+        ]);
+
     } else {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'Action not supported']);

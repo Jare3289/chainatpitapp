@@ -279,6 +279,67 @@
         .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
         .empty-state i { font-size: 3rem; margin-bottom: 12px; display: block; }
 
+        /* ── Unbooked Teachers Panel ── */
+        .unbooked-panel {
+            background: white; border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(15,23,42,0.03);
+        }
+        .unbooked-toggle {
+            width: 100%; padding: 14px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: white; border: none; cursor: pointer;
+            font-family: 'Google Sans','Sarabun',sans-serif;
+            transition: background 0.15s;
+        }
+        .unbooked-toggle:hover { background: #f8fafc; }
+        .unbooked-toggle .ub-left { display: flex; align-items: center; gap: 10px; }
+        .unbooked-toggle .ub-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: #fef3c7; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: #d97706;
+        }
+        .unbooked-toggle .ub-title { font-weight: 800; font-size: 0.9rem; color: #1e293b; }
+        .unbooked-toggle .ub-sub { font-size: 0.72rem; color: #64748b; }
+        .unbooked-toggle .ub-count-badge {
+            background: #fef3c7; color: #92400e;
+            border-radius: 20px; padding: 3px 12px;
+            font-size: 0.75rem; font-weight: 800;
+            border: 1px solid #fde68a;
+        }
+        .unbooked-toggle .ub-chevron { color: #94a3b8; transition: transform 0.2s; font-size: 0.85rem; }
+        .unbooked-toggle.open .ub-chevron { transform: rotate(180deg); }
+
+        .unbooked-body { padding: 0 18px 16px; border-top: 1px solid #f1f5f9; }
+        .ub-dept-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 0 6px;
+            font-size: 0.78rem; font-weight: 800; color: #475569;
+            border-bottom: 1px dashed #e2e8f0; margin-bottom: 8px;
+        }
+        .ub-dept-header .ub-dept-count {
+            margin-left: auto; background: #f1f5f9; color: #64748b;
+            border-radius: 20px; padding: 1px 9px; font-size: 0.68rem; font-weight: 700;
+        }
+        .ub-teacher-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+        .ub-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px;
+            padding: 5px 12px 5px 6px; font-size: 0.78rem; font-weight: 600; color: #475569;
+            transition: all 0.15s;
+        }
+        .ub-chip:hover { border-color: #f59e0b; color: #92400e; background: #fffbeb; }
+        .ub-chip img {
+            width: 22px; height: 22px; border-radius: 50%; object-fit: cover;
+            background: #e2e8f0; flex-shrink: 0;
+        }
+        .ub-chip .ub-avatar {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: #e2e8f0; display: flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; color: #94a3b8; flex-shrink: 0;
+        }
+
         @media (max-width: 992px) {
             .workspace-card { position: static; margin-top: 24px; max-height: none; }
         }
@@ -374,6 +435,24 @@
                                 <div class="spinner-border text-primary mb-3" role="status"></div>
                                 <div class="fw-bold">กำลังโหลดข้อมูล...</div>
                             </div>
+                        </div>
+
+                        <!-- Unbooked Teachers Panel -->
+                        <div class="unbooked-panel mt-3" id="unbookedPanel">
+                            <button class="unbooked-toggle" id="unbookedToggleBtn" onclick="toggleUnbooked()">
+                                <div class="ub-left">
+                                    <div class="ub-icon"><i class="bi bi-person-x-fill"></i></div>
+                                    <div>
+                                        <div class="ub-title">ยังไม่ลงคิวนิเทศ</div>
+                                        <div class="ub-sub">แยกตามกลุ่มสาระฯ</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="ub-count-badge" id="unbookedCountBadge">กำลังโหลด...</span>
+                                    <i class="bi bi-chevron-down ub-chevron" id="unbookedChevron"></i>
+                                </div>
+                            </button>
+                            <div id="unbookedBody" class="unbooked-body" style="display:none;"></div>
                         </div>
                     </div>
 
@@ -614,6 +693,15 @@
                 Swal.fire('ข้อผิดพลาด', data.error || 'ดึงข้อมูลไม่สำเร็จ', 'error');
             }
         } catch (e) { console.error(e); }
+        // โหลด count ยังไม่จอง (ไม่รอ — แสดงตัวเลขเร็วๆ)
+        fetch('../api/admin/supervision_booking_manage.php?action=get_unbooked')
+            .then(r => r.json()).then(d => {
+                if (d.success) {
+                    const badge = document.getElementById('unbookedCountBadge');
+                    if (badge) badge.textContent = `${d.total || 0} คน`;
+                    unbookedLoaded = false; // force reload เพื่อ refresh หลัง loadBookings
+                }
+            }).catch(() => {});
     }
 
     function updateStats() {
@@ -1104,6 +1192,80 @@
             }
         } catch (e) {
             Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่', 'error');
+        }
+    }
+
+    // ── Unbooked Teachers Panel ──
+    let unbookedOpen = false;
+    let unbookedLoaded = false;
+
+    async function loadUnbooked() {
+        const body = document.getElementById('unbookedBody');
+        const badge = document.getElementById('unbookedCountBadge');
+        body.innerHTML = '<div class="py-3 text-center text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>กำลังโหลด...</div>';
+        try {
+            const res  = await fetch('../api/admin/supervision_booking_manage.php?action=get_unbooked');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+
+            const total  = data.total || 0;
+            const groups = data.groups || {};
+
+            badge.textContent = `${total} คน`;
+
+            if (total === 0) {
+                body.innerHTML = '<div class="py-3 text-center text-muted small"><i class="bi bi-check-circle-fill text-success me-2"></i>ครูทุกคนลงคิวแล้ว!</div>';
+                return;
+            }
+
+            const deptOrder = [
+                'คอมพิวเตอร์และเทคโนโลยี','คณิตศาสตร์','ภาษาไทย','ภาษาต่างประเทศ',
+                'สังคมศึกษา ศาสนา และวัฒนธรรม','วิทยาศาสตร์และเทคโนโลยี',
+                'สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','แนะแนว'
+            ];
+            const ordered = [
+                ...deptOrder.filter(d => groups[d]),
+                ...Object.keys(groups).filter(d => !deptOrder.includes(d))
+            ];
+
+            let html = '';
+            ordered.forEach(dept => {
+                const teachers = groups[dept];
+                html += `
+                    <div class="ub-dept-header">
+                        <i class="bi bi-collection-fill text-primary" style="font-size:0.75rem;"></i>
+                        ${dept}
+                        <span class="ub-dept-count">${teachers.length} คน</span>
+                    </div>
+                    <div class="ub-teacher-chips">`;
+                teachers.forEach(t => {
+                    const photoSrc = t.photo
+                        ? `<img src="../${t.photo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy">
+                           <span class="ub-avatar" style="display:none;"><i class="bi bi-person"></i></span>`
+                        : `<span class="ub-avatar"><i class="bi bi-person"></i></span>`;
+                    html += `<span class="ub-chip" title="${t.full_name}">${photoSrc}${t.full_name}</span>`;
+                });
+                html += `</div>`;
+            });
+            body.innerHTML = html;
+            unbookedLoaded = true;
+        } catch (e) {
+            badge.textContent = 'ผิดพลาด';
+            body.innerHTML = `<div class="py-2 text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>${e.message || 'โหลดไม่สำเร็จ'}</div>`;
+        }
+    }
+
+    function toggleUnbooked() {
+        unbookedOpen = !unbookedOpen;
+        const btn  = document.getElementById('unbookedToggleBtn');
+        const body = document.getElementById('unbookedBody');
+        if (unbookedOpen) {
+            btn.classList.add('open');
+            body.style.display = '';
+            if (!unbookedLoaded) loadUnbooked();
+        } else {
+            btn.classList.remove('open');
+            body.style.display = 'none';
         }
     }
 
