@@ -71,27 +71,91 @@
         .status-tab.active.active_sup { background: #2563eb; color: white; }
         .status-tab.active.done { background: #16a34a; color: white; }
 
-        /* ── Department Group Header ── */
-        .dept-group-header {
-            display: flex; align-items: center; gap-10px;
-            padding: 8px 14px; border-radius: 10px;
-            background: #f1f5f9; border-left: 4px solid #1e3a8a;
-            margin: 16px 0 8px;
-            font-weight: 800; font-size: 0.82rem; color: #1e3a8a;
+        /* ── Calendar Date Section ── */
+        .date-section { margin-bottom: 24px; }
+        .date-section-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 18px; border-radius: 14px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            margin-bottom: 10px; color: white;
+            box-shadow: 0 4px 14px rgba(30,58,138,0.18);
         }
-        .dept-group-header .dept-count {
-            margin-left: auto; background: #1e3a8a; color: white;
-            border-radius: 20px; padding: 2px 10px; font-size: 0.72rem;
+        .date-section-header .ds-day {
+            font-size: 1.05rem; font-weight: 900; letter-spacing: -0.3px;
+        }
+        .date-section-header .ds-date {
+            font-size: 0.85rem; opacity: 0.85; font-weight: 500;
+        }
+        .date-section-header .ds-count {
+            margin-left: auto; background: rgba(255,255,255,0.18);
+            border-radius: 20px; padding: 3px 13px; font-size: 0.74rem; font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
+        /* ── Booking Card (calendar style) ── */
         .booking-card {
-            background: white; border-radius: 16px; padding: 18px;
-            border: 1px solid #e2e8f0; cursor: pointer;
+            background: white; border-radius: 16px;
+            border: 1.5px solid #e2e8f0; cursor: pointer;
             transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 12px rgba(15,23,42,0.02); position: relative;
+            box-shadow: 0 2px 10px rgba(15,23,42,0.03);
+            display: flex; overflow: hidden; margin-bottom: 10px; position: relative;
         }
-        .booking-card:hover { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 8px 24px rgba(15,23,42,0.06); }
-        .booking-card.selected-card { border: 2px solid #2563eb; background-color: #f0f7ff; box-shadow: 0 8px 24px rgba(37,99,235,0.08); }
+        .booking-card:hover { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 8px 28px rgba(15,23,42,0.08); }
+        .booking-card.selected-card { border: 2px solid #2563eb; background-color: #f0f7ff; box-shadow: 0 8px 28px rgba(37,99,235,0.1); }
+
+        /* Period badge (left strip) */
+        .bcard-period {
+            min-width: 62px; width: 62px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 14px 6px; gap: 2px; flex-shrink: 0;
+        }
+        .bcard-period .bcp-num { font-size: 2rem; font-weight: 900; line-height: 1; }
+        .bcard-period .bcp-lbl { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.5px; opacity: 0.8; }
+        .bcp-pending       { background: #fef3c7; color: #92400e; }
+        .bcp-approved      { background: #dbeafe; color: #1e40af; }
+        .bcp-doc_submitted { background: #e0f2fe; color: #0369a1; }
+        .bcp-completed     { background: #dcfce7; color: #14532d; }
+
+        /* Card body */
+        .bcard-body { flex: 1; padding: 14px 16px 12px; min-width: 0; }
+        .bcard-name {
+            font-size: 1.05rem; font-weight: 800; color: #1e293b;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .bcard-dept {
+            font-size: 0.73rem; color: #64748b; margin-bottom: 9px;
+            display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 2px;
+        }
+        .bcard-subj {
+            background: #f8fafc; border-radius: 10px; padding: 8px 12px;
+            font-size: 0.82rem; margin-bottom: 10px;
+            border: 1px solid #f1f5f9;
+        }
+        .bcard-subj .bs-main { font-weight: 700; color: #1e293b; }
+        .bcard-subj .bs-main .bs-code { color: #1e3a8a; }
+        .bcard-subj .bs-meta { font-size: 0.73rem; color: #64748b; margin-top: 2px; }
+        .bcard-subj .bs-topic { font-size: 0.71rem; color: #94a3b8; margin-top: 3px; font-style: italic; }
+
+        /* Committee 3-slot grid */
+        .bcard-committee { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .bc-slot {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 7px 10px; display: flex; flex-direction: column; gap: 3px; min-width: 0;
+        }
+        .bc-slot .bcs-label {
+            font-size: 0.6rem; font-weight: 700; letter-spacing: 0.4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .bc-slot .bcs-num {
+            width: 14px; height: 14px; border-radius: 50%; color: white;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.6rem; font-weight: 800; flex-shrink: 0;
+        }
+        .bc-slot .bcs-name {
+            font-size: 0.74rem; font-weight: 700; color: #1e293b;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .bc-slot .bcs-name.empty { color: #cbd5e1; font-weight: 400; font-style: italic; font-size: 0.7rem; }
 
         .sbadge {
             display: inline-flex; align-items: center; gap: 5px;
@@ -305,7 +369,7 @@
                             </select>
                         </div>
 
-                        <div id="bookingListContainer" class="d-flex flex-column gap-1">
+                        <div id="bookingListContainer">
                             <div class="empty-state bg-white border rounded-4 py-5 shadow-sm">
                                 <div class="spinner-border text-primary mb-3" role="status"></div>
                                 <div class="fw-bold">กำลังโหลดข้อมูล...</div>
@@ -593,7 +657,17 @@
         renderCards(list);
     }
 
-    // ── Render cards grouped by department ──
+    // ── Strip Thai prefix for shorter display in committee slots ──
+    function shortName(name) {
+        if (!name) return '';
+        const prefixes = ['ว่าที่ร้อยตรีหญิง','ว่าที่ร้อยตรี','นางสาว','นาง','นาย','ดร.'];
+        for (const p of prefixes) {
+            if (name.startsWith(p)) return name.slice(p.length).trim();
+        }
+        return name;
+    }
+
+    // ── Render cards grouped by date (calendar style) ──
     function renderCards(list) {
         const container = document.getElementById('bookingListContainer');
         if (list.length === 0) {
@@ -605,77 +679,107 @@
             return;
         }
 
-        // Group by department
+        // Group by date, sort chronologically
         const groups = {};
         list.forEach(b => {
-            const dept = b.t_dept || 'ไม่ระบุกลุ่มสาระ';
-            if (!groups[dept]) groups[dept] = [];
-            groups[dept].push(b);
+            const d = b.booking_date || '_nodate';
+            if (!groups[d]) groups[d] = [];
+            groups[d].push(b);
         });
+        const sortedDates = Object.keys(groups).sort((a, b) => a.localeCompare(b));
 
-        const deptOrder = [
-            'คอมพิวเตอร์และเทคโนโลยี','สุขศึกษาและพลศึกษา','แนะแนว','ศิลปะ',
-            'ภาษาต่างประเทศ','การงานอาชีพ','ภาษาไทย','คณิตศาสตร์',
-            'สังคมศึกษา ศาสนา และวัฒนธรรม','วิทยาศาสตร์และเทคโนโลยี'
-        ];
-        const orderedDepts = [
-            ...deptOrder.filter(d => groups[d]),
-            ...Object.keys(groups).filter(d => !deptOrder.includes(d))
-        ];
+        const statusBadge = {
+            'pending':       '<span class="sbadge pending">รออนุมัติ</span>',
+            'approved':      '<span class="sbadge approved">อนุมัติแล้ว</span>',
+            'doc_submitted': '<span class="sbadge doc_submitted">ส่งแผนแล้ว</span>',
+            'completed':     '<span class="sbadge completed">เสร็จสมบูรณ์</span>'
+        };
+        const periodBgClass = {
+            'pending': 'bcp-pending', 'approved': 'bcp-approved',
+            'doc_submitted': 'bcp-doc_submitted', 'completed': 'bcp-completed'
+        };
+
+        const thMonthsFull = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                              'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+        const dayNamesFull = {0:'อาทิตย์',1:'จันทร์',2:'อังคาร',3:'พุธ',4:'พฤหัสบดี',5:'ศุกร์',6:'เสาร์'};
+
+        function headerDate(dateStr) {
+            if (!dateStr || dateStr === '_nodate') return { day: 'ไม่ระบุ', full: '' };
+            const parts = dateStr.split('-');
+            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            return {
+                day: 'วัน' + (dayNamesFull[d.getDay()] || ''),
+                full: d.getDate() + ' ' + thMonthsFull[d.getMonth()] + ' ' + (d.getFullYear() + 543)
+            };
+        }
 
         let html = '';
-        orderedDepts.forEach(dept => {
-            const items = groups[dept];
-            html += `
-                <div class="dept-group-header">
-                    <i class="bi bi-collection-fill me-2 text-primary"></i>${dept}
-                    <span class="dept-count">${items.length} คน</span>
-                </div>`;
-            items.forEach(b => {
-                const statusMap = {
-                    'pending':      '<span class="sbadge pending">รออนุมัติ</span>',
-                    'approved':     '<span class="sbadge approved">อนุมัติแล้ว</span>',
-                    'doc_submitted':'<span class="sbadge doc_submitted">ส่งแผนแล้ว</span>',
-                    'completed':    '<span class="sbadge completed">เสร็จสมบูรณ์</span>'
-                };
-                const badge = statusMap[b.status] || `<span class="sbadge">${b.status}</span>`;
-                const selClass = activeBookingId === b.id ? 'selected-card' : '';
+        sortedDates.forEach(date => {
+            // Sort each day's bookings by period
+            const items = groups[date].slice().sort((a, b) => (a.booking_period || 0) - (b.booking_period || 0));
+            const hd = headerDate(date);
 
-                const evalRow = (num, bg, label, name) => `
-                    <div class="col-12 col-md-4 d-flex align-items-center gap-2">
-                        <span style="background:${bg}; width:16px; height:16px; font-size:0.6rem; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; color:white; flex-shrink:0;">${num}</span>
-                        <span class="text-muted" style="font-size:0.72rem;">${label}:</span>
-                        <span class="fw-bold text-dark text-truncate" style="max-width:110px;" title="${name || ''}">
-                            ${name && name !== '-' ? name : '<span class="text-muted fw-normal fst-italic">ยังไม่มอบหมาย</span>'}
-                        </span>
+            html += `
+                <div class="date-section">
+                    <div class="date-section-header">
+                        <i class="bi bi-calendar3-fill" style="opacity:0.6;font-size:0.9rem;"></i>
+                        <span class="ds-day">${hd.day}</span>
+                        <span class="ds-date">${hd.full}</span>
+                        <span class="ds-count">${items.length} คิว</span>
                     </div>`;
 
+            items.forEach(b => {
+                const badge = statusBadge[b.status] || `<span class="sbadge">${b.status}</span>`;
+                const pCls  = periodBgClass[b.status] || 'bcp-pending';
+                const selCls = activeBookingId === b.id ? 'selected-card' : '';
+
+                const slot = (num, bg, roleLabel, name) => `
+                    <div class="bc-slot">
+                        <div class="bcs-label">
+                            <span class="bcs-num" style="background:${bg};">${num}</span>
+                            <span style="color:${bg};">${roleLabel}</span>
+                        </div>
+                        <div class="bcs-name ${name ? '' : 'empty'}" title="${name || ''}">${name ? shortName(name) : 'ยังไม่มอบหมาย'}</div>
+                    </div>`;
+
+                const standing = b.t_standing && b.t_standing !== 'ไม่มีวิทยฐานะ'
+                    ? `<span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:0.62rem;border:1px solid rgba(37,99,235,0.15);">${b.t_standing}</span>`
+                    : '';
+
                 html += `
-                    <div class="booking-card ${selClass}" onclick="selectBooking(${b.id})">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-bold text-navy" style="font-size:1rem;">${b.teacher_name}</div>
-                                <div class="text-muted" style="font-size:0.75rem;">${b.t_standing || 'ไม่มีวิทยฐานะ'}</div>
-                            </div>
-                            ${badge}
+                    <div class="booking-card ${selCls}" onclick="selectBooking(${b.id})">
+                        <div class="bcard-period ${pCls}">
+                            <div class="bcp-num">${b.booking_period ?? '-'}</div>
+                            <div class="bcp-lbl">คาบ</div>
                         </div>
-                        <div class="p-3 rounded-3 mb-2" style="background:#f8fafc; font-size:0.83rem; border:1px solid #f1f5f9;">
-                            <div class="row g-1">
-                                <div class="col-12 col-sm-6"><strong>วิชา:</strong> ${b.subject_code} ${b.subject_name}</div>
-                                <div class="col-12 col-sm-6"><strong>ชั้น:</strong> ม.${b.classroom || ''} ห้อง ${b.room_location || '-'}</div>
-                                <div class="col-12 col-sm-6 mt-1"><strong>วันที่:</strong> ${getDayOfWeek(b.booking_date)}ที่ ${thDate(b.booking_date)}</div>
-                                <div class="col-12 col-sm-6 mt-1"><strong>คาบ:</strong> <span class="text-primary fw-bold">คาบ ${b.booking_period}</span></div>
+                        <div class="bcard-body">
+                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                <div class="bcard-name">${b.teacher_name || '-'}</div>
+                                ${badge}
                             </div>
-                        </div>
-                        <div class="mt-2 pt-2 border-top" style="font-size:0.8rem;">
-                            <div class="row g-2">
-                                ${evalRow(1,'#6366f1','คู่หู', b.peer_name)}
-                                ${evalRow(2,'#0ea5e9','หัวหน้า', b.head_name)}
-                                ${evalRow(3,'#059669','วิชาการ', b.academic_name)}
+                            <div class="bcard-dept">
+                                <i class="bi bi-collection" style="font-size:0.7rem;"></i>
+                                ${b.t_dept || 'ไม่ระบุกลุ่มสาระ'}
+                                ${standing}
+                            </div>
+                            <div class="bcard-subj">
+                                <div class="bs-main">
+                                    <span class="bs-code">${b.subject_code || ''}</span>
+                                    ${b.subject_name || ''}
+                                </div>
+                                <div class="bs-meta">ม.${b.classroom || '?'} &nbsp;·&nbsp; ห้อง ${b.room_location || b.room_number || '-'}</div>
+                                ${b.lesson_topic ? `<div class="bs-topic"><i class="bi bi-chat-left-text me-1"></i>${b.lesson_topic}</div>` : ''}
+                            </div>
+                            <div class="bcard-committee">
+                                ${slot(1,'#6366f1','คู่หู', b.peer_name)}
+                                ${slot(2,'#0ea5e9','หัวหน้า', b.head_name)}
+                                ${slot(3,'#059669','วิชาการ', b.academic_name)}
                             </div>
                         </div>
                     </div>`;
             });
+
+            html += `</div>`;
         });
 
         container.innerHTML = html;
