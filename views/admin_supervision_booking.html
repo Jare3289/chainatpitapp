@@ -239,6 +239,15 @@
                 <div class="page-banner">
                     <h1><i class="bi bi-person-check-fill me-2"></i>จัดการคิวนิเทศและมอบหมายกรรมการ</h1>
                     <p>อนุมัติคิวจอง ตรวจสอบตารางสอน และแต่งตั้งตัวแทนวิชาการ</p>
+                    <div class="mt-3 d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center gap-2 bg-white bg-opacity-10 rounded-3 px-3 py-2">
+                            <span class="small fw-bold opacity-90">สถานะระบบรับจอง:</span>
+                            <span id="lockStatusText" class="badge rounded-pill fw-bold px-3 py-2" style="font-size:0.8rem;">กำลังโหลด...</span>
+                        </div>
+                        <button type="button" id="lockToggleBtn" class="btn btn-sm fw-bold rounded-pill px-4 py-2 bg-white text-navy border-0" onclick="toggleBookingLock()" style="font-size:0.82rem;">
+                            <i class="bi bi-lock-fill me-1" id="lockBtnIcon"></i><span id="lockBtnText">...</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="row g-3 mb-4" id="statsRow">
@@ -480,9 +489,54 @@
             const homeUrl = user.role === 'teacher' ? 'teacher_dashboard.html' : 'admin_dashboard.html';
             const bcHome = document.getElementById('breadcrumbHome');
             if (bcHome) bcHome.href = homeUrl;
+            await loadBookingLockStatus();
             await loadBookings();
         }
     });
+
+    async function loadBookingLockStatus() {
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=get_booking_lock');
+            const data = await res.json();
+            if (data.success) renderLockStatus(data.booking_open);
+        } catch (e) { console.error(e); }
+    }
+
+    function renderLockStatus(isOpen) {
+        const statusText = document.getElementById('lockStatusText');
+        const btnIcon    = document.getElementById('lockBtnIcon');
+        const btnText    = document.getElementById('lockBtnText');
+        if (statusText) {
+            if (isOpen) {
+                statusText.textContent = '🟢 เปิดรับจอง';
+                statusText.className = 'badge rounded-pill fw-bold px-3 py-2 bg-success';
+            } else {
+                statusText.textContent = '🔴 ปิดรับจอง';
+                statusText.className = 'badge rounded-pill fw-bold px-3 py-2 bg-danger';
+            }
+        }
+        if (btnIcon) btnIcon.className = isOpen ? 'bi bi-lock-fill me-1' : 'bi bi-unlock-fill me-1';
+        if (btnText) btnText.textContent = isOpen ? 'ปิดระบบจอง' : 'เปิดระบบจอง';
+    }
+
+    async function toggleBookingLock() {
+        const btn = document.getElementById('lockToggleBtn');
+        if (btn) btn.disabled = true;
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=toggle_booking_lock', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                renderLockStatus(data.booking_open);
+                Swal.fire({ icon: 'success', title: data.message, timer: 1400, showConfirmButton: false });
+            }
+        } catch (e) {
+            Swal.fire('ผิดพลาด', 'ไม่สามารถเปลี่ยนสถานะได้', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
 
     async function loadBookings() {
         try {
@@ -718,7 +772,21 @@
         }
 
         if (academicList.length === 0) {
-            container.innerHTML = '<div class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>ไม่พบครูที่ว่างในคาบนี้</div>';
+            container.innerHTML = `
+                <div class="alert alert-warning border-warning bg-warning bg-opacity-10 py-2 px-3 rounded-3 mb-2" style="font-size:0.8rem;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                    ไม่มีตัวแทนวิชาการ/ครูสามารถว่างในคาบนี้เลย
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-sm btn-warning rounded-pill fw-bold px-3 py-2"
+                        onclick="notifyChangeSlot(${bk.id}, 'change_slot')">
+                        <i class="bi bi-calendar-event me-1"></i>แจ้งให้เปลี่ยนคิว
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3 py-2"
+                        onclick="notifyChangeSlot(${bk.id}, 'special_condition')">
+                        <i class="bi bi-shield-check me-1"></i>ใช้เงื่อนไขพิเศษ
+                    </button>
+                </div>`;
             return;
         }
 
@@ -897,6 +965,41 @@
             }
         } catch (e) {
             Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+        }
+    }
+
+    // ── Notify teacher when no academic available ──
+    async function notifyChangeSlot(bookingId, actionType) {
+        const isChange = actionType === 'change_slot';
+        const confirm = await Swal.fire({
+            icon: isChange ? 'question' : 'info',
+            title: isChange ? 'แจ้งให้ครูเปลี่ยนคิว?' : 'ยืนยันใช้เงื่อนไขพิเศษ?',
+            html: isChange
+                ? 'ระบบจะส่งการแจ้งเตือนถึงครูเจ้าของคิว<br>ให้เลือก<strong>วันและคาบใหม่</strong>'
+                : 'ระบบจะแจ้งครูว่าคิวนี้ได้รับอนุมัติ<br><strong>ภายใต้เงื่อนไขพิเศษ</strong> (ไม่มีตัวแทนวิชาการ)',
+            showCancelButton: true,
+            confirmButtonColor: isChange ? '#d97706' : '#059669',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: isChange ? 'แจ้งให้เปลี่ยนคิว' : 'ยืนยันเงื่อนไขพิเศษ',
+            cancelButtonText: 'ยกเลิก'
+        });
+        if (!confirm.isConfirmed) return;
+
+        Swal.fire({ title: 'กำลังส่งการแจ้งเตือน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=notify_no_academic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ booking_id: bookingId, action_type: actionType })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'ส่งการแจ้งเตือนสำเร็จ!', text: data.message, timer: 1800, showConfirmButton: false });
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (e) {
+            Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่', 'error');
         }
     }
 

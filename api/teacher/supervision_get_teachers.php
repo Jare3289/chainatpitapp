@@ -138,7 +138,7 @@ try {
             // รายชื่อตัวแทนวิชาการ (ต้องตรงกับ supervision_booking_manage.php เสมอ)
             $allowed_academic_names = [
                 'วิลาวรรณ', 'เพ็ญประภา', 'ปวีณ์นุช', 'จิตรดา',
-                'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต',
+                'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต', 'สามารถ',
                 'บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย',
             ];
             $known_deputy_fullnames = ['บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย'];
@@ -187,7 +187,7 @@ try {
         $stmt_date_count->execute([$d]);
         $count = (int)$stmt_date_count->fetchColumn();
 
-        $stmt_bookings = $pdo->prepare("SELECT b.id, b.booking_period, t.first_name_th, t.last_name_th, b.subject_code, b.subject_name, b.classroom, b.room_number, b.lesson_topic, b.teacher_id FROM supervision_bookings b JOIN teachers t ON b.teacher_id = t.id WHERE b.booking_date = ? AND b.status != 'cancelled' ORDER BY b.booking_period ASC");
+        $stmt_bookings = $pdo->prepare("SELECT b.id, b.booking_period, t.first_name_th, t.last_name_th, t.photo, b.subject_code, b.subject_name, b.classroom, b.room_number, b.lesson_topic, b.teacher_id FROM supervision_bookings b JOIN teachers t ON b.teacher_id = t.id WHERE b.booking_date = ? AND b.status != 'cancelled' ORDER BY b.booking_period ASC");
         $stmt_bookings->execute([$d]);
         $bookings_on_date = [];
         $names = [];
@@ -199,6 +199,7 @@ try {
                 'period' => $row['booking_period'],
                 'teacher_name' => $teacher_name,
                 'teacher_id' => $row['teacher_id'],
+                'teacher_photo' => $row['photo'],
                 'subject_code' => $row['subject_code'],
                 'subject_name' => $row['subject_name'],
                 'classroom' => $row['classroom'],
@@ -216,6 +217,10 @@ try {
         ];
     }
 
+    $stmt_lock = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'supervision_booking_open'");
+    $lock_row = $stmt_lock->fetch(PDO::FETCH_COLUMN);
+    $booking_open = ($lock_row !== false) ? ((int)$lock_row === 1) : false;
+
     echo json_encode([
         'success' => true,
         'my_teacher_id' => $my_teacher_id,
@@ -229,6 +234,7 @@ try {
         'teachers' => $all_teachers,
         'department_teachers' => $dept_teachers,
         'has_academic_available' => $has_academic_available,
+        'booking_open' => $booking_open,
     ]);
 
 } catch (PDOException $e) {

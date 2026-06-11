@@ -27,6 +27,16 @@ $userData = [
 ];
 
 try {
+    // Fetch sub_role from users table
+    $stmt_u = $pdo->prepare("SELECT sub_role FROM users WHERE id = ?");
+    $stmt_u->execute([$user_id]);
+    $u_row = $stmt_u->fetch(PDO::FETCH_ASSOC);
+    if ($u_row && !empty($u_row['sub_role'])) {
+        $userData['sub_role'] = $u_row['sub_role'];
+    }
+} catch (PDOException $e) {}
+
+try {
     if ($role === 'teacher' || $role === 'admin') {
         $stmt = $pdo->prepare("SELECT * FROM teachers WHERE user_id = ?");
         $stmt->execute([$user_id]);

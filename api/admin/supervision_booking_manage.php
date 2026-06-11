@@ -170,7 +170,7 @@ try {
         // รายชื่อตัวแทนวิชาการที่อนุญาต: ครูผู้รับผิดชอบ + รองผู้อำนวยการทั้ง 4 ท่าน (ระบุชื่อตรงๆ กันแน่นอน)
         $allowed_academic_names = [
             'วิลาวรรณ', 'เพ็ญประภา', 'ปวีณ์นุช', 'จิตรดา',
-            'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต',
+            'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต', 'สามารถ',
             // รองผู้อำนวยการ 4 ท่าน (ระบุชื่อ+นามสกุลเพื่อความแม่นยำ)
             'บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย',
         ];
@@ -392,6 +392,56 @@ try {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'ไม่สามารถยกเลิกรายการนี้ได้']);
         }
+
+    } elseif ($action === 'notify_no_academic') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $booking_id  = (int)($data['booking_id'] ?? 0);
+        $action_type = trim($data['action_type'] ?? ''); // 'change_slot' or 'special_condition'
+
+        if ($booking_id <= 0 || !in_array($action_type, ['change_slot', 'special_condition'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'พารามิเตอร์ไม่ถูกต้อง']);
+            exit;
+        }
+
+        $stmt_bk = $pdo->prepare("SELECT b.*, t.user_id as t_user_id, CONCAT(t.prefix, t.first_name_th, ' ', t.last_name_th) as t_name FROM supervision_bookings b JOIN teachers t ON b.teacher_id = t.id WHERE b.id = ?");
+        $stmt_bk->execute([$booking_id]);
+        $bk = $stmt_bk->fetch(PDO::FETCH_ASSOC);
+
+        if (!$bk) {
+            echo json_encode(['success' => false, 'error' => 'ไม่พบข้อมูลการจอง']);
+            exit;
+        }
+
+        $msg_date = thDate($bk['booking_date']);
+
+        if ($action_type === 'change_slot') {
+            supervisionNotify($pdo, [$bk['t_user_id']],
+                '📅 กรุณาเปลี่ยนวัน/คาบนิเทศ',
+                "ฝ่ายวิชาการแจ้งว่า ไม่มีตัวแทนวิชาการว่างในคิวที่จองไว้ ({$msg_date} คาบ {$bk['booking_period']}) กรุณาเข้าระบบเพื่อยกเลิกและเลือกวัน/คาบใหม่",
+                'supervision_booking.html'
+            );
+            echo json_encode(['success' => true, 'message' => 'ส่งการแจ้งเตือนให้ครูเปลี่ยนคิวแล้ว']);
+        } else {
+            supervisionNotify($pdo, [$bk['t_user_id']],
+                '✅ คิวนิเทศ: ใช้เงื่อนไขพิเศษ',
+                "ฝ่ายวิชาการอนุมัติคิวนิเทศของท่าน ({$msg_date} คาบ {$bk['booking_period']}) ภายใต้เงื่อนไขพิเศษ เนื่องจากไม่มีตัวแทนวิชาการว่างในช่วงเวลานั้น",
+                'teacher_supervision.html'
+            );
+            echo json_encode(['success' => true, 'message' => 'บันทึกเงื่อนไขพิเศษและแจ้งครูเรียบร้อยแล้ว']);
+        }
+
+    } elseif ($action === 'toggle_booking_lock') {
+        $stmt_cur = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'supervision_booking_open' LIMIT 1");
+        $cur = $stmt_cur ? (int)$stmt_cur->fetchColumn() : 1;
+        $newVal = $cur ? 0 : 1;
+        $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('supervision_booking_open', ?) ON DUPLICATE KEY UPDATE setting_value = ?")->execute([$newVal, $newVal]);
+        echo json_encode(['success' => true, 'booking_open' => (bool)$newVal, 'message' => $newVal ? 'เปิดระบบรับจองแล้ว' : 'ปิดระบบรับจองแล้ว']);
+
+    } elseif ($action === 'get_booking_lock') {
+        $stmt_cur = $pdo->query("SELECT setting_value FROM system_settings WHERE setting_key = 'supervision_booking_open' LIMIT 1");
+        $val = $stmt_cur ? (int)$stmt_cur->fetchColumn() : 1;
+        echo json_encode(['success' => true, 'booking_open' => (bool)$val]);
 
     } else {
         http_response_code(400);

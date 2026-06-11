@@ -138,28 +138,34 @@
                     }
                     
                     tbody.innerHTML = admins.map((admin, idx) => {
-                        const name = (admin.first_name_th || admin.last_name_th) 
-                            ? `${admin.first_name_th || ''} ${admin.last_name_th || ''}`.trim() 
+                        const name = (admin.first_name_th || admin.last_name_th)
+                            ? `${admin.first_name_th || ''} ${admin.last_name_th || ''}`.trim()
                             : admin.username;
                         const isSelf = parseInt(admin.user_id) === parseInt(currentUserId);
                         const initials = (admin.first_name_th ? admin.first_name_th.substring(0, 2) : 'AD').toUpperCase();
-                        
-                        let photoHtml = `<div class="avatar-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px;">${initials}</div>`;
-                        if (admin.photo) {
-                            photoHtml = `<img src="../${admin.photo}" class="rounded-circle shadow-sm" style="width: 40px; height: 40px; object-fit: cover;" onerror="this.outerHTML='${photoHtml}'">`;
-                        }
 
-                        const selfBadge = isSelf ? ' <span class="badge bg-navy ms-1" style="font-size: 0.65rem;">บัญชีของคุณ</span>' : '';
-                        
+                        const avatarFallback = `<div class="avatar-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width:40px;height:40px;">${initials}</div>`;
+                        const photoHtml = admin.photo
+                            ? `<img src="../${admin.photo}" class="rounded-circle shadow-sm" style="width:40px;height:40px;object-fit:cover;" onerror="this.style.display='none'">`
+                            : avatarFallback;
+
+                        const selfBadge = isSelf ? '<span class="badge bg-navy ms-1" style="font-size:0.65rem;">บัญชีของคุณ</span>' : '';
+                        const subRoleBadge = admin.sub_role === 'supervision'
+                            ? '<br><span class="badge mt-1 rounded-pill px-2" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:0.65rem;"><i class="bi bi-person-video3 me-1"></i>เฉพาะนิเทศ</span>'
+                            : '';
+                        const disabledClass = isSelf ? 'disabled opacity-50' : '';
+                        const disabledAttr  = isSelf ? 'disabled' : '';
+                        const deleteTitle   = isSelf ? 'ไม่สามารถลบบัญชีตัวเองได้' : 'ลบ';
+
                         return `
                             <tr class="hover-bg-light transition-all">
                                 <td class="text-center fw-bold text-muted">${idx + 1}</td>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
-                                        \${photoHtml}
+                                        ${photoHtml}
                                         <div>
-                                            <span class="fw-bold text-dark d-block">\${name}\${selfBadge}</span>
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.7rem;">
+                                            <span class="fw-bold text-dark d-block">${name} ${selfBadge}</span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;">
                                                 <i class="bi bi-check-circle-fill me-1"></i> ผู้ใช้งานระบบ
                                             </span>
                                         </div>
@@ -167,19 +173,20 @@
                                 </td>
                                 <td>
                                     <div class="small">
-                                        <i class="bi bi-envelope me-1 text-muted"></i> \${admin.username}
+                                        <i class="bi bi-envelope me-1 text-muted"></i> ${admin.username}
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">
-                                        <i class="bi bi-award me-1"></i> \${admin.position || 'ผู้ดูแลระบบ'}
+                                        <i class="bi bi-award me-1"></i> ${admin.position || 'ผู้ดูแลระบบ'}
                                     </span>
+                                    ${subRoleBadge}
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group shadow-sm">
-                                        <button class="btn btn-danger btn-sm text-white hover-scale \${isSelf ? 'disabled opacity-50' : ''}" 
-                                                title="\${isSelf ? 'ไม่สามารถลบบัญชีตัวเองได้' : 'ลบ'}" 
-                                                onclick="deleteAdmin(\${admin.user_id})" \${isSelf ? 'disabled' : ''}>
+                                        <button class="btn btn-danger btn-sm text-white hover-scale ${disabledClass}"
+                                                title="${deleteTitle}"
+                                                onclick="deleteAdmin(${admin.user_id})" ${disabledAttr}>
                                             <i class="bi bi-trash-fill"></i>
                                         </button>
                                     </div>
@@ -221,6 +228,13 @@
                     '<div class="text-start mb-2">' +
                     '  <label class="form-label fw-bold small text-navy">ตำแหน่ง</label>' +
                     '  <input id="swal-position" class="form-control rounded-pill" value="ผู้ดูแลระบบ">' +
+                    '</div>' +
+                    '<div class="text-start mb-2">' +
+                    '  <label class="form-label fw-bold small text-navy">สิทธิ์การเข้าถึง</label>' +
+                    '  <select id="swal-subrole" class="form-select rounded-pill">' +
+                    '    <option value="">แอดมินทั่วไป (เข้าถึงได้ทุกระบบ)</option>' +
+                    '    <option value="supervision">ผู้ดูแลระบบนิเทศ (เฉพาะนิเทศเท่านั้น)</option>' +
+                    '  </select>' +
                     '</div>',
                 focusConfirm: false,
                 showCancelButton: true,
@@ -233,6 +247,7 @@
                     const first_name_th = document.getElementById('swal-first').value.trim();
                     const last_name_th = document.getElementById('swal-last').value.trim();
                     const position = document.getElementById('swal-position').value.trim();
+                    const sub_role = document.getElementById('swal-subrole').value || null;
 
                     if (!username || !first_name_th) {
                         Swal.showValidationMessage('กรุณาระบุ Username และชื่อจริง');
@@ -243,7 +258,7 @@
                         return false;
                     }
 
-                    return { username, password, first_name_th, last_name_th, position };
+                    return { username, password, first_name_th, last_name_th, position, sub_role };
                 }
             });
 

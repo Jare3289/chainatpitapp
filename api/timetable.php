@@ -186,8 +186,31 @@ try {
             $where[]  = 't.teacher_id = ?';
             $params[] = (int) $_GET['teacher_id'];
         } elseif ($role === 'teacher' && empty($_GET['teacher_id']) && empty($_GET['class_name']) && empty($_GET['department'])) {
-            $where[]  = 't.teacher_id = (SELECT id FROM teachers WHERE user_id = ? LIMIT 1)';
-            $params[] = $userId;
+            // Resolve teacher_id: try user_id first, then username fallback
+            $resolvedTeacherId = null;
+            $stmtTid = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
+            $stmtTid->execute([$userId]);
+            $rowTid = $stmtTid->fetch(PDO::FETCH_ASSOC);
+            if ($rowTid) {
+                $resolvedTeacherId = (int)$rowTid['id'];
+            } else {
+                $uname = $_SESSION['username'] ?? '';
+                if ($uname) {
+                    $stmtTid2 = $pdo->prepare("SELECT id FROM teachers WHERE teacher_id = ? OR email = ? LIMIT 1");
+                    $stmtTid2->execute([$uname, $uname]);
+                    $rowTid2 = $stmtTid2->fetch(PDO::FETCH_ASSOC);
+                    if ($rowTid2) {
+                        $resolvedTeacherId = (int)$rowTid2['id'];
+                        try { $pdo->prepare("UPDATE teachers SET user_id = ? WHERE id = ?")->execute([$userId, $resolvedTeacherId]); } catch (Exception $e) {}
+                    }
+                }
+            }
+            if ($resolvedTeacherId !== null) {
+                $where[]  = 't.teacher_id = ?';
+                $params[] = $resolvedTeacherId;
+            } else {
+                $where[] = '1=0';
+            }
         }
 
         $where[]  = 't.academic_year = ?';

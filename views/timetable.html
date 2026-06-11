@@ -1039,7 +1039,9 @@ function filterTeachersByDept(preselect = null) {
 
 
     filtered.forEach(t => {
-        const cleanName = t.name.replace(/^(นาย|นางสาว|นาง|ว่าที่ร้อยตรี|สิบโท|พระอาจารย์|ครู|ดร\.)/g, '').trim();
+        const cleanName = (t.first_name_th && t.last_name_th)
+            ? (t.first_name_th + ' ' + t.last_name_th).trim()
+            : t.name.replace(/^(นาย|นางสาว|นาง|ว่าที่ร้อยตรี|สิบโท|พระอาจารย์|ครู|ดร\.)/g, '').trim();
         const btn = document.createElement('button');
         btn.type = 'button';
         

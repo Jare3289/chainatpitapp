@@ -982,7 +982,7 @@
             const user = await checkAuth('teacher');
             console.log('[teacher/profile] auth user:', user);
             if (user) {
-                setupDropdowns();
+                await setupDropdowns();
                 await setupAddressDropdowns();
                 setupRetirementCalculator();
                 initSignaturePad();
@@ -1085,14 +1085,46 @@
         }
 
         // ──── Dropdowns ────
-        function setupDropdowns() {
-            const rooms = ['-ไม่ระบุ-', ...Array.from({ length: 6 }, (_, i) => i + 1).flatMap(g =>
-                Array.from({ length: 12 }, (_, r) => `${g}${String(r + 1).padStart(2, '0')}`)
-            )];
-            const departments = ['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'สุขศึกษาและพลศึกษา'];
-            const fill = (sel, arr) => { sel.innerHTML = ''; arr.forEach(v => sel.add(new Option(v, v))); };
-            fill(document.querySelector('.room-select'), rooms);
-            fill(document.querySelector('.department-select'), departments);
+        async function setupDropdowns() {
+            const departments = [
+                'ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี',
+                'สังคมศึกษา ศาสนา และวัฒนธรรม', 'ศิลปะ', 'การงานอาชีพ',
+                'ภาษาต่างประเทศ', 'สุขศึกษาและพลศึกษา', 'แนะแนว'
+            ];
+            const deptSel = document.querySelector('.department-select');
+            deptSel.innerHTML = '<option value="">เลือกกลุ่มสาระ</option>';
+            departments.forEach(d => deptSel.add(new Option(d, d)));
+
+            const roomSel = document.querySelector('.room-select');
+            roomSel.innerHTML = '<option value="">- ไม่ระบุ -</option>';
+            try {
+                const res = await fetch('../api/get-rooms.php');
+                const json = await res.json();
+                if (json.success && json.data && json.data.length > 0) {
+                    // Group by grade_level
+                    const grouped = {};
+                    json.data.forEach(r => {
+                        const grade = r.grade_level || 'อื่นๆ';
+                        if (!grouped[grade]) grouped[grade] = [];
+                        grouped[grade].push(r.classroom_code);
+                    });
+                    Object.entries(grouped).forEach(([grade, codes]) => {
+                        const og = document.createElement('optgroup');
+                        og.label = grade;
+                        codes.forEach(code => og.appendChild(new Option(code, code)));
+                        roomSel.appendChild(og);
+                    });
+                } else {
+                    // Fallback: static list
+                    Array.from({ length: 6 }, (_, i) => i + 1).flatMap(g =>
+                        Array.from({ length: 12 }, (_, r) => `${g}${String(r + 1).padStart(2, '0')}`)
+                    ).forEach(v => roomSel.add(new Option(v, v)));
+                }
+            } catch (e) {
+                Array.from({ length: 6 }, (_, i) => i + 1).flatMap(g =>
+                    Array.from({ length: 12 }, (_, r) => `${g}${String(r + 1).padStart(2, '0')}`)
+                ).forEach(v => roomSel.add(new Option(v, v)));
+            }
         }
 
         // ──── Address ────
@@ -1186,8 +1218,42 @@
         }
 
         // ──── Address Toggle ────
-        function toggleCurrentAddr(chk) {
-            document.getElementById('currentAddrSection').style.display = chk.checked ? 'none' : 'block';
+        async function toggleCurrentAddr(chk) {
+            const section = document.getElementById('currentAddrSection');
+            if (!chk.checked) {
+                section.style.display = 'block';
+                return;
+            }
+            section.style.display = 'none';
+
+            // Copy simple text fields
+            ['no', 'road'].forEach(f => {
+                const src = document.querySelector(`[name="home_address_${f}"]`);
+                const dst = document.querySelector(`[name="address_${f}"]`);
+                if (src && dst) dst.value = src.value;
+            });
+
+            // Copy cascading address (province → district → subdistrict → zipcode)
+            const homeProvEl = document.querySelector('[name="home_address_province"]');
+            const homeDistEl = document.querySelector('[name="home_address_district"]');
+            const homeSubEl  = document.querySelector('[name="home_address_subdistrict"]');
+            const homeZipEl  = document.querySelector('[name="home_address_zipcode"]');
+            const currProvEl = document.querySelector('[name="address_province"]');
+            const currZipEl  = document.querySelector('[name="address_zipcode"]');
+
+            if (homeProvEl && homeProvEl.value && currProvEl) {
+                currProvEl.value = homeProvEl.value;
+                const p = (addressProvinces || []).find(x => x.name === currProvEl.value);
+                const distEl = document.querySelector('[name="address_district"]');
+                if (p && distEl) {
+                    await populateDistricts(
+                        p.id, distEl,
+                        homeDistEl ? homeDistEl.value : '',
+                        homeSubEl  ? homeSubEl.value  : ''
+                    );
+                }
+            }
+            if (homeZipEl && currZipEl) currZipEl.value = homeZipEl.value;
         }
 
         // ──── Retirement Calculator ────
@@ -1262,40 +1328,62 @@
         }
 
         // ──── Completion ────
+        const _essentialFields = {
+            prefix: 'คำนำหน้า',
+            first_name_th: 'ชื่อจริง',
+            last_name_th: 'นามสกุล',
+            nickname: 'ชื่อเล่น',
+            id_card: 'เลขบัตรประชาชน',
+            birth_date: 'วันเกิด',
+            position: 'ตำแหน่ง',
+            department: 'กลุ่มสาระฯ',
+            phone: 'เบอร์โทร',
+            email: 'อีเมล',
+            line_id: 'LINE ID'
+        };
+
         function checkCompletion(data) {
-            const essential = {
-                prefix: 'คำนำหน้า',
-                first_name_th: 'ชื่อจริง',
-                last_name_th: 'นามสกุล',
-                nickname: 'ชื่อเล่น',
-                id_card: 'เลขบัตรประชาชน',
-                birth_date: 'วันเกิด',
-                position: 'ตำแหน่ง',
-                department: 'กลุ่มสาระฯ',
-                phone: 'เบอร์โทร',
-                email: 'อีเมล',
-                line_id: 'LINE ID'
-            };
-            const missing = Object.entries(essential)
+            const missingEntries = Object.entries(_essentialFields)
                 .filter(([k]) => {
                     const val = data[k] ? String(data[k]).trim() : '';
                     return val === '' || val === '0000-00-00';
-                })
-                .map(([, v]) => v);
-            const filled = Object.keys(essential).length - missing.length;
-            const pct = Math.round((filled / Object.keys(essential).length) * 100);
+                });
+            const missing = missingEntries.map(([, v]) => v);
+            const filled = Object.keys(_essentialFields).length - missing.length;
+            const pct = Math.round((filled / Object.keys(_essentialFields).length) * 100);
             document.getElementById('completionProgress').style.width = pct + '%';
             document.getElementById('completionLabel').innerText = pct + '%';
             document.getElementById('completionStatus').innerHTML = pct < 100 ?
                 `<span class="text-danger">ขาดอีก ${missing.length} รายการ</span>` :
                 '<span class="text-success fw-bold">สมบูรณ์!</span>';
             const alert = document.getElementById('completionAlert');
-            if (missing.length) {
+            if (missingEntries.length) {
                 alert.classList.remove('d-none');
-                document.getElementById('missingFields').innerText = missing.join(', ');
+                const badges = missingEntries.map(([k, v]) =>
+                    `<a href="javascript:void(0)" onclick="scrollToField('${k}')"
+                        class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 text-decoration-none me-1 mb-1 px-2 py-1 fw-bold"
+                        style="font-size:0.75rem;cursor:pointer;" title="คลิกเพื่อไปที่ช่องนี้">
+                        <i class="bi bi-arrow-down-circle me-1" style="font-size:0.7rem;"></i>${v}
+                    </a>`
+                ).join('');
+                document.getElementById('missingFields').innerHTML = badges;
             } else {
                 alert.classList.add('d-none');
             }
+        }
+
+        function scrollToField(name) {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (!el) return;
+            if (!isEditing) toggleEditMode(true);
+            setTimeout(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    el.classList.add('is-invalid');
+                    if (typeof el.focus === 'function') el.focus();
+                    setTimeout(() => el.classList.remove('is-invalid'), 2500);
+                }, 450);
+            }, isEditing ? 0 : 300);
         }
 
         // ──── Education & Jobs Tables ────
@@ -1493,8 +1581,8 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    await Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: result.message || 'บันทึกข้อมูลเรียบร้อย', timer: 1500, showConfirmButton: false });
-                    location.reload();
+                    await Swal.fire({ icon: 'success', title: 'สำเร็จ! ข้อมูลครบถ้วนแล้ว', text: result.message || 'บันทึกข้อมูลเรียบร้อย กำลังกลับหน้าหลัก...', timer: 1800, showConfirmButton: false });
+                    window.location.href = 'teacher_dashboard.html';
                 } else {
                     Swal.fire('ผิดพลาด', result.error || 'ไม่สามารถบันทึกได้', 'error');
                 }
