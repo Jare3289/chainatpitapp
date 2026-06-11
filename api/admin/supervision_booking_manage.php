@@ -191,9 +191,10 @@ try {
             $is_deputy = stripos($t['position'] ?? '', 'รองผู้อำนวยการ') !== false
                       || in_array($fullNoPrefix, $known_deputy_fullnames);
 
-            // รองผู้อำนวยการ — ว่างเสมอ ยกเว้นคาบ "ประชุม" ในตาราง / ไม่นับ booking conflict
+            // รองผู้อำนวยการ — ยกเว้นตารางสอนปกติ แต่ยังต้องตรวจ booking conflict
+            // (กรรมการออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ รวมรองผู้อำนวยการด้วย)
             $is_busy_timetable = $is_deputy ? in_array($t_id, $meeting_busy_teacher_ids) : in_array($t_id, $busy_timetable_teacher_ids);
-            $is_busy_booking   = $is_deputy ? false : isset($conflict_map[$t_id]);
+            $is_busy_booking   = isset($conflict_map[$t_id]);
 
             $t['is_busy'] = ($is_busy_timetable || $is_busy_booking);
             $t['is_deputy'] = $is_deputy;
@@ -271,6 +272,27 @@ try {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'ครูผู้รับประเมินไม่สามารถรับหน้าที่เป็นกรรมการนิเทศคิวของตนเองได้']);
             exit;
+        }
+
+        // ตรวจ academic ว่าถูก commit เป็น peer/head/academic ในคิวอื่นคาบเดียวกันหรือไม่
+        if ($academic_teacher_id > 0) {
+            $stmt_ac = $pdo->prepare("
+                SELECT id FROM supervision_bookings
+                WHERE booking_date = ? AND booking_period = ? AND status != 'cancelled' AND id != ?
+                  AND (peer_teacher_id = ? OR head_teacher_id = ? OR academic_teacher_id = ?)
+            ");
+            $stmt_ac->execute([
+                $bk['booking_date'], $bk['booking_period'], $booking_id,
+                $academic_teacher_id, $academic_teacher_id, $academic_teacher_id
+            ]);
+            if ($stmt_ac->fetch()) {
+                $stmt_an = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+                $stmt_an->execute([$academic_teacher_id]);
+                $acad_name = $stmt_an->fetchColumn() ?: 'ตัวแทนวิชาการที่เลือก';
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => "{$acad_name} ถูกมอบหมายในคาบนี้แล้ว — กรรมการออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ"]);
+                exit;
+            }
         }
 
         // Fetch old assignments to check who has been updated/added
