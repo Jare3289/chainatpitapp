@@ -188,7 +188,7 @@ try {
     }
     if (!empty($conflict_names)) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'ไม่สามารถจองได้: ' . implode(' และ ', $conflict_names) . ' ถูกจองในคาบนี้แล้ว — คนนึงออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ']);
+        echo json_encode(['success' => false, 'error' => 'ไม่สามารถจองได้: ' . implode(' และ ', $conflict_names) . ' ถูกจองในคาบนี้แล้ว — กรรมการออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ']);
         exit;
     }
 
