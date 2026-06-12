@@ -146,6 +146,67 @@ function handleGet($pdo, $user_id) {
                     ];
                 }
             } catch (Throwable $e) { /* table อาจยังไม่มี */ }
+
+            // คิวนิเทศรอแต่งตั้งกรรมการ (status = pending)
+            try {
+                $stmtSupPend = $pdo->prepare("SELECT COUNT(*) FROM supervision_bookings WHERE status = 'pending'");
+                $stmtSupPend->execute([]);
+                $pendingSupCount = (int)$stmtSupPend->fetchColumn();
+                if ($pendingSupCount > 0) {
+                    $actions[] = [
+                        'id'         => 'alert_supervision_pending_committee',
+                        'type'       => 'action',
+                        'title'      => 'คิวนิเทศรอแต่งตั้งกรรมการ',
+                        'message'    => "มีคิวนิเทศ {$pendingSupCount} คิว รอฝ่ายวิชาการแต่งตั้งคณะกรรมการ",
+                        'link'       => 'admin_supervision_booking.html',
+                        'icon'       => 'bi-clipboard2-check-fill',
+                        'color'      => '#0284c7',
+                        'is_read'    => 0,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                }
+            } catch (Throwable $e) {}
+        }
+
+        // ── Teacher Supervision Status Alert ──
+        if ($role === 'teacher') {
+            try {
+                $stmtTid = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ? LIMIT 1");
+                $stmtTid->execute([$user_id]);
+                $myTid = (int)($stmtTid->fetchColumn() ?: 0);
+                if ($myTid > 0) {
+                    $stmtSup = $pdo->prepare(
+                        "SELECT id, status, subject_name, booking_date, booking_period
+                         FROM supervision_bookings
+                         WHERE teacher_id = ? AND status NOT IN ('cancelled','completed')
+                         ORDER BY booking_date ASC LIMIT 1"
+                    );
+                    $stmtSup->execute([$myTid]);
+                    $mySup = $stmtSup->fetch(PDO::FETCH_ASSOC);
+                    if ($mySup) {
+                        $supMsgs = [
+                            'pending'       => 'รอฝ่ายวิชาการแต่งตั้งกรรมการ — สามารถอัปโหลดเอกสารได้แล้ว',
+                            'approved'      => 'ได้รับการอนุมัติแล้ว — กรุณาอัปโหลดแผนการสอนและเอกสารประกอบ',
+                            'doc_submitted' => 'ส่งเอกสารแล้ว — รอรับการนิเทศในห้องเรียน',
+                            'evaluated'     => 'รับการประเมินแล้ว — กรุณากรอกบันทึกหลังการสอนเพื่อเสร็จสิ้น',
+                        ];
+                        $supMsg = $supMsgs[$mySup['status']] ?? null;
+                        if ($supMsg) {
+                            $actions[] = [
+                                'id'         => 'alert_supervision_my_' . $mySup['id'],
+                                'type'       => 'action',
+                                'title'      => 'กระบวนการนิเทศการสอนของคุณ',
+                                'message'    => $supMsg,
+                                'link'       => 'teacher_supervision.html',
+                                'icon'       => 'bi-mortarboard-fill',
+                                'color'      => '#7c3aed',
+                                'is_read'    => 0,
+                                'created_at' => date('Y-m-d H:i:s')
+                            ];
+                        }
+                    }
+                }
+            } catch (Throwable $e) {}
         }
 
         // Student: dynamic alerts (today's absence summary, PS status)

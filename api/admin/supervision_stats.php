@@ -14,10 +14,13 @@ if (isset($_SESSION['user_id'])) {
     if ($_SESSION['role'] === 'admin') {
         $is_supervision_manager = true;
     } elseif ($_SESSION['role'] === 'teacher') {
-        $stmt_check = $pdo->prepare("SELECT id FROM teachers WHERE user_id = ?");
-        $stmt_check->execute([$_SESSION['user_id']]);
-        $teacher_id = $stmt_check->fetchColumn();
-        if ($teacher_id && (int)$teacher_id === 518) {
+        $stmt_mgr = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'supervision_manager_user_ids'");
+        $stmt_mgr->execute();
+        $mgr_val = $stmt_mgr->fetchColumn();
+        $allowed_user_ids = $mgr_val
+            ? array_map('intval', array_filter(array_map('trim', explode(',', $mgr_val))))
+            : [];
+        if (in_array((int)$_SESSION['user_id'], $allowed_user_ids)) {
             $is_supervision_manager = true;
         }
     }

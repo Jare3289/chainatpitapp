@@ -27,6 +27,16 @@ $userData = [
 ];
 
 try {
+    // Fetch sub_role from users table
+    $stmt_u = $pdo->prepare("SELECT sub_role FROM users WHERE id = ?");
+    $stmt_u->execute([$user_id]);
+    $u_row = $stmt_u->fetch(PDO::FETCH_ASSOC);
+    if ($u_row && !empty($u_row['sub_role'])) {
+        $userData['sub_role'] = $u_row['sub_role'];
+    }
+} catch (PDOException $e) {}
+
+try {
     if ($role === 'teacher' || $role === 'admin') {
         $stmt = $pdo->prepare("SELECT * FROM teachers WHERE user_id = ?");
         $stmt->execute([$user_id]);
@@ -47,26 +57,49 @@ try {
             // Calculate teacher profile completion (required for supervision period)
             if ($role === 'teacher') {
                 $required_fields = [
-                    'prefix', 'first_name_th', 'last_name_th', 'nickname',
-                    'id_card', 'birth_date', 'position', 'department',
-                    'phone', 'email', 'line_id'
+                    // ข้อมูลส่วนตัว
+                    'prefix', 'first_name_th', 'last_name_th',
+                    'first_name_en', 'last_name_en', 'nickname',
+                    'id_card', 'birth_date',
+                    'ethnicity', 'nationality', 'religion',
+                    // ข้อมูลการงาน
+                    'position', 'department', 'academic_standing',
+                    // ช่องทางติดต่อ
+                    'phone', 'email', 'line_id',
+                    // ที่อยู่บ้าน
+                    'home_address_no', 'home_address_province',
+                    'home_address_district', 'home_address_subdistrict',
+                    // สุขภาพ
+                    'blood_group', 'weight', 'height',
                 ];
-                
+
                 $filled = 0;
                 foreach ($required_fields as $fld) {
                     $val = trim((string)($details[$fld] ?? ''));
-                    if ($val !== '' && $val !== '0000-00-00') {
+                    if ($val !== '' && $val !== '0000-00-00' && $val !== '0') {
                         $filled++;
                     }
                 }
                 $total = count($required_fields);
                 $pct = $total > 0 ? (int)round(($filled / $total) * 100) : 0;
                 $details['profile_completion_pct'] = $pct;
-                $details['is_profile_complete'] = $pct >= 100;
+                $details['profile_required_total'] = $total;
+                $details['profile_filled_count'] = $filled;
+                // ต้องกรอกข้อมูลให้ได้อย่างน้อย 90% จึงจะใช้งานระบบได้
+                $details['is_profile_complete'] = $pct >= 90;
+
+                // ตรวจสอบว่าครูคนนี้เป็นผู้ดูแลระบบนิเทศไหม
+                $stmt_mgr = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'supervision_manager_user_ids'");
+                $stmt_mgr->execute();
+                $mgr_val = $stmt_mgr->fetchColumn();
+                $allowed_user_ids = $mgr_val
+                    ? array_map('intval', array_filter(array_map('trim', explode(',', $mgr_val))))
+                    : [];
+                $details['is_supervision_manager'] = in_array((int)$user_id, $allowed_user_ids);
             } else {
                 $details['is_profile_complete'] = true;
             }
-            
+
             $userData = array_merge($userData, $details);
         }
     } else if ($role === 'student') {

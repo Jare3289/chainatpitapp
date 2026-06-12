@@ -637,7 +637,7 @@
 
             const roles = [
                 { key: 'peer',     label: 'ครูผู้ร่วมนิเทศ' },
-                { key: 'head',     label: 'ครูผู้นิเทศ (หัวหน้า/รอง)' },
+                { key: 'head',     label: 'ผู้นิเทศ (หัวหน้า/รอง)' },
                 { key: 'academic', label: 'คณะกรรมการวิชาการ' }
             ];
 
@@ -649,10 +649,17 @@
                 return;
             }
 
+            const bookingPhotoMap = {
+                peer:     booking?.peer_photo,
+                head:     booking?.head_photo,
+                academic: booking?.academic_photo
+            };
+
             container.innerHTML = rows.map(r => {
                 const ev = evalStatus[r.key];
                 const name = ev.name || '-';
-                const photo = ev.eval?.photo ? `../${ev.eval.photo}` : '../public/img/default-avatar.png';
+                const rawPhoto = bookingPhotoMap[r.key] || ev.eval?.photo;
+                const photo = rawPhoto ? `../${rawPhoto}` : '../public/img/default-avatar.png';
 
                 const docBadge = ev.doc_done
                     ? `<span class="eval-badge eval-done"><i class="bi bi-check-circle-fill"></i>ประเมินเอกสารแล้ว</span>`

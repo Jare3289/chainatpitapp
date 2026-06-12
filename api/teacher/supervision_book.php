@@ -161,6 +161,37 @@ try {
         exit;
     }
 
+    // 5. ตรวจสอบ peer/head ซ้ำในคาบเดียวกัน (คนนึงออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ)
+    $conflict_names = [];
+    $base_excl = "SELECT id FROM supervision_bookings
+        WHERE booking_date = ? AND booking_period = ? AND status != 'cancelled'
+        AND (peer_teacher_id = ? OR head_teacher_id = ?)" .
+        ($booking_id > 0 ? " AND id != $booking_id" : "");
+
+    if ($peer_teacher_id > 0) {
+        $stmt_c = $pdo->prepare($base_excl);
+        $stmt_c->execute([$booking_date, $booking_period, $peer_teacher_id, $peer_teacher_id]);
+        if ($stmt_c->fetch()) {
+            $stmt_n = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+            $stmt_n->execute([$peer_teacher_id]);
+            $conflict_names[] = ($stmt_n->fetchColumn() ?: 'ครูผู้ร่วมนิเทศ') . ' (ครูร่วมนิเทศ)';
+        }
+    }
+    if ($head_teacher_id > 0) {
+        $stmt_c2 = $pdo->prepare($base_excl);
+        $stmt_c2->execute([$booking_date, $booking_period, $head_teacher_id, $head_teacher_id]);
+        if ($stmt_c2->fetch()) {
+            $stmt_n2 = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+            $stmt_n2->execute([$head_teacher_id]);
+            $conflict_names[] = ($stmt_n2->fetchColumn() ?: 'ผู้นิเทศ') . ' (ผู้นิเทศ)';
+        }
+    }
+    if (!empty($conflict_names)) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'ไม่สามารถจองได้: ' . implode(' และ ', $conflict_names) . ' ถูกจองในคาบนี้แล้ว — กรรมการออกนิเทศได้แค่ตำแหน่งเดียวต่อคาบ']);
+        exit;
+    }
+
     if ($booking_id > 0) {
         if ($is_admin) {
             $stmt_check = $pdo->prepare("SELECT id, status FROM supervision_bookings WHERE id = ?");
@@ -214,19 +245,32 @@ try {
     // Notify relevant parties
     try {
         $ids = supervisionBookingUserIds($pdo, (int)$booking_id);
-        $peerUid = $ids['peer_user_id'];
-        $headUid = $ids['head_user_id'];
+        $teacherUid = $ids['teacher_user_id'];
+        $peerUid    = $ids['peer_user_id'];
+        $headUid    = $ids['head_user_id'];
+
+        // Resolve teacher display name
+        $stmtName = $pdo->prepare("SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
+        $stmtName->execute([$teacher_id]);
+        $teacherDisplayName = $stmtName->fetchColumn() ?: 'ครู';
+
+        // Admin user IDs (for new booking alert)
+        $stmtAdmins = $pdo->query("SELECT id FROM users WHERE role = 'admin'");
+        $adminUids = array_column($stmtAdmins->fetchAll(PDO::FETCH_ASSOC), 'id');
+
+        $subjectLabel = trim($subject_name ?: $subject_code) ?: 'ไม่ระบุวิชา';
 
         if ($booking_id > 0 && isset($existing)) {
-            // Edit booking — notify peer + head about the change
+            // Edit booking — notify teacher (self) + peer + head
             $editMsg = "ข้อมูลการนิเทศการสอน (จอง #{$booking_id}) ถูกแก้ไขโดยครูผู้รับการนิเทศ วันที่สอน: {$booking_date}";
-            supervisionNotify($pdo, [$peerUid, $headUid], 'แก้ไขข้อมูลการนิเทศ', $editMsg, 'supervision_booking.html');
+            supervisionNotify($pdo, [$teacherUid], 'แก้ไขข้อมูลการจองสำเร็จ ✅', "บันทึกการแก้ไขคิวนิเทศวิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} เรียบร้อยแล้ว", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$peerUid, $headUid], 'แก้ไขข้อมูลการนิเทศ 📝', $editMsg, 'teacher_supervision.html');
         } else {
-            // New booking
-            $newPeerMsg = "คุณได้รับการเลือกเป็นครูผู้ร่วมนิเทศ วิชา {$subject_name} วันที่ {$booking_date}";
-            supervisionNotify($pdo, [$peerUid], 'คำเชิญเป็นกรรมการนิเทศ', $newPeerMsg, 'supervision_booking.html');
-            $newHeadMsg = "คุณได้รับการเลือกเป็นครูผู้นิเทศ วิชา {$subject_name} วันที่ {$booking_date}";
-            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ', $newHeadMsg, 'supervision_booking.html');
+            // New booking — notify teacher (self) + peer + head + admins
+            supervisionNotify($pdo, [$teacherUid], 'จองคิวนิเทศสำเร็จ ✅', "คิวนิเทศของคุณถูกบันทึกแล้ว วิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} รอฝ่ายวิชาการแต่งตั้งกรรมการ", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$peerUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นครูผู้ร่วมนิเทศ (Peer) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นผู้นิเทศ (หัวหน้า) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
+            supervisionNotify($pdo, $adminUids, 'มีคิวนิเทศใหม่รอแต่งตั้งกรรมการ 🔔', "{$teacherDisplayName} จองคิวนิเทศวิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} — กรุณาแต่งตั้งคณะกรรมการ", 'admin_supervision_booking.html');
         }
     } catch (Throwable $e_notif) {
         error_log('[supervision_book notify] ' . $e_notif->getMessage());

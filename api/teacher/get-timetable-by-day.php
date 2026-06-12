@@ -53,19 +53,28 @@
             }
         }
 
-        // Fetch timetable for this teacher and day
+        // Fetch timetable for this teacher and day (latest academic year)
         $stmt_tt = $pdo->prepare("
-            SELECT 
+            SELECT
                 t.id,
-                t.period, 
-                COALESCE(MAX(s.subject_code), t.subject_code, t.subject_name) as subject_code,
-                COALESCE(MAX(s.subject_name), t.subject_name) as subject_name,
-                t.class_name, 
-                t.room_location 
+                t.period,
+                COALESCE(NULLIF(t.subject_code, ''), MAX(sc.subject_code), MAX(sn.subject_code), t.subject_name) AS subject_code,
+                COALESCE(MAX(sc.subject_name), MAX(sn.subject_name), t.subject_name)                  AS subject_name,
+                t.class_name,
+                t.room_location
             FROM timetable t
-            LEFT JOIN subjects s ON s.subject_code = t.subject_name OR s.subject_code = t.subject_code
-            WHERE t.teacher_id = ? AND t.day_of_week = ? 
-            GROUP BY t.id
+            LEFT JOIN subjects sc ON sc.subject_code = t.subject_name
+            LEFT JOIN subjects sn ON sn.subject_name  = t.subject_name AND sc.id IS NULL
+            WHERE t.teacher_id = ?
+              AND t.day_of_week = ?
+              AND (t.academic_year IS NULL OR t.academic_year = (
+                      SELECT MAX(t2.academic_year) FROM timetable t2 WHERE t2.teacher_id = t.teacher_id
+                  ))
+              AND (t.semester IS NULL OR t.semester = 0 OR t.semester = (
+                      SELECT COALESCE(MAX(CAST(s.setting_value AS UNSIGNED)), 1)
+                      FROM system_settings s WHERE s.setting_key = 'current_semester'
+                  ))
+            GROUP BY t.id, t.period, t.class_name, t.room_location
             ORDER BY t.period ASC
         ");
         $stmt_tt->execute([$teacher_internal_id, $day_of_week]);

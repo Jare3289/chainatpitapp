@@ -58,7 +58,20 @@ $method = $_SERVER['REQUEST_METHOD'];
     if (!$data && !empty($_POST)) {
         $data = $_POST;
     }
-    
+
+    // Reset profile_confirmed_at for all teachers (force re-confirmation)
+    if (($_GET['action'] ?? '') === 'reset_profile_confirm') {
+        try {
+            $stmt = $pdo->prepare("UPDATE teachers SET profile_confirmed_at = NULL");
+            $stmt->execute();
+            echo json_encode(['success' => true, 'count' => $stmt->rowCount()]);
+        } catch (PDOException $e) {
+            error_log('[reset_profile_confirm] ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'รีเซ็ตไม่สำเร็จ: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
     $id = $data['id'] ?? null;
 
     try {

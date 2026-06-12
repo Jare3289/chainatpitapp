@@ -305,7 +305,8 @@ function renderSidebar(role, user, settings = {}) {
     `;
 
     // Static items for all logged-in staff
-    const homeUrl = (role === 'admin') ? 'admin_dashboard.html' : (role === 'teacher') ? 'teacher_dashboard.html' : 'student_dashboard.html';
+    const isSupervisionAdmin = (role === 'admin') && (user.sub_role === 'supervision');
+    const homeUrl = isSupervisionAdmin ? 'admin_supervision_booking.html' : (role === 'admin') ? 'admin_dashboard.html' : (role === 'teacher') ? 'teacher_dashboard.html' : 'student_dashboard.html';
     const pct = (user.profile_completion_pct !== undefined) ? user.profile_completion_pct : (user.is_profile_complete === false ? 0 : 100);
     const isProfileLocked = (role === 'student' || role === 'teacher') && pct < 90;
 
@@ -335,6 +336,15 @@ function renderSidebar(role, user, settings = {}) {
         html += `<li class="nav-header text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> บังคับอัปเดตข้อมูล (${pct}%)</li>`;
         html += _navItem(profileUrl, 'bi bi-person-circle text-warning', 'โปรไฟล์ส่วนตัว (บังคับ)', true);
         html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
+    } else if (isSupervisionAdmin) {
+        // ─── Supervision-only admin menu ───────────────────────────
+        html += `<li class="nav-header">ระบบนิเทศการสอน</li>`;
+        html += _navItem('admin_supervision_booking.html', 'bi bi-calendar-check-fill text-primary', 'จัดการคิวและกรรมการ', a('admin_supervision_booking.html'));
+        html += _navItem('admin_supervision.html', 'bi bi-bar-chart-fill text-info', 'สถิติภาพรวมนิเทศ', a('admin_supervision.html'));
+        html += `<li class="nav-header mt-4">บัญชีผู้ใช้</li>`;
+        html += _navItem('admin_profile.html', 'bi bi-person-circle', 'โปรไฟล์ส่วนตัว', a('admin_profile.html'));
+        html += `<li class="nav-item"><a href="#" class="nav-link text-danger" onclick="logout(); return false;"><i class="nav-icon bi bi-box-arrow-right"></i><p>ออกจากระบบ</p></a></li>`;
+        // ────────────────────────────────────────────────────────────
     } else {
         if (role === 'admin' || role === 'teacher') {
             html += _navItem(homeUrl, 'bi bi-house-door-fill', 'หน้าแรก', a(homeUrl));
@@ -413,10 +423,10 @@ function renderSidebar(role, user, settings = {}) {
                 { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
             ];
 
-            if (user && user.id === 518) {
+            if (user && user.is_supervision_manager) {
                 supervisionItems.push(
-                    { href: 'admin_supervision.html', icon: 'bi bi-bar-chart-fill text-warning', label: 'สถิติภาพรวมนิเทศ (แอดมิน)', active: a('admin_supervision.html') },
-                    { href: 'admin_supervision_booking.html', icon: 'bi bi-calendar-check-fill text-warning', label: 'จัดการคิวและกรรมการ (แอดมิน)', active: a('admin_supervision_booking.html') }
+                    { href: 'admin_supervision.html', icon: 'bi bi-bar-chart-fill text-warning', label: 'สถิติภาพรวมนิเทศ', active: a('admin_supervision.html') },
+                    { href: 'admin_supervision_booking.html', icon: 'bi bi-calendar-check-fill text-warning', label: 'จัดการคิวและกรรมการ', active: a('admin_supervision_booking.html') }
                 );
             }
 
@@ -501,8 +511,8 @@ async function checkAuth(expectedRole) {
             if (roles.includes(data.user.role)) {
                 hasAccess = true;
             }
-            // Special exemption: Teacher ID 518 (Penprapha) can access admin pages
-            if (roles.includes('admin') && data.user.role === 'teacher' && data.user.id === 518) {
+            // ผู้ดูแลระบบนิเทศ (role=teacher) เข้าหน้า admin supervision ได้
+            if (roles.includes('admin') && data.user.role === 'teacher' && data.user.is_supervision_manager) {
                 hasAccess = true;
             }
         }
@@ -583,14 +593,18 @@ async function checkAuth(expectedRole) {
                         document.body.appendChild(script);
                     });
                 }
-                
+
+                const pct = data.user.profile_completion_pct ?? 0;
+                const filled = data.user.profile_filled_count ?? 0;
+                const total = data.user.profile_required_total ?? 0;
                 await Swal.fire({
                     icon: 'warning',
-                    title: '⚠️ เข้าสู่ช่วงนิเทศการสอน: กรุณาอัปเดตข้อมูลส่วนตัว',
-                    text: 'เนื่องจากระบบกำลังจะเข้าสู่ช่วงนิเทศการสอน ขอความกรุณาคุณครูทุกท่านตรวจสอบและอัปเดตข้อมูลประวัติและช่องทางติดต่อให้ครบถ้วนทุกช่องก่อน จึงจะสามารถเข้าใช้งานระบบส่วนอื่นได้ (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น)',
+                    title: '⚠️ บังคับอัปเดตข้อมูลส่วนตัว (ช่วงนิเทศการสอน)',
+                    html: `ข้อมูลของคุณกรอกแล้ว <strong style="color:#d97706">${pct}%</strong> (${filled}/${total} รายการ)<br><br>ต้องการอย่างน้อย <strong>90%</strong> จึงจะสามารถใช้งานระบบได้<br><span style="font-size:0.9em;color:#64748b">กรุณากรอกข้อมูลที่ยังขาดให้ครบ แล้วกดบันทึก</span>`,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
-                    confirmButtonText: 'ไปหน้าแก้ไขโปรไฟล์เพื่ออัปเดตข้อมูล'
+                    confirmButtonColor: '#d97706',
+                    confirmButtonText: 'ไปอัปเดตข้อมูลเลย →'
                 });
                 window.location.href = 'teacher_profile.html';
                 return null;
@@ -610,10 +624,12 @@ async function checkAuth(expectedRole) {
                             document.body.appendChild(script);
                         });
                     }
+                    const pct2 = data.user.profile_completion_pct ?? 0;
                     Swal.fire({
-                        icon: 'info',
-                        title: 'คำแนะนำการบันทึกข้อมูล',
-                        text: 'กรุณากรอกข้อมูลให้ครบถ้วนทุกช่อง (หากช่องใดไม่มีข้อมูลให้ใส่เครื่องหมาย "-" เท่านั้น) จากนั้นกดปุ่ม "บันทึกและอัปเดตข้อมูล" ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานส่วนอื่น ๆ ของระบบ',
+                        icon: 'warning',
+                        title: `⚠️ ข้อมูลครบ ${pct2}% — ต้องการ 90%`,
+                        html: 'กรุณากรอกข้อมูลที่ยังขาดให้ครบ แล้วกดปุ่ม <strong>"บันทึกและอัปเดตข้อมูล"</strong> ด้านล่าง เพื่อเปิดสิทธิ์การใช้งานระบบ',
+                        confirmButtonColor: '#d97706',
                         confirmButtonText: 'รับทราบ'
                     });
                 }
@@ -989,6 +1005,44 @@ function renderFooter(settings = {}) {
 
 /* ── Notification Logic ── */
 let lastUnreadCount = 0;
+
+function showNotificationPopup(id) {
+    const n = (window._notiDataMap || {})[String(id)];
+    if (!n) { markAsRead(id); return; }
+
+    const colorToIcon = c => {
+        if (!c) return 'info';
+        if (c.includes('dc35') || c.includes('e11d') || c.includes('ef44')) return 'warning';
+        if (c.includes('16a3') || c.includes('059669') || c.includes('22c5')) return 'success';
+        return 'info';
+    };
+    const swalIcon = (n.type === 'system_update') ? 'info'
+        : (n.type === 'warning' || n.type === 'error') ? n.type
+        : colorToIcon(n.color || '');
+
+    // ลบออกจาก DOM ทันที — ไม่รอ API
+    const notiEl = document.querySelector(`.noti-item[data-id="${id}"]`);
+    if (notiEl) notiEl.remove();
+    // อัปเดต badge ทันที
+    const remaining = document.querySelectorAll('#noti-list-container .noti-item').length;
+    updateNotiBadge(remaining);
+    if (remaining === 0) {
+        const c = document.getElementById('noti-list-container');
+        if (c) c.innerHTML = '<div class="noti-empty">ไม่มีการแจ้งเตือน</div>';
+    }
+
+    Swal.fire({
+        icon: swalIcon,
+        title: n.title || 'การแจ้งเตือน',
+        html: `<div style="text-align:left;line-height:1.8;font-size:0.95rem;">${n.message || ''}</div>`,
+        confirmButtonText: 'รับทราบ',
+        confirmButtonColor: '#1e3a8a',
+        allowOutsideClick: true,
+    }).then(() => {
+        markAsRead(id);
+    });
+}
+
 async function fetchNotifications() {
     try {
         const res = await fetch('../api/notifications.php');
@@ -996,12 +1050,18 @@ async function fetchNotifications() {
         if (json.success) {
             // Apply localStorage read states to dynamic alerts
             const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+            const dismissed  = JSON.parse(localStorage.getItem('cnp_dismissed_alerts') || '[]');
+            window._notiDataMap = {};
             let unreadCount = 0;
             json.data.forEach(n => {
+                window._notiDataMap[String(n.id)] = n;
                 if (typeof n.id === 'string' && n.id.startsWith('alert_')) {
-                    if (readAlerts.includes(n.id)) {
+                    if (readAlerts.includes(n.id) || dismissed.includes(n.id)) {
                         n.is_read = 1;
                     }
+                }
+                if (dismissed.includes(String(n.id))) {
+                    n.is_read = 1; // treat dismissed DB notifications as read
                 }
                 if (n.is_read == 0 || n.is_read === '0') {
                     unreadCount++;
@@ -1115,14 +1175,13 @@ function renderNotifications(items) {
     const container = document.getElementById('noti-list-container');
     if (!container) return;
 
-    // กรอง alert ที่ user ปิดไปแล้ว (เก็บใน localStorage)
     const dismissed = JSON.parse(localStorage.getItem('cnp_dismissed_alerts') || '[]');
 
-    // Admin ไม่เห็น alert รอรับรองสาธา
+    // Admin ไม่เห็น alert รอรับรองสาธา; กรองเฉพาะที่ยังไม่ได้อ่าน/ปิด
     let filtered = (items || []).filter(n =>
         !(window._cnpRole === 'admin' && n.id === 'alert_ps_pending') &&
-        !dismissed.includes(n.id) &&
-        (n.is_read == 0 || n.is_read === '0' || n.type === 'system_update')
+        !dismissed.includes(String(n.id)) &&
+        (n.is_read == 0 || n.is_read === '0')
     );
     if (filtered.length === 0) {
         container.innerHTML = '<div class="noti-empty">ไม่มีการแจ้งเตือน</div>';
@@ -1131,19 +1190,11 @@ function renderNotifications(items) {
 
     let html = '';
     filtered.forEach(n => {
-        const isUnread    = n.is_read == 0 || n.is_read === '0';
-        const isAlert     = typeof n.id === 'string' && n.id.startsWith('alert_');
-        const isSysUpdate = n.type === 'system_update';
-        const color       = n.color || (isAlert ? '#e11d48' : '#0d6efd');
-        const tag         = (n.link && n.link !== '#' && n.link !== '') ? 'a' : 'div';
-        const href        = tag === 'a' ? `href="${n.link}"` : '';
-        const onclick     = `onclick="markAsRead('${n.id}')"`;
-        const dismissBtn  = isSysUpdate
-            ? `<button class="noti-dismiss" onclick="dismissSystemAlert('${n.id}', event)" title="ปิด">×</button>`
-            : '';
+        const isAlert = typeof n.id === 'string' && n.id.startsWith('alert_');
+        const color   = n.color || (isAlert ? '#e11d48' : '#0d6efd');
 
         html += `
-            <${tag} ${href} data-id="${n.id}" class="noti-item${isSysUpdate ? ' system-update' : ''}${isUnread ? ' unread' : ''}" ${onclick}>
+            <div data-id="${n.id}" class="noti-item unread" onclick="showNotificationPopup('${n.id}')">
                 <div class="noti-icon" style="background: ${color}15; color: ${color};">
                     <i class="${n.icon || 'bi bi-bell'}"></i>
                 </div>
@@ -1152,15 +1203,21 @@ function renderNotifications(items) {
                     <div class="noti-msg">${n.message}</div>
                     <div class="noti-time">${n.time_ago}</div>
                 </div>
-                ${isUnread && !isSysUpdate ? '<div class="noti-dot"></div>' : ''}
-                ${dismissBtn}
-            </${tag}>
+                <div class="noti-dot"></div>
+            </div>
         `;
     });
     container.innerHTML = html;
 }
 
 async function markAsRead(id) {
+    // เพิ่มใน dismissed เสมอ — อ่านแล้วหายไปไม่กลับมาอีก
+    const dismissed = JSON.parse(localStorage.getItem('cnp_dismissed_alerts') || '[]');
+    if (!dismissed.includes(String(id))) {
+        dismissed.push(String(id));
+        localStorage.setItem('cnp_dismissed_alerts', JSON.stringify(dismissed));
+    }
+
     if (typeof id === 'string' && id.startsWith('alert_')) {
         const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
         if (!readAlerts.includes(id)) readAlerts.push(id);
@@ -1180,15 +1237,18 @@ async function markAsRead(id) {
 
 async function markAllAsRead() {
     try {
-        // Mark all dynamic alerts as read in localStorage
-        const alerts = Array.from(document.querySelectorAll('#noti-list-container .noti-item')).map(el => el.getAttribute('data-id')).filter(id => id && id.startsWith('alert_'));
-        if (alerts.length > 0) {
-            const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
-            alerts.forEach(id => {
-                if (!readAlerts.includes(id)) readAlerts.push(id);
-            });
-            localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
-        }
+        const allIds = Array.from(document.querySelectorAll('#noti-list-container .noti-item'))
+            .map(el => el.getAttribute('data-id')).filter(Boolean);
+
+        // Dismiss all permanently
+        const dismissed = JSON.parse(localStorage.getItem('cnp_dismissed_alerts') || '[]');
+        const readAlerts = JSON.parse(localStorage.getItem('cnp_read_alerts') || '[]');
+        allIds.forEach(id => {
+            if (!dismissed.includes(String(id))) dismissed.push(String(id));
+            if (id.startsWith('alert_') && !readAlerts.includes(id)) readAlerts.push(id);
+        });
+        localStorage.setItem('cnp_dismissed_alerts', JSON.stringify(dismissed));
+        localStorage.setItem('cnp_read_alerts', JSON.stringify(readAlerts));
 
         await fetch('../api/notifications.php', {
             method: 'POST',

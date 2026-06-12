@@ -20,7 +20,7 @@ $currentUserId = $_SESSION['user_id'];
 if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
-            SELECT u.id as user_id, u.username, t.first_name_th, t.last_name_th, t.position, t.photo
+            SELECT u.id as user_id, u.username, u.sub_role, t.first_name_th, t.last_name_th, t.position, t.photo
             FROM users u
             LEFT JOIN teachers t ON t.user_id = u.id
             WHERE u.role = 'admin'
@@ -41,6 +41,7 @@ elseif ($method === 'POST') {
     $firstName = trim($input['first_name_th'] ?? '');
     $lastName = trim($input['last_name_th'] ?? '');
     $position = trim($input['position'] ?? 'ผู้ดูแลระบบ');
+    $subRole = in_array($input['sub_role'] ?? '', ['', 'supervision']) ? ($input['sub_role'] ?? null) : null;
 
     if (!$username || !$firstName) {
         echo json_encode(['success' => false, 'error' => 'กรุณาระบุ Username และชื่อ']);
@@ -58,10 +59,11 @@ elseif ($method === 'POST') {
 
         $pdo->beginTransaction();
 
-        // Create user
+        // Create user (role_id required by login.php JOIN roles)
         $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, 'admin')");
-        $stmt->execute([$username, $hash]);
+        $stmt = $pdo->prepare("INSERT INTO users (username, password, role, role_id, sub_role)
+                               VALUES (?, ?, 'admin', (SELECT id FROM roles WHERE name = 'admin' LIMIT 1), ?)");
+        $stmt->execute([$username, $hash, $subRole ?: null]);
         $newUserId = $pdo->lastInsertId();
 
         // Create teacher profile for admin

@@ -266,20 +266,42 @@ async function importRunCheck() {
         if (data.error) { Swal.fire('ผิดพลาด', data.error, 'error'); showImportStep(1); return; }
 
         // Build summary
-        const dups     = data.duplicates || [];
-        const inserted = data.inserted ?? data.imported ?? 0;
-        const updated  = data.updated  ?? dups.length;
+        const dups      = data.duplicates || [];
+        const inserted  = data.inserted ?? data.imported ?? 0;
+        const updated   = data.updated  ?? dups.length;
+        const notFound  = data.not_found || [];
+        const nfCount   = data.not_found_count ?? notFound.length;
+        const nfCols    = nfCount > 0 ? 'col-4' : 'col-6';
         const sumHtml = `
             <div class="row g-2 text-center">
-                <div class="col-6"><div class="bg-success bg-opacity-10 rounded-3 p-3">
+                <div class="${nfCols}"><div class="bg-success bg-opacity-10 rounded-3 p-3">
                     <div class="fw-black text-success fs-3">${inserted}</div>
                     <div class="small fw-bold text-muted">เพิ่มใหม่</div>
                 </div></div>
-                <div class="col-6"><div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                <div class="${nfCols}"><div class="bg-warning bg-opacity-10 rounded-3 p-3">
                     <div class="fw-black text-warning fs-3">${updated}</div>
                     <div class="small fw-bold text-muted">จะอัปเดต</div>
                 </div></div>
+                ${nfCount > 0 ? `<div class="col-4"><div class="bg-danger bg-opacity-10 rounded-3 p-3">
+                    <div class="fw-black text-danger fs-3">${nfCount}</div>
+                    <div class="small fw-bold text-muted">ไม่พบในระบบ</div>
+                </div></div>` : ''}
             </div>`;
+
+        // Show not-found teacher names warning
+        let notFoundWarn = '';
+        if (notFound.length > 0) {
+            const nameList = notFound.map(n => `<li>${n}</li>`).join('');
+            notFoundWarn = `<div class="alert alert-danger py-2 mt-3 mb-0 small">
+                <i class="bi bi-person-x-fill me-1"></i>
+                <strong>ไม่พบครู ${nfCount} คน</strong> ในระบบ — แถวของครูเหล่านี้จะถูกข้ามทั้งหมด
+                <details class="mt-1"><summary class="text-danger" style="cursor:pointer;">ดูรายชื่อ...</summary>
+                <ul class="mt-1 mb-0 ps-3">${nameList}</ul>
+                <span class="text-muted d-block mt-1">กรุณาตรวจสอบชื่อในระบบที่ <strong>จัดการครู</strong> แล้วลองอีกครั้ง</span>
+                </details>
+            </div>`;
+        }
+
         // Show warning if number_in_class not found in file
         let headerWarn = '';
         if (data.detected_db_cols && !data.detected_db_cols.includes('number_in_class')) {
@@ -289,7 +311,7 @@ async function importRunCheck() {
                 <br><span class="text-muted">คอลัมน์ที่รู้จัก: ${(data.parsed_headers || []).join(', ') || '-'}</span>
             </div>`;
         }
-        document.getElementById('import-summary').innerHTML = sumHtml + headerWarn;
+        document.getElementById('import-summary').innerHTML = sumHtml + notFoundWarn + headerWarn;
 
         if (dups.length > 0) {
             document.getElementById('import-dup-table-wrap').classList.remove('d-none');
@@ -344,13 +366,22 @@ async function importConfirm() {
                     ${data.errors.join('<br>')}
                 </div>`;
             }
+            const nfList = data.not_found || [];
+            let notFoundDetails = '';
+            if (nfList.length > 0) {
+                notFoundDetails = `<div class="mt-2 text-danger small" style="max-height:150px; overflow-y:auto; border-top:1px dashed #ef4444; padding-top:8px;">
+                    <strong>⚠️ ไม่พบครู ${nfList.length} คน — แถวของครูเหล่านี้ถูกข้ามทั้งหมด:</strong><br>
+                    ${nfList.map(n => `• ${n}`).join('<br>')}
+                    <div class="mt-1 text-muted">ตรวจสอบชื่อในระบบที่ <strong>จัดการครู</strong> แล้วอัปโหลดใหม่</div>
+                </div>`;
+            }
             await Swal.fire({
-                icon: 'success',
-                title: 'นำเข้าสำเร็จ!',
+                icon: nfList.length > 0 ? 'warning' : 'success',
+                title: nfList.length > 0 ? 'นำเข้าสำเร็จ (มีครูที่ไม่พบ)' : 'นำเข้าสำเร็จ!',
                 html: `<div class="text-start">
                     <div>✅ เพิ่มใหม่: <strong>${data.inserted || 0}</strong> รายการ</div>
                     <div>🔄 อัปเดต: <strong>${data.updated || data.duplicate_count || 0}</strong> รายการ</div>
-                    ${errorDetails}
+                    ${notFoundDetails}${errorDetails}
                 </div>`,
                 confirmButtonText: 'ตกลง'
             });

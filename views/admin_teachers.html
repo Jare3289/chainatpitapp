@@ -244,6 +244,12 @@
                         <button class="btn btn-light border rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="openImport()">
                             <i class="bi bi-cloud-arrow-up me-2 text-success"></i>นำเข้า Excel
                         </button>
+                        <button class="btn btn-warning rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="resetAllProfileConfirm()" title="บังคับให้ครูทุกคนยืนยันข้อมูลใหม่อีกครั้ง">
+                            <i class="bi bi-arrow-clockwise me-2"></i>รีเซ็ตการยืนยันโปรไฟล์
+                        </button>
+                        <button class="btn btn-info rounded-pill px-4 py-2 fw-bold shadow-sm text-white" onclick="broadcastNotification()" title="ส่งแจ้งเตือนในระบบถึงครูทุกคน">
+                            <i class="bi bi-megaphone me-2"></i>ส่งแจ้งเตือนระบบ
+                        </button>
                         <button class="btn btn-navy rounded-pill px-4 py-2 fw-bold shadow-sm" onclick="openAddModal()">
                             <i class="bi bi-plus-lg me-2"></i>เพิ่มครูใหม่
                         </button>
@@ -733,6 +739,7 @@
                                                 <option>สุขศึกษาและพลศึกษา</option>
                                                 <option>ศิลปะ</option>
                                                 <option>การงานอาชีพ</option>
+                                                <option>แนะแนว</option>
                                                 <option>กิจกรรมพัฒนาผู้เรียน</option>
                                                 <option>ฝ่ายบริหาร</option>
                                             </select>
@@ -1517,6 +1524,89 @@ async function quickUploadPhoto(teacherId) {
         }
     };
     input.click();
+}
+
+async function resetAllProfileConfirm() {
+    const confirm = await Swal.fire({
+        title: 'รีเซ็ตการยืนยันโปรไฟล์?',
+        html: 'ครูทุกคนจะถูก<strong>บังคับให้เข้าหน้าโปรไฟล์และกดบันทึกใหม่</strong><br>ก่อนจะใช้งานระบบได้ ต้องการดำเนินการหรือไม่?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'ยืนยัน รีเซ็ตทั้งหมด',
+        cancelButtonText: 'ยกเลิก'
+    });
+    if (!confirm.isConfirmed) return;
+    Swal.fire({ title: 'กำลังรีเซ็ต...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+        const res = await fetch('../api/admin/teachers.php?action=reset_profile_confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: 'รีเซ็ตสำเร็จ', text: `ล้างการยืนยันโปรไฟล์ของครูทั้งหมด ${data.count} คน`, timer: 2000, showConfirmButton: false });
+        } else {
+            Swal.fire('ผิดพลาด', data.error || 'ไม่สามารถรีเซ็ตได้', 'error');
+        }
+    } catch (e) {
+        Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+    }
+}
+
+async function broadcastNotification() {
+    const { value: formValues, isConfirmed } = await Swal.fire({
+        title: '<i class="bi bi-megaphone me-2"></i>ส่งแจ้งเตือนถึงครูทุกคน',
+        html: `
+            <div class="text-start">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">หัวข้อ <span class="text-danger">*</span></label>
+                    <input id="bcast_title" class="form-control" placeholder="เช่น 🔔 อัปเดตระบบ CNP APP">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">รายละเอียด</label>
+                    <textarea id="bcast_msg" class="form-control" rows="3" placeholder="รายละเอียดของการแจ้งเตือน..."></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label fw-semibold">ลิงก์ (ไม่บังคับ)</label>
+                    <input id="bcast_link" class="form-control" placeholder="เช่น teacher_profile.html">
+                </div>
+            </div>`,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonColor: '#0ea5e9',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: '<i class="bi bi-send me-1"></i> ส่งแจ้งเตือน',
+        cancelButtonText: 'ยกเลิก',
+        preConfirm: () => {
+            const title = document.getElementById('bcast_title').value.trim();
+            if (!title) { Swal.showValidationMessage('กรุณากรอกหัวข้อ'); return false; }
+            return {
+                title,
+                message: document.getElementById('bcast_msg').value.trim(),
+                link: document.getElementById('bcast_link').value.trim(),
+            };
+        }
+    });
+    if (!isConfirmed || !formValues) return;
+
+    Swal.fire({ title: 'กำลังส่ง...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    try {
+        const res = await fetch('../api/admin/broadcast_notification.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formValues)
+        });
+        const data = await res.json();
+        if (data.success) {
+            Swal.fire({ icon: 'success', title: 'ส่งสำเร็จ', text: `ส่งแจ้งเตือนถึงครู ${data.count} คน (จากทั้งหมด ${data.total} คน)`, timer: 3000, showConfirmButton: false });
+        } else {
+            Swal.fire('ผิดพลาด', data.error || 'ไม่สามารถส่งได้', 'error');
+        }
+    } catch (e) {
+        Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+    }
 }
 
 async function deleteTeacher(id) {

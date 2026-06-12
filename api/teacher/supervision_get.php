@@ -51,15 +51,18 @@ try {
     $booking = null;
 
     if ($booking_id_input > 0) {
-        $stmt = $pdo->prepare("SELECT b.*, 
-            t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept, t.signature as teacher_signature,
+        $stmt = $pdo->prepare("SELECT b.*,
+            t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept, t.signature as teacher_signature, t.photo as teacher_photo,
             (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.peer_teacher_id) as peer_name,
+            (SELECT photo FROM teachers WHERE id = b.peer_teacher_id) as peer_photo,
             (SELECT signature FROM teachers WHERE id = b.peer_teacher_id) as peer_signature,
             (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.head_teacher_id) as head_name,
+            (SELECT photo FROM teachers WHERE id = b.head_teacher_id) as head_photo,
             (SELECT signature FROM teachers WHERE id = b.head_teacher_id) as head_signature,
             (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name,
+            (SELECT photo FROM teachers WHERE id = b.academic_teacher_id) as academic_photo,
             (SELECT signature FROM teachers WHERE id = b.academic_teacher_id) as academic_signature
-            FROM supervision_bookings b 
+            FROM supervision_bookings b
             JOIN teachers t ON b.teacher_id = t.id
             WHERE b.id = ? AND b.status != 'cancelled'");
         $stmt->execute([$booking_id_input]);
@@ -77,15 +80,18 @@ try {
         }
     } else {
         if ($teacher_id) {
-            $stmt = $pdo->prepare("SELECT b.*, 
-                t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept, t.signature as teacher_signature,
+            $stmt = $pdo->prepare("SELECT b.*,
+                t.prefix as teacher_prefix, t.first_name_th as teacher_first, t.last_name_th as teacher_last, t.department as teacher_dept, t.signature as teacher_signature, t.photo as teacher_photo,
                 (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.peer_teacher_id) as peer_name,
+                (SELECT photo FROM teachers WHERE id = b.peer_teacher_id) as peer_photo,
                 (SELECT signature FROM teachers WHERE id = b.peer_teacher_id) as peer_signature,
                 (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.head_teacher_id) as head_name,
+                (SELECT photo FROM teachers WHERE id = b.head_teacher_id) as head_photo,
                 (SELECT signature FROM teachers WHERE id = b.head_teacher_id) as head_signature,
                 (SELECT CONCAT(prefix, first_name_th, ' ', last_name_th) FROM teachers WHERE id = b.academic_teacher_id) as academic_name,
+                (SELECT photo FROM teachers WHERE id = b.academic_teacher_id) as academic_photo,
                 (SELECT signature FROM teachers WHERE id = b.academic_teacher_id) as academic_signature
-                FROM supervision_bookings b 
+                FROM supervision_bookings b
                 JOIN teachers t ON b.teacher_id = t.id
                 WHERE b.teacher_id = ? AND b.semester = ? AND b.year = ? AND b.status != 'cancelled'
                 ORDER BY b.id DESC LIMIT 1");
@@ -233,7 +239,7 @@ try {
 
             $role_th = '';
             if ($role === 'peer') $role_th = 'ครูผู้ร่วมนิเทศ';
-            elseif ($role === 'head') $role_th = 'ครูผู้นิเทศ (หัวหน้า/รอง)';
+            elseif ($role === 'head') $role_th = 'ผู้นิเทศ (หัวหน้า/รอง)';
             elseif ($role === 'academic') $role_th = 'คณะกรรมการวิชาการ';
 
             $booking_id = $d['id'];

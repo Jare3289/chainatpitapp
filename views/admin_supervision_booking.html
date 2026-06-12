@@ -50,7 +50,7 @@
         .filter-bar input, .filter-bar select {
             border-radius: 10px; border: 1.5px solid #e2e8f0;
             padding: 8px 14px; font-size: 0.88rem;
-            font-family: 'Sarabun', sans-serif; color: #1e293b; transition: border 0.2s;
+            font-family: 'Google Sans', 'Sarabun', sans-serif; color: #1e293b; transition: border 0.2s;
         }
         .filter-bar input:focus, .filter-bar select:focus {
             border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
@@ -71,32 +71,100 @@
         .status-tab.active.active_sup { background: #2563eb; color: white; }
         .status-tab.active.done { background: #16a34a; color: white; }
 
-        /* ── Department Group Header ── */
-        .dept-group-header {
-            display: flex; align-items: center; gap-10px;
-            padding: 8px 14px; border-radius: 10px;
-            background: #f1f5f9; border-left: 4px solid #1e3a8a;
-            margin: 16px 0 8px;
-            font-weight: 800; font-size: 0.82rem; color: #1e3a8a;
+        /* ── Calendar Date Section ── */
+        .date-section { margin-bottom: 24px; }
+        .date-section-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 18px; border-radius: 14px;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            margin-bottom: 10px; color: white;
+            box-shadow: 0 4px 14px rgba(30,58,138,0.18);
         }
-        .dept-group-header .dept-count {
-            margin-left: auto; background: #1e3a8a; color: white;
-            border-radius: 20px; padding: 2px 10px; font-size: 0.72rem;
+        .date-section-header .ds-day {
+            font-size: 1.05rem; font-weight: 900; letter-spacing: -0.3px;
+        }
+        .date-section-header .ds-date {
+            font-size: 0.85rem; opacity: 0.85; font-weight: 500;
+        }
+        .date-section-header .ds-count {
+            margin-left: auto; background: rgba(255,255,255,0.18);
+            border-radius: 20px; padding: 3px 13px; font-size: 0.74rem; font-weight: 700;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .booking-card {
-            background: white; border-radius: 16px; padding: 18px;
-            border: 1px solid #e2e8f0; cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 12px rgba(15,23,42,0.02); position: relative;
+        /* ── Cards grid (3 per row) ── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
-        .booking-card:hover { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 8px 24px rgba(15,23,42,0.06); }
-        .booking-card.selected-card { border: 2px solid #2563eb; background-color: #f0f7ff; box-shadow: 0 8px 24px rgba(37,99,235,0.08); }
+        @media (max-width: 560px) { .cards-grid { grid-template-columns: 1fr; } }
+
+        /* ── Booking Card (compact grid style) ── */
+        .booking-card {
+            background: white; border-radius: 12px;
+            border: 1.5px solid #e2e8f0; cursor: pointer;
+            transition: all 0.18s ease-in-out;
+            box-shadow: 0 1px 6px rgba(15,23,42,0.03);
+            display: flex; overflow: hidden; position: relative;
+        }
+        .booking-card:hover { transform: translateY(-2px); border-color: #3b82f6; box-shadow: 0 6px 20px rgba(15,23,42,0.08); }
+        .booking-card.selected-card { border: 2px solid #2563eb; background-color: #f0f7ff; box-shadow: 0 6px 20px rgba(37,99,235,0.1); }
+
+        /* Period badge (left strip) */
+        .bcard-period {
+            min-width: 46px; width: 46px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 4px; gap: 1px; flex-shrink: 0;
+        }
+        .bcard-period .bcp-num { font-size: 1.55rem; font-weight: 900; line-height: 1; }
+        .bcard-period .bcp-lbl { font-size: 0.52rem; font-weight: 700; letter-spacing: 0.5px; opacity: 0.8; }
+        .bcp-pending       { background: #fef3c7; color: #92400e; }
+        .bcp-approved      { background: #dbeafe; color: #1e40af; }
+        .bcp-doc_submitted { background: #e0f2fe; color: #0369a1; }
+        .bcp-completed     { background: #dcfce7; color: #14532d; }
+
+        /* Card body */
+        .bcard-body { flex: 1; padding: 9px 11px 8px; min-width: 0; }
+        .bcard-name {
+            font-size: 0.85rem; font-weight: 800; color: #1e293b;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .bcard-dept {
+            font-size: 0.67rem; color: #64748b; margin-bottom: 6px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;
+        }
+        .bcard-subj {
+            font-size: 0.72rem; margin-bottom: 6px; color: #374151;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .bcard-subj .bs-code { color: #1e3a8a; font-weight: 700; }
+
+        /* Committee 3-slot grid */
+        .bcard-committee { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; }
+        .bc-slot {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 4px 6px; display: flex; flex-direction: column; gap: 2px; min-width: 0;
+        }
+        .bc-slot .bcs-label {
+            font-size: 0.52rem; font-weight: 700; letter-spacing: 0.3px;
+            display: flex; align-items: center; gap: 3px;
+        }
+        .bc-slot .bcs-num {
+            width: 12px; height: 12px; border-radius: 50%; color: white;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.52rem; font-weight: 800; flex-shrink: 0;
+        }
+        .bc-slot .bcs-name {
+            font-size: 0.66rem; font-weight: 700; color: #1e293b;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .bc-slot .bcs-name.empty { color: #cbd5e1; font-weight: 400; font-style: italic; font-size: 0.63rem; }
 
         .sbadge {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 5px 12px; border-radius: 20px;
-            font-size: 0.73rem; font-weight: 700; white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 20px;
+            font-size: 0.66rem; font-weight: 700; white-space: nowrap; flex-shrink: 0;
         }
         .sbadge::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; }
         .sbadge.pending { background: #fef3c7; color: #92400e; }
@@ -143,7 +211,7 @@
         .teacher-btn {
             background: white; border: 1.5px solid #e2e8f0; border-radius: 20px;
             padding: 6px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
-            transition: all 0.18s; color: #475569; font-family: 'Sarabun', sans-serif;
+            transition: all 0.18s; color: #475569; font-family: 'Google Sans', 'Sarabun', sans-serif;
             display: inline-flex; align-items: center; gap: 5px;
         }
         .teacher-btn:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
@@ -207,13 +275,74 @@
         .btn-cancel-bk {
             background: transparent; border: 1.5px solid #ef4444;
             color: #ef4444; border-radius: 10px; padding: 9px 15px;
-            font-weight: 700; font-size: 0.88rem; font-family: 'Sarabun', sans-serif;
+            font-weight: 700; font-size: 0.88rem; font-family: 'Google Sans', 'Sarabun', sans-serif;
             transition: all 0.2s; cursor: pointer;
         }
         .btn-cancel-bk:hover { background: #fef2f2; }
 
         .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
         .empty-state i { font-size: 3rem; margin-bottom: 12px; display: block; }
+
+        /* ── Unbooked Teachers Panel ── */
+        .unbooked-panel {
+            background: white; border-radius: 16px;
+            border: 1.5px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(15,23,42,0.03);
+        }
+        .unbooked-toggle {
+            width: 100%; padding: 14px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: white; border: none; cursor: pointer;
+            font-family: 'Google Sans','Sarabun',sans-serif;
+            transition: background 0.15s;
+        }
+        .unbooked-toggle:hover { background: #f8fafc; }
+        .unbooked-toggle .ub-left { display: flex; align-items: center; gap: 10px; }
+        .unbooked-toggle .ub-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: #fef3c7; display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; color: #d97706;
+        }
+        .unbooked-toggle .ub-title { font-weight: 800; font-size: 0.9rem; color: #1e293b; }
+        .unbooked-toggle .ub-sub { font-size: 0.72rem; color: #64748b; }
+        .unbooked-toggle .ub-count-badge {
+            background: #fef3c7; color: #92400e;
+            border-radius: 20px; padding: 3px 12px;
+            font-size: 0.75rem; font-weight: 800;
+            border: 1px solid #fde68a;
+        }
+        .unbooked-toggle .ub-chevron { color: #94a3b8; transition: transform 0.2s; font-size: 0.85rem; }
+        .unbooked-toggle.open .ub-chevron { transform: rotate(180deg); }
+
+        .unbooked-body { padding: 0 18px 16px; border-top: 1px solid #f1f5f9; }
+        .ub-dept-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 0 6px;
+            font-size: 0.78rem; font-weight: 800; color: #475569;
+            border-bottom: 1px dashed #e2e8f0; margin-bottom: 8px;
+        }
+        .ub-dept-header .ub-dept-count {
+            margin-left: auto; background: #f1f5f9; color: #64748b;
+            border-radius: 20px; padding: 1px 9px; font-size: 0.68rem; font-weight: 700;
+        }
+        .ub-teacher-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+        .ub-chip {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 28px;
+            padding: 4px 14px 4px 4px; font-size: 0.82rem; font-weight: 600; color: #475569;
+            transition: all 0.15s;
+        }
+        .ub-chip:hover { border-color: #f59e0b; color: #92400e; background: #fffbeb; }
+        .ub-chip img {
+            width: 38px; height: 38px; border-radius: 50%; object-fit: cover;
+            background: #e2e8f0; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+        }
+        .ub-chip .ub-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #e2e8f0; display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: #94a3b8; flex-shrink: 0;
+        }
 
         @media (max-width: 992px) {
             .workspace-card { position: static; margin-top: 24px; max-height: none; }
@@ -238,7 +367,19 @@
 
                 <div class="page-banner">
                     <h1><i class="bi bi-person-check-fill me-2"></i>จัดการคิวนิเทศและมอบหมายกรรมการ</h1>
-                    <p>อนุมัติคิวจอง ตรวจสอบตารางสอน และแต่งตั้งตัวแทนวิชาการ</p>
+                    <p>อนุมัติคิวจอง ตรวจสอบตารางสอน และแต่งตั้งคณะกรรมการวิชาการ</p>
+                    <div class="mt-3 d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center gap-2 bg-white bg-opacity-10 rounded-3 px-3 py-2">
+                            <span class="small fw-bold opacity-90">สถานะระบบรับจอง:</span>
+                            <span id="lockStatusText" class="badge rounded-pill fw-bold px-3 py-2" style="font-size:0.8rem;">กำลังโหลด...</span>
+                        </div>
+                        <button type="button" id="lockToggleBtn" class="btn btn-sm fw-bold rounded-pill px-4 py-2 bg-white text-navy border-0" onclick="toggleBookingLock()" style="font-size:0.82rem;">
+                            <i class="bi bi-lock-fill me-1" id="lockBtnIcon"></i><span id="lockBtnText">...</span>
+                        </button>
+                        <button type="button" id="syncSubjectsBtn" class="btn btn-sm fw-bold rounded-pill px-4 py-2 bg-white text-navy border-0" onclick="syncBookingSubjects()" style="font-size:0.82rem;">
+                            <i class="bi bi-arrow-repeat me-1"></i>ซิงก์รหัสวิชาให้ตรงตารางสอน
+                        </button>
+                    </div>
                 </div>
 
                 <div class="row g-3 mb-4" id="statsRow">
@@ -296,11 +437,29 @@
                             </select>
                         </div>
 
-                        <div id="bookingListContainer" class="d-flex flex-column gap-1">
+                        <div id="bookingListContainer">
                             <div class="empty-state bg-white border rounded-4 py-5 shadow-sm">
                                 <div class="spinner-border text-primary mb-3" role="status"></div>
                                 <div class="fw-bold">กำลังโหลดข้อมูล...</div>
                             </div>
+                        </div>
+
+                        <!-- Unbooked Teachers Panel -->
+                        <div class="unbooked-panel mt-3" id="unbookedPanel">
+                            <button class="unbooked-toggle" id="unbookedToggleBtn" onclick="toggleUnbooked()">
+                                <div class="ub-left">
+                                    <div class="ub-icon"><i class="bi bi-person-x-fill"></i></div>
+                                    <div>
+                                        <div class="ub-title">ยังไม่ลงคิวนิเทศ</div>
+                                        <div class="ub-sub">แยกตามกลุ่มสาระฯ</div>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="ub-count-badge" id="unbookedCountBadge">กำลังโหลด...</span>
+                                    <i class="bi bi-chevron-down ub-chevron" id="unbookedChevron"></i>
+                                </div>
+                            </button>
+                            <div id="unbookedBody" class="unbooked-body" style="display:none;"></div>
                         </div>
                     </div>
 
@@ -311,7 +470,7 @@
                             <div id="workspaceEmpty" class="empty-state">
                                 <i class="bi bi-arrow-left-circle text-primary" style="font-size: 3rem;"></i>
                                 <div class="fw-bold mt-2 text-dark">กรุณาเลือกรายการด้านซ้าย</div>
-                                <div class="text-muted small">เพื่อดำเนินการแต่งตั้งตัวแทนวิชาการหรือยกเลิกคิว</div>
+                                <div class="text-muted small">เพื่อดำเนินการแต่งตั้งคณะกรรมการวิชาการหรือยกเลิกคิว</div>
                             </div>
 
                             <!-- Assignment Form Panel -->
@@ -388,7 +547,7 @@
                                     <div class="d-flex align-items-center gap-2 mb-3">
                                         <span class="evaluator-slot-number" style="background:#059669;">3</span>
                                         <div>
-                                            <div class="fw-bold text-dark" style="font-size:0.83rem;">ตัวแทนวิชาการ <span class="text-success">(แอดมินเลือก)</span></div>
+                                            <div class="fw-bold text-dark" style="font-size:0.83rem;">คณะกรรมการวิชาการ <span class="text-success">(แอดมินเลือก)</span></div>
                                             <div class="text-muted" style="font-size:0.7rem;">Academic Evaluator · ครู/ผู้บริหารที่ไม่มีคาบในเวลานั้น</div>
                                         </div>
                                     </div>
@@ -396,6 +555,23 @@
                                     <!-- Button grid -->
                                     <div id="academicBtnContainer" class="teacher-btn-grid">
                                         <div class="text-muted small py-1">กำลังโหลด...</div>
+                                    </div>
+
+                                    <!-- No-academic action buttons (shown when all evaluators are busy) -->
+                                    <div id="noAcademicActions" style="display:none;" class="mt-2">
+                                        <div class="alert alert-warning border-warning bg-warning bg-opacity-10 py-2 px-3 rounded-3 mb-2" style="font-size:0.8rem;">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>ไม่มีคณะกรรมการวิชาการว่างในคาบนี้
+                                        </div>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button type="button" class="btn btn-sm btn-warning rounded-pill fw-bold px-3 py-2"
+                                                onclick="notifyChangeSlot(activeBookingId, 'change_slot')">
+                                                <i class="bi bi-arrow-return-left me-1"></i>ส่งคิวคืน
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-info rounded-pill fw-bold px-3 py-2"
+                                                onclick="notifyChangeSlot(activeBookingId, 'video_supervision')">
+                                                <i class="bi bi-camera-video me-1"></i>นิเทศแบบพิเศษ (บันทึกวิดีโอ)
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- Selected display -->
@@ -480,9 +656,91 @@
             const homeUrl = user.role === 'teacher' ? 'teacher_dashboard.html' : 'admin_dashboard.html';
             const bcHome = document.getElementById('breadcrumbHome');
             if (bcHome) bcHome.href = homeUrl;
+            await loadBookingLockStatus();
             await loadBookings();
         }
     });
+
+    async function loadBookingLockStatus() {
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=get_booking_lock');
+            const data = await res.json();
+            if (data.success) renderLockStatus(data.booking_open);
+        } catch (e) { console.error(e); }
+    }
+
+    function renderLockStatus(isOpen) {
+        const statusText = document.getElementById('lockStatusText');
+        const btnIcon    = document.getElementById('lockBtnIcon');
+        const btnText    = document.getElementById('lockBtnText');
+        if (statusText) {
+            if (isOpen) {
+                statusText.textContent = '🟢 เปิดรับจอง';
+                statusText.className = 'badge rounded-pill fw-bold px-3 py-2 bg-success';
+            } else {
+                statusText.textContent = '🔴 ปิดรับจอง';
+                statusText.className = 'badge rounded-pill fw-bold px-3 py-2 bg-danger';
+            }
+        }
+        if (btnIcon) btnIcon.className = isOpen ? 'bi bi-lock-fill me-1' : 'bi bi-unlock-fill me-1';
+        if (btnText) btnText.textContent = isOpen ? 'ปิดระบบจอง' : 'เปิดระบบจอง';
+    }
+
+    async function toggleBookingLock() {
+        const btn = document.getElementById('lockToggleBtn');
+        if (btn) btn.disabled = true;
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=toggle_booking_lock', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (data.success) {
+                renderLockStatus(data.booking_open);
+                Swal.fire({ icon: 'success', title: data.message, timer: 1400, showConfirmButton: false });
+            }
+        } catch (e) {
+            Swal.fire('ผิดพลาด', 'ไม่สามารถเปลี่ยนสถานะได้', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    // ── ซิงก์รหัสวิชา/ชื่อวิชา/ห้องของทุกคิว ให้ตรงตารางสอนจริง ──
+    async function syncBookingSubjects() {
+        const confirm = await Swal.fire({
+            icon: 'question',
+            title: 'ซิงก์รหัสวิชาทุกคิว?',
+            html: 'ระบบจะอัปเดต <b>รหัสวิชา ชื่อวิชา ชั้นเรียน และห้อง</b> ของทุกคิวที่จองไว้<br>ให้ตรงกับตารางสอนจริงของครูแต่ละคนในคาบนั้น ๆ',
+            showCancelButton: true,
+            confirmButtonText: 'ซิงก์เลย',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: '#1e3a8a'
+        });
+        if (!confirm.isConfirmed) return;
+
+        const btn = document.getElementById('syncSubjectsBtn');
+        if (btn) btn.disabled = true;
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=sync_subjects');
+            const data = await res.json();
+            if (data.success) {
+                let detail = '';
+                if (data.changes && data.changes.length > 0) {
+                    detail = '<div class="text-start mt-2" style="max-height:200px;overflow:auto;font-size:0.78rem;">'
+                        + data.changes.map(c => `<div class="mb-1">คิว #${c.booking_id}: <span class="text-danger">${c.old.code || '-'}</span> → <span class="text-success fw-bold">${c.new.code}</span></div>`).join('')
+                        + '</div>';
+                }
+                await Swal.fire({ icon: 'success', title: data.message, html: detail || undefined });
+                loadBookings();
+            } else {
+                Swal.fire('ผิดพลาด', data.error || 'ซิงก์ไม่สำเร็จ', 'error');
+            }
+        } catch (e) {
+            Swal.fire('ผิดพลาด', 'เชื่อมต่อไม่สำเร็จ', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
 
     async function loadBookings() {
         try {
@@ -496,6 +754,15 @@
                 Swal.fire('ข้อผิดพลาด', data.error || 'ดึงข้อมูลไม่สำเร็จ', 'error');
             }
         } catch (e) { console.error(e); }
+        // โหลด count ยังไม่จอง (ไม่รอ — แสดงตัวเลขเร็วๆ)
+        fetch('../api/admin/supervision_booking_manage.php?action=get_unbooked')
+            .then(r => r.json()).then(d => {
+                if (d.success) {
+                    const badge = document.getElementById('unbookedCountBadge');
+                    if (badge) badge.textContent = `${d.total || 0} คน`;
+                    unbookedLoaded = false; // force reload เพื่อ refresh หลัง loadBookings
+                }
+            }).catch(() => {});
     }
 
     function updateStats() {
@@ -539,7 +806,17 @@
         renderCards(list);
     }
 
-    // ── Render cards grouped by department ──
+    // ── Strip Thai prefix for shorter display in committee slots ──
+    function shortName(name) {
+        if (!name) return '';
+        const prefixes = ['ว่าที่ร้อยตรีหญิง','ว่าที่ร้อยตรี','นางสาว','นาง','นาย','ดร.'];
+        for (const p of prefixes) {
+            if (name.startsWith(p)) return name.slice(p.length).trim();
+        }
+        return name;
+    }
+
+    // ── Render cards grouped by date (calendar style) ──
     function renderCards(list) {
         const container = document.getElementById('bookingListContainer');
         if (list.length === 0) {
@@ -551,77 +828,97 @@
             return;
         }
 
-        // Group by department
+        // Group by date, sort chronologically
         const groups = {};
         list.forEach(b => {
-            const dept = b.t_dept || 'ไม่ระบุกลุ่มสาระ';
-            if (!groups[dept]) groups[dept] = [];
-            groups[dept].push(b);
+            const d = b.booking_date || '_nodate';
+            if (!groups[d]) groups[d] = [];
+            groups[d].push(b);
         });
+        const sortedDates = Object.keys(groups).sort((a, b) => a.localeCompare(b));
 
-        const deptOrder = [
-            'คอมพิวเตอร์และเทคโนโลยี','สุขศึกษาและพลศึกษา','แนะแนว','ศิลปะ',
-            'ภาษาต่างประเทศ','การงานอาชีพ','ภาษาไทย','คณิตศาสตร์',
-            'สังคมศึกษา ศาสนา และวัฒนธรรม','วิทยาศาสตร์และเทคโนโลยี'
-        ];
-        const orderedDepts = [
-            ...deptOrder.filter(d => groups[d]),
-            ...Object.keys(groups).filter(d => !deptOrder.includes(d))
-        ];
+        const statusBadge = {
+            'pending':       '<span class="sbadge pending">รออนุมัติ</span>',
+            'approved':      '<span class="sbadge approved">อนุมัติแล้ว</span>',
+            'doc_submitted': '<span class="sbadge doc_submitted">ส่งแผนแล้ว</span>',
+            'completed':     '<span class="sbadge completed">เสร็จสมบูรณ์</span>'
+        };
+        const periodBgClass = {
+            'pending': 'bcp-pending', 'approved': 'bcp-approved',
+            'doc_submitted': 'bcp-doc_submitted', 'completed': 'bcp-completed'
+        };
+
+        const thMonthsFull = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                              'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+        const dayNamesFull = {0:'อาทิตย์',1:'จันทร์',2:'อังคาร',3:'พุธ',4:'พฤหัสบดี',5:'ศุกร์',6:'เสาร์'};
+
+        function headerDate(dateStr) {
+            if (!dateStr || dateStr === '_nodate') return { day: 'ไม่ระบุ', full: '' };
+            const parts = dateStr.split('-');
+            const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            return {
+                day: 'วัน' + (dayNamesFull[d.getDay()] || ''),
+                full: d.getDate() + ' ' + thMonthsFull[d.getMonth()] + ' ' + (d.getFullYear() + 543)
+            };
+        }
 
         let html = '';
-        orderedDepts.forEach(dept => {
-            const items = groups[dept];
-            html += `
-                <div class="dept-group-header">
-                    <i class="bi bi-collection-fill me-2 text-primary"></i>${dept}
-                    <span class="dept-count">${items.length} คน</span>
-                </div>`;
-            items.forEach(b => {
-                const statusMap = {
-                    'pending':      '<span class="sbadge pending">รออนุมัติ</span>',
-                    'approved':     '<span class="sbadge approved">อนุมัติแล้ว</span>',
-                    'doc_submitted':'<span class="sbadge doc_submitted">ส่งแผนแล้ว</span>',
-                    'completed':    '<span class="sbadge completed">เสร็จสมบูรณ์</span>'
-                };
-                const badge = statusMap[b.status] || `<span class="sbadge">${b.status}</span>`;
-                const selClass = activeBookingId === b.id ? 'selected-card' : '';
+        sortedDates.forEach(date => {
+            // Sort each day's bookings by period
+            const items = groups[date].slice().sort((a, b) => (a.booking_period || 0) - (b.booking_period || 0));
+            const hd = headerDate(date);
 
-                const evalRow = (num, bg, label, name) => `
-                    <div class="col-12 col-md-4 d-flex align-items-center gap-2">
-                        <span style="background:${bg}; width:16px; height:16px; font-size:0.6rem; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; color:white; flex-shrink:0;">${num}</span>
-                        <span class="text-muted" style="font-size:0.72rem;">${label}:</span>
-                        <span class="fw-bold text-dark text-truncate" style="max-width:110px;" title="${name || ''}">
-                            ${name && name !== '-' ? name : '<span class="text-muted fw-normal fst-italic">ยังไม่มอบหมาย</span>'}
-                        </span>
+            html += `
+                <div class="date-section">
+                    <div class="date-section-header">
+                        <i class="bi bi-calendar3-fill" style="opacity:0.6;font-size:0.9rem;"></i>
+                        <span class="ds-day">${hd.day}</span>
+                        <span class="ds-date">${hd.full}</span>
+                        <span class="ds-count">${items.length} คิว</span>
+                    </div>
+                    <div class="cards-grid">`;
+
+            items.forEach(b => {
+                const badge = statusBadge[b.status] || `<span class="sbadge">${b.status}</span>`;
+                const pCls  = periodBgClass[b.status] || 'bcp-pending';
+                const selCls = activeBookingId === b.id ? 'selected-card' : '';
+
+                const slot = (num, bg, roleLabel, name) => `
+                    <div class="bc-slot">
+                        <div class="bcs-label">
+                            <span class="bcs-num" style="background:${bg};">${num}</span>
+                            <span style="color:${bg};">${roleLabel}</span>
+                        </div>
+                        <div class="bcs-name ${name ? '' : 'empty'}" title="${name || ''}">${name ? shortName(name) : '—'}</div>
                     </div>`;
 
                 html += `
-                    <div class="booking-card ${selClass}" onclick="selectBooking(${b.id})">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <div class="fw-bold text-navy" style="font-size:1rem;">${b.teacher_name}</div>
-                                <div class="text-muted" style="font-size:0.75rem;">${b.t_standing || 'ไม่มีวิทยฐานะ'}</div>
-                            </div>
-                            ${badge}
+                    <div class="booking-card ${selCls}" onclick="selectBooking(${b.id})">
+                        <div class="bcard-period ${pCls}">
+                            <div class="bcp-num">${b.booking_period ?? '-'}</div>
+                            <div class="bcp-lbl">คาบ</div>
                         </div>
-                        <div class="p-3 rounded-3 mb-2" style="background:#f8fafc; font-size:0.83rem; border:1px solid #f1f5f9;">
-                            <div class="row g-1">
-                                <div class="col-12 col-sm-6"><strong>วิชา:</strong> ${b.subject_code} ${b.subject_name}</div>
-                                <div class="col-12 col-sm-6"><strong>ชั้น:</strong> ม.${b.classroom || ''} ห้อง ${b.room_location || '-'}</div>
-                                <div class="col-12 col-sm-6 mt-1"><strong>วันที่:</strong> ${getDayOfWeek(b.booking_date)}ที่ ${thDate(b.booking_date)}</div>
-                                <div class="col-12 col-sm-6 mt-1"><strong>คาบ:</strong> <span class="text-primary fw-bold">คาบ ${b.booking_period}</span></div>
+                        <div class="bcard-body">
+                            <div class="d-flex align-items-start justify-content-between gap-1 mb-1">
+                                <div class="bcard-name">${b.teacher_name || '-'}</div>
+                                ${badge}
                             </div>
-                        </div>
-                        <div class="mt-2 pt-2 border-top" style="font-size:0.8rem;">
-                            <div class="row g-2">
-                                ${evalRow(1,'#6366f1','คู่หู', b.peer_name)}
-                                ${evalRow(2,'#0ea5e9','หัวหน้า', b.head_name)}
-                                ${evalRow(3,'#059669','วิชาการ', b.academic_name)}
+                            <div class="bcard-dept">${b.t_dept || 'ไม่ระบุกลุ่มสาระ'}</div>
+                            <div class="bcard-subj">
+                                <span class="bs-code">${b.subject_code || ''}</span>
+                                ${b.subject_name || ''}
+                                · ม.${b.classroom || '?'} ห้อง ${b.room_location || b.room_number || '-'}
+                            </div>
+                            <div class="bcard-committee">
+                                ${slot(1,'#6366f1','ร่วม', b.peer_name)}
+                                ${slot(2,'#0ea5e9','หัวหน้า', b.head_name)}
+                                ${slot(3,'#059669','วิชาการ', b.academic_name)}
                             </div>
                         </div>
                     </div>`;
             });
+
+            html += `</div></div>`;
         });
 
         container.innerHTML = html;
@@ -671,6 +968,8 @@
         // Reset slot 3
         clearAcademic();
         document.getElementById('academicBtnContainer').innerHTML = '<div class="text-muted small py-1"><i class="spinner-border spinner-border-sm me-1"></i>กำลังโหลด...</div>';
+        const noAcDiv = document.getElementById('noAcademicActions');
+        if (noAcDiv) noAcDiv.style.display = 'none';
         document.getElementById('academicTimetableBox').style.display = 'none';
         document.getElementById('conflictWarning').classList.add('d-none');
 
@@ -708,37 +1007,45 @@
 
     // ── Render academic evaluator as pill buttons ──
     function renderAcademicButtons(bk) {
-        const container   = document.getElementById('academicBtnContainer');
+        const container    = document.getElementById('academicBtnContainer');
         const academicList = availableData.academic_teachers || [];
-        const isMeeting   = availableData.is_meeting_period || false;
 
-        if (isMeeting) {
-            container.innerHTML = '<div class="text-muted small fst-italic"><i class="bi bi-info-circle me-1"></i>คาบประชุม ไม่ต้องแต่งตั้งตัวแทนวิชาการ</div>';
-            return;
-        }
-
-        if (academicList.length === 0) {
-            container.innerHTML = '<div class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>ไม่พบครูที่ว่างในคาบนี้</div>';
-            return;
-        }
-
+        const freeList = academicList.filter(t => !t.is_busy);
+        const busyList = academicList.filter(t =>  t.is_busy);
         const currentAcadId = bk.academic_teacher_id || 0;
-        let html = '';
-        academicList.forEach(t => {
-            const sel = parseInt(t.id) === parseInt(currentAcadId) ? 'selected' : '';
-            html += `
-                <button type="button" class="teacher-btn ${sel}" id="acadBtn_${t.id}"
-                    onclick="selectAcademicTeacher(${t.id}, '${(t.full_name||'').replace(/'/g,'\\\'')}')"
-                    title="${t.full_name}">
-                    <span class="busy-dot"></span>
-                    ${t.full_name}
-                </button>`;
-        });
-        container.innerHTML = html;
 
-        // If previously assigned, restore display and load timetable
+        let html = '';
+
+        // ── ว่าง: คลิกได้ ──
+        freeList.forEach(t => {
+            const sel = parseInt(t.id) === parseInt(currentAcadId) ? 'selected' : '';
+            html += `<button type="button" class="teacher-btn ${sel}" id="acadBtn_${t.id}"
+                onclick="selectAcademicTeacher(${t.id}, '${(t.full_name||'').replace(/'/g,"\\'")}')">
+                <span class="busy-dot"></span>${t.full_name}</button>`;
+        });
+
+        // ── ไม่ว่าง: grey-out ──
+        if (busyList.length > 0) {
+            if (freeList.length > 0) html += '<div style="width:100%;height:1px;background:#e2e8f0;margin:5px 0;"></div>';
+            busyList.forEach(t => {
+                html += `<button type="button" class="teacher-btn" disabled
+                    title="${t.busy_reason || 'ไม่ว่างในคาบนี้'}"
+                    style="opacity:0.38;cursor:not-allowed;text-decoration:line-through;">
+                    <i class="bi bi-x-circle me-1" style="font-size:0.65rem;color:#ef4444;"></i>${t.full_name}</button>`;
+            });
+        }
+
+        container.innerHTML = html || '<div class="text-muted small py-1 text-center">ไม่พบรายชื่อคณะกรรมการวิชาการ</div>';
+
+        // ── show/hide ปุ่มดำเนินการตาม freeList ──
+        const noAcademicDiv = document.getElementById('noAcademicActions');
+        if (noAcademicDiv) noAcademicDiv.style.display = (freeList.length === 0) ? '' : 'none';
+
+        if (freeList.length === 0) return;
+
+        // ── คืนค่าที่เลือกไว้แล้ว ──
         if (currentAcadId) {
-            const prev = academicList.find(t => parseInt(t.id) === parseInt(currentAcadId));
+            const prev = freeList.find(t => parseInt(t.id) === parseInt(currentAcadId));
             if (prev) {
                 document.getElementById('selectedAcademicId').value = currentAcadId;
                 document.getElementById('academicSelectedName').textContent = prev.full_name;
@@ -801,14 +1108,15 @@
             </div>`;
 
         try {
-            // Derive day of week (1=จันทร์ ... 5=ศุกร์)
+            // Derive day of week: JS getDay() 0=Sun→7, 1=Mon→1, ..., 6=Sat→6
             const parts = dateStr.split('-');
             const d = new Date(parts[0], parts[1] - 1, parts[2]);
-            const jsDay = d.getDay(); // 0=Sun
-            const dayMap = {1:'จันทร์', 2:'อังคาร', 3:'พุธ', 4:'พฤหัสบดี', 5:'ศุกร์'};
-            const dayTh = dayMap[jsDay] || '';
+            const jsDay = d.getDay();
+            const dayNum = jsDay === 0 ? 7 : jsDay; // 1=จันทร์ … 7=อาทิตย์
+            const dayMap = {1:'จันทร์', 2:'อังคาร', 3:'พุธ', 4:'พฤหัสบดี', 5:'ศุกร์', 6:'เสาร์', 7:'อาทิตย์'};
+            const dayTh = dayMap[dayNum] || '';
 
-            const res = await fetch(`../api/timetable.php?teacher_id=${teacherId}&day_of_week=${dayTh}`);
+            const res = await fetch(`../api/timetable.php?teacher_id=${teacherId}&day=${dayNum}`);
             const data = await res.json();
 
             const schedule = data.data || data.schedule || data.timetable || [];
@@ -874,7 +1182,7 @@
         const acadId    = parseInt(document.getElementById('selectedAcademicId').value) || 0;
 
         if (!peerId || !headId) {
-            Swal.fire('ยังไม่ครบ', 'ครูต้องเลือกกรรมการคู่หูและหัวหน้ากลุ่มสาระก่อนบันทึก', 'warning');
+            Swal.fire('ยังไม่ครบ', 'ครูต้องเลือกครูผู้ร่วมนิเทศและหัวหน้ากลุ่มสาระก่อนบันทึก', 'warning');
             return;
         }
 
@@ -888,7 +1196,7 @@
             });
             const data = await res.json();
             if (data.success) {
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'มอบหมายตัวแทนวิชาการเรียบร้อยแล้ว', timer: 1600, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ!', text: 'มอบหมายคณะกรรมการวิชาการเรียบร้อยแล้ว', timer: 1600, showConfirmButton: false });
                 await loadBookings();
                 if (activeBookingId) await selectBooking(activeBookingId);
             } else {
@@ -896,6 +1204,127 @@
             }
         } catch (e) {
             Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+        }
+    }
+
+    // ── Notify teacher when no academic available ──
+    async function notifyChangeSlot(bookingId, actionType) {
+        const cfg = {
+            change_slot: {
+                icon: 'question', color: '#d97706',
+                title: 'ส่งคิวคืนให้ครูเปลี่ยนใหม่?',
+                html: 'ระบบจะส่งการแจ้งเตือนถึงครูเจ้าของคิว<br>ให้เลือก<strong>วันและคาบใหม่</strong>',
+                btn: 'ส่งคิวคืน'
+            },
+            video_supervision: {
+                icon: 'info', color: '#0891b2',
+                title: 'ยืนยันนิเทศแบบพิเศษ?',
+                html: 'ระบบจะแจ้งครูว่าคิวนี้ได้รับอนุมัติ<br><strong>แบบนิเทศพิเศษ</strong> — ให้<strong>บันทึกวิดีโอการสอน</strong>แทน',
+                btn: 'ยืนยันนิเทศแบบพิเศษ'
+            }
+        };
+        const c = cfg[actionType] || cfg.change_slot;
+        const confirm = await Swal.fire({
+            icon: c.icon,
+            title: c.title,
+            html: c.html,
+            showCancelButton: true,
+            confirmButtonColor: c.color,
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: c.btn,
+            cancelButtonText: 'ยกเลิก'
+        });
+        if (!confirm.isConfirmed) return;
+
+        Swal.fire({ title: 'กำลังส่งการแจ้งเตือน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const res = await fetch('../api/admin/supervision_booking_manage.php?action=notify_no_academic', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ booking_id: bookingId, action_type: actionType })
+            });
+            const data = await res.json();
+            if (data.success) {
+                Swal.fire({ icon: 'success', title: 'ส่งการแจ้งเตือนสำเร็จ!', text: data.message, timer: 1800, showConfirmButton: false });
+            } else {
+                Swal.fire('ผิดพลาด', data.error, 'error');
+            }
+        } catch (e) {
+            Swal.fire('เครือข่ายขัดข้อง', 'กรุณาลองใหม่', 'error');
+        }
+    }
+
+    // ── Unbooked Teachers Panel ──
+    let unbookedOpen = false;
+    let unbookedLoaded = false;
+
+    async function loadUnbooked() {
+        const body = document.getElementById('unbookedBody');
+        const badge = document.getElementById('unbookedCountBadge');
+        body.innerHTML = '<div class="py-3 text-center text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>กำลังโหลด...</div>';
+        try {
+            const res  = await fetch('../api/admin/supervision_booking_manage.php?action=get_unbooked');
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+
+            const total  = data.total || 0;
+            const groups = data.groups || {};
+
+            badge.textContent = `${total} คน`;
+
+            if (total === 0) {
+                body.innerHTML = '<div class="py-3 text-center text-muted small"><i class="bi bi-check-circle-fill text-success me-2"></i>ครูทุกคนลงคิวแล้ว!</div>';
+                return;
+            }
+
+            const deptOrder = [
+                'คอมพิวเตอร์และเทคโนโลยี','คณิตศาสตร์','ภาษาไทย','ภาษาต่างประเทศ',
+                'สังคมศึกษา ศาสนา และวัฒนธรรม','วิทยาศาสตร์และเทคโนโลยี',
+                'สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','แนะแนว'
+            ];
+            const ordered = [
+                ...deptOrder.filter(d => groups[d]),
+                ...Object.keys(groups).filter(d => !deptOrder.includes(d))
+            ];
+
+            let html = '';
+            ordered.forEach(dept => {
+                const teachers = groups[dept];
+                html += `
+                    <div class="ub-dept-header">
+                        <i class="bi bi-collection-fill text-primary" style="font-size:0.75rem;"></i>
+                        ${dept}
+                        <span class="ub-dept-count">${teachers.length} คน</span>
+                    </div>
+                    <div class="ub-teacher-chips">`;
+                teachers.forEach(t => {
+                    const photoSrc = t.photo
+                        ? `<img src="../${t.photo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" loading="lazy">
+                           <span class="ub-avatar" style="display:none;"><i class="bi bi-person"></i></span>`
+                        : `<span class="ub-avatar"><i class="bi bi-person"></i></span>`;
+                    html += `<span class="ub-chip" title="${t.full_name}">${photoSrc}${t.full_name}</span>`;
+                });
+                html += `</div>`;
+            });
+            body.innerHTML = html;
+            unbookedLoaded = true;
+        } catch (e) {
+            badge.textContent = 'ผิดพลาด';
+            body.innerHTML = `<div class="py-2 text-danger small"><i class="bi bi-exclamation-triangle me-1"></i>${e.message || 'โหลดไม่สำเร็จ'}</div>`;
+        }
+    }
+
+    function toggleUnbooked() {
+        unbookedOpen = !unbookedOpen;
+        const btn  = document.getElementById('unbookedToggleBtn');
+        const body = document.getElementById('unbookedBody');
+        if (unbookedOpen) {
+            btn.classList.add('open');
+            body.style.display = '';
+            if (!unbookedLoaded) loadUnbooked();
+        } else {
+            btn.classList.remove('open');
+            body.style.display = 'none';
         }
     }
 

@@ -145,28 +145,68 @@ try {
         }
     }
     $batch = 0;
+    $notFoundNames = [];
+
+    // Thai prefix list (longest first so ว่าที่ร้อยตรีหญิง is tried before ว่าที่ร้อยตรี)
+    $thaiPrefixKeys = array_map(
+        fn($p) => mb_strtolower(preg_replace('/\s+/', '', $p)),
+        ['ว่าที่ร้อยตรีหญิง','ว่าที่ร้อยตรี','ว่าที่ร.ต.หญิง','ว่าที่ร.ต.',
+         'ว่าที่รต.หญิง','ว่าที่รต.','นางสาว','นาย','นาง',
+         'ดร.','ผศ.ดร.','ผศ.','รศ.ดร.','รศ.',
+         'พระมหา','พระอาจารย์','พระ','สิบเอก','สิบโท','สิบตรี']
+    );
 
     foreach ($rows as $idx => $raw) {
         $rowNo = $idx + 2;
-        $idt      = col($raw, ['IDT (รหัสครู)', 'IDT', 'รหัสครู']);
-        $nameRaw  = col($raw, ['ชื่อ-สกุล()', 'ชื่อ-สกุล(ครู)', 'ชื่อครู', 'ชื่อ-สกุล']);
-        $cleanRaw = mb_strtolower(preg_replace('/\s+/', '', $nameRaw));
-        $teacherPk = ($idt && isset($teacherByIdt[$idt])) ? $teacherByIdt[$idt] : ($teacherByName[$cleanRaw] ?? null);
+        $idt = col($raw, ['IDT (รหัสครู)', 'IDT', 'รหัสครู']);
+
+        // Support both new split-column format and old combined format
+        $pfxCol   = col($raw, ['คำนำหน้า (ครู)', 'คำนำหน้า']);
+        $fnameCol = col($raw, ['ชื่อ (ครู)', 'ชื่อ']);
+        $lnameCol = col($raw, ['สกุล (ครู)', 'สกุล', 'นามสกุล']);
+        $nameRaw  = col($raw, ['ชื่อ-สกุล()', 'ชื่อ-สกุล(ครู)', 'ชื่อครู', 'ชื่อ-สกุล']); // old format
+
+        $teacherPk    = null;
+        $nameDisplay  = '';
+
+        if ($idt && isset($teacherByIdt[$idt])) {
+            // Matched by teacher code — fastest path
+            $teacherPk   = $teacherByIdt[$idt];
+            $nameDisplay = trim("$pfxCol $fnameCol $lnameCol") ?: $nameRaw ?: "ครู (IDT:$idt)";
+        } elseif ($fnameCol !== '') {
+            // New format with separate columns
+            $nameDisplay  = trim("$pfxCol $fnameCol $lnameCol");
+            $cleanWithPfx = mb_strtolower(preg_replace('/\s+/', '', $pfxCol . $fnameCol . $lnameCol));
+            $cleanNoPfx   = mb_strtolower(preg_replace('/\s+/', '', $fnameCol . $lnameCol));
+            $teacherPk    = $teacherByName[$cleanWithPfx] ?? $teacherByName[$cleanNoPfx] ?? null;
+        } else {
+            // Old combined column format — strip Thai prefix as fallback
+            $nameDisplay = $nameRaw;
+            $cleanRaw    = mb_strtolower(preg_replace('/\s+/', '', $nameRaw));
+            $teacherPk   = $teacherByName[$cleanRaw] ?? null;
+            if (!$teacherPk && $cleanRaw !== '') {
+                foreach ($thaiPrefixKeys as $pfxKey) {
+                    if (mb_strpos($cleanRaw, $pfxKey) === 0) {
+                        $stripped = mb_substr($cleanRaw, mb_strlen($pfxKey));
+                        if (isset($teacherByName[$stripped])) {
+                            $teacherPk = $teacherByName[$stripped];
+                        }
+                        break;
+                    }
+                }
+            }
+        }
 
         if (!$teacherPk) {
-            // Auto-create a dummy teacher so the timetable can still be displayed
-            $stmtFindDummy = $pdo->prepare("SELECT id FROM teachers WHERE first_name_th = ? AND teacher_id LIKE 'DUMMY_%' LIMIT 1");
-            $stmtFindDummy->execute([$nameRaw]);
-            $dummyId = $stmtFindDummy->fetchColumn();
-
-            if ($dummyId) {
-                $teacherPk = (int)$dummyId;
-            } else {
-                $dummyIdt = 'DUMMY_' . substr(md5($nameRaw . microtime()), 0, 8);
-                $pdo->prepare("INSERT INTO teachers (teacher_id, first_name_th) VALUES (?, ?)")->execute([$dummyIdt, $nameRaw]);
-                $teacherPk = (int)$pdo->lastInsertId();
+            if ($nameDisplay === '' && $idt === '') {
+                // Completely empty row — skip silently
+                $skipCount++;
+                continue;
             }
-            $teacherByName[$cleanRaw] = $teacherPk;
+            $notFoundNames[] = $nameDisplay ?: "ไม่ระบุชื่อ (แถวที่ $rowNo)";
+            $skipCount++;
+            $skipReasons[] = "แถวที่ $rowNo: ไม่พบครู '$nameDisplay' ในระบบ — ข้ามแถวนี้";
+            continue;
         }
 
         $dayRaw  = col($raw, ['วัน', 'วัน (1-7)', 'วัน (1=จันทร์ 2=อังคาร 3=พุธ 4=พฤหัส 5=ศุกร์ 6=เสาร์ 7=อาทิตย์)']);
@@ -278,7 +318,7 @@ try {
                 if ($existId) { 
                     $willUpdate[] = [
                         'teacher_id'   => $teacherPk, 
-                        'old_name'     => $nameRaw ?: "ครู", 
+                        'old_name'     => $nameDisplay ?: "ครู",
                         'new_name'     => "วิชา: $subject", 
                         'old_class'    => "วัน $day คาบ $period", 
                         'new_class'    => "ปี $year เทอม $semester", 
@@ -314,16 +354,19 @@ try {
 
     if (!$dryRun && $pdo->inTransaction()) $pdo->commit();
 
+    $uniqueNotFound = array_unique($notFoundNames);
     echo json_encode([
-        'success' => true,
-        'inserted' => $insertCount,
-        'updated' => $updateCount,
-        'imported' => $insertCount + $updateCount,
-        'skipped' => $skipCount,
-        'duplicates' => $dryRun ? $willUpdate : [],
+        'success'         => true,
+        'inserted'        => $insertCount,
+        'updated'         => $updateCount,
+        'imported'        => $insertCount + $updateCount,
+        'skipped'         => $skipCount,
+        'duplicates'      => $dryRun ? $willUpdate : [],
         'duplicate_count' => $dryRun ? count($willUpdate) : $updateCount,
-        'skip_reasons' => array_slice($skipReasons, 0, 20),
-        'message' => "สำเร็จ: เพิ่ม $insertCount, อัปเดต $updateCount, ข้าม $skipCount",
+        'not_found'       => array_values($uniqueNotFound),
+        'not_found_count' => count($uniqueNotFound),
+        'skip_reasons'    => array_slice($skipReasons, 0, 20),
+        'message'         => "สำเร็จ: เพิ่ม $insertCount, อัปเดต $updateCount, ข้าม $skipCount",
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
