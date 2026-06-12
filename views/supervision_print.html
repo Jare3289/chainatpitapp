@@ -655,11 +655,11 @@
                                                     <td><span class="preview-peer-name">[ชื่อ Peer]</span></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="bg-light fw-bold">ครูผู้นิเทศ (Head/Deputy)</td>
+                                                    <td class="bg-light fw-bold">ผู้นิเทศ (Head/Deputy)</td>
                                                     <td><span class="preview-head-name">[ชื่อ Head]</span></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="bg-light fw-bold">คณะกรรมการวิชาการ (Academic)</td>
+                                                    <td class="bg-light fw-bold">คณะกรรมการวิชาการ</td>
                                                     <td><span class="preview-academic-name">[ชื่อ Academic]</span></td>
                                                 </tr>
                                             </tbody>
@@ -737,7 +737,7 @@
                                                 <tr>
                                                     <th class="align-middle text-center" style="width: 60%">หัวข้อการประเมินแผนการจัดการเรียนรู้</th>
                                                     <th class="align-middle text-center">ครูผู้ร่วมนิเทศ (Peer)</th>
-                                                    <th class="align-middle text-center">ครูผู้นิเทศ (Head)</th>
+                                                    <th class="align-middle text-center">ผู้นิเทศ (Head)</th>
                                                     <th class="align-middle text-center">วิชาการ (Acad)</th>
                                                 </tr>
                                             </thead>
@@ -760,7 +760,7 @@
                                                 <tr>
                                                     <th class="align-middle text-center" style="width: 60%">หัวข้อการประเมินทักษะการสอนในชั้นเรียน</th>
                                                     <th class="align-middle text-center">ครูผู้ร่วมนิเทศ (Peer)</th>
-                                                    <th class="align-middle text-center">ครูผู้นิเทศ (Head)</th>
+                                                    <th class="align-middle text-center">ผู้นิเทศ (Head)</th>
                                                     <th class="align-middle text-center">วิชาการ (Acad)</th>
                                                 </tr>
                                             </thead>
@@ -848,7 +848,7 @@
                                             </div>
                                             ลงชื่อ.......................................................<br>
                                             ( <span class="preview-head-name">[ชื่อ Head]</span> )<br>
-                                            <strong>ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)</strong>
+                                            <strong>ผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)</strong>
                                         </div>
                                         <div class="col-6" style="position: relative;">
                                             <div id="preview-page8-academic-sig-box" style="position: absolute; left: 50%; transform: translateX(-50%); top: -40px; height: 55px; pointer-events: none; display: none;">
@@ -856,7 +856,7 @@
                                             </div>
                                             ลงชื่อ.......................................................<br>
                                             ( <span class="preview-academic-name">[ชื่อ Academic]</span> )<br>
-                                            <strong>ผู้แทนคณะกรรมการวิชาการ</strong>
+                                            <strong>คณะกรรมการวิชาการ</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -1231,7 +1231,7 @@
             let hasComments = false;
 
             const roles = ['peer', 'head', 'academic'];
-            const roleTitles = { peer: 'ครูผู้ร่วมนิเทศ (Peer)', head: 'ครูผู้นิเทศ (Head/หัวหน้ากลุ่มสาระฯ)', academic: 'ฝ่ายวิชาการ (Academic)' };
+            const roleTitles = { peer: 'ครูผู้ร่วมนิเทศ (Peer)', head: 'ผู้นิเทศ (Head/หัวหน้ากลุ่มสาระฯ)', academic: 'คณะกรรมการวิชาการ' };
 
             roles.forEach(role => {
                 const info = status[role];
@@ -1272,7 +1272,7 @@
             window.scoresChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['ครูผู้ร่วมนิเทศ (Peer)', 'ครูผู้นิเทศ (Head)', 'กรรมการวิชาการ (Academic)'],
+                    labels: ['ครูผู้ร่วมนิเทศ (Peer)', 'ผู้นิเทศ (Head)', 'คณะกรรมการวิชาการ'],
                     datasets: [
                         {
                             label: 'คะแนนประเมินแผน (ตรวจแผน)',

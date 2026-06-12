@@ -87,10 +87,19 @@ try {
                 $details['profile_filled_count'] = $filled;
                 // ต้องกรอกข้อมูลให้ได้อย่างน้อย 90% จึงจะใช้งานระบบได้
                 $details['is_profile_complete'] = $pct >= 90;
+
+                // ตรวจสอบว่าครูคนนี้เป็นผู้ดูแลระบบนิเทศไหม
+                $stmt_mgr = $pdo->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'supervision_manager_user_ids'");
+                $stmt_mgr->execute();
+                $mgr_val = $stmt_mgr->fetchColumn();
+                $allowed_user_ids = $mgr_val
+                    ? array_map('intval', array_filter(array_map('trim', explode(',', $mgr_val))))
+                    : [];
+                $details['is_supervision_manager'] = in_array((int)$user_id, $allowed_user_ids);
             } else {
                 $details['is_profile_complete'] = true;
             }
-            
+
             $userData = array_merge($userData, $details);
         }
     } else if ($role === 'student') {

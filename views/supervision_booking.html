@@ -140,7 +140,7 @@
                                             <img id="detail-teacher-photo"
                                                  src="../public/images/default-avatar.png"
                                                  class="rounded-circle object-fit-cover border border-3 border-white shadow"
-                                                 width="64" height="64"
+                                                 width="80" height="80"
                                                  onerror="this.src='../public/images/default-avatar.png'">
                                             <div class="flex-grow-1 min-width-0">
                                                 <div class="fw-black text-navy text-truncate" id="detail-teacher-name" style="font-size:0.95rem;">-</div>
@@ -196,7 +196,7 @@
                                                      src="../public/images/default-avatar.png"
                                                      class="rounded-circle object-fit-cover border border-2"
                                                      style="border-color:#22c55e!important;"
-                                                     width="44" height="44"
+                                                     width="56" height="56"
                                                      onerror="this.src='../public/images/default-avatar.png'">
                                                 <div class="min-width-0">
                                                     <div class="text-muted" style="font-size:0.65rem;">ครูผู้ร่วมนิเทศ (Peer)</div>
@@ -210,10 +210,10 @@
                                                      src="../public/images/default-avatar.png"
                                                      class="rounded-circle object-fit-cover border border-2"
                                                      style="border-color:#3b82f6!important;"
-                                                     width="44" height="44"
+                                                     width="56" height="56"
                                                      onerror="this.src='../public/images/default-avatar.png'">
                                                 <div class="min-width-0">
-                                                    <div class="text-muted" style="font-size:0.65rem;">ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</div>
+                                                    <div class="text-muted" style="font-size:0.65rem;">ผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</div>
                                                     <div class="fw-bold text-navy text-truncate" id="detail-head-name" style="font-size:0.8rem;">-</div>
                                                 </div>
                                             </div>
@@ -224,10 +224,10 @@
                                                      src="../public/images/default-avatar.png"
                                                      class="rounded-circle object-fit-cover border border-2"
                                                      style="border-color:#a855f7!important;"
-                                                     width="44" height="44"
+                                                     width="56" height="56"
                                                      onerror="this.src='../public/images/default-avatar.png'">
                                                 <div class="min-width-0">
-                                                    <div class="text-muted" style="font-size:0.65rem;">กรรมการวิชาการ</div>
+                                                    <div class="text-muted" style="font-size:0.65rem;">คณะกรรมการวิชาการ</div>
                                                     <div class="fw-bold text-navy text-truncate" id="detail-academic-name" style="font-size:0.8rem;">-</div>
                                                 </div>
                                             </div>
@@ -373,7 +373,7 @@
                                                         <div class="form-text text-primary small mt-1" id="peer_help_text"><i class="bi bi-info-circle"></i> เลือกวันที่และคาบเรียนเพื่อดูครูที่ว่าง</div>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <label class="form-label small fw-bold text-muted mb-2 d-block">ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</label>
+                                                        <label class="form-label small fw-bold text-muted mb-2 d-block">ผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)</label>
                                                         <div id="head_teacher_container" class="d-flex flex-wrap gap-2">
                                                             <div class="text-muted small py-2">กรุณาเลือกวันที่และคาบเรียนก่อน...</div>
                                                         </div>
@@ -389,6 +389,39 @@
                                         <button type="button" class="btn btn-navy rounded-pill fw-black px-5 py-3 shadow-sm" onclick="submitBooking()"><i class="bi bi-send-fill me-2"></i> ส่งคำจองคิวนิเทศ</button>
                                     </div>
                                 </form>
+                            </div>
+
+                            <!-- Evaluation Duties (shown before dept bookings) -->
+                            <div class="dashboard-panel mt-4" id="duties-panel" style="display:none;">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:40px;height:40px;flex-shrink:0;">
+                                        <i class="bi bi-person-badge-fill text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-black text-navy mb-0" style="font-size:1rem;">ภาระงานประเมินของคุณ</h5>
+                                        <div class="text-muted" style="font-size:0.72rem;">คิวนิเทศที่คุณต้องเป็นกรรมการ</div>
+                                    </div>
+                                </div>
+                                <div id="duties-box"></div>
+                            </div>
+
+                            <!-- Dept Bookings Panel -->
+                            <div class="dashboard-panel mt-4" id="dept-bookings-panel" style="display:none;">
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" style="width:40px;height:40px;flex-shrink:0;">
+                                            <i class="bi bi-people-fill text-info fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-black text-navy mb-0" style="font-size:1rem;">จองในกลุ่มสาระเดียวกัน</h5>
+                                            <div class="text-muted" style="font-size:0.72rem;">เพื่อนครูในกลุ่มสาระที่จองคิวนิเทศแล้ว</div>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-30 rounded-pill px-3" id="dept-bookings-count" style="display:none;"></span>
+                                </div>
+                                <div id="dept-bookings-box">
+                                    <div class="text-center py-3 text-muted small">กำลังโหลด...</div>
+                                </div>
                             </div>
                         </div>
 
@@ -418,47 +451,7 @@
                                 <div class="text-muted mb-3" style="font-size:0.72rem;"><i class="bi bi-info-circle me-1"></i>ไม่เกินวันละ 4 คาบ · ผู้นิเทศ = หัวหน้า/รองหัวหน้ากลุ่มสาระ</div>
                                 <div id="full-schedule-table"></div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Second row: dept bookings (left) + evaluation duties (right) -->
-                    <div class="row g-4 mt-2">
-                        <div class="col-lg-8">
-                            <div class="dashboard-panel" id="dept-bookings-panel" style="display:none;">
-                                <div class="d-flex align-items-center justify-content-between mb-4">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle bg-info bg-opacity-10 d-flex align-items-center justify-content-center" style="width:40px;height:40px;flex-shrink:0;">
-                                            <i class="bi bi-people-fill text-info fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="fw-black text-navy mb-0" style="font-size:1rem;">จองในกลุ่มสาระเดียวกัน</h5>
-                                            <div class="text-muted" style="font-size:0.72rem;">เพื่อนครูในกลุ่มสาระที่จองคิวนิเทศแล้ว</div>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-30 rounded-pill px-3" id="dept-bookings-count" style="display:none;"></span>
-                                </div>
-                                <div id="dept-bookings-box">
-                                    <div class="text-center py-3 text-muted small">กำลังโหลด...</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Evaluation Duties (moved here from right column) -->
-                        <div class="col-lg-4" id="duties-panel" style="display:none;">
-                            <div class="dashboard-panel h-100">
-                                <div class="d-flex align-items-center gap-2 mb-4">
-                                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:40px;height:40px;flex-shrink:0;">
-                                        <i class="bi bi-person-badge-fill text-primary fs-5"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="fw-black text-navy mb-0" style="font-size:1rem;">ภาระงานประเมินของคุณ</h5>
-                                        <div class="text-muted" style="font-size:0.72rem;">คิวนิเทศที่คุณต้องเป็นกรรมการ</div>
-                                    </div>
-                                </div>
-                                <div id="duties-box">
-                                    <!-- Populated by JS -->
-                                </div>
-                            </div>
                         </div>
                     </div>
 
@@ -520,31 +513,31 @@
                     (myDeptKey === 'วิทยาศาสตร์และเทคโนโลยี' && s.dept === 'วิทยาศาสตร์และเทคโนโลยี') ||
                     (myDeptKey === 'สังคมศึกษา ศาสนา และวัฒนธรรม' && s.dept === 'สังคมศึกษาฯ') ||
                     (myDeptKey === 'สังคมศึกษาศาสนาและวัฒนธรรม' && s.dept === 'สังคมศึกษาฯ');
-                const rowBg = isMe ? 'background:#eff6ff;border-left:3px solid #1e40af;' : '';
-                const noteHtml = s.note ? `<div class="text-danger mt-1" style="font-size:0.65rem;"><i class="bi bi-exclamation-circle me-1"></i>${s.note}</div>` : '';
-                rows += `
-                    <tr style="${rowBg}">
-                        <td class="text-center fw-bold text-muted" style="font-size:0.7rem;width:24px;">${i + 1}</td>
-                        <td style="font-size:0.72rem;" class="fw-bold ${isMe ? 'text-primary' : 'text-navy'}">${s.dept}${isMe ? ' <i class="bi bi-star-fill text-warning" style="font-size:0.6rem;"></i>' : ''}</td>
-                        <td style="font-size:0.7rem;">
-                            <div class="text-dark">${s.dates}</div>
-                            <div class="text-muted">(${s.days} วัน)</div>
+                const noteHtml = s.note ? `<div class="text-danger mt-1" style="font-size:0.68rem;"><i class="bi bi-exclamation-circle me-1"></i>${s.note}</div>` : '';
+                if (isMe) {
+                    rows += `
+                    <div class="rounded-3 p-2 mb-1 d-flex align-items-start gap-2" style="background:#eff6ff;border:1.5px solid #93c5fd;">
+                        <span class="rounded-circle d-flex align-items-center justify-content-center fw-black flex-shrink-0 bg-primary text-white" style="width:24px;height:24px;font-size:0.65rem;">${i + 1}</span>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-black text-primary d-flex align-items-center gap-1 flex-wrap" style="font-size:0.82rem;">${s.dept} <i class="bi bi-star-fill text-warning" style="font-size:0.6rem;"></i> <span class="badge bg-primary text-white ms-1" style="font-size:0.6rem;">กลุ่มสาระของคุณ</span></div>
+                            <div class="fw-bold text-dark mt-1" style="font-size:0.78rem;"><i class="bi bi-calendar-range me-1 text-primary"></i>${s.dates} <span class="text-muted fw-normal">(${s.days} วัน)</span></div>
                             ${noteHtml}
-                        </td>
-                    </tr>`;
+                        </div>
+                    </div>`;
+                } else {
+                    rows += `
+                    <div class="d-flex align-items-start gap-2 py-2 px-1" style="border-bottom:1px solid #f1f5f9;">
+                        <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0 bg-secondary bg-opacity-10 text-secondary" style="width:22px;height:22px;font-size:0.65rem;margin-top:1px;">${i + 1}</span>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-bold text-navy" style="font-size:0.8rem;">${s.dept}</div>
+                            <div class="text-muted" style="font-size:0.75rem;">${s.dates} <span class="text-secondary">(${s.days} วัน)</span></div>
+                            ${noteHtml}
+                        </div>
+                    </div>`;
+                }
             });
 
-            container.innerHTML = `
-                <table class="table table-sm table-borderless mb-0" style="font-size:0.75rem;">
-                    <thead>
-                        <tr class="border-bottom">
-                            <th class="text-muted fw-bold" style="font-size:0.68rem;">#</th>
-                            <th class="text-muted fw-bold" style="font-size:0.68rem;">กลุ่มสาระฯ</th>
-                            <th class="text-muted fw-bold" style="font-size:0.68rem;">ช่วงเวลา</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                </table>`;
+            container.innerHTML = `<div class="mt-1">${rows}</div>`;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -599,72 +592,52 @@
 
             if (!duties || duties.length === 0) {
                 box.innerHTML = `
-                    <div class="text-center py-4 text-muted small bg-light rounded-4">
-                        <i class="bi bi-people text-muted display-6 mb-2 d-block"></i>
-                        คุณไม่มีภาระงานไปนิเทศผู้อื่นในภาคเรียนนี้
-                    </div>
-                `;
+                    <div class="text-center py-4 text-muted small rounded-4" style="background:#f8fafc;border:1px dashed #cbd5e1;">
+                        <i class="bi bi-person-check text-muted mb-2 d-block" style="font-size:1.8rem;"></i>
+                        ไม่มีภาระงานนิเทศในภาคเรียนนี้
+                    </div>`;
                 return;
             }
 
-            let grouped = { 'peer': [], 'head': [], 'academic': [] };
-            duties.forEach(d => {
-                if (grouped[d.role]) grouped[d.role].push(d);
-            });
-
-            let html = '';
-            const roleTitles = {
-                'peer': 'ครูผู้ร่วมนิเทศ (Peer)',
-                'head': 'ครูผู้นิเทศ (หัวหน้า/รอง)',
-                'academic': 'คณะกรรมการวิชาการ'
+            const roleColors = {
+                'peer':     { border:'#22c55e', bg:'#f0fdf4', badge:'bg-success', text:'text-success', label:'Peer' },
+                'head':     { border:'#3b82f6', bg:'#eff6ff', badge:'bg-primary', text:'text-primary', label:'หัวหน้า' },
+                'academic': { border:'#a855f7', bg:'#faf5ff', badge:'bg-purple',  text:'text-purple',  label:'วิชาการ' },
             };
 
-            ['peer', 'head', 'academic'].forEach(role => {
-                if (grouped[role].length > 0) {
-                    html += `<h6 class="fw-bold text-secondary mt-3 mb-2">${roleTitles[role]}</h6>`;
-                    grouped[role].forEach(d => {
-                        const badgeClass = d.status === 'completed' ? 'bg-success' : 'bg-primary';
-                        
-                        let statusText = 'รอดำเนินการ';
-                        let statusBadgeStyle = 'bg-warning bg-opacity-10 text-warning border-warning';
-                        if (d.status === 'pending') {
-                            statusText = 'รออนุมัติ';
-                            statusBadgeStyle = 'bg-warning bg-opacity-10 text-warning border border-warning';
-                        } else if (d.status === 'approved') {
-                            statusText = 'อนุมัติแล้ว (รอส่งแผน)';
-                            statusBadgeStyle = 'bg-info bg-opacity-10 text-info border border-info';
-                        } else if (d.status === 'doc_submitted') {
-                            statusText = 'ส่งแผนแล้ว';
-                            statusBadgeStyle = 'bg-primary bg-opacity-10 text-primary border border-primary';
-                        } else if (d.status === 'completed') {
-                            statusText = 'เสร็จสิ้น';
-                            statusBadgeStyle = 'bg-success bg-opacity-10 text-success border border-success';
-                        }
+            let html = '';
+            duties.forEach(d => {
+                const rc = roleColors[d.role] || { border:'#94a3b8', bg:'#f8fafc', badge:'bg-secondary', text:'text-secondary', label:d.role };
 
-                        html += `
-                            <div class="card border-0 shadow-sm rounded-4 mb-3">
-                                <div class="card-body p-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <img src="${d.teacher_photo ? '../' + d.teacher_photo : '../public/images/default-avatar.png'}" class="rounded-circle me-2 object-fit-cover" width="32" height="32">
-                                        <div>
-                                            <div class="fw-bold small text-navy">${d.teacher_name}</div>
-                                            <div class="text-muted" style="font-size:0.7rem;">${d.department || ''}</div>
-                                        </div>
-                                    </div>
-                                    <div class="small fw-bold text-dark mt-2 mb-1">${d.subject_code || ''} ${d.subject_name || ''}</div>
-                                    <div class="text-muted mb-2" style="font-size:0.75rem;">
-                                        <div><i class="bi bi-calendar-event"></i> ${thDate(d.booking_date)} (คาบ ${d.booking_period})</div>
-                                        <div><i class="bi bi-person-video3"></i> ม.${d.classroom || ''} | ห้อง ${d.room_number || '-'}</div>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                        <span class="badge ${badgeClass} bg-opacity-10 text-${badgeClass.replace('bg-','')} border border-${badgeClass.replace('bg-','')}">${d.role_th}</span>
-                                        <span class="badge ${statusBadgeStyle}" style="font-size:0.65rem;">${statusText}</span>
-                                    </div>
-                                </div>
+                let statusIcon = 'bi-hourglass-split text-warning';
+                let statusText = 'รออนุมัติ';
+                if (d.status === 'approved')      { statusIcon = 'bi-check-circle text-info';    statusText = 'อนุมัติแล้ว'; }
+                if (d.status === 'doc_submitted') { statusIcon = 'bi-file-earmark-check text-primary'; statusText = 'ส่งแผนแล้ว'; }
+                if (d.status === 'completed')     { statusIcon = 'bi-patch-check-fill text-success'; statusText = 'เสร็จสิ้น'; }
+
+                html += `
+                <div class="d-flex gap-3 p-3 rounded-4 mb-2" style="background:${rc.bg};border:1.5px solid ${rc.border}30;">
+                    <img src="${d.teacher_photo ? '../' + d.teacher_photo : '../public/images/default-avatar.png'}"
+                         class="rounded-circle object-fit-cover flex-shrink-0 border border-2 border-white shadow-sm"
+                         width="48" height="48" onerror="this.src='../public/images/default-avatar.png'">
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex align-items-center justify-content-between gap-1 flex-wrap mb-1">
+                            <div class="fw-black text-navy text-truncate" style="font-size:0.88rem;">${d.teacher_name}</div>
+                            <span class="badge rounded-pill px-2 py-1 ${rc.badge} bg-opacity-15 ${rc.text} border" style="font-size:0.65rem;border-color:${rc.border}60!important;">${rc.label}</span>
+                        </div>
+                        <div class="text-muted mb-1" style="font-size:0.72rem;">${d.department || ''}</div>
+                        <div class="fw-bold text-dark mb-1" style="font-size:0.8rem;">${d.subject_code || ''} <span class="fw-normal text-muted">${d.subject_name || ''}</span></div>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size:0.72rem;">
+                            <div class="text-muted">
+                                <i class="bi bi-calendar-event me-1"></i>${thDate(d.booking_date)} · คาบ ${d.booking_period}
+                                &nbsp;<i class="bi bi-door-open me-1"></i>ห้อง ${d.room_number || '-'}
                             </div>
-                        `;
-                    });
-                }
+                            <div class="${statusIcon.includes('success') ? 'text-success' : statusIcon.includes('info') ? 'text-info' : statusIcon.includes('primary') ? 'text-primary' : 'text-warning'} fw-bold d-flex align-items-center gap-1">
+                                <i class="bi ${statusIcon.split(' ')[0]}"></i>${statusText}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
             });
             box.innerHTML = html;
         }
@@ -1006,9 +979,9 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    // ตรวจสอบว่ามีตัวแทนวิชาการว่างในคาบนี้หรือไม่
+                    // ตรวจสอบว่ามีคณะกรรมการวิชาการว่างในคาบนี้หรือไม่
                     if (data.has_academic_available === false) {
-                        // ไม่มีตัวแทนวิชาการว่าง → ยกเลิกการเลือกคาบนี้
+                        // ไม่มีคณะกรรมการวิชาการว่าง → ยกเลิกการเลือกคาบนี้
                         document.getElementById('booking_period').value = '';
                         document.querySelectorAll('input[name="booking_period_radio"]').forEach(r => r.checked = false);
                         peerContainer.innerHTML = '';
@@ -1016,7 +989,7 @@
                         await Swal.fire({
                             icon: 'warning',
                             title: 'ไม่สามารถเลือกคาบนี้ได้',
-                            text: 'ไม่มีตัวแทนวิชาการว่างในคาบที่เลือก กรุณาเลือกคาบอื่น',
+                            text: 'ไม่มีคณะกรรมการวิชาการว่างในคาบที่เลือก กรุณาเลือกคาบอื่น',
                             confirmButtonColor: '#1e3a8a'
                         });
                         return;
@@ -1197,7 +1170,7 @@
             if (!data.booking_date) missing.push("วันที่นัดหมาย");
             if (!data.booking_period) missing.push("คาบเรียน");
             if (!data.peer_teacher_id) missing.push("ครูผู้ร่วมนิเทศ (Peer)");
-            if (!data.head_teacher_id) missing.push("ครูผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)");
+            if (!data.head_teacher_id) missing.push("ผู้นิเทศ (หัวหน้ากลุ่มสาระฯ)");
 
             if (missing.length > 0) {
                 Swal.fire({ 
@@ -1486,35 +1459,55 @@
                 countBadge.style.display = '';
             }
 
-            box.innerHTML = `<div class="row g-3">${bookings.map(b => {
-                const isMine = parseInt(b.teacher_id) === parseInt(myTeacherId);
-                const cardBg = isMine
-                    ? 'background:#f0fdf4;border:2px solid #86efac;'
-                    : 'background:#f8fafc;border:1px solid #e2e8f0;';
-                const mineBadge = isMine
-                    ? '<span class="badge rounded-pill ms-1 fw-bold" style="background:#dcfce7;color:#15803d;font-size:0.58rem;">คุณ</span>'
-                    : '';
-                const photoSrc = teacherPhotoUrl(b.teacher_photo);
-                return `
-                    <div class="col-12 col-sm-6 col-md-4 col-xl-3">
-                        <div class="p-3 rounded-4 h-100 d-flex align-items-center gap-3" style="${cardBg}">
-                            <img src="${photoSrc}"
-                                 class="rounded-circle object-fit-cover flex-shrink-0 border border-2 border-white shadow-sm"
-                                 width="52" height="52"
-                                 onerror="this.src='../public/img/default-avatar.png'">
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="fw-black text-navy text-truncate" style="font-size:0.88rem;">${b.teacher_name || '-'}${mineBadge}</div>
-                                <div class="text-muted mt-1" style="font-size:0.72rem;">
-                                    <i class="bi bi-calendar-event me-1"></i>${thDate(b.date)} · คาบ ${b.period}
-                                </div>
-                                <div class="mt-1" style="font-size:0.7rem;">
-                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 me-1">${b.subject_code || '-'}</span>
-                                    <span class="text-muted">ม.${b.classroom || '-'}</span>
+            // จัด group ตามวันที่
+            const byDate = {};
+            bookings.forEach(b => {
+                const key = b.date || '';
+                if (!byDate[key]) byDate[key] = [];
+                byDate[key].push(b);
+            });
+            const sortedDates = Object.keys(byDate).sort();
+
+            const thDayNames = ['', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+            const thMonFull  = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+            box.innerHTML = sortedDates.map(date => {
+                const items = byDate[date].slice().sort((a, b) => (a.period || 0) - (b.period || 0));
+                const d = new Date(date);
+                const dayLabel = isNaN(d) ? date : `วัน${thDayNames[d.getDay() === 0 ? 7 : d.getDay()]}ที่ ${d.getDate()} ${thMonFull[d.getMonth()]} ${d.getFullYear() + 543}`;
+
+                const cards = items.map(b => {
+                    const isMine  = parseInt(b.teacher_id) === parseInt(myTeacherId);
+                    const cardBg  = isMine ? 'background:#f0fdf4;border:2px solid #86efac;' : 'background:#f8fafc;border:1px solid #e2e8f0;';
+                    const mineBadge = isMine ? '<span class="badge rounded-pill ms-1 fw-bold" style="background:#dcfce7;color:#15803d;font-size:0.58rem;">คุณ</span>' : '';
+                    const photoSrc = teacherPhotoUrl(b.teacher_photo);
+                    return `
+                        <div class="col-12 col-sm-6">
+                            <div class="p-3 rounded-4 h-100 d-flex align-items-center gap-3" style="${cardBg}">
+                                <img src="${photoSrc}" class="rounded-circle object-fit-cover flex-shrink-0 border border-2 border-white shadow-sm"
+                                     width="46" height="46" onerror="this.src='../public/img/default-avatar.png'">
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="fw-black text-navy text-truncate" style="font-size:0.86rem;">${b.teacher_name || '-'}${mineBadge}</div>
+                                    <div class="text-muted mt-1" style="font-size:0.7rem;"><i class="bi bi-clock me-1"></i>คาบ ${b.period}</div>
+                                    <div class="mt-1" style="font-size:0.68rem;">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 me-1">${b.subject_code || '-'}</span>
+                                        <span class="text-muted">ม.${b.classroom || '-'}</span>
+                                    </div>
                                 </div>
                             </div>
+                        </div>`;
+                }).join('');
+
+                return `
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 mb-2 px-1">
+                            <i class="bi bi-calendar3-fill text-primary" style="font-size:0.8rem;"></i>
+                            <span class="fw-bold text-navy" style="font-size:0.82rem;">${dayLabel}</span>
+                            <span class="badge bg-secondary bg-opacity-10 text-secondary border ms-1" style="font-size:0.65rem;">${items.length} คิว</span>
                         </div>
+                        <div class="row g-2">${cards}</div>
                     </div>`;
-            }).join('')}</div>`;
+            }).join('');
         }
 
         function thDate(dateStr) {

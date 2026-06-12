@@ -259,8 +259,8 @@ try {
         // depending on how data was imported — support both via two JOIN passes
         $sql = "SELECT
                     t.*,
-                    COALESCE(sc.subject_name, sn.subject_name, t.subject_name) AS subject_name,
-                    COALESCE(sc.subject_code, sn.subject_code)                 AS subject_code,
+                    COALESCE(sc.subject_name, sn.subject_name, t.subject_name)        AS subject_name,
+                    COALESCE(NULLIF(t.subject_code, ''), sc.subject_code, sn.subject_code) AS subject_code,
                     CONCAT(COALESCE(tc.prefix,''), COALESCE(tc.first_name_th,''), ' ', COALESCE(tc.last_name_th,'')) AS teacher_name,
                     tc.first_name_th AS teacher_first_name,
                     tc.photo AS teacher_photo

@@ -118,11 +118,19 @@ try {
         if ($ts !== false) {
             $day_of_week = (int)date('N', $ts); // 1=Monday … 7=Sunday
 
+            // กรองเฉพาะปีการศึกษา/ภาคเรียนปัจจุบัน — ข้อมูลเทอมเก่าต้องไม่ทำให้ครูถูกนับว่าไม่ว่าง
+            $settingsStmt    = $pdo->query("SELECT setting_key, setting_value FROM system_settings");
+            $sys             = $settingsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            $currentYear     = $sys['current_academic_year'] ?? '2569';
+            $currentSemester = (int) ($sys['current_semester'] ?? 1);
+            $term_filter = " AND (academic_year IS NULL OR academic_year = '' OR academic_year = ?)
+                             AND (semester IS NULL OR semester = 0 OR semester = ?)";
+
             // ครูที่มีตารางสอนในคาบนี้ (ทุกวิชา)
             $stmt_busy = $pdo->prepare(
-                "SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ?"
+                "SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ?" . $term_filter
             );
-            $stmt_busy->execute([$day_of_week, $period_param]);
+            $stmt_busy->execute([$day_of_week, $period_param, $currentYear, $currentSemester]);
             $busy_ids = array_map('intval', array_column($stmt_busy->fetchAll(PDO::FETCH_ASSOC), 'teacher_id'));
 
             // ครูที่ถูกจองเป็น peer หรือ head ในคาบเดียวกัน (วันเดียวกัน + คาบเดียวกัน)
@@ -147,17 +155,10 @@ try {
             $heads = array_values(array_filter($heads, fn($t) =>
                 !in_array((int)$t['id'], $busy_ids) && !in_array((int)$t['id'], $committed_ids)));
 
-            // ครูที่มีรายการ "ประชุม" ในคาบนี้ (ใช้ตรวจสอบรองผู้อำนวยการ)
-            $stmt_mtg = $pdo->prepare(
-                "SELECT DISTINCT teacher_id FROM timetable WHERE day_of_week = ? AND period = ? AND subject_name LIKE '%ประชุม%'"
-            );
-            $stmt_mtg->execute([$day_of_week, $period_param]);
-            $meeting_ids = array_map('intval', $stmt_mtg->fetchAll(PDO::FETCH_COLUMN));
-
-            // รายชื่อตัวแทนวิชาการ (ต้องตรงกับ supervision_booking_manage.php เสมอ)
+            // รายชื่อคณะกรรมการวิชาการ (ต้องตรงกับ supervision_booking_manage.php เสมอ)
             $allowed_academic_names = [
                 'วิลาวรรณ', 'เพ็ญประภา', 'ปวีณ์นุช', 'จิตรดา',
-                'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพา', 'อังคณา', 'สันธินี', 'สาธิต', 'สามารถ',
+                'สุภัค', 'ปณิตา', 'สุชาดา จ๋วงพานิช', 'อังคณา', 'สันธินี', 'สาธิต', 'สามารถ',
                 'บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย',
             ];
             $known_deputy_fullnames = ['บารมี คงฤทธิ์', 'อดิศักดิ์ เอี่ยมรักษา', 'สวรส แตงโสภา', 'ธีรพงศ์ เพ็งชัย'];
@@ -179,7 +180,8 @@ try {
                     }
                 }
                 if (!$in_list) continue;
-                $is_busy = $is_dep ? in_array($at_id, $meeting_ids) : in_array($at_id, $busy_ids);
+                // ทุกคนใช้ตรรกะเดียวกัน: มีรายการในตารางสอน (รวม ประชุม) = busy
+                $is_busy = in_array($at_id, $busy_ids) || in_array($at_id, $committed_ids);
                 if (!$is_busy) { $has_academic_available = true; break; }
             }
         }

@@ -239,7 +239,7 @@ try {
 
             $role_th = '';
             if ($role === 'peer') $role_th = 'ครูผู้ร่วมนิเทศ';
-            elseif ($role === 'head') $role_th = 'ครูผู้นิเทศ (หัวหน้า/รอง)';
+            elseif ($role === 'head') $role_th = 'ผู้นิเทศ (หัวหน้า/รอง)';
             elseif ($role === 'academic') $role_th = 'คณะกรรมการวิชาการ';
 
             $booking_id = $d['id'];

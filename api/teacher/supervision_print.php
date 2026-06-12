@@ -591,11 +591,11 @@ try {
                     <td><?php echo htmlspecialchars($booking['peer_name']); ?></td>
                 </tr>
                 <tr>
-                    <td class="bg-light fw-bold">ครูผู้นิเทศ (Head/Deputy)</td>
+                    <td class="bg-light fw-bold">ผู้นิเทศ (Head/Deputy)</td>
                     <td><?php echo htmlspecialchars($booking['head_name']); ?></td>
                 </tr>
                 <tr>
-                    <td class="bg-light fw-bold">คณะกรรมการวิชาการ (Academic)</td>
+                    <td class="bg-light fw-bold">คณะกรรมการวิชาการ</td>
                     <td><?php echo htmlspecialchars($booking['academic_name'] ?? '-'); ?></td>
                 </tr>
             </tbody>
@@ -785,7 +785,7 @@ try {
                 <?php if ($head_eval && !empty($head_eval['doc_comments'])): 
                     $parsed = parse_evaluator_role($head_eval['doc_comments']);
                 ?>
-                    <li><strong>ครูผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
+                    <li><strong>ผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
                 <?php endif; ?>
                 <?php if ($academic_eval && !empty($academic_eval['doc_comments'])): 
                     $parsed = parse_evaluator_role($academic_eval['doc_comments']);
@@ -848,7 +848,7 @@ try {
                     $parsed = parse_evaluator_role($head_eval['class_comments']);
                     if (!empty($parsed['comments'])):
                 ?>
-                    <li><strong>ครูผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
+                    <li><strong>ผู้นิเทศ (หัวหน้า/รอง):</strong> <?php echo htmlspecialchars($parsed['comments']); ?></li>
                 <?php endif; endif; ?>
                 <?php if ($academic_eval && !empty($academic_eval['class_comments'])): 
                     $parsed = parse_evaluator_role($academic_eval['class_comments']);
@@ -1034,7 +1034,7 @@ try {
                 ลงชื่อ.......................................................<br>
                 ( <?php echo htmlspecialchars($booking['head_name']); ?> )<br>
                 <?php 
-                $head_title = 'ครูผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)';
+                $head_title = 'ผู้นิเทศ (หัวหน้า/รองกลุ่มสาระฯ)';
                 if ($head_eval) {
                     $parsed = parse_evaluator_role($head_eval['class_comments']);
                     if (empty($parsed['title'])) {
@@ -1056,7 +1056,7 @@ try {
                 ลงชื่อ.......................................................<br>
                 ( <?php echo htmlspecialchars($booking['academic_name'] ?? '.......................................................'); ?> )<br>
                 <?php 
-                $acad_title = 'ผู้แทนคณะกรรมการวิชาการ';
+                $acad_title = 'คณะกรรมการวิชาการ';
                 if ($academic_eval) {
                     $parsed = parse_evaluator_role($academic_eval['class_comments']);
                     if (empty($parsed['title'])) {

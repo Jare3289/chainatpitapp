@@ -423,10 +423,10 @@ function renderSidebar(role, user, settings = {}) {
                 { href: 'supervision_print.html', icon: 'bi bi-printer', label: 'พิมพ์รายงาน', active: a('supervision_print.html') }
             ];
 
-            if (user && user.id === 518) {
+            if (user && user.is_supervision_manager) {
                 supervisionItems.push(
-                    { href: 'admin_supervision.html', icon: 'bi bi-bar-chart-fill text-warning', label: 'สถิติภาพรวมนิเทศ (แอดมิน)', active: a('admin_supervision.html') },
-                    { href: 'admin_supervision_booking.html', icon: 'bi bi-calendar-check-fill text-warning', label: 'จัดการคิวและกรรมการ (แอดมิน)', active: a('admin_supervision_booking.html') }
+                    { href: 'admin_supervision.html', icon: 'bi bi-bar-chart-fill text-warning', label: 'สถิติภาพรวมนิเทศ', active: a('admin_supervision.html') },
+                    { href: 'admin_supervision_booking.html', icon: 'bi bi-calendar-check-fill text-warning', label: 'จัดการคิวและกรรมการ', active: a('admin_supervision_booking.html') }
                 );
             }
 
@@ -511,8 +511,8 @@ async function checkAuth(expectedRole) {
             if (roles.includes(data.user.role)) {
                 hasAccess = true;
             }
-            // Special exemption: Teacher ID 518 (Penprapha) can access admin pages
-            if (roles.includes('admin') && data.user.role === 'teacher' && data.user.id === 518) {
+            // ผู้ดูแลระบบนิเทศ (role=teacher) เข้าหน้า admin supervision ได้
+            if (roles.includes('admin') && data.user.role === 'teacher' && data.user.is_supervision_manager) {
                 hasAccess = true;
             }
         }
@@ -1020,13 +1020,24 @@ function showNotificationPopup(id) {
         : (n.type === 'warning' || n.type === 'error') ? n.type
         : colorToIcon(n.color || '');
 
+    // ลบออกจาก DOM ทันที — ไม่รอ API
+    const notiEl = document.querySelector(`.noti-item[data-id="${id}"]`);
+    if (notiEl) notiEl.remove();
+    // อัปเดต badge ทันที
+    const remaining = document.querySelectorAll('#noti-list-container .noti-item').length;
+    updateNotiBadge(remaining);
+    if (remaining === 0) {
+        const c = document.getElementById('noti-list-container');
+        if (c) c.innerHTML = '<div class="noti-empty">ไม่มีการแจ้งเตือน</div>';
+    }
+
     Swal.fire({
         icon: swalIcon,
         title: n.title || 'การแจ้งเตือน',
         html: `<div style="text-align:left;line-height:1.8;font-size:0.95rem;">${n.message || ''}</div>`,
-        confirmButtonText: 'อ่านแล้ว รับทราบ',
+        confirmButtonText: 'รับทราบ',
         confirmButtonColor: '#1e3a8a',
-        allowOutsideClick: false,
+        allowOutsideClick: true,
     }).then(() => {
         markAsRead(id);
     });

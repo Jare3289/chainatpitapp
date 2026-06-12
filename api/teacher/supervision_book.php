@@ -183,7 +183,7 @@ try {
         if ($stmt_c2->fetch()) {
             $stmt_n2 = $pdo->prepare("SELECT CONCAT(COALESCE(prefix,''), first_name_th, ' ', last_name_th) FROM teachers WHERE id = ?");
             $stmt_n2->execute([$head_teacher_id]);
-            $conflict_names[] = ($stmt_n2->fetchColumn() ?: 'ครูผู้นิเทศ') . ' (ครูผู้นิเทศ)';
+            $conflict_names[] = ($stmt_n2->fetchColumn() ?: 'ผู้นิเทศ') . ' (ผู้นิเทศ)';
         }
     }
     if (!empty($conflict_names)) {
@@ -269,7 +269,7 @@ try {
             // New booking — notify teacher (self) + peer + head + admins
             supervisionNotify($pdo, [$teacherUid], 'จองคิวนิเทศสำเร็จ ✅', "คิวนิเทศของคุณถูกบันทึกแล้ว วิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} รอฝ่ายวิชาการแต่งตั้งกรรมการ", 'teacher_supervision.html');
             supervisionNotify($pdo, [$peerUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นครูผู้ร่วมนิเทศ (Peer) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
-            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นครูผู้นิเทศ (หัวหน้า) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
+            supervisionNotify($pdo, [$headUid], 'คำเชิญเป็นกรรมการนิเทศ 📋', "คุณได้รับการเลือกเป็นผู้นิเทศ (หัวหน้า) วิชา {$subjectLabel} ของ {$teacherDisplayName} วันที่ {$booking_date} คาบ {$booking_period}", 'teacher_supervision.html');
             supervisionNotify($pdo, $adminUids, 'มีคิวนิเทศใหม่รอแต่งตั้งกรรมการ 🔔', "{$teacherDisplayName} จองคิวนิเทศวิชา {$subjectLabel} วันที่ {$booking_date} คาบ {$booking_period} — กรุณาแต่งตั้งคณะกรรมการ", 'admin_supervision_booking.html');
         }
     } catch (Throwable $e_notif) {
