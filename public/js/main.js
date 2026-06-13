@@ -373,6 +373,18 @@ function renderSidebar(role, user, settings = {}) {
             const isAttendanceActive = ['attendance_daily.html', 'attendance_subject.html', 'attendance_report.html', 'advisory_period_report.html', 'today_overview.html', 'admin_room_report.html', 'monthly_stats.html', 'at_risk_students.html', 'admin_executive.html'].some(x => a(x));
             html += _navGroup('bi bi-calendar-check-fill', 'เช็คชื่อ', attendanceItems, isAttendanceActive);
 
+        const isPublicServiceActive = ['admin_public_service.html', 'admin_public_service_stats.html', 'teacher_public_service.html', 'teacher_public_service_report.html'].some(x => a(x));
+        let psItems = [];
+        if (role === 'admin') {
+            psItems.push({ href: 'admin_public_service.html', icon: 'bi bi-activity', label: 'ภาพรวมกิจกรรม', active: a('admin_public_service.html') });
+            psItems.push({ href: 'admin_public_service_stats.html', icon: 'bi bi-bar-chart-line', label: 'รายงานและสถิติ', active: a('admin_public_service_stats.html') });
+        }
+        if (role === 'teacher') {
+            psItems.push({ href: 'teacher_public_service.html', icon: 'bi bi-check2-square', label: 'รอรับรอง', active: a('teacher_public_service.html') });
+            psItems.push({ href: 'teacher_public_service_report.html', icon: 'bi bi-file-earmark-bar-graph', label: 'รายงานสาธา', active: a('teacher_public_service_report.html') });
+        }
+        if (psItems.length > 0) html += _navGroup('bi bi-heart-fill text-danger', 'สาธารณประโยชน์', psItems, isPublicServiceActive);
+
         const creditItems = [
             { href: 'credit_score_manage.html', icon: 'bi bi-person-plus-fill', label: 'เพิ่ม/ลบ คะแนน', active: a('credit_score_manage.html') },
             { href: 'credit_score_history.html', icon: 'bi bi-clock-history', label: 'ประวัติการให้คะแนน', active: a('credit_score_history.html') },
